@@ -1,0 +1,3 @@
+ALTER TABLE "empresas" ADD COLUMN "pais" TEXT NOT NULL DEFAULT 'DO';
+ALTER TABLE "proveedores" ADD COLUMN "pais" TEXT NOT NULL DEFAULT 'DO';
+ALTER TABLE "proveedores" ADD COLUMN "logo" TEXT;

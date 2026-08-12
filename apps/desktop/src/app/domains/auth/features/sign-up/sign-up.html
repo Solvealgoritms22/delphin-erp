@@ -1,0 +1,248 @@
+<div class="flex flex-auto">
+  <div class="flex flex-auto items-center justify-center bg-white p-4 sm:p-12 dark:bg-neutral-950">
+    <div class="flex w-full max-w-md flex-col sm:min-w-[28rem]">
+      <!-- Logo -->
+      <div class="flex items-center gap-x-2.5">
+        <img src="/images/logo/logo_dolphin_light.png"
+          class="h-10 w-auto max-w-[200px] object-contain object-left dark:hidden" alt="Dolphin logo" />
+        <img src="/images/logo/logo_dolphin_dark.png"
+          class="h-12 w-auto max-w-[200px] object-contain object-left hidden dark:block" alt="Dolphin logo" />
+
+      </div>
+
+      <!-- Title -->
+      <div class="leading-tight mt-8 text-4xl font-extrabold tracking-tight">
+         {{ 'auth.signUp.title' | transloco }}
+      </div>
+      <div class="mt-0.5 flex items-baseline font-medium">
+          <div class="text-neutral-500">{{ 'auth.signUp.haveAccount' | transloco }}</div>
+        <a class="ml-1 underline" routerLink="/auth/sign-in">
+          {{ 'auth.signIn.submit' | transloco }}
+        </a>
+      </div>
+
+      <!-- Sign up form -->
+      <form class="mt-8" (submit)="signUp($event)">
+        <div class="flex flex-col gap-y-4">
+          <!-- Name field -->
+          <mat-form-field class="w-full">
+             <mat-label>{{ 'auth.fields.name' | transloco }}</mat-label>
+            <input id="name" matInput [formField]="signUpForm.name" placeholder="Nombre" />
+            <mat-error>
+              @if (signUpForm.name().touched() && signUpForm.name().invalid()) {
+              @for (error of signUpForm.name().errors(); track error) {
+              {{ error.message }}
+              }
+              }
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Company field -->
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'auth.fields.company' | transloco }}</mat-label>
+            <input id="company" matInput [formField]="signUpForm.company" placeholder="Acme Corp" />
+            <mat-error>
+              @if (
+              signUpForm.company().touched() && signUpForm.company().invalid()
+              ) {
+              @for (error of signUpForm.company().errors(); track error) {
+              {{ error.message }}
+              }
+              }
+            </mat-error>
+          </mat-form-field>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <mat-form-field class="w-full">
+              <mat-label>{{ 'auth.fields.country' | transloco }}</mat-label>
+              <mat-select [formField]="signUpForm.country" (selectionChange)="setCountry($event.value)">
+                @for (country of countries; track country.code) {
+                  <mat-option [value]="country.code" [disabled]="country.disabled">
+                    <span class="inline-flex items-center gap-2"><img [src]="country.flag" [alt]="country.label" class="h-3 w-5 object-cover"> {{ country.label }}{{ country.disabled ? ' (próximamente)' : '' }}</span>
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field class="w-full">
+              <mat-label>{{ 'auth.fields.documentType' | transloco }}</mat-label>
+              <mat-select [formField]="signUpForm.documentType">
+                @for (document of documentTypes(); track document.value) {
+                  <mat-option [value]="document.value">{{ document.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'auth.fields.documentNumber' | transloco }}</mat-label>
+            <input matInput [formField]="signUpForm.documentNumber" placeholder="123456789" />
+          </mat-form-field>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'auth.fields.phone' | transloco }}</mat-label>
+            <input matInput [formField]="signUpForm.phone" [placeholder]="phonePlaceholder()" />
+          </mat-form-field>
+
+          <!-- Email field -->
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'auth.fields.email' | transloco }}</mat-label>
+            <input id="email" matInput [formField]="signUpForm.email" placeholder="correo@empresa.com" />
+            <mat-error>
+              @if (
+              signUpForm.email().touched() && signUpForm.email().invalid()
+              ) {
+              @for (error of signUpForm.email().errors(); track error) {
+              {{ error.message }}
+              }
+              }
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Password field -->
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'auth.fields.password' | transloco }}</mat-label>
+            <input id="password" matInput type="password" [formField]="signUpForm.password" placeholder="••••••••"
+              #passwordField />
+            <button matIconButton type="button" (click)="
+                passwordField.type === 'password'
+                  ? (passwordField.type = 'text')
+                  : (passwordField.type = 'password')
+              " matSuffix>
+              @if (passwordField.type === 'password') {
+              <mat-icon class="size-5" svgIcon="eye"></mat-icon>
+              }
+              @if (passwordField.type === 'text') {
+              <mat-icon class="size-5" svgIcon="eye-off"></mat-icon>
+              }
+            </button>
+            <mat-error>
+              @if (
+              signUpForm.password().touched() &&
+              signUpForm.password().invalid()
+              ) {
+              @for (error of signUpForm.password().errors(); track error) {
+              {{ error.message }}
+              }
+              }
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Confirm password field -->
+          <mat-form-field class="w-full">
+             <mat-label>{{ 'auth.fields.confirmPassword' | transloco }}</mat-label>
+            <input id="confirmPassword" matInput type="password" [formField]="signUpForm.confirmPassword" placeholder="Repite tu contraseña"
+              #confirmPasswordField />
+            <button matIconButton type="button" (click)="
+                confirmPasswordField.type === 'password'
+                  ? (confirmPasswordField.type = 'text')
+                  : (confirmPasswordField.type = 'password')
+              " matSuffix>
+              @if (confirmPasswordField.type === 'password') {
+              <mat-icon class="size-5" svgIcon="eye"></mat-icon>
+              } @else {
+              <mat-icon class="size-5" svgIcon="eye-off"></mat-icon>
+              }
+            </button>
+            <mat-error>
+              @if (signUpForm.confirmPassword().touched() && signUpForm.confirmPassword().invalid()) {
+                @for (error of signUpForm.confirmPassword().errors(); track error) {
+                  {{ error.message }}
+                }
+              } @else if (!passwordsMatch()) {
+                 {{ 'auth.validation.passwordsMismatch' | transloco }}
+              }
+            </mat-error>
+          </mat-form-field>
+
+          <div class="-mt-2" aria-live="polite">
+            <div class="flex items-center justify-between text-xs">
+               <span class="text-neutral-500">{{ 'auth.signUp.passwordStrength' | transloco }}</span>
+              <span class="font-semibold" [style.color]="passwordStrength().color">{{ passwordStrength().label }}</span>
+            </div>
+            <div class="mt-2 flex gap-1">
+              @for (segment of [1, 2, 3, 4, 5]; track segment) {
+                <span class="h-1.5 flex-1 rounded-full bg-neutral-200 dark:bg-neutral-700" [style.background]="segment <= passwordStrength().score ? passwordStrength().color : null"></span>
+              }
+            </div>
+             <p class="mt-2 text-[11px] leading-4 text-neutral-500">{{ 'auth.signUp.passwordHint' | transloco }}</p>
+          </div>
+        </div>
+
+        <!-- Legal Agreements -->
+        <div class="mt-4 flex flex-col gap-2">
+          <mat-checkbox class="-ml-2 text-sm" [formField]="signUpForm.agreements">
+             <span class="text-neutral-500">{{ 'legal.agreeTo' | transloco }}</span>
+             <a class="ml-1 font-medium text-blue-600 hover:underline" routerLink="/legal/terms" target="_blank">{{ 'legal.terms' | transloco }}</a>
+            <span class="text-neutral-500">,</span>
+             <a class="mx-1 font-medium text-blue-600 hover:underline" routerLink="/legal/privacy" target="_blank">{{ 'legal.privacy' | transloco }}</a>
+             <span class="text-neutral-500">{{ 'legal.and' | transloco }}</span>
+             <a class="ml-1 font-medium text-blue-600 hover:underline" routerLink="/legal/cookies" target="_blank">{{ 'legal.cookies' | transloco }}</a>.
+          </mat-checkbox>
+          <mat-checkbox class="-ml-2 text-sm" [formField]="signUpForm.subscription">
+             <span class="text-neutral-500">{{ 'legal.accept' | transloco }}</span>
+             <a class="ml-1 font-medium text-blue-600 hover:underline" routerLink="/legal/subscription" target="_blank">{{ 'legal.subscription' | transloco }}</a>.
+          </mat-checkbox>
+        </div>
+
+        <!-- Submit button -->
+         <button type="submit" matButton="filled" class="mt-6 w-full" [disabled]="signUpForm().invalid() || !passwordsMatch() || passwordStrength().score < 4">
+             {{ 'auth.signUp.submit' | transloco }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div
+    class="relative hidden flex-auto items-center justify-center overflow-hidden border-l bg-neutral-950 p-8 sm:px-12 md:flex">
+    <!-- Background -->
+    <!-- Rings -->
+    <!-- prettier-ignore -->
+    <svg class="absolute inset-0 pointer-events-none" viewBox="0 0 960 540" width="100%" height="100%"
+      preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <g class="text-neutral-700/25" fill="none" stroke="currentColor" stroke-width="100">
+        <circle r="234" cx="196" cy="23"></circle>
+        <circle r="234" cx="790" cy="491"></circle>
+      </g>
+    </svg>
+
+    <!-- Dots -->
+    <!-- prettier-ignore -->
+    <svg class="absolute -top-16 -right-16 text-neutral-700" viewBox="0 0 220 192" width="220" height="192" fill="none">
+      <defs>
+        <pattern id="837c3e70-6c3a-44e6-8854-cc48c737b659" x="0" y="0" width="20" height="20"
+          patternUnits="userSpaceOnUse">
+          <rect x="0" y="0" width="4" height="4" fill="currentColor"></rect>
+        </pattern>
+      </defs>
+      <rect width="220" height="192" fill="url(#837c3e70-6c3a-44e6-8854-cc48c737b659)"></rect>
+    </svg>
+
+    <!-- Content -->
+    <div class="relative z-10 w-full max-w-2xl">
+       <div class="text-5xl font-bold leading-tight text-white">
+          {{ 'auth.brand.tagline' | transloco }}
+       </div>
+       <div class="text-medium mt-6 max-w-xl text-xl leading-relaxed text-neutral-500">
+          {{ 'auth.brand.description' | transloco }}
+       </div>
+       <div class="mt-12 grid max-w-xl grid-cols-2 gap-3">
+         <div class="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+            <div class="text-sm font-semibold text-white">{{ 'auth.brand.multiCompany' | transloco }}</div>
+            <div class="mt-1 text-xs leading-5 text-neutral-500">{{ 'auth.brand.multiCompanyDescription' | transloco }}</div>
+         </div>
+         <div class="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+            <div class="text-sm font-semibold text-white">{{ 'auth.brand.connectedCatalogs' | transloco }}</div>
+            <div class="mt-1 text-xs leading-5 text-neutral-500">{{ 'auth.brand.connectedCatalogsDescription' | transloco }}</div>
+         </div>
+         <div class="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+            <div class="text-sm font-semibold text-white">{{ 'auth.brand.controlledAccess' | transloco }}</div>
+            <div class="mt-1 text-xs leading-5 text-neutral-500">{{ 'auth.brand.controlledAccessDescription' | transloco }}</div>
+         </div>
+         <div class="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+            <div class="text-sm font-semibold text-white">{{ 'auth.brand.actionableInformation' | transloco }}</div>
+            <div class="mt-1 text-xs leading-5 text-neutral-500">{{ 'auth.brand.actionableInformationDescription' | transloco }}</div>
+         </div>
+       </div>
+    </div>
+  </div>
+</div>

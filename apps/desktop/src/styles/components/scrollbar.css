@@ -1,0 +1,29 @@
+/* -------------------------------------------------------------------------- */
+/* Scrollbar styles                                                           */
+/* -------------------------------------------------------------------------- */
+@layer base {
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: light-dark(var(--color-neutral-300), var(--color-neutral-700)) transparent;
+  }
+
+  /* WebKit / Blink */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: light-dark(var(--color-neutral-300), var(--color-neutral-700));
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: light-dark(var(--color-neutral-400), var(--color-neutral-600));
+  }
+}

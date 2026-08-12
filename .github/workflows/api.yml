@@ -1,0 +1,50 @@
+name: API
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'package-lock.json'
+      - '.github/workflows/api.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: dolphin
+          POSTGRES_PASSWORD: dolphin_password
+          POSTGRES_DB: dolphin_erp
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U dolphin -d dolphin_erp"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql://dolphin:dolphin_password@localhost:5432/dolphin_erp?schema=public
+      JWT_SECRET: ci-only-secret-change-me
+      NODE_ENV: test
+      AZUL_ENV: MOCK
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+      SMTP_FROM: no-reply@example.test
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate --schema apps/api/prisma/schema.prisma
+      - run: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+      - run: npm test --workspace=apps/api -- --coverage
+      - run: npm run test:e2e --workspace=apps/api
+      - run: npm run build --workspace=apps/api

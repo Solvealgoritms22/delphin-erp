@@ -1,0 +1,125 @@
+import { Component, inject, OnInit } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { DatePipe } from '@angular/common';
+import { SuppliersService } from '../../data/suppliers';
+import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
+import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+
+@Component({
+  selector: 'app-suppliers',
+  standalone: true,
+   imports: [RouterLink, MatButtonModule, MatIconModule, EmptyStateComponent, TableSkeletonComponent, TranslocoPipe],
+  template: `
+    <div class="flex flex-col w-full min-w-0 sm:absolute sm:inset-0 sm:overflow-hidden">
+      
+      <!-- Header -->
+      <div class="relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+         <div>
+            <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'commercial.suppliers.title' | transloco }}</div>
+            <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'commercial.suppliers.description' | transloco }}</p>
+         </div>
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
+          <button mat-flat-button class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" [routerLink]="['new']">
+            <mat-icon svgIcon="plus" class="icon-size-5 mr-2"></mat-icon>
+            {{ 'commercial.suppliers.new' | transloco }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Main -->
+      <div class="flex flex-auto overflow-hidden">
+        <div class="flex flex-col flex-auto sm:mb-18 overflow-hidden sm:overflow-y-auto">
+          
+          <div class="grid">
+            <!-- Header -->
+            <div class="suppliers-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
+              <div>{{ 'common.document' | transloco }}</div>
+              <div>{{ 'common.name' | transloco }}</div>
+              <div class="hidden sm:block">{{ 'common.contact' | transloco }}</div>
+              <div class="hidden sm:block">{{ 'common.status' | transloco }}</div>
+              <div>{{ 'common.actions' | transloco }}</div>
+            </div>
+            
+            <!-- Rows -->
+            @if (suppliersService.isLoading()) {
+              <app-table-skeleton [gridClass]="'suppliers-grid'" [rows]="6" [cells]="cells5" />
+            } @else if (suppliersService.suppliers().length === 0) {
+              <div class="flex flex-auto justify-center p-6 sm:p-10">
+                <app-empty-state
+                  type="no-data"
+                  [title]="'commercial.suppliers.emptyTitle' | transloco"
+                  [description]="'commercial.suppliers.emptyDescription' | transloco"
+                  [actionLabel]="'commercial.suppliers.new' | transloco"
+                  actionIcon="plus"
+                  (action)="router.navigate(['admin', 'commercial', 'suppliers', 'new'])"
+                />
+              </div>
+            } @else {
+              @for (supplier of suppliersService.suppliers(); track supplier.id) {
+                <div class="suppliers-grid grid items-center gap-4 py-3 px-6 md:px-8 border-b border-neutral-100 dark:border-neutral-800">
+                  <div class="text-sm font-medium">{{ supplier.tipoDocumento }} - {{ supplier.numeroDocumento }}</div>
+                  <div class="font-medium text-neutral-900 dark:text-white truncate">{{ supplier.nombreRazonSocial }}</div>
+                  <div class="hidden sm:block text-sm text-neutral-500">
+                    <div>{{ supplier.email || '-' }}</div>
+                    <div>{{ supplier.telefono || '-' }}</div>
+                  </div>
+                  <div class="hidden sm:block">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                          [class.bg-emerald-100]="supplier.estado === 'ACTIVO'"
+                          [class.text-emerald-800]="supplier.estado === 'ACTIVO'"
+                          [class.dark:bg-emerald-500]="supplier.estado === 'ACTIVO'"
+                          [class.dark:bg-opacity-10]="supplier.estado === 'ACTIVO'"
+                          [class.dark:text-emerald-400]="supplier.estado === 'ACTIVO'"
+                          [class.bg-red-100]="supplier.estado !== 'ACTIVO'"
+                          [class.text-red-800]="supplier.estado !== 'ACTIVO'">
+                      {{ supplier.estado }}
+                    </span>
+                  </div>
+                  <div>
+                    <button mat-icon-button [routerLink]="[supplier.id]" class="text-neutral-500">
+                       <mat-icon svgIcon="pencil" class="icon-size-5"></mat-icon>
+                    </button>
+                    <button mat-icon-button class="text-red-500" (click)="deleteSupplier(supplier.id)">
+                      <mat-icon svgIcon="trash" class="icon-size-5"></mat-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .suppliers-grid {
+      grid-template-columns: 140px auto 180px 100px 96px;
+    }
+    @media (max-width: 640px) {
+      .suppliers-grid {
+        grid-template-columns: 120px auto 96px;
+      }
+    }
+  `]
+})
+export class Suppliers implements OnInit {
+  suppliersService = inject(SuppliersService);
+  router = inject(Router);
+  transloco = inject(TranslocoService);
+
+  cells5 = ['90%', '80%', '70%', '40%', '50%'];
+
+  ngOnInit() {
+    this.suppliersService.findAll().subscribe();
+  }
+
+  deleteSupplier(id: string) {
+    if (confirm(this.transloco.translate('commercial.suppliers.deleteConfirm'))) {
+      this.suppliersService.remove(id).subscribe();
+    }
+  }
+}

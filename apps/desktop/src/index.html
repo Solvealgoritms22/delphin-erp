@@ -1,0 +1,138 @@
+<!doctype html>
+<html
+  id="fuse"
+  lang="en"
+>
+  <head>
+    <base href="/" />
+    <title>Dolphin ERP | Sistema de Planificación de Recursos Empresariales</title>
+
+    <!-- Meta -->
+    <meta charset="utf-8" />
+    <meta
+      name="description"
+      content="Dolphin ERP es la solución definitiva de software empresarial. Gestiona finanzas, inventarios, recursos humanos y ventas en una única plataforma en la nube."
+    />
+    <meta name="keywords" content="ERP, software empresarial, finanzas, inventario, ventas, gestión de negocios, nube, Dolphin ERP" />
+    <meta name="author" content="Dolphin ERP" />
+    <meta name="robots" content="index, follow" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dolphin ERP | Sistema Inteligente" />
+    <meta property="og:description" content="Gestiona toda tu empresa desde una única plataforma rápida, segura y en la nube." />
+    <meta property="og:image" content="/images/logo/logo_dolphin_light.png" />
+    
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="favicon.png"
+    />
+
+    <!-- Preload fonts -->
+    <link
+      rel="preload"
+      href="/fonts/geist/Geist.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/geist/Geist-Italic.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/geist/GeistMono.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/geist/GeistMono-Italic.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body>
+    <!-- prettier-ignore -->
+    <script>
+      !function(){try{const e=document.documentElement.classList;e.remove("scheme-dark","scheme-light");const c=localStorage.getItem("scheme"),t=window.matchMedia("(prefers-color-scheme: dark)").matches,s="dark"===c||"system"===c&&t?"scheme-dark":"scheme-light";e.add(s)}catch(e){}}();
+    </script>
+
+    <div id="splash-screen" class="splash-screen">
+      <style>
+        .splash-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background-color: #ffffff;
+          z-index: 99999;
+        }
+        html.scheme-dark .splash-screen {
+          background-color: #09090b;
+        }
+        .splash-screen .logo {
+          width: 120px;
+          height: auto;
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        html.scheme-dark .logo-light {
+          display: none;
+        }
+        html.scheme-light .logo-dark {
+          display: none;
+        }
+        html:not(.scheme-dark):not(.scheme-light) .logo-dark {
+           display: none;
+        }
+        .spinner {
+          margin-top: 2rem;
+          width: 32px;
+          height: 32px;
+          border: 3px solid rgba(0, 0, 0, 0.1);
+          border-radius: 50%;
+          border-top-color: #2563eb;
+          animation: spin 1s ease-in-out infinite;
+        }
+        html.scheme-dark .spinner {
+          border: 3px solid rgba(255, 255, 255, 0.1);
+          border-top-color: #3b82f6;
+        }
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: .6;
+            transform: scale(0.95);
+          }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      </style>
+      <img class="logo logo-light" src="/images/logo/logo_dolphin_light.png" alt="Dolphin ERP" />
+      <img class="logo logo-dark" src="/images/logo/logo_dolphin_dark.png" alt="Dolphin ERP" />
+      <div class="spinner"></div>
+    </div>
+    <app-root></app-root>
+  </body>
+</html>

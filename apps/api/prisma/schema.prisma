@@ -1,0 +1,449 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------
+// Fase 0 y Fase 1 - Modelo Central de Multi-Tenancy
+// (Versión SQLite temporal por falta de Docker/Virtualización)
+// ------------------------------------------------------
+
+model Empresa {
+  id           String      @id @default(uuid())
+  razonSocial  String      @map("razon_social")
+  rnc          String?     @unique
+  pais         String      @default("DO")
+  telefono     String?
+  email        String?
+  paginaWeb    String?     @map("pagina_web")
+  descripcion  String?
+  redesSociales String?    @map("redes_sociales")
+  logo         String?
+  estado       String      @default("ACTIVA")
+  creadoEn     DateTime    @default(now()) @map("creado_en")
+
+  propietarioId String?    @map("propietario_id")
+  propietario  Usuario?    @relation("EmpresasPropiedad", fields: [propietarioId], references: [id], onDelete: SetNull)
+
+  suscripcion  Suscripcion?
+  sucursales     Sucursal[]
+  membresias     Membresia[]
+  roles          Role[]
+  categorias     Categoria[]
+  marcas         Marca[]
+  unidadesMedida UnidadMedida[]
+  productos      Producto[]
+  clientes       Cliente[]
+  proveedores    Proveedor[]
+  notificaciones Notification[]
+
+  @@map("empresas")
+}
+
+model Sucursal {
+  id           String    @id @default(uuid())
+  empresaId    String    @map("empresa_id")
+  nombre       String
+  direccion    String?
+  telefono     String?
+  email        String?
+  ciudad       String?
+  estado       String    @default("ACTIVO")
+  creadoEn     DateTime  @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  empresa      Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, nombre])
+  @@map("sucursales")
+}
+
+model Usuario {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String    @map("password_hash")
+  debeCambiarPassword Boolean @default(false) @map("debe_cambiar_password")
+  googleSub      String?   @unique @map("google_sub")
+  politicasAceptadasEn DateTime? @map("politicas_aceptadas_en")
+  invitacionTokenHash String? @unique @map("invitacion_token_hash")
+  invitacionExpiraEn DateTime? @map("invitacion_expira_en")
+  nombre         String?
+  avatar         String?
+  mfaHabilitado  Boolean   @default(false) @map("mfa_habilitado")
+  
+  otpCode        String?   @map("otp_code")
+  otpExpiresAt   DateTime? @map("otp_expires_at")
+  isVerified     Boolean   @default(false) @map("is_verified")
+  ultimoAcceso   DateTime? @map("ultimo_acceso")
+
+  membresias     Membresia[]
+  sesiones       UserSession[]
+  notificaciones Notification[]
+  preferenciasNotificacion NotificationPreference[]
+  pushSubscriptions PushSubscription[]
+  empresasPropiedad Empresa[] @relation("EmpresasPropiedad")
+
+  @@map("usuarios")
+}
+
+model Membresia {
+  id             String    @id @default(uuid())
+  usuarioId      String    @map("usuario_id")
+  empresaId      String    @map("empresa_id")
+  roleId         String?   @map("role_id")
+  estado         String    @default("ACTIVO")
+
+  usuario        Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  empresa        Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  role           Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@unique([usuarioId, empresaId])
+  @@map("membresias")
+}
+
+model UserSession {
+  id              String    @id @default(uuid())
+  usuarioId       String    @map("usuario_id")
+  tokenHash       String    @unique @map("token_hash")
+  userAgent       String?   @map("user_agent")
+  ipAddress       String?   @map("ip_address")
+  browserName     String?   @map("browser_name")
+  osName          String?   @map("os_name")
+  locationCountry String?   @map("location_country")
+  creadoEn        DateTime  @default(now()) @map("creado_en")
+  ultimoAcceso    DateTime  @default(now()) @map("ultimo_acceso")
+  expiraEn        DateTime? @map("expira_en")
+  revokedAt       DateTime? @map("revoked_at")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, revokedAt])
+  @@map("user_sessions")
+}
+
+model Notification {
+  id          String    @id @default(uuid())
+  usuarioId   String?   @map("usuario_id")
+  empresaId   String?   @map("empresa_id")
+  audience    String    @default("USER")
+  tipo        String
+  titulo      String
+  mensaje     String
+  icono       String?
+  severidad   String    @default("INFO")
+  payload     String?
+  leidaEn     DateTime? @map("leida_en")
+  archivadaEn DateTime? @map("archivada_en")
+  creadaEn    DateTime  @default(now()) @map("creada_en")
+  expiraEn    DateTime? @map("expira_en")
+
+  usuario    Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  empresa    Empresa?  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  deliveries NotificationDelivery[]
+
+  @@index([usuarioId, leidaEn, creadaEn])
+  @@index([empresaId, leidaEn, creadaEn])
+  @@map("notifications")
+}
+
+model NotificationDelivery {
+  id                String    @id @default(uuid())
+  notificationId    String    @map("notification_id")
+  canal             String
+  estado            String    @default("PENDING")
+  intentos          Int       @default(0)
+  providerMessageId String?   @map("provider_message_id")
+  ultimoError       String?   @map("ultimo_error")
+  proximoIntentoEn  DateTime? @map("proximo_intento_en")
+  enviadaEn         DateTime? @map("enviada_en")
+  creadaEn          DateTime  @default(now()) @map("creada_en")
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, canal])
+  @@index([estado, proximoIntentoEn])
+  @@map("notification_deliveries")
+}
+
+model NotificationPreference {
+  id         String  @id @default(uuid())
+  usuarioId  String  @map("usuario_id")
+  tipo       String
+  canal      String
+  habilitado Boolean @default(true)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, tipo, canal])
+  @@map("notification_preferences")
+}
+
+model PushSubscription {
+  id          String   @id @default(uuid())
+  usuarioId   String   @map("usuario_id")
+  endpoint    String   @unique
+  p256dh      String
+  auth        String
+  userAgent   String?  @map("user_agent")
+  creadaEn    DateTime @default(now()) @map("creada_en")
+  ultimoUsoEn DateTime @default(now()) @map("ultimo_uso_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("push_subscriptions")
+}
+
+model OutboxEvent {
+  id              String    @id @default(uuid())
+  tipo            String
+  aggregateId     String?   @map("aggregate_id")
+  payload         String
+  estado          String    @default("PENDING")
+  intentos        Int       @default(0)
+  proximoIntentoEn DateTime? @map("proximo_intento_en")
+  procesadoEn     DateTime? @map("procesado_en")
+  creadoEn        DateTime  @default(now()) @map("creado_en")
+
+  @@index([estado, proximoIntentoEn, creadoEn])
+  @@map("outbox_events")
+}
+
+model Role {
+  id           String    @id @default(uuid())
+  empresaId    String    @map("empresa_id")
+  nombre       String
+  descripcion  String?
+  permissions  String?   // JSON stringified
+
+  empresa      Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  membresias   Membresia[]
+
+  @@unique([empresaId, nombre])
+  @@map("roles")
+}
+
+// ------------------------------------------------------
+// Fase 2 - Catálogos Maestros (Productos)
+// ------------------------------------------------------
+
+model Categoria {
+  id          String     @id @default(uuid())
+  empresaId   String     @map("empresa_id")
+  nombre      String
+  descripcion String?
+  estado      String     @default("ACTIVO")
+  
+  empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  productos   Producto[]
+
+  @@unique([empresaId, nombre])
+  @@map("categorias")
+}
+
+model Marca {
+  id          String     @id @default(uuid())
+  empresaId   String     @map("empresa_id")
+  nombre      String
+  estado      String     @default("ACTIVO")
+
+  empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  productos   Producto[]
+
+  @@unique([empresaId, nombre])
+  @@map("marcas")
+}
+
+model UnidadMedida {
+  id          String     @id @default(uuid())
+  empresaId   String     @map("empresa_id")
+  nombre      String
+  abreviatura String
+  estado      String     @default("ACTIVO")
+
+  empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  productos   Producto[]
+
+  @@unique([empresaId, nombre])
+  @@map("unidades_medida")
+}
+
+model Producto {
+  id               String        @id @default(uuid())
+  empresaId        String        @map("empresa_id")
+  tipo             String        @default("PRODUCTO") // PRODUCTO o SERVICIO
+  codigo           String
+  codigoBarras     String?       @map("codigo_barras")
+  nombre           String
+  descripcion      String?
+  precioVenta      Float         @map("precio_venta")
+  costo            Float?
+  taxRate          Float?        @default(0) @map("tax_rate")
+  imagenes         String?       // JSON stringified array of URLs
+  tags             String?       // Comma separated tags
+  
+  categoriaId      String?       @map("categoria_id")
+  marcaId          String?       @map("marca_id")
+  unidadMedidaId   String?       @map("unidad_medida_id")
+  
+  estado           String        @default("ACTIVO")
+  creadoEn         DateTime      @default(now()) @map("creado_en")
+  actualizadoEn    DateTime      @updatedAt @map("actualizado_en")
+
+  empresa          Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  categoria        Categoria?    @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  marca            Marca?        @relation(fields: [marcaId], references: [id], onDelete: SetNull)
+  unidadMedida     UnidadMedida? @relation(fields: [unidadMedidaId], references: [id], onDelete: SetNull)
+
+  @@unique([empresaId, codigo])
+  @@map("productos")
+}
+
+model Cliente {
+  id                String    @id @default(uuid())
+  empresaId         String    @map("empresa_id")
+  tipoDocumento     String    @default("RUT") @map("tipo_documento")
+  numeroDocumento   String    @map("numero_documento")
+  nombreRazonSocial String    @map("nombre_razon_social")
+  pais              String    @default("DO")
+  logo              String?
+  email             String?
+  telefono          String?
+  direccion         String?
+  estado            String    @default("ACTIVO")
+  creadoEn          DateTime  @default(now()) @map("creado_en")
+  actualizadoEn     DateTime  @updatedAt @map("actualizado_en")
+
+  empresa           Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, numeroDocumento])
+  @@map("clientes")
+}
+
+model Proveedor {
+  id                String    @id @default(uuid())
+  empresaId         String    @map("empresa_id")
+  tipoDocumento     String    @default("RUT") @map("tipo_documento")
+  numeroDocumento   String    @map("numero_documento")
+  nombreRazonSocial String    @map("nombre_razon_social")
+  pais              String    @default("DO")
+  logo              String?
+  email             String?
+  telefono          String?
+  direccion         String?
+  estado            String    @default("ACTIVO")
+  creadoEn          DateTime  @default(now()) @map("creado_en")
+  actualizadoEn     DateTime  @updatedAt @map("actualizado_en")
+
+  empresa           Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, numeroDocumento])
+  @@map("proveedores")
+}
+
+// ------------------------------------------------------
+// Fase 3 - Facturación y Suscripciones (B2B SaaS)
+// ------------------------------------------------------
+
+model Plan {
+  id              String         @id
+  nombre          String
+  descripcion     String?
+  precioMensual   Float          @map("precio_mensual")
+  precioAnual     Float          @map("precio_anual")
+  estado          String         @default("ACTIVO") // ACTIVO, INACTIVO
+  
+  maxUsuarios     Int            @default(1) @map("max_usuarios")
+  maxSucursales   Int            @default(1) @map("max_sucursales")
+  maxProductos    Int            @default(100) @map("max_productos")
+  
+  caracteristicas String?        // JSON stringified array
+
+  suscripciones   Suscripcion[]
+
+  @@map("planes")
+}
+
+model Suscripcion {
+  id                      String    @id @default(uuid())
+  empresaId               String    @unique @map("empresa_id")
+  planId                  String    @map("plan_id")
+  
+  estado                  String    @default("ACTIVE") // ACTIVE, PAST_DUE, CANCELED
+  periodicidad            String    @default("MONTHLY") // MONTHLY, YEARLY
+  
+  fechaInicio             DateTime  @default(now()) @map("fecha_inicio")
+  fechaRenovacion         DateTime? @map("fecha_renovacion")
+  fechaCancelacion        DateTime? @map("fecha_cancelacion")
+  
+  // Azul Payment Vault
+  azulDataVaultToken      String?   @map("azul_data_vault_token")
+  azulDataVaultExpiration String?   @map("azul_data_vault_expiration")
+  azulCardLast4           String?   @map("azul_card_last4")
+  azulCardBrand           String?   @map("azul_card_brand")
+  azulCardHolder          String?   @map("azul_card_holder")
+
+  empresa                 Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  plan                    Plan      @relation(fields: [planId], references: [id])
+  
+  facturas                Factura[]
+
+  @@map("suscripciones")
+}
+
+model Factura {
+  id                String      @id @default(uuid())
+  suscripcionId     String      @map("suscripcion_id")
+  
+  monto             Float
+  moneda            String      @default("USD")
+  estado            String      @default("PAID") // PAID, FAILED, REFUNDED
+  
+  azulOrderId       String?     @map("azul_order_id")
+  azulAuthCode      String?     @map("azul_auth_code")
+  
+  creadoEn          DateTime    @default(now()) @map("creado_en")
+  
+  suscripcion       Suscripcion @relation(fields: [suscripcionId], references: [id], onDelete: Cascade)
+
+  @@map("facturas")
+}
+
+// ------------------------------------------------------
+// Fase 4 - Activity Log (Auditoría de Actividad)
+// ------------------------------------------------------
+
+model ActivityLog {
+  id            String    @id @default(uuid())
+  empresaId     String?   @map("empresa_id")
+  usuarioId     String?   @map("usuario_id")
+  usuarioNombre String?   @map("usuario_nombre") // snapshot del nombre para no requerir JOIN
+  usuarioEmail  String?   @map("usuario_email")  // snapshot del email
+
+  modulo        String    // 'products' | 'clients' | 'suppliers' | 'users' | 'billing' | 'auth' | ...
+  accion        String    // 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'EXPORT' | 'VIEW' | ...
+  
+  resourceId    String?   @map("resource_id")    // UUID del registro afectado
+  resourceName  String?   @map("resource_name")  // Nombre legible del recurso ("Producto ABC")
+  resourceType  String?   @map("resource_type")  // Tipo del recurso para UI ("Producto", "Cliente")
+  
+  metadata      String?   // JSON stringified — datos adicionales (campos antes/después, etc.)
+  
+  ipAddress     String?   @map("ip_address")
+  userAgent     String?   @map("user_agent")
+  
+  creadoEn      DateTime  @default(now()) @map("creado_en")
+
+  @@index([empresaId, creadoEn(sort: Desc)])
+  @@index([empresaId, modulo])
+  @@index([empresaId, usuarioId])
+  @@index([creadoEn(sort: Desc)])
+  @@map("activity_logs")
+}
