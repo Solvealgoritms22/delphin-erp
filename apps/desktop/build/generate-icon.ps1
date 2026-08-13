@@ -67,8 +67,8 @@ $bw.Write([byte]0)        # color count
 $bw.Write([byte]0)        # reserved
 $bw.Write([ushort]1)      # planes
 $bw.Write([ushort]32)     # bit count
-$bw.Write([uint]$pngLen)  # bytes in resource
-$bw.Write([uint]22)       # image offset (6 + 16 = 22)
+$bw.Write([uint32]$pngLen)  # bytes in resource
+$bw.Write([uint32]22)       # image offset (6 + 16 = 22)
 
 # Image data (PNG)
 $bw.Write($pngBytes)
