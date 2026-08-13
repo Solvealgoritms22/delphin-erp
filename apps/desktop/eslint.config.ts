@@ -92,7 +92,7 @@ export default defineConfig(
       },
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: (import.meta as any).dirname,
       },
     },
     processor: angular.processInlineTemplates,
