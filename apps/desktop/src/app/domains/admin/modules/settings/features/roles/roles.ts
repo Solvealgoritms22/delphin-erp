@@ -7,7 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { RolesService, Role } from '../../data/roles';
-import { UsersService, User as Account } from '../../data/users';
+import { UsersService } from '../../data/users';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 

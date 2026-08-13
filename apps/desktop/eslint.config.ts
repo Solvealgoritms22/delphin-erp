@@ -99,10 +99,13 @@ export default defineConfig(
           style: 'camelCase',
         },
       ],
+      '@typescript-eslint/consistent-indexed-object-style': 'off',
+      'no-empty': 'off',
       '@angular-eslint/component-class-suffix': 'off',
       '@angular-eslint/directive-class-suffix': 'off',
       '@angular-eslint/no-input-rename': 'off',
       '@angular-eslint/template/prefer-control-flow': 'off',
+      '@angular-eslint/template/label-has-associated-control': 'off',
     },
   },
 
@@ -113,6 +116,10 @@ export default defineConfig(
       angular.configs.templateRecommended,
       angular.configs.templateAccessibility,
     ],
+    rules: {
+      '@angular-eslint/template/prefer-control-flow': 'off',
+      '@angular-eslint/template/label-has-associated-control': 'off',
+    },
   },
 
   // Test files

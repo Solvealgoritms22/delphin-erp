@@ -1,7 +1,6 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { NgClass } from '@angular/common';
 
 export interface Breadcrumb {
   label: string;
