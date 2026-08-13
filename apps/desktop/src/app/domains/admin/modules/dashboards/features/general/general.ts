@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { DashboardService, DashboardSummary } from '../../data/dashboard.service';
@@ -47,7 +48,7 @@ interface DashboardMetric {
                   <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ metric.label }}</p>
                   <div>
                     <p class="mt-5 text-4xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ metric.value | number }}</p>
-                    <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">{{ percentageOfTotal(metric.value) }}% del total registrado</p>
+                    <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">{{ percentageOfTotal(metric.value) }}% {{ 'dashboard.general.ofTotal' | transloco }}</p>
                   </div>
                 </div>
               </article>
@@ -59,16 +60,16 @@ interface DashboardMetric {
             <div class="flex items-center justify-between px-4 py-3 md:px-5">
               <div class="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
                 <mat-icon svgIcon="activity" class="icon-size-4 text-neutral-500"></mat-icon>
-                Resumen de registros
+                {{ 'dashboard.general.recordsOverview' | transloco }}
               </div>
-              <button type="button" class="text-neutral-400 transition hover:text-neutral-700 dark:hover:text-neutral-200" aria-label="Más opciones">
+              <button type="button" class="text-neutral-400 transition hover:text-neutral-700 dark:hover:text-neutral-200" [attr.aria-label]="'dashboard.general.moreOptions' | transloco">
                 <mat-icon svgIcon="ellipsis-vertical" class="icon-size-4"></mat-icon>
               </button>
             </div>
 
             <div class="grid overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 lg:grid-cols-[minmax(0,1fr)_280px]">
               <div class="p-6 md:p-8">
-                <h2 class="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-white">Distribución por área</h2>
+                <h2 class="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ 'dashboard.general.areaDistribution' | transloco }}</h2>
                  <p class="mt-1 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">{{ 'dashboard.general.distributionDescription' | transloco }}</p>
 
                 <div class="relative mt-10 h-64 border-b border-neutral-200 dark:border-neutral-800">
@@ -88,7 +89,7 @@ interface DashboardMetric {
               </div>
 
               <aside class="border-t border-neutral-200 p-6 dark:border-neutral-800 lg:border-l lg:border-t-0">
-                <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">Detalle del total</p>
+                <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ 'dashboard.general.totalDetail' | transloco }}</p>
                 <div class="mt-6 flex flex-col gap-5">
                   @for (metric of metrics(); track metric.label) {
                     <div class="flex items-center justify-between gap-3 text-sm">
@@ -99,10 +100,10 @@ interface DashboardMetric {
                 </div>
                 <div class="mt-8 border-t border-neutral-200 pt-5 dark:border-neutral-800">
                   <div class="flex items-center justify-between text-sm">
-                    <span class="text-neutral-500 dark:text-neutral-400">Total</span>
+                    <span class="text-neutral-500 dark:text-neutral-400">{{ 'dashboard.general.total' | transloco }}</span>
                     <span class="font-semibold tabular-nums text-neutral-950 dark:text-white">{{ totalRecords() | number }}</span>
                   </div>
-                  <p class="mt-3 text-xs leading-5 text-neutral-400 dark:text-neutral-500">Los datos corresponden a la empresa activa.</p>
+                  <p class="mt-3 text-xs leading-5 text-neutral-400 dark:text-neutral-500">{{ 'dashboard.general.activeCompanyHint' | transloco }}</p>
                 </div>
               </aside>
             </div>
@@ -113,18 +114,18 @@ interface DashboardMetric {
             <div class="flex items-center justify-between px-4 py-3 md:px-5">
               <div class="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
                 <mat-icon svgIcon="sparkles" class="icon-size-4 text-blue-600"></mat-icon>
-                Lectura rápida
+                {{ 'dashboard.general.quickInsight' | transloco }}
               </div>
               <mat-icon svgIcon="refresh-cw" class="icon-size-4 text-neutral-400"></mat-icon>
             </div>
             <div class="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950 md:p-7">
               <p class="max-w-4xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">{{ summaryMessage() }}</p>
               <div class="mt-5 flex flex-wrap gap-2">
-                <a routerLink="/admin/commercial/clients" class="rounded-lg bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-700 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700">Revisar clientes</a>
-                <a routerLink="/admin/catalogs/products" class="rounded-lg bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-700 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700">Revisar productos</a>
-                <a routerLink="/admin/commercial/suppliers" class="rounded-lg bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-700 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700">Revisar proveedores</a>
+                <a routerLink="/admin/commercial/clients" class="rounded-lg bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-700 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700">{{ 'dashboard.general.reviewClients' | transloco }}</a>
+                <a routerLink="/admin/catalogs/products" class="rounded-lg bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-700 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700">{{ 'dashboard.general.reviewProducts' | transloco }}</a>
+                <a routerLink="/admin/commercial/suppliers" class="rounded-lg bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-700 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700">{{ 'dashboard.general.reviewSuppliers' | transloco }}</a>
               </div>
-              <p class="mt-5 text-xs text-neutral-400 dark:text-neutral-500">Actualizado al abrir este panel</p>
+              <p class="mt-5 text-xs text-neutral-400 dark:text-neutral-500">{{ 'dashboard.general.updatedOnOpen' | transloco }}</p>
             </div>
           </section>
         }
@@ -140,7 +141,12 @@ export class DashboardGeneralComponent implements OnInit {
   loading = signal(true);
   error = signal(false);
 
+  private readonly currentLang = toSignal(this.transloco.langChanges$, {
+    initialValue: this.transloco.getActiveLang(),
+  });
+
   metrics = computed<DashboardMetric[]>(() => {
+    this.currentLang();
     const summary = this.summary();
     const values = [
       { label: this.transloco.translate('dashboard.general.users'), value: summary?.totalUsers ?? 0 },
@@ -158,10 +164,17 @@ export class DashboardGeneralComponent implements OnInit {
   totalRecords = computed(() => this.metrics().reduce((total, item) => total + item.value, 0));
 
   summaryMessage = computed(() => {
+    this.currentLang();
     const total = this.totalRecords();
     const summary = this.summary();
     if (!total) return this.transloco.translate('dashboard.general.emptySummary');
-    return this.transloco.translate('dashboard.general.summary', { total: total.toLocaleString('es-DO'), clients: summary?.totalClients ?? 0, products: summary?.totalProducts ?? 0, suppliers: summary?.totalSuppliers ?? 0, users: summary?.totalUsers ?? 0 });
+    return this.transloco.translate('dashboard.general.summary', {
+      total: total.toLocaleString(),
+      clients: summary?.totalClients ?? 0,
+      products: summary?.totalProducts ?? 0,
+      suppliers: summary?.totalSuppliers ?? 0,
+      users: summary?.totalUsers ?? 0
+    });
   });
 
   ngOnInit(): void {
@@ -189,6 +202,12 @@ export class DashboardGeneralComponent implements OnInit {
   }
 
   shortLabel(label: string): string {
-    return label.replace(' registrados', '').replace(' activos', '').replace(' y servicios', '');
+    return label
+      .replace(' registrados', '')
+      .replace(' activos', '')
+      .replace(' y servicios', '')
+      .replace(' registered', '')
+      .replace(' active', '')
+      .replace(' and services', '');
   }
 }

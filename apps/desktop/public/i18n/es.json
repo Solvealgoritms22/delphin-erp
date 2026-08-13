@@ -15,7 +15,19 @@
       "products": "Productos y servicios",
       "suppliers": "Proveedores",
       "emptySummary": "Aún no hay registros en esta empresa. Cuando agregues información, este panel resumirá la operación.",
-      "summary": "La empresa tiene {{total}} registros activos: {{clients}} clientes, {{products}} productos o servicios, {{suppliers}} proveedores y {{users}} usuarios. Usa los accesos rápidos para revisar cada área."
+      "summary": "La empresa tiene {{total}} registros activos: {{clients}} clientes, {{products}} productos o servicios, {{suppliers}} proveedores y {{users}} usuarios. Usa los accesos rápidos para revisar cada área.",
+      "ofTotal": "del total registrado",
+      "recordsOverview": "Resumen de registros",
+      "moreOptions": "Más opciones",
+      "areaDistribution": "Distribución por área",
+      "totalDetail": "Detalle del total",
+      "total": "Total",
+      "activeCompanyHint": "Los datos corresponden a la empresa activa.",
+      "quickInsight": "Lectura rápida",
+      "reviewClients": "Revisar clientes",
+      "reviewProducts": "Revisar productos",
+      "reviewSuppliers": "Revisar proveedores",
+      "updatedOnOpen": "Actualizado al abrir este panel"
     },
     "finance": {
       "title": "Finanzas",

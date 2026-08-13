@@ -55,6 +55,6 @@ export class SchemeSwitcher {
   ];
 
   updateScheme(scheme: Scheme) {
-    this.theming.scheme.set(scheme);
+    this.theming.setScheme(scheme);
   }
 }

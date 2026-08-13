@@ -8,10 +8,6 @@ import {
 } from '@angular/core';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
-import {
-  provideClientHydration,
-  withIncrementalHydration,
-} from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {
   provideRouter,
@@ -37,7 +33,7 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([authInterceptor, errorInterceptor])
     ),
-    provideClientHydration(withIncrementalHydration()),
+
     provideRouter(
       routes,
       withComponentInputBinding(),

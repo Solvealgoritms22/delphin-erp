@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, signal, inject } from '@angular/core';
+import { Component, OnInit, computed, signal, inject, TemplateRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { RolesService, Role } from '../../data/roles';
 import { UsersService, User as Account } from '../../data/users';
@@ -26,7 +27,7 @@ export interface RolePermissions {
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, MatSnackBarModule, EmptyStateComponent, TranslocoPipe],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, MatDialogModule, MatSnackBarModule, EmptyStateComponent, TranslocoPipe],
   template: `
     <div class="flex flex-col flex-auto min-w-0 bg-white dark:bg-neutral-900 min-h-screen relative">
       
@@ -92,16 +93,16 @@ export interface RolePermissions {
            <h2 class="text-xl font-bold text-neutral-900 dark:text-white">{{ 'roles.accounts' | transloco }}</h2>
           
           <!-- Toolbar -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="relative w-full sm:w-72">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="relative w-full sm:w-72 flex-auto sm:flex-initial">
               <mat-icon svgIcon="search" class="absolute left-3 top-1/2 -translate-y-1/2 icon-size-4 text-neutral-400"></mat-icon>
               <input type="text" placeholder="Search..." [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500">
             </div>
             
-            <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <!-- Status Filter -->
               <div class="relative flex-auto sm:flex-initial">
-                <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-32 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-32 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap">
                   <div class="flex items-center gap-2">
                     <div class="w-2.5 h-2.5 rounded-full" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div> 
                     {{ statusFilter() === 'All' ? 'All Status' : statusFilter() }}
@@ -117,7 +118,7 @@ export interface RolePermissions {
               
               <!-- Role Filter -->
               <div class="relative flex-auto sm:flex-initial">
-                <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-40 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-40 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap">
                   <span class="truncate pr-2">{{ getSelectedRoleName() }}</span>
                   <mat-icon svgIcon="chevron-down" class="icon-size-4 text-neutral-500 shrink-0"></mat-icon>
                 </button>
@@ -258,80 +259,78 @@ export interface RolePermissions {
 
       <!-- ==================== MODALS ==================== -->
       
-      <!-- Create/Edit Role Modal Overlay -->
-      @if (isRoleModalOpen) {
-        <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm overflow-hidden">
-          <div class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-3xl border border-neutral-200 dark:border-neutral-800 flex flex-col max-h-[85vh] overflow-hidden transform transition-all my-auto">
-            
-            <!-- Header (Fixed) -->
-            <div class="flex items-center justify-between px-8 py-5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
-              <h2 class="text-xl font-bold text-neutral-900 dark:text-white">
-                {{ editingRole ? 'Edit role' : 'Create role' }}
-              </h2>
-              <button (click)="closeRoleModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-                <mat-icon svgIcon="x" class="icon-size-4"></mat-icon>
-              </button>
+      <!-- Create/Edit Role Modal Template (Rendered via MatDialog above sidebar) -->
+      <ng-template #roleModalTemplate>
+        <div class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full border border-neutral-200 dark:border-neutral-800 flex flex-col max-h-[85vh] overflow-hidden">
+          
+          <!-- Header (Fixed) -->
+          <div class="flex items-center justify-between px-8 py-5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
+            <h2 class="text-xl font-bold text-neutral-900 dark:text-white">
+              {{ editingRole ? 'Edit role' : 'Create role' }}
+            </h2>
+            <button (click)="closeRoleModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
+              <mat-icon svgIcon="x" class="icon-size-4"></mat-icon>
+            </button>
+          </div>
+          
+          <!-- Body (Scrollable) -->
+          <div class="p-8 flex flex-col gap-8 overflow-y-auto flex-1 max-h-[calc(85vh-140px)]">
+            <!-- Basic Info -->
+            <div class="flex flex-col gap-6">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-bold text-neutral-500">Role name</label>
+                <input type="text" [(ngModel)]="modalRoleData.name" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white outline-none transition-colors">
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-bold text-neutral-500">Description</label>
+                <textarea [(ngModel)]="modalRoleData.description" rows="3" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white outline-none resize-none transition-colors"></textarea>
+              </div>
             </div>
             
-            <!-- Body (Scrollable) -->
-            <div class="p-8 flex flex-col gap-8 overflow-y-auto flex-1 max-h-[calc(85vh-140px)]">
-              <!-- Basic Info -->
-              <div class="flex flex-col gap-6">
-                <div class="flex flex-col gap-2">
-                  <label class="text-sm font-bold text-neutral-500">Role name</label>
-                  <input type="text" [(ngModel)]="modalRoleData.name" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-transparent focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white outline-none transition-colors">
-                </div>
-                <div class="flex flex-col gap-2">
-                  <label class="text-sm font-bold text-neutral-500">Description</label>
-                  <textarea [(ngModel)]="modalRoleData.description" rows="3" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-transparent focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white outline-none resize-none transition-colors"></textarea>
-                </div>
-              </div>
+            <!-- Permissions Section (DYNAMIC) -->
+            <div class="flex flex-col gap-4">
+              <h3 class="text-sm font-bold text-neutral-500">Permissions Assignment</h3>
               
-              <!-- Permissions Section (DYNAMIC) -->
-              <div class="flex flex-col gap-4">
-                <h3 class="text-sm font-bold text-neutral-500">Permissions Assignment</h3>
+              <div class="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800 border-b border-neutral-100 dark:border-neutral-800">
                 
-                <div class="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800 border-b border-neutral-100 dark:border-neutral-800">
-                  
-                  @for (mod of permissionModules; track mod.id) {
-                    <!-- Dynamic Module Row -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between py-6 gap-4">
-                      <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-blue-500 shadow-sm shrink-0">
-                          <mat-icon [svgIcon]="mod.icon" class="icon-size-6"></mat-icon>
-                        </div>
-                        <div class="flex flex-col">
-                          <span class="text-base font-bold text-neutral-900 dark:text-white leading-tight mb-0.5">{{ mod.name }}</span>
-                          <span class="text-sm text-neutral-500">{{ mod.description }}</span>
-                        </div>
+                @for (mod of permissionModules; track mod.id) {
+                  <!-- Dynamic Module Row -->
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between py-6 gap-4">
+                    <div class="flex items-center gap-4">
+                      <div class="w-12 h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-blue-500 shadow-sm shrink-0">
+                        <mat-icon [svgIcon]="mod.icon" class="icon-size-6"></mat-icon>
                       </div>
-                      <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
-                        <button (click)="togglePermission(mod.slug, 'read')" [ngClass]="getPermissionClass(mod.slug, 'read')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors">
-                          @if(modalRoleData.permissions[mod.slug]?.read){<mat-icon svgIcon="check" class="icon-size-4"></mat-icon>} Read
-                        </button>
-                        <button (click)="togglePermission(mod.slug, 'write')" [ngClass]="getPermissionClass(mod.slug, 'write')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors">
-                          @if(modalRoleData.permissions[mod.slug]?.write){<mat-icon svgIcon="check" class="icon-size-4"></mat-icon>} Write
-                        </button>
-                        <button (click)="togglePermission(mod.slug, 'delete')" [ngClass]="getPermissionClass(mod.slug, 'delete')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors">
-                          @if(modalRoleData.permissions[mod.slug]?.delete){<mat-icon svgIcon="check" class="icon-size-4"></mat-icon>} Delete
-                        </button>
+                      <div class="flex flex-col">
+                        <span class="text-base font-bold text-neutral-900 dark:text-white leading-tight mb-0.5">{{ mod.name }}</span>
+                        <span class="text-sm text-neutral-500">{{ mod.description }}</span>
                       </div>
                     </div>
-                  }
-                  
-                </div>
+                    <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
+                      <button (click)="togglePermission(mod.slug, 'read')" [ngClass]="getPermissionClass(mod.slug, 'read')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors">
+                        @if(modalRoleData.permissions[mod.slug]?.read){<mat-icon svgIcon="check" class="icon-size-4"></mat-icon>} Read
+                      </button>
+                      <button (click)="togglePermission(mod.slug, 'write')" [ngClass]="getPermissionClass(mod.slug, 'write')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors">
+                        @if(modalRoleData.permissions[mod.slug]?.write){<mat-icon svgIcon="check" class="icon-size-4"></mat-icon>} Write
+                      </button>
+                      <button (click)="togglePermission(mod.slug, 'delete')" [ngClass]="getPermissionClass(mod.slug, 'delete')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors">
+                        @if(modalRoleData.permissions[mod.slug]?.delete){<mat-icon svgIcon="check" class="icon-size-4"></mat-icon>} Delete
+                      </button>
+                    </div>
+                  </div>
+                }
+                
               </div>
             </div>
-            
-            <!-- Footer (Fixed) -->
-            <div class="flex items-center justify-end gap-3 px-8 py-5 border-t border-neutral-100 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900">
-              <button (click)="closeRoleModal()" class="px-6 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">Cancel</button>
-              <button (click)="saveRole()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-8 py-2.5 rounded-xl transition-colors shadow-sm">Save Role</button>
-            </div>
-            
           </div>
+          
+          <!-- Footer (Fixed) -->
+          <div class="flex items-center justify-end gap-3 px-8 py-5 border-t border-neutral-100 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900">
+            <button (click)="closeRoleModal()" class="px-6 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">Cancel</button>
+            <button (click)="saveRole()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-8 py-2.5 rounded-xl transition-colors shadow-sm">Save Role</button>
+          </div>
+          
         </div>
-      }
+      </ng-template>
 
 
     </div>
@@ -341,8 +340,12 @@ export class RolesComponent implements OnInit {
 
   rolesService = inject(RolesService);
   usersService = inject(UsersService);
+  dialog = inject(MatDialog);
   snackBar = inject(MatSnackBar);
   transloco = inject(TranslocoService);
+
+  @ViewChild('roleModalTemplate') roleModalTemplate!: TemplateRef<any>;
+  private dialogRef?: MatDialogRef<any>;
 
   roles = this.rolesService.roles;
   accounts = this.usersService.users;
@@ -612,11 +615,17 @@ export class RolesComponent implements OnInit {
       };
     }
 
-    this.isRoleModalOpen = true;
+    this.dialogRef = this.dialog.open(this.roleModalTemplate, {
+      width: '768px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: ['custom-dialog-container'],
+      autoFocus: false
+    });
   }
 
   closeRoleModal() {
-    this.isRoleModalOpen = false;
+    this.dialogRef?.close();
   }
 
   saveRole() {

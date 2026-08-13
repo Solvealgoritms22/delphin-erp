@@ -41,14 +41,14 @@ import { TranslocoPipe } from '@jsverse/transloco';
         <!-- Avatar / Photo Profile Section -->
         <div class="flex flex-col items-center justify-center gap-3">
           <div class="relative group">
-            <div class="w-24 h-24 rounded-full bg-blue-600 text-white font-bold text-3xl flex items-center justify-center border-4 border-white dark:border-neutral-800 shadow-md overflow-hidden">
+            <div class="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-bold text-2xl flex items-center justify-center border-2 border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
               @if (avatarUrl()) {
-                 <img [src]="avatarUrl()" [alt]="'account.avatar' | transloco" class="w-full h-full object-cover" />
+                 <img [src]="avatarUrl()" [alt]="'account.avatar' | transloco" class="w-full h-full object-contain p-2 select-none" />
               } @else {
                 {{ initials() }}
               }
             </div>
-            <label class="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center cursor-pointer shadow-sm transition-transform hover:scale-105">
+            <label class="absolute bottom-0 right-0 w-8 h-8 bg-neutral-900 hover:bg-neutral-800 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-white border-2 border-white dark:border-neutral-900 rounded-full flex items-center justify-center cursor-pointer shadow-md transition-all hover:scale-110" title="Actualizar foto">
               <mat-icon svgIcon="camera" class="!w-4 !h-4 !text-[16px]"></mat-icon>
               <input type="file" (change)="onFileSelected($event)" accept="image/*" class="hidden" />
             </label>

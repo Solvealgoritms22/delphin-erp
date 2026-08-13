@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Dolphin ERP Desktop",
   "author": "Solvealgotirthms",
@@ -12,10 +12,11 @@
     "start": "ng serve --no-hmr --port=3873",
     "test": "ng test",
     "watch": "ng build --watch --configuration development",
+    "clean:electron": "node -e \"try{require('fs').rmSync('dist/electron',{recursive:true,force:true})}catch(e){}\"",
     "electron:start": "concurrently \"npm run start\" \"wait-on http-get://localhost:3873 && electron . --dev\"",
-    "electron:build": "npm run build && electron-builder",
-    "electron:pack": "npm run build && electron-builder --dir",
-    "electron:publish": "npm run build && electron-builder --publish always"
+    "electron:build": "npm run clean:electron && npm run build && electron-builder",
+    "electron:pack": "npm run clean:electron && npm run build && electron-builder --dir",
+    "electron:publish": "npm run clean:electron && npm run build && electron-builder --publish always"
   },
   "build": {
     "appId": "com.dolphin.erp",
@@ -24,6 +25,12 @@
     "directories": {
       "output": "dist/electron"
     },
+    "files": [
+      "dist/desktop/browser/**/*",
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
     "publish": {
       "provider": "github",
       "owner": "Solvealgoritms22",

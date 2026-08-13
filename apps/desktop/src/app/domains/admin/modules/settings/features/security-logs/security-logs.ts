@@ -42,10 +42,10 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
         <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm">
           
           <!-- Toolbar -->
-          <div class="flex flex-col sm:flex-row items-center justify-between p-4 gap-4 border-b border-neutral-200 dark:border-neutral-800">
-            <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="flex flex-wrap items-center justify-between p-4 gap-4 border-b border-neutral-200 dark:border-neutral-800">
+            <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
               <!-- Search -->
-              <div class="relative flex items-center w-full sm:w-64">
+              <div class="relative flex items-center w-full sm:w-64 flex-auto sm:flex-initial">
                 <mat-icon svgIcon="search" class="absolute left-3 !w-5 !h-5 text-neutral-400"></mat-icon>
                 <input type="text" [placeholder]="'securityLogs.search' | transloco" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" 
                   class="w-full h-10 pl-10 pr-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
@@ -53,7 +53,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
               
               <!-- Severity Filter -->
                <select [ngModel]="severity()" (ngModelChange)="severity.set($event); loadLogs()"
-                 class="h-10 px-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm font-medium text-neutral-600 dark:text-neutral-300 focus:ring-2 focus:ring-blue-500">
+                 class="h-10 px-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm font-medium text-neutral-600 dark:text-neutral-300 focus:ring-2 focus:ring-blue-500 shrink-0">
                   <option value="">{{ 'securityLogs.allSeverities' | transloco }}</option>
                  <option value="Critical">Critical</option>
                  <option value="High">High</option>
@@ -62,20 +62,20 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                </select>
             </div>
             
-             <div class="flex items-center gap-3 sm:gap-6 w-full sm:w-auto justify-end">
+             <div class="flex flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto justify-start lg:justify-end">
                <button mat-stroked-button type="button" (click)="clearLogs()" [disabled]="loading() || logs().length === 0"
-                 class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400">
-                 <mat-icon svgIcon="trash" class="icon-size-4 mr-2"></mat-icon>
-                  {{ 'securityLogs.clear' | transloco }}
+                 class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400 !whitespace-nowrap shrink-0 !h-10">
+                 <mat-icon svgIcon="trash" class="icon-size-4 mr-1.5"></mat-icon>
+                 <span class="whitespace-nowrap">{{ 'securityLogs.clear' | transloco }}</span>
                </button>
                <!-- Push Alerts Toggle -->
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 whitespace-nowrap shrink-0">
                 <span class="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Push Alerts</span>
                 <mat-slide-toggle [checked]="true"></mat-slide-toggle>
               </div>
               
               <!-- Columns Button -->
-              <button class="flex items-center gap-2 h-10 px-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300">
+              <button class="flex items-center gap-2 h-10 px-3.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0">
                 <mat-icon svgIcon="settings-2" class="!w-4 !h-4"></mat-icon>
                 Columns
               </button>

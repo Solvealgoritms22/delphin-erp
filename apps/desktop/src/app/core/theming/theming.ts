@@ -68,6 +68,7 @@ export class Theming {
       // Add the 'dark' or 'light' class to the html element
       this.rootEl.classList.toggle('scheme-dark', isDark);
       this.rootEl.classList.toggle('scheme-light', !isDark);
+      this.rootEl.classList.toggle('dark', isDark);
 
       // Store the scheme in local storage
       this.localStorage.setItem('scheme', scheme);
@@ -75,6 +76,31 @@ export class Theming {
 
     // Generate the theme for the first time
     this.generateTheme(this.themeConfig);
+  }
+
+  /**
+   * Sets the active color scheme with View Transitions API support.
+   */
+  setScheme(scheme: Scheme): void {
+    if (this.scheme() === scheme) return;
+
+    if (
+      typeof document !== 'undefined' &&
+      'startViewTransition' in document &&
+      typeof (document as any).startViewTransition === 'function'
+    ) {
+      (document as any).startViewTransition(() => {
+        this.scheme.set(scheme);
+        const prefersDarkMode = this.prefersDarkMode();
+        const isDark =
+          scheme === 'dark' || (scheme === 'system' && prefersDarkMode);
+        this.rootEl.classList.toggle('scheme-dark', isDark);
+        this.rootEl.classList.toggle('scheme-light', !isDark);
+        this.rootEl.classList.toggle('dark', isDark);
+      });
+    } else {
+      this.scheme.set(scheme);
+    }
   }
 
   /**

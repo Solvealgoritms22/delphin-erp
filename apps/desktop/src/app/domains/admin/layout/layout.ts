@@ -1,4 +1,5 @@
-import { Component, computed, signal, inject, OnInit } from '@angular/core';
+import { Component, computed, signal, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -26,6 +27,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
 @Component({
   selector: 'admin-layout',
   imports: [
+    CommonModule,
     MatIconModule,
     MatButtonModule,
     MatMenuModule,
@@ -57,11 +59,15 @@ import { UpdateService } from '@/app/shared/services/update.service';
       </mat-sidenav>
 
       <mat-sidenav-content class="flex flex-col lg:h-dvh lg:overflow-hidden">
-        <!-- Toolbar -->
-        <div class="flex items-center border-b px-4 py-2.5">
+        <!-- Toolbar: draggable in Electron frameless mode -->
+        <div
+          class="flex items-center border-b px-4 py-2.5"
+          [style.webkitAppRegion]="isElectron ? 'drag' : 'no-drag'"
+        >
           <button
             matIconButton
             (click)="sidenav.toggle()"
+            style="-webkit-app-region: no-drag"
           >
             <mat-icon svgIcon="panel-left" />
           </button>
@@ -71,30 +77,34 @@ import { UpdateService } from '@/app/shared/services/update.service';
           
            <!-- Company Selector -->
            @if (empresas().length > 1) {
-             <button [matMenuTriggerFor]="companyMenu" class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer mr-2">
-               <div class="w-7 h-7 rounded-md bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm overflow-hidden">
-                 @if (currentEmpresaLogo()) {
-                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain bg-white p-0.5">
-                 } @else {
+             <button [matMenuTriggerFor]="companyMenu" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer mr-2" style="-webkit-app-region: no-drag">
+               @if (currentEmpresaLogo()) {
+                 <div class="size-8 rounded-lg border border-neutral-200 dark:border-neutral-700/80 bg-neutral-50/80 dark:bg-neutral-800/50 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none">
+                 </div>
+               } @else {
+                 <div class="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs select-none">
                    {{ currentEmpresaLabel().charAt(0).toUpperCase() }}
-                 }
-               </div>
-               <div class="flex flex-col items-start gap-1">
+                 </div>
+               }
+               <div class="flex flex-col items-start gap-0.5">
                  <span class="text-[13px] font-bold text-neutral-900 dark:text-white leading-none mb-0.5">{{ currentEmpresaLabel() }}</span>
                  <span class="text-[10px] font-medium text-neutral-500 leading-none">{{ currentEmpresaRnc() }}</span>
                </div>
                <mat-icon svgIcon="chevron-down" class="icon-size-4 text-neutral-400 ml-1"></mat-icon>
              </button>
            } @else {
-             <div class="flex items-center gap-2 px-3 py-1.5 mr-2">
-               <div class="w-7 h-7 rounded-md bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm overflow-hidden">
-                 @if (currentEmpresaLogo()) {
-                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain bg-white p-0.5">
-                 } @else {
+             <div class="flex items-center gap-2.5 px-2.5 py-1.5 mr-2" style="-webkit-app-region: no-drag">
+               @if (currentEmpresaLogo()) {
+                 <div class="size-8 rounded-lg border border-neutral-200 dark:border-neutral-700/80 bg-neutral-50/80 dark:bg-neutral-800/50 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none">
+                 </div>
+               } @else {
+                 <div class="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs select-none">
                    {{ currentEmpresaLabel().charAt(0).toUpperCase() }}
-                 }
-               </div>
-               <div class="flex flex-col items-start gap-1">
+                 </div>
+               }
+               <div class="flex flex-col items-start gap-0.5">
                  <span class="text-[13px] font-bold text-neutral-900 dark:text-white leading-none mb-0.5">{{ currentEmpresaLabel() }}</span>
                  <span class="text-[10px] font-medium text-neutral-500 leading-none">{{ currentEmpresaRnc() }}</span>
                </div>
@@ -156,6 +166,39 @@ import { UpdateService } from '@/app/shared/services/update.service';
             />
             <assistant />
           </div>
+
+          <!-- Electron window controls (only in desktop app) -->
+          @if (isElectron) {
+            <div class="flex items-center gap-0.5 ml-2" style="-webkit-app-region: no-drag">
+              <!-- Minimize -->
+              <button
+                matIconButton
+                class="!w-8 !h-8 !min-w-0 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-md"
+                (click)="windowMinimize()"
+                title="Minimizar"
+              >
+                <mat-icon svgIcon="minus" class="icon-size-4" />
+              </button>
+              <!-- Maximize / Restore -->
+              <button
+                matIconButton
+                class="!w-8 !h-8 !min-w-0 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-md"
+                (click)="windowMaximize()"
+                [title]="isMaximized() ? 'Restaurar' : 'Maximizar'"
+              >
+                <mat-icon [svgIcon]="isMaximized() ? 'minimize-2' : 'maximize-2'" class="icon-size-4" />
+              </button>
+              <!-- Close -->
+              <button
+                matIconButton
+                class="!w-8 !h-8 !min-w-0 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-600 dark:hover:text-red-400 rounded-md"
+                (click)="windowClose()"
+                title="Cerrar"
+              >
+                <mat-icon svgIcon="x" class="icon-size-4" />
+              </button>
+            </div>
+          }
         </div>
 
         <!-- Content -->
@@ -166,13 +209,18 @@ import { UpdateService } from '@/app/shared/services/update.service';
     </mat-sidenav-container>
   `,
 })
-export class AdminLayout implements OnInit {
+export class AdminLayout implements OnInit, OnDestroy {
   // Dependencies
+  private platformId = inject(PLATFORM_ID);
   private media = inject(Media);
   private router = inject(Router);
   private authService = inject(AuthService);
   private authState = inject(AuthState);
   private updateService = inject(UpdateService);
+
+  // Electron frameless window support
+  readonly isElectron = isPlatformBrowser(this.platformId) && !!(window as any).dolphinWindow;
+  readonly isMaximized = signal(false);
 
   // Tenant State (real)
   empresas = signal<Empresa[]>([]);
@@ -213,7 +261,16 @@ export class AdminLayout implements OnInit {
     if (this.updateService.isElectron()) {
       this.updateService.checkForUpdates();
     }
+
+    // Subscribe to maximize state changes from Electron main process
+    if (this.isElectron) {
+      (window as any).dolphinWindow.onMaximizeChange((maximized: boolean) => {
+        this.isMaximized.set(maximized);
+      });
+    }
   }
+
+  ngOnDestroy() { /* nothing to clean up */ }
 
   switchTenant(empresa: Empresa) {
     if (empresa.id === this.currentEmpresaId()) return;
@@ -234,4 +291,9 @@ export class AdminLayout implements OnInit {
   getRouteUrl() {
     return this.router.url;
   }
+
+  // Window control methods (only active in Electron)
+  windowMinimize() { if (this.isElectron) (window as any).dolphinWindow.minimize(); }
+  windowMaximize() { if (this.isElectron) (window as any).dolphinWindow.maximize(); }
+  windowClose()    { if (this.isElectron) (window as any).dolphinWindow.close(); }
 }

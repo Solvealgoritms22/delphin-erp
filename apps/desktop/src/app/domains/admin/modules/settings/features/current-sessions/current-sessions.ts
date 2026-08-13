@@ -47,11 +47,11 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
           <div class="flex flex-col flex-auto bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
             
             <!-- Toolbar -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-5 border-b border-neutral-200 dark:border-neutral-700 gap-4">
+            <div class="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-neutral-200 dark:border-neutral-700 gap-4">
               
-              <div class="flex items-center gap-3">
+              <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                 <!-- Search -->
-                <div class="relative flex items-center h-10 px-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent min-w-64 max-w-full">
+                <div class="relative flex items-center h-10 px-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent min-w-[200px] sm:min-w-64 max-w-full flex-auto sm:flex-initial">
                   <mat-icon svgIcon="search" class="absolute left-3 !w-5 !h-5 text-neutral-400"></mat-icon>
                   <input
                     type="text"
@@ -62,32 +62,32 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                 </div>
                 
                 <!-- Browser Filter -->
-                <button class="flex items-center gap-2 h-10 px-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300">
+                <button class="flex items-center gap-2 h-10 px-3.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0">
                   <mat-icon svgIcon="list-filter" class="!w-4 !h-4"></mat-icon>
                    {{ 'sessions.browser' | transloco }}
                 </button>
 
                 <!-- Location Filter -->
-                <button class="flex items-center gap-2 h-10 px-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300">
+                <button class="flex items-center gap-2 h-10 px-3.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0">
                   <mat-icon svgIcon="list-filter" class="!w-4 !h-4"></mat-icon>
                    {{ 'sessions.location' | transloco }}
                 </button>
               </div>
 
-               <div class="flex items-center gap-4">
-                 <button mat-stroked-button type="button" (click)="revokeOthers()" [disabled]="loading()"
-                   class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400">
-                   <mat-icon svgIcon="log-out" class="icon-size-4 mr-2"></mat-icon>
-                    {{ 'sessions.closeOthers' | transloco }}
-                 </button>
+              <div class="flex flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto justify-start lg:justify-end">
+                <button mat-stroked-button type="button" (click)="revokeOthers()" [disabled]="loading()"
+                  class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400 !whitespace-nowrap shrink-0 !h-10">
+                  <mat-icon svgIcon="log-out" class="icon-size-4 mr-1.5"></mat-icon>
+                  <span class="whitespace-nowrap">{{ 'sessions.closeOthers' | transloco }}</span>
+                </button>
                 <!-- Active Toggle -->
-                <div class="flex items-center gap-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                   {{ 'sessions.onlyActive' | transloco }}
+                <div class="flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap shrink-0">
+                  <span>{{ 'sessions.onlyActive' | transloco }}</span>
                   <mat-slide-toggle [checked]="onlyActive()" (change)="onlyActive.set($event.checked)"></mat-slide-toggle>
                 </div>
 
                 <!-- Columns -->
-                <button class="flex items-center gap-2 h-10 px-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300">
+                <button class="flex items-center gap-2 h-10 px-3.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0">
                   <mat-icon svgIcon="settings-2" class="!w-4 !h-4"></mat-icon>
                    {{ 'sessions.columns' | transloco }}
                 </button>

@@ -166,7 +166,7 @@ export class UpdateNotificationComponent {
       case 'ready':
         return 'circle-check-big';
       case 'error':
-        return 'alert-circle';
+        return 'circle-alert';
       case 'checking':
         return 'refresh-cw';
       default:

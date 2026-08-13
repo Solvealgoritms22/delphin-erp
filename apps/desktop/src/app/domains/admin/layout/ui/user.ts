@@ -191,7 +191,7 @@ export class User implements OnInit {
   });
 
   updateScheme(scheme: Scheme) {
-    this.theming.scheme.set(scheme);
+    this.theming.setScheme(scheme);
   }
 
   signOut() {

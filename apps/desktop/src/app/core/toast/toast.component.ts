@@ -59,15 +59,15 @@ export class ToastComponent {
   getIcon(): string {
     switch (this.data.type) {
       case 'success':
-        return 'check-circle-2';
+        return 'circle-check';
       case 'error':
-        return 'alert-circle';
+        return 'circle-alert';
       case 'warning':
-        return 'alert-triangle';
+        return 'triangle-alert';
       case 'info':
         return 'info';
       case 'loading':
-        return 'loader-2';
+        return 'loader-circle';
       default:
         return 'info';
     }

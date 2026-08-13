@@ -15,7 +15,19 @@
       "products": "Products and services",
       "suppliers": "Suppliers",
       "emptySummary": "There are no records in this company yet. Once you add information, this panel will summarize the operation.",
-      "summary": "The company has {{total}} active records: {{clients}} clients, {{products}} products or services, {{suppliers}} suppliers, and {{users}} users. Use the quick links to review each area."
+      "summary": "The company has {{total}} active records: {{clients}} clients, {{products}} products or services, {{suppliers}} suppliers, and {{users}} users. Use the quick links to review each area.",
+      "ofTotal": "of total registered",
+      "recordsOverview": "Records overview",
+      "moreOptions": "More options",
+      "areaDistribution": "Distribution by area",
+      "totalDetail": "Total breakdown",
+      "total": "Total",
+      "activeCompanyHint": "Data belongs to the active company.",
+      "quickInsight": "Quick insight",
+      "reviewClients": "Review clients",
+      "reviewProducts": "Review products",
+      "reviewSuppliers": "Review suppliers",
+      "updatedOnOpen": "Updated upon opening this panel"
     },
     "finance": {
       "title": "Finance",

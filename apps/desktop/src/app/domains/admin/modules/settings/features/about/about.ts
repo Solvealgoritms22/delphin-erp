@@ -19,7 +19,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
     TranslocoModule,
   ],
   template: `
-    <div class="w-full max-w-3xl mx-auto">
+    <div class="w-full max-w-3xl mx-auto mt-4 p-4">
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
@@ -42,8 +42,17 @@ import { UpdateService } from '@/app/shared/services/update.service';
                 Dolphin ERP Desktop
               </div>
             </div>
-            <div class="w-20 h-20 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-              <mat-icon svgIcon="package" class="icon-size-10 text-blue-600 dark:text-blue-400"></mat-icon>
+            <div class="w-20 h-20 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0 p-2">
+              <img
+                src="/images/logo/logo_dolphin_light.png"
+                alt="Dolphin ERP"
+                class="w-full h-full object-contain dark:hidden"
+              />
+              <img
+                src="/images/logo/logo_dolphin_dark.png"
+                alt="Dolphin ERP"
+                class="w-full h-full object-contain hidden dark:block"
+              />
             </div>
           </div>
         </mat-card-content>
@@ -87,9 +96,9 @@ import { UpdateService } from '@/app/shared/services/update.service';
           }
 
           @if (updateError()) {
-            <div class="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400">
-              <mat-icon svgIcon="alert-circle" class="icon-size-4 mr-2 inline-block align-middle"></mat-icon>
-              {{ updateError() }}
+            <div class="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 flex items-center">
+              <mat-icon svgIcon="circle-alert" class="icon-size-4 mr-2 shrink-0"></mat-icon>
+              <span>{{ updateError() }}</span>
             </div>
           }
 
@@ -146,19 +155,19 @@ import { UpdateService } from '@/app/shared/services/update.service';
           <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <dt class="text-neutral-500 dark:text-neutral-400">Framework</dt>
-              <dd class="font-medium text-neutral-900 dark:text-white">Angular 22 + Electron 43</dd>
+              <dd class="font-medium text-neutral-900 dark:text-white">Electron 43</dd>
             </div>
             <div>
               <dt class="text-neutral-500 dark:text-neutral-400">Canal de actualizaciones</dt>
-              <dd class="font-medium text-neutral-900 dark:text-white">GitHub Releases (estable)</dd>
+              <dd class="font-medium text-neutral-900 dark:text-white">GitHub Releases</dd>
             </div>
             <div>
               <dt class="text-neutral-500 dark:text-neutral-400">Instalador</dt>
-              <dd class="font-medium text-neutral-900 dark:text-white">NSIS (Windows)</dd>
+              <dd class="font-medium text-neutral-900 dark:text-white">NSIS for Windows</dd>
             </div>
             <div>
               <dt class="text-neutral-500 dark:text-neutral-400">Actualizaciones automáticas</dt>
-              <dd class="font-medium text-neutral-900 dark:text-white">Al iniciar la app + manual</dd>
+              <dd class="font-medium text-neutral-900 dark:text-white">Al iniciar la app</dd>
             </div>
           </dl>
         </mat-card-content>

@@ -1,86 +1,153 @@
-# Generate a proper .ico file from favicon.png
-Add-Type -AssemblyName System.Drawing
-Add-Type -AssemblyName System.IO
+$csharpCode = @"
+using System;
+using System.IO;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Collections.Generic;
 
-$srcPath = "C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\public\favicon.png"
-$buildDir = "C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\build"
-$iconPngPath = Join-Path $buildDir "icon.png"
-$iconIcoPath = Join-Path $buildDir "icon.ico"
+public class IconGenerator
+{
+    public static GraphicsPath CreateRoundedPath(RectangleF rect, float radius)
+    {
+        GraphicsPath path = new GraphicsPath();
+        float diameter = radius * 2f;
+        path.AddArc(rect.X, rect.Y, diameter, diameter, 180f, 90f);
+        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270f, 90f);
+        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0f, 90f);
+        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90f, 90f);
+        path.CloseFigure();
+        return path;
+    }
 
-# Dolphin ERP primary color #1565C0
-$primaryColor = [System.Drawing.Color]::FromArgb(255, 0x15, 0x65, 0xC0)
+    public static void Generate(string logoPath, string outIcoPath, string outPngPath, string outPng512Path)
+    {
+        int masterSize = 512;
+        using (Bitmap dolphinBmp = new Bitmap(logoPath))
+        using (Bitmap master = new Bitmap(masterSize, masterSize, PixelFormat.Format32bppArgb))
+        {
+            using (Graphics g = Graphics.FromImage(master))
+            {
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                g.Clear(Color.Transparent);
 
-# Load source image
-$srcImg = [System.Drawing.Image]::FromFile($srcPath)
+                float padding = 16f;
+                float radius = 90f;
+                RectangleF badgeRect = new RectangleF(padding, padding, masterSize - padding * 2f, masterSize - padding * 2f);
 
-# Create 256x256 canvas with blue background
-$size = 256
-$canvas = New-Object System.Drawing.Bitmap $size, $size
-$g = [System.Drawing.Graphics]::FromImage($canvas)
-$g.Clear($primaryColor)
-$g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-$g.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
-$g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+                using (GraphicsPath badgePath = CreateRoundedPath(badgeRect, radius))
+                {
+                    // Dark navy gradient
+                    Color c1 = Color.FromArgb(255, 14, 23, 42);   // #0e172a
+                    Color c2 = Color.FromArgb(255, 23, 37, 84);   // #172554
+                    using (LinearGradientBrush brush = new LinearGradientBrush(badgeRect, c1, c2, LinearGradientMode.ForwardDiagonal))
+                    {
+                        g.FillPath(brush, badgePath);
+                    }
 
-# Draw source centered, scaled to 80% of canvas
-$drawSize = [math]::Floor($size * 0.8)
-$x = [math]::Floor(($size - $drawSize) / 2)
-$y = [math]::Floor(($size - $drawSize) / 2)
-$g.DrawImage($srcImg, $x, $y, $drawSize, $drawSize)
+                    // Subtle border
+                    using (Pen pen = new Pen(Color.FromArgb(75, 59, 130, 246), 4f))
+                    {
+                        g.DrawPath(pen, badgePath);
+                    }
+                }
 
-$g.Dispose()
+                // Center dolphin logo
+                float margin = 72f;
+                RectangleF dolphinRect = new RectangleF(margin, margin, masterSize - margin * 2f, masterSize - margin * 2f);
+                g.DrawImage(dolphinBmp, dolphinRect);
+            }
 
-# Save 256x256 PNG
-$canvas.Save($iconPngPath, [System.Drawing.Imaging.ImageFormat]::Png)
+            // Save master 512
+            master.Save(outPng512Path, ImageFormat.Png);
 
-# Save 512x512 PNG (for potential macOS/Linux)
-$canvas512 = New-Object System.Drawing.Bitmap 512, 512
-$g512 = [System.Drawing.Graphics]::FromImage($canvas512)
-$g512.Clear($primaryColor)
-$g512.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-$drawSize512 = [math]::Floor(512 * 0.8)
-$x512 = [math]::Floor((512 - $drawSize512) / 2)
-$y512 = [math]::Floor((512 - $drawSize512) / 2)
-$g512.DrawImage($srcImg, $x512, $y512, $drawSize512, $drawSize512)
-$g512.Dispose()
-$canvas512.Save((Join-Path $buildDir "icon-512.png"), [System.Drawing.Imaging.ImageFormat]::Png)
+            // Save 256 PNG
+            using (Bitmap bmp256 = new Bitmap(256, 256, PixelFormat.Format32bppArgb))
+            {
+                using (Graphics g256 = Graphics.FromImage(bmp256))
+                {
+                    g256.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g256.SmoothingMode = SmoothingMode.AntiAlias;
+                    g256.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    g256.Clear(Color.Transparent);
+                    g256.DrawImage(master, 0, 0, 256, 256);
+                }
+                bmp256.Save(outPngPath, ImageFormat.Png);
+            }
 
-# Generate .ico with PNG-compressed 256x256 (Vista+ format)
-# ICO format: ICONDIR (6 bytes) + ICONDIRENTRY (16 bytes) * count + image data
-# We'll create a single-entry ICO with 256x256 PNG
+            // Sizes for ICO
+            int[] sizes = new int[] { 16, 24, 32, 48, 64, 128, 256 };
+            List<byte[]> pngBytesList = new List<byte[]>();
 
-$pngBytes = [System.IO.File]::ReadAllBytes($iconPngPath)
-$pngLen = $pngBytes.Length
+            foreach (int sz in sizes)
+            {
+                using (Bitmap subBmp = new Bitmap(sz, sz, PixelFormat.Format32bppArgb))
+                {
+                    using (Graphics gSub = Graphics.FromImage(subBmp))
+                    {
+                        gSub.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        gSub.SmoothingMode = SmoothingMode.AntiAlias;
+                        gSub.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        gSub.Clear(Color.Transparent);
+                        gSub.DrawImage(master, 0, 0, sz, sz);
+                    }
 
-$ms = New-Object System.IO.MemoryStream
-$bw = New-Object System.IO.BinaryWriter $ms
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        subBmp.Save(ms, ImageFormat.Png);
+                        pngBytesList.Add(ms.ToArray());
+                    }
+                }
+            }
 
-# ICONDIR
-$bw.Write([ushort]0)      # reserved
-$bw.Write([ushort]1)      # type = 1 (ICON)
-$bw.Write([ushort]1)      # count = 1
+            // Write ICO file with valid ICONDIR and ICONDIRENTRY
+            int numImages = sizes.Length;
+            int headerSize = 6 + numImages * 16;
+            using (FileStream fs = new FileStream(outIcoPath, FileMode.Create, FileAccess.Write))
+            using (BinaryWriter bw = new BinaryWriter(fs))
+            {
+                // ICONDIR
+                bw.Write((ushort)0);
+                bw.Write((ushort)1);
+                bw.Write((ushort)numImages);
 
-# ICONDIRENTRY (256x256 stored as 0x00)
-$bw.Write([byte]0)        # width (0 = 256)
-$bw.Write([byte]0)        # height (0 = 256)
-$bw.Write([byte]0)        # color count
-$bw.Write([byte]0)        # reserved
-$bw.Write([ushort]1)      # planes
-$bw.Write([ushort]32)     # bit count
-$bw.Write([uint32]$pngLen)  # bytes in resource
-$bw.Write([uint32]22)       # image offset (6 + 16 = 22)
+                int offset = headerSize;
+                for (int i = 0; i < numImages; i++)
+                {
+                    int sz = sizes[i];
+                    byte bSz = sz == 256 ? (byte)0 : (byte)sz;
+                    int dataLen = pngBytesList[i].Length;
 
-# Image data (PNG)
-$bw.Write($pngBytes)
+                    bw.Write(bSz);          // Width
+                    bw.Write(bSz);          // Height
+                    bw.Write((byte)0);      // Colors
+                    bw.Write((byte)0);      // Reserved
+                    bw.Write((ushort)1);    // Planes
+                    bw.Write((ushort)32);   // BitCount
+                    bw.Write((uint)dataLen);// BytesInRes
+                    bw.Write((uint)offset); // ImageOffset
+                    offset += dataLen;
+                }
 
-$bw.Flush()
-[System.IO.File]::WriteAllBytes($iconIcoPath, $ms.ToArray())
-$ms.Dispose()
-$canvas.Dispose()
-$canvas512.Dispose()
-$srcImg.Dispose()
+                // Write PNG images
+                for (int i = 0; i < numImages; i++)
+                {
+                    bw.Write(pngBytesList[i]);
+                }
+            }
+        }
+    }
+}
+"@
 
-Write-Host "Generated:"
-Write-Host "  $iconPngPath"
-Write-Host "  $iconIcoPath"
-Write-Host "  $buildDir\icon-512.png"
+Add-Type -TypeDefinition $csharpCode -ReferencedAssemblies System.Drawing
+
+$logoPath = (Resolve-Path (Join-Path $PSScriptRoot "..\public\images\logo\logo_dolphin_light.png")).Path
+$icoPath  = (Join-Path $PSScriptRoot "icon.ico")
+$pngPath  = (Join-Path $PSScriptRoot "icon.png")
+$png512Path = (Join-Path $PSScriptRoot "icon-512.png")
+
+[IconGenerator]::Generate($logoPath, $icoPath, $pngPath, $png512Path)
+Write-Host "Icono generado con esquinas 100% transparentes en: $icoPath"

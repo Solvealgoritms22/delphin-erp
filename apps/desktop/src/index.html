@@ -79,19 +79,57 @@
           width: 100%;
           height: 100%;
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
           background-color: #ffffff;
           z-index: 99999;
+          user-select: none;
         }
         html.scheme-dark .splash-screen {
           background-color: #09090b;
         }
-        .splash-screen .logo {
-          width: 120px;
+        .splash-content {
+          position: relative;
+          width: 130px;
+          height: 130px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .splash-spinner-track {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          border: 3px solid rgba(0, 0, 0, 0.06);
+        }
+        html.scheme-dark .splash-spinner-track {
+          border: 3px solid rgba(255, 255, 255, 0.08);
+        }
+        .splash-spinner-ring {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          border: 3px solid transparent;
+          border-top-color: #2563eb;
+          border-right-color: #60a5fa;
+          animation: splash-spin 1.2s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+        }
+        html.scheme-dark .splash-spinner-ring {
+          border-top-color: #3b82f6;
+          border-right-color: #93c5fd;
+          filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.35));
+        }
+        .splash-content .logo {
+          width: 66px;
           height: auto;
-          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+          position: relative;
+          z-index: 2;
+          object-fit: contain;
+          animation: splash-pulse 2.4s ease-in-out infinite;
         }
         html.scheme-dark .logo-light {
           display: none;
@@ -102,36 +140,27 @@
         html:not(.scheme-dark):not(.scheme-light) .logo-dark {
            display: none;
         }
-        .spinner {
-          margin-top: 2rem;
-          width: 32px;
-          height: 32px;
-          border: 3px solid rgba(0, 0, 0, 0.1);
-          border-radius: 50%;
-          border-top-color: #2563eb;
-          animation: spin 1s ease-in-out infinite;
-        }
-        html.scheme-dark .spinner {
-          border: 3px solid rgba(255, 255, 255, 0.1);
-          border-top-color: #3b82f6;
-        }
-        @keyframes pulse {
+        @keyframes splash-pulse {
           0%, 100% {
             opacity: 1;
             transform: scale(1);
           }
           50% {
-            opacity: .6;
-            transform: scale(0.95);
+            opacity: 0.85;
+            transform: scale(0.96);
           }
         }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
+        @keyframes splash-spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       </style>
-      <img class="logo logo-light" src="/images/logo/logo_dolphin_light.png" alt="Dolphin ERP" />
-      <img class="logo logo-dark" src="/images/logo/logo_dolphin_dark.png" alt="Dolphin ERP" />
-      <div class="spinner"></div>
+      <div class="splash-content">
+        <div class="splash-spinner-track"></div>
+        <div class="splash-spinner-ring"></div>
+        <img class="logo logo-light" src="/images/logo/logo_dolphin_light.png" alt="Dolphin ERP" />
+        <img class="logo logo-dark" src="/images/logo/logo_dolphin_dark.png" alt="Dolphin ERP" />
+      </div>
     </div>
     <app-root></app-root>
   </body>

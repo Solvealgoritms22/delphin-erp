@@ -12,6 +12,7 @@ import { MatDivider } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@/app/core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -36,6 +37,7 @@ export default class AuthSignIn {
   private router = inject(Router);
   protected authService = inject(AuthService);
   private transloco = inject(TranslocoService);
+  private snackBar = inject(MatSnackBar);
 
   // State
   protected signInFormModel = signal({
@@ -69,9 +71,15 @@ export default class AuthSignIn {
               : '/admin/dashboards',
           );
         },
-        error: () => {
+        error: (err: Error) => {
           this.isLoading.set(false);
-          // Here we would handle the error (e.g. show toast)
+          const message = err.message || this.transloco.translate('auth.errors.invalidCredentials');
+          this.snackBar.open(message, this.transloco.translate('common.close'), {
+            duration: 5000,
+            panelClass: ['snack-error'],
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+          });
         }
       });
     });

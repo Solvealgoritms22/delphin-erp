@@ -1,11 +1,26 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol, net } = require('electron');
 const path = require('path');
-const url = require('url');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 
 log.transports.file.level = 'info';
 autoUpdater.logger = log;
+
+// Register 'app' as a privileged scheme BEFORE app is ready.
+// This allows Angular's HttpClient and fetch() to work on this scheme,
+// fixing issues with transloco i18n files and other XHR requests.
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true,
+    },
+  },
+]);
 
 let mainWindow;
 
@@ -13,29 +28,35 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    minWidth: 900,
+    minHeight: 600,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
     },
-    title: 'Dolphin ERP',
+    // Remove native titlebar — the Angular app renders its own controls
+    frame: false,
+    titleBarStyle: 'hidden',
     icon: path.join(__dirname, 'build', 'icon.ico'),
     autoHideMenuBar: true,
+    backgroundColor: '#09090b', // matches dark bg so no white flash on load
   });
 
   const isDev = process.argv.includes('--dev');
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    log.error(`Failed to load ${validatedURL}: [${errorCode}] ${errorDescription}`);
+  });
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:3873');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadURL(
-      url.format({
-        pathname: path.join(__dirname, 'dist/desktop/browser/index.html'),
-        protocol: 'file:',
-        slashes: true,
-      })
-    );
+    // Use the custom 'app://' scheme so that all requests (images, i18n JSON,
+    // fonts, etc.) are served through our protocol handler, just like a real
+    // web server.  This avoids the limitations of the raw file:// protocol.
+    mainWindow.loadURL('app://localhost/index.html');
   }
 
   mainWindow.on('closed', () => {
@@ -100,9 +121,41 @@ function setupAutoUpdater() {
   ipcMain.on('dolphin:quit-and-install', () => {
     autoUpdater.quitAndInstall();
   });
+
+  // Custom frameless window controls
+  ipcMain.on('dolphin:window-minimize', () => mainWindow?.minimize());
+  ipcMain.on('dolphin:window-maximize', () => {
+    if (mainWindow?.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow?.maximize();
+    }
+  });
+  ipcMain.on('dolphin:window-close', () => mainWindow?.close());
+
+  // Notify renderer when maximize state changes
+  mainWindow?.on('maximize',   () => mainWindow?.webContents.send('dolphin:window-maximized', true));
+  mainWindow?.on('unmaximize', () => mainWindow?.webContents.send('dolphin:window-maximized', false));
 }
 
 app.on('ready', () => {
+  // Register the custom 'app://' protocol handler.
+  // Every request to app://localhost/<path> is mapped to the Angular
+  // build output directory: dist/desktop/browser/<path>
+  const appRoot = path.join(__dirname, 'dist', 'desktop', 'browser');
+
+  protocol.handle('app', (request) => {
+    // Strip the scheme + hostname to get just the file path
+    const urlPath = request.url.replace(/^app:\/\/localhost\/?/, '');
+    // Decode URI components (spaces, special chars)
+    const decoded = decodeURIComponent(urlPath);
+    // Resolve to an absolute file path inside the build output
+    const filePath = path.join(appRoot, decoded);
+
+    log.info(`[app://] ${request.url} → ${filePath}`);
+    return net.fetch('file://' + filePath);
+  });
+
   createWindow();
   setupAutoUpdater();
 

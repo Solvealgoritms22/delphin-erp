@@ -26,3 +26,13 @@ contextBridge.exposeInMainWorld('dolphinUpdater', {
     ipcRenderer.removeAllListeners(channel);
   }
 });
+
+// Window control bridge (used by frameless window custom titlebar)
+contextBridge.exposeInMainWorld('dolphinWindow', {
+  minimize: () => ipcRenderer.send('dolphin:window-minimize'),
+  maximize: () => ipcRenderer.send('dolphin:window-maximize'),
+  close:    () => ipcRenderer.send('dolphin:window-close'),
+  onMaximizeChange: (callback) => {
+    ipcRenderer.on('dolphin:window-maximized', (_e, isMaximized) => callback(isMaximized));
+  },
+});
