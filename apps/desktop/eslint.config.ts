@@ -100,6 +100,7 @@ export default defineConfig(
         },
       ],
       '@typescript-eslint/consistent-indexed-object-style': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
       'no-empty': 'off',
       'no-useless-escape': 'off',
       '@angular-eslint/component-class-suffix': 'off',
