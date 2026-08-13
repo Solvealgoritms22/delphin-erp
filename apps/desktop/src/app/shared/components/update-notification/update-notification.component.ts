@@ -4,6 +4,7 @@ import { MatSnackBarRef, MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar'
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoModule } from '@jsverse/transloco';
 import { UpdateService, UpdateStatus, UpdateInfo, DownloadProgress } from '../../services/update.service';
 
@@ -18,7 +19,7 @@ interface SnackBarData {
 @Component({
   selector: 'app-update-notification',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatProgressBarModule, TranslocoModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatProgressBarModule, MatTooltipModule, TranslocoModule],
   template: `
     <div class="w-full max-w-md">
       <div

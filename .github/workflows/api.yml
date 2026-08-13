@@ -29,12 +29,12 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://dolphin:dolphin_password@localhost:5432/dolphin_erp?schema=public
-      JWT_SECRET: ci-only-secret-change-me
+      JWT_SECRET: 022a37b17484cd31d35d7e8fea68ce5a54ba7daf172c43900d5e4b922635bbdc6bd4b1c977968d9c3f77bb0383453f3d
       NODE_ENV: test
       AZUL_ENV: MOCK
       SMTP_HOST: localhost
       SMTP_PORT: 1025
-      SMTP_FROM: no-reply@example.test
+      SMTP_FROM: no-reply@fiscalbridge.app
 
     steps:
       - uses: actions/checkout@v4
@@ -43,8 +43,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx prisma generate --schema apps/api/prisma/schema.prisma
-      - run: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+      - run: npm run db:generate --workspace=apps/api
+      - run: npm run db:deploy --workspace=apps/api
       - run: npm test --workspace=apps/api -- --coverage
       - run: npm run test:e2e --workspace=apps/api
       - run: npm run build --workspace=apps/api
