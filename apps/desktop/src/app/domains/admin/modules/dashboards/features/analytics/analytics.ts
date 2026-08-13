@@ -41,7 +41,7 @@ import { AnalyticsDashboardService } from '@/app/domains/admin/modules/dashboard
   ],
   template: `
     <div
-      class="@container flex h-full w-full flex-auto flex-col gap-4 p-6 sm:gap-6 lg:px-8 lg:pt-8 lg:pb-10"
+      class="@container flex h-full w-full flex-auto flex-col gap-4 p-6 sm:gap-6 lg:px-8 lg:pt-8 lg:pb-10 overflow-y-auto overflow-x-hidden"
     >
       <!-- Header -->
       <div class="flex items-center justify-between gap-x-3">

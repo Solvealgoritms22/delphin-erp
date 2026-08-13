@@ -34,7 +34,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     TranslocoPipe
   ],
   template: `
-    <div class="flex flex-col w-full h-full bg-white dark:bg-neutral-900 overflow-hidden relative border-t sm:border-t-0 sm:border-l border-neutral-200 dark:border-neutral-800">
+    <div class="flex flex-col w-full h-full bg-white dark:bg-neutral-900 overflow-y-auto overflow-x-hidden relative border-t sm:border-t-0 sm:border-l border-neutral-200 dark:border-neutral-800">
       <div class="flex flex-col flex-auto min-w-0">
         
         <!-- Main Panel -->

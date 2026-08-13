@@ -13,10 +13,10 @@ import { TranslocoPipe } from '@jsverse/transloco';
   standalone: true,
    imports: [MatButtonModule, MatIconModule, CurrencyPipe, EmptyStateComponent, TableSkeletonComponent, TranslocoPipe],
   template: `
-    <div class="flex flex-col w-full min-w-0 sm:absolute sm:inset-0 sm:overflow-hidden">
+    <div class="flex flex-col w-full h-full min-w-0 overflow-hidden">
       
       <!-- Header -->
-      <div class="relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+      <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
         <!-- Title -->
          <div>
            <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'catalogs.products.title' | transloco }}</div>
@@ -32,10 +32,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
       </div>
 
       <!-- Main -->
-      <div class="flex flex-auto overflow-hidden">
-        <div class="flex flex-col flex-auto sm:mb-18 overflow-hidden sm:overflow-y-auto">
-          
-          <div class="grid">
+      <div class="flex flex-col flex-auto min-h-0 overflow-y-auto">
+        <div class="grid">
             <!-- Header -->
             <div class="inventory-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
                <div>{{ 'common.code' | transloco }}</div>
@@ -86,8 +84,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
               }
             }
           </div>
-
-        </div>
       </div>
     </div>
   `,

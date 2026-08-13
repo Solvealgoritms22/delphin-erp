@@ -19,7 +19,8 @@ import { UpdateService } from '@/app/shared/services/update.service';
     TranslocoModule,
   ],
   template: `
-    <div class="w-full max-w-3xl mx-auto mt-4 p-4">
+    <div class="w-full h-full overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+      <div class="w-full max-w-3xl mx-auto">
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
@@ -172,6 +173,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
           </dl>
         </mat-card-content>
       </mat-card>
+      </div>
     </div>
   `,
 })

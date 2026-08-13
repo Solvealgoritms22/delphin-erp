@@ -67,7 +67,7 @@ import { SkeletonComponent } from '@/app/shared/components/skeleton/skeleton.com
         </mat-sidenav>
 
         <mat-sidenav-content
-          class="flex flex-auto flex-col"
+          class="flex flex-auto flex-col overflow-y-auto"
           [class.border-r]="!!selectedTask()"
         >
           <!-- Header -->

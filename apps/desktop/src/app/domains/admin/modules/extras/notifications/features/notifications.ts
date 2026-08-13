@@ -11,13 +11,13 @@ import { TranslocoPipe } from '@jsverse/transloco';
   standalone: true,
    imports: [CommonModule, MatButtonModule, MatIconModule, TranslocoPipe],
   template: `
-    <div class="flex h-full w-full min-w-0 flex-col bg-white dark:bg-neutral-900">
-      <header class="flex flex-col gap-1 border-b border-neutral-200 px-6 py-8 dark:border-neutral-800 md:px-8">
+    <div class="flex h-full w-full min-w-0 flex-col bg-white dark:bg-neutral-900 overflow-hidden">
+      <header class="shrink-0 flex flex-col gap-1 border-b border-neutral-200 px-6 py-8 dark:border-neutral-800 md:px-8">
         <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'extras.notifications.title' | transloco }}</h1>
         <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ 'extras.notifications.description' | transloco }}</p>
       </header>
 
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 px-6 py-4 dark:border-neutral-800 md:px-8">
+      <div class="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 px-6 py-4 dark:border-neutral-800 md:px-8">
         <div class="flex items-center gap-2">
           @for (filter of filters; track filter.value) {
             <button type="button" mat-button [class.!bg-blue-50]="activeFilter() === filter.value" [class.!text-blue-700]="activeFilter() === filter.value" (click)="setFilter(filter.value)">
@@ -37,7 +37,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
         </div>
       </div>
 
-      <main class="flex-auto overflow-y-auto">
+      <main class="flex-auto min-h-0 overflow-y-auto">
         @if (notifications().length === 0) {
           <div class="flex min-h-[520px] flex-col items-center justify-center px-6 py-16 text-center">
             <img class="mb-6 h-36 dark:hidden" src="illustrations/18.svg" alt="No notifications">

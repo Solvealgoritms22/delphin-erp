@@ -6,7 +6,7 @@ import { MatCard } from '@angular/material/card';
   imports: [MatCard],
   template: `
     <div
-      class="@container flex h-full w-full flex-auto flex-col overflow-hidden"
+      class="@container flex h-full w-full flex-auto flex-col overflow-y-auto overflow-x-hidden"
     >
       <!-- Header -->
       <div class="flex items-center gap-x-4 px-6 py-4 lg:px-8 lg:py-8">

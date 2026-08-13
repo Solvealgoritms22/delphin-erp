@@ -53,7 +53,7 @@ const DEFAULT_PLANS: Plan[] = [
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatIconModule, MatDialogModule, TranslocoPipe],
   template: `
-    <div class="flex h-full w-full flex-col flex-auto min-w-0 p-6 sm:p-10">
+    <div class="flex h-full w-full flex-col flex-auto min-w-0 p-6 sm:p-10 overflow-y-auto overflow-x-hidden">
 
       <!-- Header with Back button -->
       <div class="flex items-center justify-start mb-6">

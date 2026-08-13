@@ -27,7 +27,7 @@ export interface Empresa {
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, EmptyStateComponent, TranslocoPipe],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 bg-white dark:bg-neutral-900 min-h-screen relative">
+    <div class="flex flex-col flex-auto min-w-0 bg-white dark:bg-neutral-900 relative">
       
       <!-- Header -->
       <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-neutral-50/50 dark:bg-transparent">

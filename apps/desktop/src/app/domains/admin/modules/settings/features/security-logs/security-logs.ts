@@ -24,7 +24,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     TranslocoPipe,
   ],
   template: `
-    <div class="flex flex-col flex-auto min-w-0">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-y-auto overflow-x-hidden">
       
       <!-- Top header / actions -->
       <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">

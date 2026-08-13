@@ -23,7 +23,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
      MatChipsModule, TranslocoPipe
   ],
   template: `
-    <div class="flex h-full w-full flex-col flex-auto px-4 sm:px-6 md:px-8 py-8">
+    <div class="flex h-full w-full flex-col flex-auto px-4 sm:px-6 md:px-8 py-8 overflow-y-auto overflow-x-hidden">
       
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">

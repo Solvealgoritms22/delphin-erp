@@ -14,9 +14,9 @@ import { SucursalDialogComponent } from './sucursal-dialog.component';
   standalone: true,
    imports: [MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule, TranslocoPipe, EmptyStateComponent, TableSkeletonComponent],
   template: `
-    <div class="flex flex-col w-full min-w-0 sm:absolute sm:inset-0 sm:overflow-hidden">
+    <div class="flex flex-col w-full h-full min-w-0 overflow-hidden">
       <!-- Header -->
-      <div class="relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+      <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
          <div>
            <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'branches.title' | transloco }}</div>
            <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'branches.description' | transloco }}</p>
@@ -30,9 +30,8 @@ import { SucursalDialogComponent } from './sucursal-dialog.component';
       </div>
 
       <!-- Main -->
-      <div class="flex flex-auto overflow-hidden">
-        <div class="flex flex-col flex-auto sm:mb-18 overflow-hidden sm:overflow-y-auto">
-          <div class="grid">
+      <div class="flex flex-col flex-auto min-h-0 overflow-y-auto">
+        <div class="grid">
             <!-- Header -->
             <div class="sucursales-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
                <div>{{ 'branches.name' | transloco }}</div>
@@ -92,7 +91,6 @@ import { SucursalDialogComponent } from './sucursal-dialog.component';
           </div>
         </div>
       </div>
-    </div>
   `,
   styles: [`
     .sucursales-grid {

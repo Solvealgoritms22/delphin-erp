@@ -17,7 +17,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     MatButtonModule, MatIconModule, MatSelectModule, TranslocoPipe
   ],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 mb-20">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-y-auto overflow-x-hidden pb-12">
       
       <!-- Header -->
       <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:pb-8 sm:pt-10 border-b bg-card dark:bg-transparent">

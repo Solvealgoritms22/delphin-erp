@@ -29,7 +29,7 @@ export interface RolePermissions {
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, MatDialogModule, MatSnackBarModule, EmptyStateComponent, TranslocoPipe],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 bg-white dark:bg-neutral-900 min-h-screen relative">
+    <div class="flex flex-col flex-auto min-w-0 bg-white dark:bg-neutral-900 relative">
       
       <!-- Header & Tabs -->
       <div class="flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800 mb-8">
