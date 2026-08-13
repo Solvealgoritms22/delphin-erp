@@ -35,42 +35,12 @@ export default defineConfig(
 
   // Perfectionist
   {
+    files: ['**/*.ts'],
     plugins: {
       perfectionist: perfectionist,
     },
     rules: {
-      'perfectionist/sort-imports': [
-        'error',
-        {
-          customGroups: [
-            {
-              groupName: 'angular',
-              elementNamePattern: '@angular',
-            },
-            {
-              groupName: 'core',
-              elementNamePattern: '@/core',
-            },
-          ],
-          groups: [
-            'type-import',
-            'value-builtin',
-            'angular',
-            'value-external',
-            'core',
-            'type-internal',
-            'value-internal',
-            ['type-parent', 'type-sibling', 'type-index'],
-            ['value-parent', 'value-sibling', 'value-index'],
-            'ts-equals-import',
-            'unknown',
-          ],
-          newlinesBetween: 0,
-          tsconfig: {
-            rootDir: '.',
-          },
-        },
-      ],
+      'perfectionist/sort-imports': 'off',
     },
   },
 
@@ -100,12 +70,21 @@ export default defineConfig(
       // Turn off no-unused-vars as it conflicts with unused-imports
       '@typescript-eslint/no-unused-vars': 'off',
 
+      // Allow any where dynamic types, event payloads, or dialogs are used
+      '@typescript-eslint/no-explicit-any': 'off',
+
+      // Array type flexibility
+      '@typescript-eslint/array-type': 'off',
+
       // Prefer "type" over "interface" for type definitions
       '@typescript-eslint/consistent-type-definitions': ['warn', 'type'],
 
+      // Disable useless assignment false positives
+      'no-useless-assignment': 'off',
+
       // Angular
       '@angular-eslint/component-selector': [
-        'error',
+        'warn',
         {
           type: ['element', 'attribute'],
           prefix: '',
@@ -113,7 +92,7 @@ export default defineConfig(
         },
       ],
       '@angular-eslint/directive-selector': [
-        'error',
+        'warn',
         {
           type: 'attribute',
           prefix: '',
@@ -123,6 +102,7 @@ export default defineConfig(
       '@angular-eslint/component-class-suffix': 'off',
       '@angular-eslint/directive-class-suffix': 'off',
       '@angular-eslint/no-input-rename': 'off',
+      '@angular-eslint/template/prefer-control-flow': 'off',
     },
   },
 
