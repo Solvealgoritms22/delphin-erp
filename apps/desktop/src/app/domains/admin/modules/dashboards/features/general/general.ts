@@ -39,10 +39,69 @@ interface DashboardMetric {
           </div>
           <div class="h-[430px] animate-pulse rounded-3xl bg-neutral-100 dark:bg-neutral-900"></div>
         } @else if (error()) {
-          <section class="flex min-h-[420px] flex-col items-center justify-center rounded-3xl border border-neutral-200 bg-neutral-50 text-center dark:border-neutral-800 dark:bg-neutral-900">
-            <p class="text-lg font-semibold text-neutral-900 dark:text-white">{{ 'dashboard.general.loadError' | transloco }}</p>
-            <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">{{ 'dashboard.general.apiHint' | transloco }}</p>
-            <button type="button" (click)="loadSummary()" class="mt-6 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">{{ 'common.retry' | transloco }}</button>
+          <section class="relative flex min-h-[460px] flex-col items-center justify-center overflow-hidden rounded-3xl border border-neutral-200/80 bg-neutral-50/50 p-8 text-center backdrop-blur-sm dark:border-neutral-800/80 dark:bg-neutral-900/40">
+            <!-- Ambient Background Glow -->
+            <div class="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-gradient-to-tr from-blue-500/10 via-rose-500/10 to-transparent blur-3xl"></div>
+
+            <!-- Illustration: Disconnected Server / Cloud -->
+            <div class="relative mb-6 flex size-36 items-center justify-center">
+              <!-- Animated Pulse Rings -->
+              <div class="absolute inset-0 rounded-full bg-rose-500/5 dark:bg-rose-500/10 animate-ping opacity-30"></div>
+              <div class="absolute inset-2 rounded-full bg-gradient-to-b from-neutral-100 to-white dark:from-neutral-800 dark:to-neutral-900 shadow-xl border border-neutral-200/60 dark:border-neutral-700/60 flex items-center justify-center">
+                <!-- SVG Illustration -->
+                <svg class="size-20" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Server Rack 1 -->
+                  <rect x="18" y="16" width="44" height="12" rx="4" class="fill-neutral-200/80 dark:fill-neutral-700/80 stroke-neutral-300 dark:stroke-neutral-600" stroke-width="1.5"/>
+                  <circle cx="25" cy="22" r="2" class="fill-emerald-500"/>
+                  <circle cx="31" cy="22" r="2" class="fill-blue-500"/>
+                  <line x1="40" y1="22" x2="54" y2="22" class="stroke-neutral-300 dark:stroke-neutral-600" stroke-width="2" stroke-linecap="round"/>
+
+                  <!-- Server Rack 2 -->
+                  <rect x="18" y="32" width="44" height="12" rx="4" class="fill-neutral-200/80 dark:fill-neutral-700/80 stroke-neutral-300 dark:stroke-neutral-600" stroke-width="1.5"/>
+                  <circle cx="25" cy="38" r="2" class="fill-amber-500"/>
+                  <circle cx="31" cy="38" r="2" class="fill-neutral-400 dark:fill-neutral-600"/>
+                  <line x1="40" y1="38" x2="54" y2="38" class="stroke-neutral-300 dark:stroke-neutral-600" stroke-width="2" stroke-linecap="round"/>
+
+                  <!-- Server Rack 3 (Affected) -->
+                  <rect x="18" y="48" width="44" height="12" rx="4" class="fill-neutral-200/80 dark:fill-neutral-700/80 stroke-rose-400/60 dark:stroke-rose-500/60" stroke-width="1.5"/>
+                  <circle cx="25" cy="54" r="2" class="fill-rose-500"/>
+                  <circle cx="31" cy="54" r="2" class="fill-rose-500/60"/>
+                  <line x1="40" y1="54" x2="54" y2="54" class="stroke-rose-400/60 dark:stroke-rose-500/60" stroke-width="2" stroke-linecap="round"/>
+
+                  <!-- Cloud / Signal Break Floating Badge -->
+                  <g class="drop-shadow-lg">
+                    <circle cx="56" cy="24" r="14" class="fill-white dark:fill-neutral-800 stroke-rose-500/30 dark:stroke-rose-500/40" stroke-width="1.5"/>
+                    <path d="M51 29L61 19M51 19L61 29" class="stroke-rose-500" stroke-width="2.5" stroke-linecap="round"/>
+                  </g>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Error Status Pill -->
+            <div class="inline-flex items-center gap-1.5 rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+              <span class="size-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+              Conexión no disponible
+            </div>
+
+            <!-- Error Title & Description -->
+            <h2 class="mt-3 text-xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-2xl">
+              {{ 'dashboard.general.loadError' | transloco }}
+            </h2>
+            <p class="mt-2 max-w-sm text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
+              {{ 'dashboard.general.apiHint' | transloco }}
+            </p>
+
+            <!-- Action Button -->
+            <div class="mt-6 flex flex-col sm:flex-row items-center gap-3">
+              <button
+                type="button"
+                (click)="loadSummary()"
+                class="group inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              >
+                <mat-icon svgIcon="rotate-ccw" class="icon-size-4 transition-transform group-hover:-rotate-45"></mat-icon>
+                <span>{{ 'common.retry' | transloco }}</span>
+              </button>
+            </div>
           </section>
         } @else {
           <!-- KPI row -->

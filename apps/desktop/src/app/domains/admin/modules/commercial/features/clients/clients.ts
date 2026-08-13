@@ -117,7 +117,7 @@ export class Clients implements OnInit {
   }
 
   deleteClient(id: string) {
-    if (confirm(this.transloco.translate('commercial.clients.deleteConfirm'))) {
+    if (confirm(String(this.transloco.translate('commercial.clients.deleteConfirm')))) {
       this.clientsService.remove(id).subscribe();
     }
   }

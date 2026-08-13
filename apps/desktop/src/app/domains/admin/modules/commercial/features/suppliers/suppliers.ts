@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { SuppliersService } from '../../data/suppliers';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-suppliers',
@@ -117,7 +117,7 @@ export class Suppliers implements OnInit {
   }
 
   deleteSupplier(id: string) {
-    if (confirm(this.transloco.translate('commercial.suppliers.deleteConfirm'))) {
+    if (confirm(String(this.transloco.translate('commercial.suppliers.deleteConfirm')))) {
       this.suppliersService.remove(id).subscribe();
     }
   }
