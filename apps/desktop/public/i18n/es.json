@@ -735,7 +735,7 @@
     }
   },
   "legalPages": {
-    "layoutTitle": "Legal Documentation",
+    "layoutTitle": "Documentación Legal",
     "terms": "Términos de Uso",
     "privacy": "Política de Privacidad",
     "cookies": "Política de Cookies",
@@ -746,5 +746,19 @@
     "cookiesTitle": "Política de Cookies",
     "subscriptionTitle": "Acuerdo de Suscripción",
     "updated": "Última actualización: 9 de Agosto de 2026"
+  },
+  "updater": {
+    "available": "Nueva versión disponible",
+    "downloading": "Descargando actualización... {{progress}}%",
+    "ready": "Actualización lista para instalar",
+    "installNow": "Instalar ahora",
+    "restart": "Reiniciar para aplicar",
+    "later": "Más tarde",
+    "retry": "Reintentar",
+    "checkManually": "Buscar actualizaciones",
+    "upToDate": "Estás en la última versión",
+    "checkFailed": "Error al buscar actualizaciones",
+    "notElectron": "Las actualizaciones solo están disponibles en la app de escritorio",
+    "currentVersion": "Versión actual"
   }
 }

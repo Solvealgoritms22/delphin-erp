@@ -152,6 +152,13 @@ export const NAVIGATION: NavigationItem[] = [
         icon: 'activity',
         route: '/admin/activity',
         activeOptions: { exact: false }
+      },
+      {
+        id: 'about',
+        label: 'updater.checkManually',
+        icon: 'package',
+        route: '/admin/settings/about',
+        activeOptions: { exact: true }
       }
     ]
   }

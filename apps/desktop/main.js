@@ -1,6 +1,11 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const url = require('url');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
+log.transports.file.level = 'info';
+autoUpdater.logger = log;
 
 let mainWindow;
 
@@ -9,12 +14,13 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
-    title: "Dolphin ERP",
-    icon: path.join(__dirname, 'src/assets/icons/favicon.ico'),
-    autoHideMenuBar: true
+    title: 'Dolphin ERP',
+    icon: path.join(__dirname, 'build', 'icon.ico'),
+    autoHideMenuBar: true,
   });
 
   const isDev = process.argv.includes('--dev');
@@ -37,7 +43,73 @@ function createWindow() {
   });
 }
 
-app.on('ready', createWindow);
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for update...');
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    log.info('Update available:', info);
+    if (mainWindow) {
+      mainWindow.webContents.send('dolphin:update-available', info);
+    }
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    log.info('Update not available:', info);
+  });
+
+  autoUpdater.on('error', (err) => {
+    log.error('Auto updater error:', err);
+    if (mainWindow) {
+      mainWindow.webContents.send('dolphin:update-error', err.message);
+    }
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('dolphin:download-progress', {
+        percent: progress.percent,
+        transferred: progress.transferred,
+        total: progress.total,
+        bytesPerSecond: progress.bytesPerSecond,
+      });
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    log.info('Update downloaded:', info);
+    if (mainWindow) {
+      mainWindow.webContents.send('dolphin:update-downloaded', info);
+    }
+  });
+
+  ipcMain.handle('dolphin:get-app-version', () => {
+    return app.getVersion();
+  });
+
+  ipcMain.on('dolphin:check-for-updates', () => {
+    autoUpdater.checkForUpdates().catch((err) => {
+      log.error('Manual check failed:', err);
+    });
+  });
+
+  ipcMain.on('dolphin:quit-and-install', () => {
+    autoUpdater.quitAndInstall();
+  });
+}
+
+app.on('ready', () => {
+  createWindow();
+  setupAutoUpdater();
+
+  if (!process.argv.includes('--dev')) {
+    autoUpdater.checkForUpdates();
+  }
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

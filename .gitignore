@@ -55,5 +55,12 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Certificates / Code signing
+*.p12
+*.pfx
+*.cer
+*.pem
+*.key
+
 # Claude
 .claude/launch.json

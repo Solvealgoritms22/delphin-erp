@@ -27,6 +27,10 @@ export default [
       {
         path: 'current-sessions',
         loadComponent: () => import('./features/current-sessions/current-sessions')
+      },
+      {
+        path: 'about',
+        loadComponent: () => import('./features/about/about').then(c => c.AboutComponent)
       }
     ]
   }

@@ -746,5 +746,19 @@
     "cookiesTitle": "Cookie Policy",
     "subscriptionTitle": "Subscription Agreement",
     "updated": "Last updated: August 9, 2026"
+  },
+  "updater": {
+    "available": "New version available",
+    "downloading": "Downloading update... {{progress}}%",
+    "ready": "Update ready to install",
+    "installNow": "Install now",
+    "restart": "Restart to apply",
+    "later": "Later",
+    "retry": "Retry",
+    "checkManually": "Check for updates",
+    "upToDate": "You are up to date",
+    "checkFailed": "Failed to check for updates",
+    "notElectron": "Updates are only available in the desktop app",
+    "currentVersion": "Current version"
   }
 }

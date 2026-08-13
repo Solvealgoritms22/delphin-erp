@@ -21,6 +21,7 @@ import { routeAnimations } from '@/app/core/animations/animations';
 import { AuthService } from '@/app/core/auth/auth.service';
 import { AuthState } from '@/app/core/auth/auth.state';
 import { Empresa } from '@/app/core/auth/auth.types';
+import { UpdateService } from '@/app/shared/services/update.service';
 
 @Component({
   selector: 'admin-layout',
@@ -171,6 +172,7 @@ export class AdminLayout implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private authState = inject(AuthState);
+  private updateService = inject(UpdateService);
 
   // Tenant State (real)
   empresas = signal<Empresa[]>([]);
@@ -207,6 +209,10 @@ export class AdminLayout implements OnInit {
       next: (list) => this.empresas.set(list),
       error: () => { } // silently fail if not connected
     });
+
+    if (this.updateService.isElectron()) {
+      this.updateService.checkForUpdates();
+    }
   }
 
   switchTenant(empresa: Empresa) {
