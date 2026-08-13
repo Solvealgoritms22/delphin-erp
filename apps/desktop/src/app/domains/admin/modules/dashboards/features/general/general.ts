@@ -15,17 +15,22 @@ interface DashboardMetric {
 @Component({
   selector: 'app-dashboard-general',
   standalone: true,
+  host: {
+    class: 'flex h-full w-full flex-col min-h-0 overflow-hidden',
+  },
   imports: [DecimalPipe, MatIconModule, RouterLink, TranslocoPipe],
   template: `
-    <div class="min-h-full w-full min-w-0 bg-white dark:bg-neutral-950">
-      <header class="flex flex-col gap-5 border-b border-neutral-200 px-6 py-7 dark:border-neutral-800 md:flex-row md:items-end md:justify-between md:px-10">
+    <div class="flex h-full w-full flex-col min-h-0 bg-white dark:bg-neutral-950 overflow-hidden">
+      <!-- Header (Fixed) -->
+      <header class="shrink-0 flex flex-col gap-5 border-b border-neutral-200 px-6 py-7 dark:border-neutral-800 md:flex-row md:items-end md:justify-between md:px-10 select-none">
         <div>
           <h1 class="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-white md:text-3xl">{{ 'dashboard.general.title' | transloco }}</h1>
           <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'dashboard.general.description' | transloco }}</p>
         </div>
       </header>
 
-      <main class="flex flex-col gap-6 p-6 md:p-10">
+      <!-- Main Content (Scrollable) -->
+      <main class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden flex flex-col gap-6 p-6 md:p-10">
         @if (loading()) {
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             @for (_ of [1, 2, 3, 4]; track _) {

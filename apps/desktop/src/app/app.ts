@@ -8,8 +8,8 @@ import { SessionMonitorService } from './core/auth/session-monitor.service';
   selector: 'app-root',
   imports: [RouterOutlet, CookieBannerComponent],
   host: {
-    // Ensure root component fills the entire viewport
-    class: 'flex min-h-full w-full flex-auto flex-col',
+    // Ensure root component fills the entire viewport, prevents outer scrolling, and sets the top border
+    class: 'flex h-full w-full flex-auto flex-col overflow-hidden border-t border-neutral-200/90 dark:border-neutral-700/80',
   },
   template: `
     <router-outlet />

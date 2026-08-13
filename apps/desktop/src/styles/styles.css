@@ -71,3 +71,21 @@
     mask-size: 350vmax;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Update Snackbar Overrides                                                  */
+/* -------------------------------------------------------------------------- */
+.mat-mdc-snack-bar-container.update-snackbar {
+  --mdc-snackbar-container-color: transparent !important;
+  --mdc-snackbar-container-elevation-shadow: none !important;
+}
+.mat-mdc-snack-bar-container.update-snackbar .mdc-snackbar__surface {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+.mat-mdc-snack-bar-container.update-snackbar .mdc-snackbar__label {
+  padding: 0 !important;
+  width: 100% !important;
+}

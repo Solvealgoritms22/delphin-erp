@@ -8,37 +8,37 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'auth-layout',
   imports: [CommonModule, RouterOutlet, MatButtonModule, MatIconModule],
   template: `
-    <div class="relative min-h-screen flex flex-col">
+    <div class="relative min-h-screen flex flex-col border-t border-neutral-200/80 dark:border-neutral-800/80">
       @if (isElectron) {
         <!-- Frameless window top draggable bar -->
-        <div class="absolute top-0 left-0 right-0 h-9 z-50 flex items-center justify-end px-2" style="-webkit-app-region: drag">
-          <div class="flex items-center gap-0.5" style="-webkit-app-region: no-drag">
+        <div class="absolute top-0 left-0 right-0 h-9 z-50 flex items-center justify-end px-3 select-none" style="-webkit-app-region: drag">
+          <div class="flex items-center gap-1" style="-webkit-app-region: no-drag">
             <!-- Minimize -->
             <button
-              matIconButton
-              class="!w-7 !h-7 !min-w-0 hover:bg-neutral-200/50 dark:hover:bg-neutral-800 rounded-md"
+              type="button"
+              class="flex size-7 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer"
               (click)="windowMinimize()"
               title="Minimizar"
             >
-              <mat-icon svgIcon="minus" class="icon-size-3.5 text-neutral-600 dark:text-neutral-300" />
+              <mat-icon svgIcon="minus" class="icon-size-3.5 flex items-center justify-center !w-3.5 !h-3.5" />
             </button>
             <!-- Maximize / Restore -->
             <button
-              matIconButton
-              class="!w-7 !h-7 !min-w-0 hover:bg-neutral-200/50 dark:hover:bg-neutral-800 rounded-md"
+              type="button"
+              class="flex size-7 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer"
               (click)="windowMaximize()"
               [title]="isMaximized() ? 'Restaurar' : 'Maximizar'"
             >
-              <mat-icon [svgIcon]="isMaximized() ? 'minimize-2' : 'maximize-2'" class="icon-size-3.5 text-neutral-600 dark:text-neutral-300" />
+              <mat-icon [svgIcon]="isMaximized() ? 'minimize-2' : 'maximize-2'" class="icon-size-3.5 flex items-center justify-center !w-3.5 !h-3.5" />
             </button>
             <!-- Close -->
             <button
-              matIconButton
-              class="!w-7 !h-7 !min-w-0 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-600 dark:hover:text-red-400 rounded-md"
+              type="button"
+              class="flex size-7 items-center justify-center rounded-lg text-neutral-500 hover:bg-red-500 hover:text-white dark:text-neutral-400 dark:hover:bg-red-600 dark:hover:text-white transition-colors cursor-pointer"
               (click)="windowClose()"
               title="Cerrar"
             >
-              <mat-icon svgIcon="x" class="icon-size-3.5 text-neutral-600 dark:text-neutral-300" />
+              <mat-icon svgIcon="x" class="icon-size-3.5 flex items-center justify-center !w-3.5 !h-3.5" />
             </button>
           </div>
         </div>

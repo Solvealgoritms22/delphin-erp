@@ -26,6 +26,9 @@ import { UpdateService } from '@/app/shared/services/update.service';
 
 @Component({
   selector: 'admin-layout',
+  host: {
+    class: 'flex h-full w-full flex-1 flex-col min-h-0 overflow-hidden',
+  },
   imports: [
     CommonModule,
     MatIconModule,
@@ -46,9 +49,9 @@ import { UpdateService } from '@/app/shared/services/update.service';
   ],
   animations: [routeAnimations],
   template: `
-    <mat-sidenav-container>
+    <mat-sidenav-container class="h-full w-full overflow-hidden flex-1 min-h-0">
       <mat-sidenav
-        class="w-70 border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900"
+        class="w-70 border-r border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900"
         [mode]="isMobile() ? 'over' : 'side'"
         [opened]="!isMobile()"
         [disableClose]="!isMobile()"
@@ -58,11 +61,11 @@ import { UpdateService } from '@/app/shared/services/update.service';
         <admin-sidebar />
       </mat-sidenav>
 
-      <mat-sidenav-content class="flex flex-col lg:h-dvh lg:overflow-hidden">
+      <mat-sidenav-content class="flex flex-col h-full min-h-0 overflow-hidden">
         <!-- Toolbar: draggable in Electron frameless mode -->
         <div
-          class="flex items-center border-b px-4 py-2.5"
-          [style.webkitAppRegion]="isElectron ? 'drag' : 'no-drag'"
+          class="flex shrink-0 items-center border-t border-b border-neutral-200 dark:border-neutral-800 px-4 py-2.5 select-none"
+          [style.-webkit-app-region]="isElectron ? 'drag' : null"
         >
           <button
             matIconButton
@@ -73,14 +76,14 @@ import { UpdateService } from '@/app/shared/services/update.service';
           </button>
 
           <!-- Separator -->
-          <div class="mx-3 h-5 border-l"></div>
+          <div class="mx-3 h-5 border-l border-neutral-200 dark:border-neutral-800"></div>
           
            <!-- Company Selector -->
            @if (empresas().length > 1) {
              <button [matMenuTriggerFor]="companyMenu" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer mr-2" style="-webkit-app-region: no-drag">
                @if (currentEmpresaLogo()) {
                  <div class="size-8 rounded-lg border border-neutral-200 dark:border-neutral-700/80 bg-neutral-50/80 dark:bg-neutral-800/50 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
-                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none">
+                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none pointer-events-none">
                  </div>
                } @else {
                  <div class="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs select-none">
@@ -97,7 +100,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
              <div class="flex items-center gap-2.5 px-2.5 py-1.5 mr-2" style="-webkit-app-region: no-drag">
                @if (currentEmpresaLogo()) {
                  <div class="size-8 rounded-lg border border-neutral-200 dark:border-neutral-700/80 bg-neutral-50/80 dark:bg-neutral-800/50 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
-                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none">
+                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none pointer-events-none">
                  </div>
                } @else {
                  <div class="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs select-none">
@@ -151,12 +154,12 @@ import { UpdateService } from '@/app/shared/services/update.service';
             </div>
           </mat-menu>
 
-          <shortcuts />
+          <shortcuts style="-webkit-app-region: no-drag" />
 
-          <!-- Spacer -->
-          <div class="flex-auto"></div>
+          <!-- Draggable spacer across entire empty header area -->
+          <div class="flex-auto h-full self-stretch min-w-8" [style.-webkit-app-region]="isElectron ? 'drag' : null"></div>
 
-          <div class="flex items-center gap-x-2">
+          <div class="flex items-center gap-x-2" style="-webkit-app-region: no-drag">
             <language-switcher />
             <scheme-switcher />
             <notifications />
@@ -169,41 +172,41 @@ import { UpdateService } from '@/app/shared/services/update.service';
 
           <!-- Electron window controls (only in desktop app) -->
           @if (isElectron) {
-            <div class="flex items-center gap-0.5 ml-2" style="-webkit-app-region: no-drag">
+            <div class="flex items-center gap-1 ml-3" style="-webkit-app-region: no-drag">
               <!-- Minimize -->
               <button
-                matIconButton
-                class="!w-8 !h-8 !min-w-0 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-md"
+                type="button"
                 (click)="windowMinimize()"
+                class="flex size-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer"
                 title="Minimizar"
               >
-                <mat-icon svgIcon="minus" class="icon-size-4" />
+                <mat-icon svgIcon="minus" class="icon-size-4 flex items-center justify-center !w-4 !h-4"></mat-icon>
               </button>
               <!-- Maximize / Restore -->
               <button
-                matIconButton
-                class="!w-8 !h-8 !min-w-0 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-md"
+                type="button"
                 (click)="windowMaximize()"
+                class="flex size-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer"
                 [title]="isMaximized() ? 'Restaurar' : 'Maximizar'"
               >
-                <mat-icon [svgIcon]="isMaximized() ? 'minimize-2' : 'maximize-2'" class="icon-size-4" />
+                <mat-icon [svgIcon]="isMaximized() ? 'minimize-2' : 'maximize-2'" class="icon-size-4 flex items-center justify-center !w-4 !h-4"></mat-icon>
               </button>
               <!-- Close -->
               <button
-                matIconButton
-                class="!w-8 !h-8 !min-w-0 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-600 dark:hover:text-red-400 rounded-md"
+                type="button"
                 (click)="windowClose()"
+                class="flex size-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-red-500 hover:text-white dark:text-neutral-400 dark:hover:bg-red-600 dark:hover:text-white transition-colors cursor-pointer"
                 title="Cerrar"
               >
-                <mat-icon svgIcon="x" class="icon-size-4" />
+                <mat-icon svgIcon="x" class="icon-size-4 flex items-center justify-center !w-4 !h-4"></mat-icon>
               </button>
             </div>
           }
         </div>
 
-        <!-- Content -->
-         <div class="relative flex min-h-0 flex-auto flex-col overflow-x-hidden overflow-y-auto" [@routeAnimations]="getRouteUrl()">
-           <router-outlet />
+        <!-- View Container -->
+        <div class="relative flex-1 min-h-0 w-full overflow-hidden" [@routeAnimations]="getRouteUrl()">
+          <router-outlet />
         </div>
       </mat-sidenav-content>
     </mat-sidenav-container>

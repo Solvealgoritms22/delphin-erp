@@ -1,11 +1,8 @@
-import { Component, Inject, computed } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatSnackBarRef, MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { UpdateService, UpdateStatus, UpdateInfo, DownloadProgress } from '../../services/update.service';
 
 interface SnackBarData {
@@ -19,90 +16,91 @@ interface SnackBarData {
 @Component({
   selector: 'app-update-notification',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatProgressBarModule, MatTooltipModule, TranslocoModule],
+  imports: [CommonModule, MatIconModule, TranslocoPipe],
   template: `
-    <div class="w-full max-w-md">
-      <div
-        class="rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden"
-        [ngClass]="{
-          'bg-blue-50 dark:bg-blue-900/30': status() === 'available' || status() === 'downloading',
-          'bg-emerald-50 dark:bg-emerald-900/30': status() === 'ready',
-          'bg-red-50 dark:bg-red-900/30': status() === 'error',
-          'bg-amber-50 dark:bg-amber-900/30': status() === 'checking'
-        }"
-      >
-        <div class="flex items-start gap-4 p-4">
-          <mat-icon
-            class="mt-1 shrink-0 text-xl"
-            [svgIcon]="icon()"
+    <div class="w-full max-w-[440px] select-none p-1">
+      <div class="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-900/95 dark:shadow-neutral-950/70">
+        
+        <div class="flex items-start gap-3.5 p-5">
+          <!-- Icon badge -->
+          <div
+            class="flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors"
             [ngClass]="{
-              'text-blue-600 dark:text-blue-400': status() === 'available' || status() === 'downloading',
-              'text-emerald-600 dark:text-emerald-400': status() === 'ready',
-              'text-red-600 dark:text-red-400': status() === 'error',
-              'text-amber-600 dark:text-amber-400 animate-spin': status() === 'checking'
+              'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400': status() === 'available' || status() === 'downloading',
+              'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400': status() === 'ready',
+              'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400': status() === 'error',
+              'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400': status() === 'checking'
             }"
-          />
+          >
+            <mat-icon
+              [svgIcon]="icon()"
+              class="icon-size-5"
+              [class.animate-spin]="status() === 'checking' || status() === 'downloading'"
+            />
+          </div>
 
-          <div class="flex-auto min-w-0">
-            <div class="font-semibold text-neutral-900 dark:text-white">
-              {{ title() }}
+          <!-- Text body & Progress -->
+          <div class="flex min-w-0 flex-auto flex-col">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold tracking-tight text-neutral-900 dark:text-white">
+                {{ title() }}
+              </span>
+              <button
+                type="button"
+                (click)="dismiss()"
+                class="rounded-lg p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
+                [attr.aria-label]="'common.close' | transloco"
+              >
+                <mat-icon svgIcon="x" class="icon-size-4"></mat-icon>
+              </button>
             </div>
-            <div class="mt-1 text-sm text-neutral-700 dark:text-neutral-300">
+
+            <p class="mt-1 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
               {{ message() }}
-            </div>
+            </p>
 
             @if (status() === 'downloading' && downloadProgress()) {
-              <div class="mt-3">
-                <mat-progress-bar
-                  mode="determinate"
-                  [value]="downloadProgress()!.percent"
-                  class="h-1.5 rounded-full"
-                  color="primary"
-                />
-                <div class="mt-1 flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
-                  <span>{{ downloadProgress()!.percent }}%</span>
+              <div class="mt-3.5 flex flex-col gap-1.5">
+                <div class="h-2 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+                  <div
+                    class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-all duration-300"
+                    [style.width.%]="roundedPercent()"
+                  ></div>
+                </div>
+                <div class="flex items-center justify-between text-[11px] font-medium tabular-nums text-neutral-500 dark:text-neutral-400">
+                  <span class="font-bold text-neutral-900 dark:text-white">{{ roundedPercent() }}%</span>
                   <span>{{ formatBytes(downloadProgress()!.transferred) }} / {{ formatBytes(downloadProgress()!.total) }}</span>
                 </div>
               </div>
             }
           </div>
-
-          <button
-            mat-icon-button
-            class="-m-2 shrink-0"
-            (click)="dismiss()"
-            [matTooltip]="'common.close' | transloco"
-          >
-            <mat-icon svgIcon="x" class="size-5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300" />
-          </button>
         </div>
 
         @if (showActions()) {
-          <div class="border-t border-neutral-200 dark:border-neutral-800 px-4 py-3 flex items-center justify-end gap-2">
+          <div class="flex items-center justify-end gap-2.5 border-t border-neutral-100 bg-neutral-50/70 px-5 py-3 dark:border-neutral-800/80 dark:bg-neutral-950/40">
             @if (status() === 'available') {
               <button
-                mat-stroked-button
+                type="button"
                 (click)="dismiss()"
-                class="text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                class="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-200/60 dark:text-neutral-400 dark:hover:bg-neutral-800 cursor-pointer"
               >
                 {{ 'updater.later' | transloco }}
               </button>
               <button
-                mat-flat-button
-                color="primary"
+                type="button"
                 (click)="downloadAndInstall()"
-                class="text-white"
+                class="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-blue-700 active:scale-95 cursor-pointer"
               >
-                <mat-icon svgIcon="download" class="icon-size-4 mr-2"></mat-icon>
+                <mat-icon svgIcon="download" class="icon-size-3.5"></mat-icon>
                 {{ 'updater.installNow' | transloco }}
               </button>
             }
 
             @if (status() === 'downloading') {
               <button
-                mat-stroked-button
+                type="button"
                 (click)="dismiss()"
-                class="text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                class="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-200/60 dark:text-neutral-400 dark:hover:bg-neutral-800 cursor-pointer"
               >
                 {{ 'updater.later' | transloco }}
               </button>
@@ -110,32 +108,30 @@ interface SnackBarData {
 
             @if (status() === 'ready') {
               <button
-                mat-flat-button
-                color="primary"
+                type="button"
                 (click)="installAndRestart()"
-                class="text-white"
+                class="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95 cursor-pointer"
               >
-                <mat-icon svgIcon="rotate-cw" class="icon-size-4 mr-2"></mat-icon>
+                <mat-icon svgIcon="rotate-cw" class="icon-size-3.5"></mat-icon>
                 {{ 'updater.restart' | transloco }}
               </button>
             }
 
             @if (status() === 'error') {
               <button
-                mat-flat-button
-                color="primary"
-                (click)="retry()"
-                class="text-white"
-              >
-                <mat-icon svgIcon="refresh-cw" class="icon-size-4 mr-2"></mat-icon>
-                {{ 'updater.retry' | transloco }}
-              </button>
-              <button
-                mat-stroked-button
+                type="button"
                 (click)="dismiss()"
-                class="text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                class="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-200/60 dark:text-neutral-400 dark:hover:bg-neutral-800 cursor-pointer"
               >
                 {{ 'updater.later' | transloco }}
+              </button>
+              <button
+                type="button"
+                (click)="retry()"
+                class="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-blue-700 active:scale-95 cursor-pointer"
+              >
+                <mat-icon svgIcon="refresh-cw" class="icon-size-3.5"></mat-icon>
+                {{ 'updater.retry' | transloco }}
               </button>
             }
           </div>
@@ -148,27 +144,28 @@ interface SnackBarData {
   },
 })
 export class UpdateNotificationComponent {
-  constructor(
-    private snackBarRef: MatSnackBarRef<UpdateNotificationComponent>,
-    @Inject(MAT_SNACK_BAR_DATA) public data: SnackBarData
-  ) {}
+  private snackBarRef = inject(MatSnackBarRef<UpdateNotificationComponent>);
+  public data = inject<SnackBarData>(MAT_SNACK_BAR_DATA);
 
   protected status = computed(() => this.data.service.status());
   protected updateInfo = computed(() => this.data.service.updateInfo());
   protected downloadProgress = computed(() => this.data.service.downloadProgress());
   protected error = computed(() => this.data.service.error());
 
+  protected roundedPercent = computed(() => Math.round(this.downloadProgress()?.percent ?? 0));
+
   protected icon = computed(() => {
     switch (this.status()) {
       case 'available':
+        return 'sparkles';
       case 'downloading':
-        return 'package';
+        return 'loader-circle';
       case 'ready':
         return 'circle-check-big';
       case 'error':
         return 'circle-alert';
       case 'checking':
-        return 'refresh-cw';
+        return 'loader-circle';
       default:
         return 'info';
     }

@@ -1026,6 +1026,8 @@
   .mat-drawer-container {
     display: flex;
     flex: 1 1 auto;
+    height: 100%;
+    overflow: hidden;
     background: var(--mat-sidenav-container-background-color);
 
     .mat-drawer {
@@ -1040,7 +1042,8 @@
       display: flex;
       flex: 1 1 auto;
       flex-direction: column;
-      height: auto;
+      height: 100%;
+      overflow: hidden;
       background: var(--mat-sidenav-content-background-color);
     }
   }
@@ -1079,6 +1082,16 @@
   /* ------------------------------------------------------------------------ */
   /* Snackbar                                                                 */
   /* ------------------------------------------------------------------------ */
+  .update-snackbar.mat-mdc-snack-bar-container {
+    --mdc-snackbar-container-color: transparent !important;
+    --mdc-snackbar-container-elevation-shadow: none !important;
+  }
+  .update-snackbar.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Sort Header                                                              */

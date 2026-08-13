@@ -13,24 +13,24 @@ import { TranslocoPipe } from '@jsverse/transloco';
   selector: 'admin-sidebar',
    imports: [Navigation, User, MatButton, MatIcon, TranslocoPipe],
   host: {
-    class: 'flex w-full h-full flex-col overflow-hidden',
+    class: 'flex w-full h-full flex-col overflow-hidden border-t border-neutral-200 dark:border-neutral-800',
   },
   template: `
-    <!-- Header -->
-    <div class="relative flex shrink-0 items-center gap-x-2.5 pt-5 pr-4 pb-0 pl-6 h-16">
+    <!-- Header (draggable in desktop frameless window) -->
+    <div class="relative flex shrink-0 items-center gap-x-2.5 pt-5 pr-4 pb-0 pl-6 h-16 select-none" style="-webkit-app-region: drag">
       <!-- Logo -->
       <img
         src="/images/logo/logo_dolphin_light.png"
-        class="h-8 w-auto max-w-[200px] object-contain object-left dark:hidden"
+        class="h-8 w-auto max-w-[200px] object-contain object-left pointer-events-none select-none dark:hidden"
         alt="Dolphin ERP"
       />
       <img
         src="/images/logo/logo_dolphin_dark.png"
-        class="h-12 w-auto max-w-[200px] object-contain object-left hidden dark:block"
+        class="h-12 w-auto max-w-[200px] object-contain object-left pointer-events-none select-none hidden dark:block"
         alt="Dolphin logo"
       />
 
-      <div class="flex flex-col ml-1">
+      <div class="flex flex-col ml-1 pointer-events-none select-none">
         <div class="text-neutral-900 dark:text-white text-lg leading-none font-extrabold tracking-widest uppercase">
           Dolphin
         </div>
