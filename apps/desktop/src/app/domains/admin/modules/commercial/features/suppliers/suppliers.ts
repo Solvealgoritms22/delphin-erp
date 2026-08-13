@@ -2,11 +2,10 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { DatePipe } from '@angular/common';
 import { SuppliersService } from '../../data/suppliers';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-suppliers',

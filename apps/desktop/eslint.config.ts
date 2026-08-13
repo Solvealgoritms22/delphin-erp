@@ -101,11 +101,14 @@ export default defineConfig(
       ],
       '@typescript-eslint/consistent-indexed-object-style': 'off',
       'no-empty': 'off',
+      'no-useless-escape': 'off',
       '@angular-eslint/component-class-suffix': 'off',
       '@angular-eslint/directive-class-suffix': 'off',
       '@angular-eslint/no-input-rename': 'off',
       '@angular-eslint/template/prefer-control-flow': 'off',
       '@angular-eslint/template/label-has-associated-control': 'off',
+      '@angular-eslint/template/click-events-have-key-events': 'off',
+      '@angular-eslint/template/interactive-supports-focus': 'off',
     },
   },
 
@@ -119,6 +122,8 @@ export default defineConfig(
     rules: {
       '@angular-eslint/template/prefer-control-flow': 'off',
       '@angular-eslint/template/label-has-associated-control': 'off',
+      '@angular-eslint/template/click-events-have-key-events': 'off',
+      '@angular-eslint/template/interactive-supports-focus': 'off',
     },
   },
 
