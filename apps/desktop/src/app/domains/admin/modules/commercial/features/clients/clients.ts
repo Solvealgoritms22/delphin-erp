@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ClientsService } from '../../data/clients';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-clients',
