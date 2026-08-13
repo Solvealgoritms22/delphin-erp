@@ -15,7 +15,6 @@ import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
-import { staggerAnimations } from '@/app/core/animations/animations';
 import { Media } from '@/app/core/media';
 import { Task } from '@/app/domains/admin/modules/apps/tasks/data/model';
 import { TasksService } from '@/app/domains/admin/modules/apps/tasks/data/tasks';
