@@ -2,9 +2,8 @@
   "name": "desktop",
   "version": "1.0.0",
   "private": true,
-  "description": "Fuse - Angular Admin Template and Starter Kit",
-  "license": "https://themeforest.net/licenses/standard",
-  "author": "Sercan Yemen <hi@srcn.dev> (https://themeforest.net/user/srcn)",
+  "description": "Dolphin ERP Desktop",
+  "author": "Solvealgotirthms",
   "main": "main.js",
   "scripts": {
     "build": "ng build --base-href ./",
@@ -21,6 +20,7 @@
   "build": {
     "appId": "com.dolphin.erp",
     "productName": "Dolphin ERP",
+    "electronVersion": "43.3.0",
     "directories": {
       "output": "dist/electron"
     },
@@ -78,7 +78,7 @@
     "@types/node": "24.13.3",
     "angular-eslint": "22.1.0",
     "concurrently": "^10.0.4",
-    "electron": "^43.3.0",
+    "electron": "43.3.0",
     "electron-builder": "^26.15.3",
     "eslint": "10.8.0",
     "eslint-import-resolver-typescript": "4.4.5",
