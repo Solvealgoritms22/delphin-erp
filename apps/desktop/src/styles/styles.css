@@ -73,19 +73,47 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* Update Snackbar Overrides                                                  */
+/* Update Snackbar Overrides (Light & Dark Theme)                             */
 /* -------------------------------------------------------------------------- */
+.cdk-overlay-pane.update-snackbar,
+.update-snackbar.cdk-overlay-pane,
+.update-snackbar {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  max-width: 440px !important;
+  width: auto !important;
+  pointer-events: auto !important;
+}
+
+.update-snackbar .mat-mdc-snack-bar-container,
+.update-snackbar.mat-mdc-snack-bar-container,
 .mat-mdc-snack-bar-container.update-snackbar {
   --mdc-snackbar-container-color: transparent !important;
   --mdc-snackbar-container-elevation-shadow: none !important;
-}
-.mat-mdc-snack-bar-container.update-snackbar .mdc-snackbar__surface {
+  --mat-snack-bar-button-color: inherit !important;
   background: transparent !important;
+  background-color: transparent !important;
   box-shadow: none !important;
+  border: none !important;
   padding: 0 !important;
+  margin: 0 !important;
   border-radius: 0 !important;
 }
-.mat-mdc-snack-bar-container.update-snackbar .mdc-snackbar__label {
+
+.update-snackbar .mdc-snackbar,
+.update-snackbar .mdc-snackbar__surface,
+.update-snackbar .mdc-snackbar__label,
+.update-snackbar .mat-mdc-snackbar-surface-wrapper {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
   padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
   width: 100% !important;
+  max-width: 100% !important;
 }

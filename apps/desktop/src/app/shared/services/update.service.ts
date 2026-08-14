@@ -128,9 +128,9 @@ export class UpdateService {
         error: this.error(),
       },
       duration: 0,
-      horizontalPosition: 'center',
+      horizontalPosition: 'end',
       verticalPosition: 'bottom',
-      panelClass: ['update-snackbar', '!p-0', '!bg-transparent', '!shadow-none'],
+      panelClass: ['update-snackbar'],
     });
 
     this.snackbarRef.afterDismissed().subscribe(() => {

@@ -18,18 +18,18 @@ interface SnackBarData {
   standalone: true,
   imports: [CommonModule, MatIconModule, TranslocoPipe],
   template: `
-    <div class="w-full max-w-[440px] select-none p-1">
-      <div class="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-900/95 dark:shadow-neutral-950/70">
+    <div class="w-full max-w-[440px] select-none p-1.5 font-sans">
+      <div class="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-2xl backdrop-blur-2xl transition-all dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-neutral-950/80">
         
         <div class="flex items-start gap-3.5 p-5">
           <!-- Icon badge -->
           <div
-            class="flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors"
+            class="flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors shadow-xs"
             [ngClass]="{
-              'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400': status() === 'available' || status() === 'downloading',
-              'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400': status() === 'ready',
-              'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400': status() === 'error',
-              'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400': status() === 'checking'
+              'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-400': status() === 'available' || status() === 'downloading',
+              'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:bg-emerald-500/15 dark:border-emerald-500/30 dark:text-emerald-400': status() === 'ready',
+              'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:bg-rose-500/15 dark:border-rose-500/30 dark:text-rose-400': status() === 'error',
+              'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:bg-amber-500/15 dark:border-amber-500/30 dark:text-amber-400': status() === 'checking'
             }"
           >
             <mat-icon
@@ -48,15 +48,15 @@ interface SnackBarData {
               <button
                 type="button"
                 (click)="dismiss()"
-                class="rounded-lg p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
+                class="rounded-lg p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
                 [attr.aria-label]="'common.close' | transloco"
               >
                 <mat-icon svgIcon="x" class="icon-size-4"></mat-icon>
               </button>
             </div>
 
-            <p class="mt-1 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
-              {{ message() }}
+            <p class="mt-1 text-xs leading-relaxed text-neutral-600 dark:text-neutral-300 font-normal">
+              {{ formattedMessage() }}
             </p>
 
             @if (status() === 'downloading' && downloadProgress()) {
@@ -77,12 +77,12 @@ interface SnackBarData {
         </div>
 
         @if (showActions()) {
-          <div class="flex items-center justify-end gap-2.5 border-t border-neutral-100 bg-neutral-50/70 px-5 py-3 dark:border-neutral-800/80 dark:bg-neutral-950/40">
+          <div class="flex items-center justify-end gap-2.5 border-t border-neutral-100 bg-neutral-50/80 px-5 py-3 dark:border-neutral-800/80 dark:bg-neutral-950/60">
             @if (status() === 'available') {
               <button
                 type="button"
                 (click)="dismiss()"
-                class="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-200/60 dark:text-neutral-400 dark:hover:bg-neutral-800 cursor-pointer"
+                class="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
               >
                 {{ 'updater.later' | transloco }}
               </button>
@@ -100,7 +100,7 @@ interface SnackBarData {
               <button
                 type="button"
                 (click)="dismiss()"
-                class="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-200/60 dark:text-neutral-400 dark:hover:bg-neutral-800 cursor-pointer"
+                class="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
               >
                 {{ 'updater.later' | transloco }}
               </button>
@@ -121,7 +121,7 @@ interface SnackBarData {
               <button
                 type="button"
                 (click)="dismiss()"
-                class="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-200/60 dark:text-neutral-400 dark:hover:bg-neutral-800 cursor-pointer"
+                class="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
               >
                 {{ 'updater.later' | transloco }}
               </button>
@@ -188,8 +188,9 @@ export class UpdateNotificationComponent {
     }
   });
 
-  protected message = computed(() => {
+  protected formattedMessage = computed(() => {
     const info = this.updateInfo();
+    const err = this.error();
     switch (this.status()) {
       case 'available':
         return info ? `Versión ${info.version} disponible para instalar.` : 'Hay una nueva versión disponible.';
@@ -198,9 +199,12 @@ export class UpdateNotificationComponent {
       case 'ready':
         return info ? `Versión ${info.version} descargada. Reinicia para aplicar.` : 'La actualización se ha descargado. Reinicia la aplicación para aplicarla.';
       case 'error':
-        return this.error() || 'Ocurrió un error al buscar actualizaciones.';
+        if (err && (err.includes('404') || err.includes('Cannot download') || err.includes('net::ERR'))) {
+          return 'No se pudo descargar el instalador de la nueva versión. Por favor, verifica tu conexión o reintenta en unos momentos.';
+        }
+        return err || 'Ocurrió un error inesperado al comprobar o descargar la actualización.';
       case 'checking':
-        return 'Comprobando si hay nuevas versiones...';
+        return 'Comprobando si hay nuevas versiones disponibles...';
       default:
         return '';
     }
