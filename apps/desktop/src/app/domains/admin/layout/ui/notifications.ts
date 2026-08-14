@@ -34,7 +34,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     >
       <mat-icon svgIcon="bell" />
       @if (unreadCount() > 0) {
-        <span class="pointer-events-none absolute right-0.5 top-0.5 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-4 text-white">
+        <span class="pointer-events-none absolute right-0.5 top-0.5 z-20 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-white dark:ring-neutral-900 shadow-xs">
           {{ unreadCount() > 99 ? '99+' : unreadCount() }}
         </span>
       }
@@ -108,9 +108,8 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
         <div class="flex flex-col">
           @if (notifications().length === 0) {
             <div class="flex min-h-64 flex-col items-center justify-center px-6 py-10 text-center">
-               <img class="mb-4 h-20 dark:hidden" src="illustrations/18.svg" [alt]="'notifications.emptyTitle' | transloco">
-               <img class="mb-4 hidden h-20 dark:block" src="illustrations/18-dark.svg" [alt]="'notifications.emptyTitle' | transloco">
-               <div class="text-sm font-semibold text-neutral-900 dark:text-white">{{ 'notifications.emptyTitle' | transloco }}</div>
+              <img class="mb-4 h-20 w-auto select-none pointer-events-none drop-shadow-xs" src="illustrations/18.svg" [alt]="'notifications.emptyTitle' | transloco">
+              <div class="text-sm font-semibold text-neutral-900 dark:text-white">{{ 'notifications.emptyTitle' | transloco }}</div>
               <p class="mt-1 max-w-[220px] text-xs text-neutral-500 dark:text-neutral-400">
                  {{ 'notifications.emptyDescription' | transloco }}
               </p>

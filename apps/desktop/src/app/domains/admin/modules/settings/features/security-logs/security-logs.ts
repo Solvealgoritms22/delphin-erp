@@ -24,10 +24,10 @@ import { TranslocoPipe } from '@jsverse/transloco';
     TranslocoPipe,
   ],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 h-full overflow-y-auto overflow-x-hidden">
+    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
       
       <!-- Top header / actions -->
-      <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+      <div class="shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
         <div class="flex-1 min-w-0">
           <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
             {{ 'securityLogs.title' | transloco }}
@@ -36,8 +36,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
         </div>
       </div>
 
-      <!-- Main Container -->
-      <div class="flex-auto p-6 sm:p-10">
+      <!-- Main Container (central scroll) -->
+      <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-12">
         
         <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm">
           
@@ -109,8 +109,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
                   <tr>
                     <td colspan="8">
                       <div class="flex min-h-[360px] flex-col items-center justify-center px-6 py-12 text-center">
-                        <img class="mb-6 h-32 max-w-[190px] dark:hidden" src="illustrations/18.svg" alt="No security events">
-                        <img class="mb-6 hidden h-32 max-w-[190px] dark:block" src="illustrations/18-dark.svg" alt="No security events">
+                        <img class="mb-6 h-32 max-w-[190px] w-auto select-none pointer-events-none drop-shadow-xs" src="illustrations/18.svg" alt="No security events">
                         <h3 class="text-lg font-bold text-neutral-900 dark:text-white">
                           {{ searchQuery() || severity() ? 'No matching security events' : 'No security events yet' }}
                         </h3>

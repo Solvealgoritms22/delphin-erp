@@ -27,10 +27,10 @@ export interface Empresa {
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, EmptyStateComponent, TranslocoPipe],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 bg-white dark:bg-neutral-900 relative">
+    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
       
       <!-- Header -->
-      <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-neutral-50/50 dark:bg-transparent">
+      <div class="shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-neutral-50/50 dark:bg-transparent">
         <div class="flex-1 min-w-0">
           <h2 class="text-3xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
              {{ 'companies.title' | transloco }}
@@ -49,8 +49,8 @@ export interface Empresa {
         </div>
       </div>
 
-      <!-- Main container -->
-      <div class="flex-auto p-6 sm:p-10">
+      <!-- Main container (central scroll) -->
+      <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-12">
         
         <!-- Loading state -->
         <div *ngIf="isLoading()" class="flex items-center justify-center h-64">

@@ -154,6 +154,13 @@ export const NAVIGATION: NavigationItem[] = [
         activeOptions: { exact: false }
       },
       {
+        id: 'legal',
+        label: 'nav.legal',
+        icon: 'file-text',
+        route: '/admin/legal',
+        activeOptions: { exact: false }
+      },
+      {
         id: 'about',
         label: 'updater.checkManually',
         icon: 'package',

@@ -30,7 +30,11 @@ export class AuthService {
     @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(
+    email: string,
+    pass: string,
+    accessMode?: 'owner' | 'member',
+  ): Promise<any> {
     const user = await this.prisma.usuario.findFirst({
       where: { email },
       include: {
@@ -47,9 +51,15 @@ export class AuthService {
       );
 
       if (!isOwner && !activeMembership) {
-        throw new UnauthorizedException(
-          'Tu cuenta o membresía se encuentra inactiva. Contacta al administrador.',
-        );
+        return null;
+      }
+
+      if (accessMode === 'owner' && !isOwner) {
+        return null;
+      }
+
+      if (accessMode === 'member' && isOwner) {
+        return null;
       }
 
       const { passwordHash, ...result } = user;

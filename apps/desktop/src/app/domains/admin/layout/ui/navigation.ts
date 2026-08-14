@@ -39,14 +39,9 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
         <!-- Empty search result -->
         <div class="flex flex-col items-center justify-center px-6 py-10 text-center">
           <img
-            class="max-h-[120px]"
+            class="max-h-[120px] w-auto select-none pointer-events-none drop-shadow-xs"
             alt="No se encontraron módulos"
             src="illustrations/1.svg"
-          />
-          <img
-            class="hidden max-h-[120px] dark:block"
-            alt="No se encontraron módulos"
-            src="illustrations/1-dark.svg"
           />
           <div class="mt-4 text-base font-semibold text-neutral-900 dark:text-white">
             Sin resultados para "{{ searchQuery() }}"

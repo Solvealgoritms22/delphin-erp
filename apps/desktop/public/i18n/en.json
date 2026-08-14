@@ -62,7 +62,8 @@
     "sessions": "Current sessions",
     "system": "System",
     "systemDescription": "Audit and activity",
-    "activity": "Activity"
+    "activity": "Activity",
+    "legal": "Legal documentation"
   },
   "language": {
     "english": "English",
@@ -189,6 +190,9 @@
     "the": "the"
   },
   "auth": {
+    "errors": {
+      "invalidCredentials": "Incorrect email address or password."
+    },
     "fields": {
       "email": "Email address",
       "password": "Password",
@@ -293,7 +297,7 @@
       "error": "Google access could not be completed."
     },
     "brand": {
-      "tagline": "Your operation,\nin one place",
+      "tagline": "Your operation, in one place",
       "description": "Dolphin ERP connects the management of your companies, users, catalogs, and security controls in a clear, centralized experience.",
       "multiCompany": "Multi-company management",
       "multiCompanyDescription": "Manage access and operations by company.",
@@ -748,6 +752,8 @@
   },
   "legalPages": {
     "layoutTitle": "Legal Documentation",
+    "description": "Terms of service, privacy policy, cookies, and subscription agreements for Dolphin ERP.",
+    "openExternal": "Open in browser",
     "terms": "Terms of Use",
     "privacy": "Privacy Policy",
     "cookies": "Cookie Policy",

@@ -116,6 +116,10 @@ const routes: Routes = [
         path: 'activity',
         loadChildren: () => import('./modules/apps/activity/routes'),
       },
+      {
+        path: 'legal',
+        loadChildren: () => import('./modules/apps/legal/routes'),
+      },
 
       {
         path: 'billing',

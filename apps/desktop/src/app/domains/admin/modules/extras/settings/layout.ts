@@ -24,51 +24,53 @@ import {
   ],
   template: `
     <div
-      class="@container flex h-full w-full flex-auto flex-col gap-4 p-6 sm:gap-6 lg:px-8 lg:pt-8 lg:pb-10 overflow-y-auto overflow-x-hidden"
+      class="@container flex h-full w-full flex-col bg-white dark:bg-neutral-900 overflow-hidden"
     >
-      <!-- Header -->
-      <div class="flex items-center justify-between gap-x-3">
-        <div class="text-xl font-semibold tracking-tighter sm:text-2xl">
-          Settings
+      <!-- Header & Tabs (Pinned) -->
+      <div class="shrink-0 flex flex-col gap-4 px-6 pt-6 sm:gap-4 lg:px-8 lg:pt-8 border-b border-neutral-100 dark:border-neutral-800">
+        <div class="flex items-center justify-between gap-x-3">
+          <div class="text-xl font-semibold tracking-tighter sm:text-2xl">
+            Settings
+          </div>
         </div>
-      </div>
 
-      <!-- Tabs -->
-      <nav
-        class="mb-2 hidden sm:flex"
-        mat-tab-nav-bar
-        [mat-stretch-tabs]="false"
-        [tabPanel]="tabPanel"
-        ngSkipHydration
-      >
-        @for (link of links; track link.id) {
-          <a
-            mat-tab-link
-            routerLinkActive
-            [routerLink]="link.route"
-            [active]="rla.isActive"
-            #rla="routerLinkActive"
-          >
-            {{ link.label }}
-          </a>
-        }
-      </nav>
-
-      <!-- Mobile navigation -->
-      <mat-form-field class="mb-2 w-full sm:hidden">
-        <mat-select
-          [value]="router.url"
-          (selectionChange)="router.navigateByUrl($event.value)"
-          #select
+        <!-- Tabs -->
+        <nav
+          class="hidden sm:flex -mb-px"
+          mat-tab-nav-bar
+          [mat-stretch-tabs]="false"
+          [tabPanel]="tabPanel"
+          ngSkipHydration
         >
           @for (link of links; track link.id) {
-            <mat-option [value]="link.route">{{ link.label }}</mat-option>
+            <a
+              mat-tab-link
+              routerLinkActive
+              [routerLink]="link.route"
+              [active]="rla.isActive"
+              #rla="routerLinkActive"
+            >
+              {{ link.label }}
+            </a>
           }
-        </mat-select>
-      </mat-form-field>
+        </nav>
 
-      <!-- Tab panel -->
-      <mat-tab-nav-panel #tabPanel class="relative">
+        <!-- Mobile navigation -->
+        <mat-form-field class="mb-2 w-full sm:hidden">
+          <mat-select
+            [value]="router.url"
+            (selectionChange)="router.navigateByUrl($event.value)"
+            #select
+          >
+            @for (link of links; track link.id) {
+              <mat-option [value]="link.route">{{ link.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Tab panel (Central Scroll) -->
+      <mat-tab-nav-panel #tabPanel class="relative flex-auto min-h-0 overflow-y-auto p-6 lg:px-8 lg:py-8 pb-16">
         <router-outlet />
       </mat-tab-nav-panel>
     </div>

@@ -1,60 +1,58 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
-import { MatPseudoCheckbox } from '@angular/material/core';
 import { MatIcon } from '@angular/material/icon';
-import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
-import { Scheme, Theming } from '@/app/core/theming';
+import { MatTooltip } from '@angular/material/tooltip';
+import { Theming } from '@/app/core/theming';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'scheme-switcher',
+  standalone: true,
   imports: [
     MatIcon,
     MatIconButton,
-    MatMenu,
-    MatMenuItem,
-    MatPseudoCheckbox,
-    MatMenuTrigger,
+    MatTooltip,
     TranslocoPipe,
   ],
   template: `
     <button
       matIconButton
-      [matMenuTriggerFor]="schemeMenu"
+      type="button"
+      (click)="toggleTheme()"
+      [matTooltip]="isDark() ? ('layout.scheme.light' | transloco) : ('layout.scheme.dark' | transloco)"
+      class="group relative overflow-hidden rounded-xl transition-all duration-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 active:scale-90"
+      [attr.aria-label]="isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
     >
-      <mat-icon svgIcon="sun-moon" />
+      <div
+        class="flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+        [class.rotate-[360deg]]="isDark()"
+        [class.rotate-0]="!isDark()"
+      >
+        @if (isDark()) {
+          <!-- Sun Icon in Dark mode with amber glow -->
+          <mat-icon
+            svgIcon="sun"
+            class="icon-size-5 text-amber-400 transition-all duration-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] group-hover:scale-110"
+          />
+        } @else {
+          <!-- Moon Icon in Light mode with deep slate tone -->
+          <mat-icon
+            svgIcon="moon"
+            class="icon-size-5 text-neutral-600 dark:text-neutral-300 transition-all duration-300 group-hover:scale-110"
+          />
+        }
+      </div>
     </button>
-    <mat-menu #schemeMenu>
-      @for (item of schemes; track item.value) {
-        <button
-          mat-menu-item
-          (click)="updateScheme(item.value)"
-        >
-          <span class="flex items-center gap-x-1">
-            <span class="flex-auto">{{ item.label | transloco }}</span>
-            <mat-pseudo-checkbox
-              appearance="minimal"
-              [state]="scheme() === item.value ? 'checked' : 'unchecked'"
-            />
-          </span>
-        </button>
-      }
-    </mat-menu>
   `,
 })
 export class SchemeSwitcher {
-  // Dependencies
   private theming = inject(Theming);
 
-  // State
-  protected scheme = computed(() => this.theming.scheme());
-  protected schemes: { label: string; value: Scheme }[] = [
-    { label: 'layout.scheme.light', value: 'light' },
-    { label: 'layout.scheme.dark', value: 'dark' },
-    { label: 'layout.scheme.system', value: 'system' },
-  ];
+  protected isDark = computed(() => this.theming.isDark());
 
-  updateScheme(scheme: Scheme) {
-    this.theming.setScheme(scheme);
+  toggleTheme(): void {
+    const nextScheme = this.isDark() ? 'light' : 'dark';
+    this.theming.setScheme(nextScheme);
   }
 }
+

@@ -53,16 +53,19 @@ const DEFAULT_PLANS: Plan[] = [
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatIconModule, MatDialogModule, TranslocoPipe],
   template: `
-    <div class="flex h-full w-full flex-col flex-auto min-w-0 p-6 sm:p-10 overflow-y-auto overflow-x-hidden">
+    <div class="flex h-full w-full flex-col min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
 
-      <!-- Header with Back button -->
-      <div class="flex items-center justify-start mb-6">
+      <!-- Header with Back button (Pinned) -->
+      <div class="shrink-0 flex items-center justify-start p-6 pb-4 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <button (click)="goBack()"
                 class="h-9 px-4 rounded-xl text-sm font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors flex items-center gap-2 shadow-xs">
           <mat-icon svgIcon="arrow-left" class="!w-4 !h-4 !text-[16px] text-neutral-500 dark:text-neutral-400"></mat-icon>
            {{ 'plans.back' | transloco }}
         </button>
       </div>
+
+      <!-- Central Scroll Container -->
+      <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-16">
 
       <!-- Trial Banner -->
       @if (trialDaysLeft() !== null) {
@@ -276,6 +279,7 @@ const DEFAULT_PLANS: Plan[] = [
           </div>
         </div>
       }
+      </div>
     </div>
   `,
 })

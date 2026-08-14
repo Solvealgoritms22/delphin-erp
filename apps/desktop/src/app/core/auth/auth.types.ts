@@ -28,4 +28,5 @@ export interface AuthResponse {
 export interface LoginCredentials {
   email: string;
   password?: string;
+  accessMode?: 'owner' | 'member';
 }

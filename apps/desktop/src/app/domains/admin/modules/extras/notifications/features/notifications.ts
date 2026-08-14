@@ -40,8 +40,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
       <main class="flex-auto min-h-0 overflow-y-auto">
         @if (notifications().length === 0) {
           <div class="flex min-h-[520px] flex-col items-center justify-center px-6 py-16 text-center">
-            <img class="mb-6 h-36 dark:hidden" src="illustrations/18.svg" alt="No notifications">
-            <img class="mb-6 hidden h-36 dark:block" src="illustrations/18-dark.svg" alt="No notifications">
+            <img class="mb-6 h-36 w-auto select-none pointer-events-none drop-shadow-xs" src="illustrations/18.svg" alt="No notifications">
              <h2 class="text-xl font-bold text-neutral-900 dark:text-white">{{ 'extras.notifications.emptyTitle' | transloco }}</h2>
              <p class="mt-2 max-w-md text-sm text-neutral-500 dark:text-neutral-400">{{ 'extras.notifications.emptyDescription' | transloco }}</p>
           </div>

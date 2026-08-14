@@ -31,10 +31,10 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
      TranslocoPipe
   ],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 bg-white dark:bg-neutral-900 relative">
+    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
       
       <!-- Header -->
-      <div class="flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800 mb-8">
+      <div class="shrink-0 flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full mb-6 gap-4">
           <div>
              <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">{{ 'settings.users.title' | transloco }}</h1>
@@ -48,8 +48,10 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
         </div>
       </div>
 
-      <!-- Stat Cards Grid -->
-      <div class="px-6 sm:px-10 w-full mb-8">
+      <!-- Central Scrollable Body -->
+      <div class="flex-auto min-h-0 overflow-y-auto px-6 sm:px-10 py-8 pb-16">
+        <!-- Stat Cards Grid -->
+        <div class="w-full mb-8">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <app-stat-card
              [label]="'settings.users.total' | transloco"
@@ -217,7 +219,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
         </div>
 
       </div>
-
     </div>
   `,
 })

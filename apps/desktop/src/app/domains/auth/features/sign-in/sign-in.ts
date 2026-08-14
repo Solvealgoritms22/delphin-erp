@@ -61,7 +61,8 @@ export default class AuthSignIn {
 
       this.authService.signIn({
         email: this.signInFormModel().email,
-        password: this.signInFormModel().password
+        password: this.signInFormModel().password,
+        accessMode: this.accessMode()
       }).subscribe({
         next: (response) => {
           this.isLoading.set(false);
@@ -71,9 +72,9 @@ export default class AuthSignIn {
               : '/admin/dashboards',
           );
         },
-        error: (err: Error) => {
+        error: (err: any) => {
           this.isLoading.set(false);
-          const message = err.message || this.transloco.translate('auth.errors.invalidCredentials');
+          const message = this.transloco.translate('auth.errors.invalidCredentials');
           this.snackBar.open(message, this.transloco.translate('common.close'), {
             duration: 5000,
             panelClass: ['snack-error'],

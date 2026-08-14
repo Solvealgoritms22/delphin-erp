@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'auth-layout',
   imports: [CommonModule, RouterOutlet, MatButtonModule, MatIconModule],
   template: `
-    <div class="relative min-h-screen flex flex-col border-t border-neutral-200/80 dark:border-neutral-800/80">
+    <div class="relative min-h-full w-full flex flex-col border-t border-neutral-200/80 dark:border-neutral-800/80">
       @if (isElectron) {
         <!-- Frameless window top draggable bar -->
         <div class="absolute top-0 left-0 right-0 h-9 z-50 flex items-center justify-end px-3 select-none" style="-webkit-app-region: drag">

@@ -34,17 +34,16 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     TranslocoPipe
   ],
   template: `
-    <div class="flex flex-col w-full h-full bg-white dark:bg-neutral-900 overflow-y-auto overflow-x-hidden relative border-t sm:border-t-0 sm:border-l border-neutral-200 dark:border-neutral-800">
-      <div class="flex flex-col flex-auto min-w-0">
-        
-        <!-- Main Panel -->
-        <div class="flex flex-col flex-auto w-full p-4 sm:p-6 sm:pb-8">
-          <div class="mb-6">
-            <h2 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'sessions.title' | transloco }}</h2>
-            <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'sessions.description' | transloco }}</p>
-          </div>
-          
-          <div class="flex flex-col flex-auto bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
+    <div class="flex flex-col w-full h-full bg-white dark:bg-neutral-900 overflow-hidden relative border-t sm:border-t-0 sm:border-l border-neutral-200 dark:border-neutral-800">
+      <!-- Header -->
+      <div class="shrink-0 p-6 sm:py-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
+        <h2 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'sessions.title' | transloco }}</h2>
+        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'sessions.description' | transloco }}</p>
+      </div>
+
+      <!-- Main Panel (central scroll) -->
+      <div class="flex-auto min-h-0 overflow-y-auto p-4 sm:p-6 sm:pb-8">
+        <div class="flex flex-col flex-auto bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
             
             <!-- Toolbar -->
             <div class="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-neutral-200 dark:border-neutral-700 gap-4">
@@ -208,8 +207,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
           </div>
         </div>
       </div>
-    </div>
-  `
+  `,
 })
 export default class CurrentSessionsComponent implements OnInit {
   private _sessionsService = inject(CurrentSessionsService);

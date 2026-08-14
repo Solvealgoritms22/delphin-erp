@@ -19,9 +19,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatIconModule, MatDialogModule, MatSnackBarModule, DatePipe, TranslocoPipe],
   template: `
-    <div class="flex h-full w-full flex-col flex-auto min-w-0 p-6 sm:p-10">
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
+      <!-- Header (Pinned) -->
+      <div class="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <div>
            <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">{{ 'billingPage.title' | transloco }}</h1>
            <p class="mt-1 text-sm text-neutral-500">{{ 'billingPage.description' | transloco }}</p>
@@ -33,6 +33,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </button>
         </div>
       </div>
+
+      <!-- Central Scroll Container -->
+      <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-16">
 
       @if (isLoading()) {
         <div class="flex items-center justify-center p-16">
@@ -254,6 +257,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </table>
         </div>
       }
+      </div>
     </div>
   `,
 })

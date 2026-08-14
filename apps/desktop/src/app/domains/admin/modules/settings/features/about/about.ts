@@ -19,17 +19,22 @@ import { UpdateService } from '@/app/shared/services/update.service';
     TranslocoModule,
   ],
   template: `
-    <div class="w-full h-full overflow-y-auto overflow-x-hidden p-4 sm:p-6">
-      <div class="w-full max-w-3xl mx-auto">
-      <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
-          {{ 'updater.currentVersion' | transloco }}
-        </h1>
-        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          {{ 'nav.systemDescription' | transloco }}
-        </p>
+    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
+      <!-- Pinned Header -->
+      <div class="shrink-0 p-6 sm:py-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-transparent">
+        <div class="w-full max-w-3xl mx-auto">
+          <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+            {{ 'updater.currentVersion' | transloco }}
+          </h1>
+          <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            {{ 'nav.systemDescription' | transloco }}
+          </p>
+        </div>
       </div>
+
+      <!-- Central Scroll Container -->
+      <div class="flex-auto min-h-0 overflow-y-auto p-4 sm:p-6 pb-12">
+        <div class="w-full max-w-3xl mx-auto">
 
       <!-- Version Card -->
       <mat-card class="mb-6" appearance="outlined">
@@ -180,6 +185,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
           </dl>
         </mat-card-content>
       </mat-card>
+        </div>
       </div>
     </div>
   `,

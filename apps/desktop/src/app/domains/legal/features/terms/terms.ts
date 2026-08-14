@@ -5,6 +5,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   selector: 'legal-terms',
   standalone: true,
   imports: [TranslocoPipe],
+  host: { class: 'block w-full' },
   template: `
     <div class="prose prose-blue dark:prose-invert max-w-none">
       <h1 class="text-3xl font-bold tracking-tight mb-2">{{ 'legalContent.terms.title' | transloco }}</h1>

@@ -29,10 +29,10 @@ export interface RolePermissions {
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, MatDialogModule, MatSnackBarModule, EmptyStateComponent, TranslocoPipe],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 bg-white dark:bg-neutral-900 relative">
+    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
       
       <!-- Header & Tabs -->
-      <div class="flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800 mb-8">
+      <div class="shrink-0 flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
          <div class="flex items-center justify-between w-full mb-6">
            <div>
               <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">{{ 'roles.title' | transloco }}</h1>
@@ -46,9 +46,11 @@ export interface RolePermissions {
         </div>
       </div>
 
-      <!-- ==================== ROLES & ACCOUNTS TAB ==================== -->
-      <!-- Roles Grid -->
-        <div class="px-6 sm:px-10 w-full">
+      <!-- Central Scrollable Body -->
+      <div class="flex-auto min-h-0 overflow-y-auto px-6 sm:px-10 py-8 pb-16">
+        <!-- ==================== ROLES & ACCOUNTS TAB ==================== -->
+        <!-- Roles Grid -->
+        <div class="w-full">
           @if (roles().length > 0) {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               
@@ -256,6 +258,7 @@ export interface RolePermissions {
           </div>
           
         </div>
+      </div>
 
       <!-- ==================== MODALS ==================== -->
       

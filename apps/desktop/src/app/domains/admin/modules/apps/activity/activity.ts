@@ -49,10 +49,10 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
   standalone: true,
   imports: [CommonModule, DatePipe, MatIconModule, MatButtonModule, MatSlideToggleModule, FormsModule, TranslocoPipe],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 w-full">
+    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
 
-      <!-- Page header -->
-      <div class="flex items-center justify-between px-6 sm:px-10 py-6 border-b border-neutral-100 dark:border-neutral-800">
+      <!-- Page header (Pinned) -->
+      <div class="shrink-0 flex items-center justify-between px-6 sm:px-10 py-6 border-b border-neutral-100 dark:border-neutral-800">
          <div>
            <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">{{ 'activity.title' | transloco }}</h1>
            <p class="text-sm text-neutral-500 mt-0.5">{{ 'activity.description' | transloco }}</p>
@@ -64,10 +64,10 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
          </button>
       </div>
 
-      <div class="flex flex-1 min-h-0">
+      <div class="flex flex-auto min-h-0 overflow-hidden">
 
-        <!-- Main content -->
-        <div class="flex flex-col flex-1 overflow-y-auto px-6 sm:px-10 py-6">
+        <!-- Main content (central scroll) -->
+        <div class="flex flex-col flex-1 min-h-0 overflow-y-auto px-6 sm:px-10 py-6 pb-16">
 
           <!-- Toolbar -->
           <div class="flex items-center justify-between mb-8 gap-4 flex-wrap">
