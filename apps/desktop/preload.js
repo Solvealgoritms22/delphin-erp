@@ -4,6 +4,9 @@ contextBridge.exposeInMainWorld('dolphinUpdater', {
   onUpdateAvailable: (callback) => {
     ipcRenderer.on('dolphin:update-available', (_event, info) => callback(info));
   },
+  onUpdateNotAvailable: (callback) => {
+    ipcRenderer.on('dolphin:update-not-available', (_event, info) => callback(info));
+  },
   onDownloadProgress: (callback) => {
     ipcRenderer.on('dolphin:download-progress', (_event, progress) => callback(progress));
   },

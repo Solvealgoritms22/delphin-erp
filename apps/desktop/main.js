@@ -81,6 +81,9 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-not-available', (info) => {
     log.info('Update not available:', info);
+    if (mainWindow) {
+      mainWindow.webContents.send('dolphin:update-not-available', info);
+    }
   });
 
   autoUpdater.on('error', (err) => {
@@ -115,6 +118,9 @@ function setupAutoUpdater() {
   ipcMain.on('dolphin:check-for-updates', () => {
     autoUpdater.checkForUpdates().catch((err) => {
       log.error('Manual check failed:', err);
+      if (mainWindow) {
+        mainWindow.webContents.send('dolphin:update-error', err.message || 'Error checking for updates');
+      }
     });
   });
 

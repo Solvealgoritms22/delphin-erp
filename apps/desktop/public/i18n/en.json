@@ -768,6 +768,7 @@
     "later": "Later",
     "retry": "Retry",
     "checkManually": "Check for updates",
+    "checking": "Checking for updates...",
     "upToDate": "You are up to date",
     "checkFailed": "Failed to check for updates",
     "notElectron": "Updates are only available in the desktop app",

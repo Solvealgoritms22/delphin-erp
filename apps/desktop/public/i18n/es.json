@@ -322,7 +322,7 @@
       "upgradePlan": "Mejorar plan"
     },
     "user": {
-      "upgrade": "Actualizar ahora",
+      "upgrade": "Actualizar plan ahora",
       "account": "Cuenta",
       "billing": "Facturación",
       "notifications": "Notificaciones",
@@ -768,6 +768,7 @@
     "later": "Más tarde",
     "retry": "Reintentar",
     "checkManually": "Buscar actualizaciones",
+    "checking": "Buscando actualizaciones...",
     "upToDate": "Estás en la última versión",
     "checkFailed": "Error al buscar actualizaciones",
     "notElectron": "Las actualizaciones solo están disponibles en la app de escritorio",

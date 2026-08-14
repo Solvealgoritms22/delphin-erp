@@ -75,11 +75,11 @@ import { UpdateService } from '@/app/shared/services/update.service';
               mat-flat-button
               color="primary"
               (click)="checkForUpdates()"
-              [disabled]="checking() || !isElectron()"
+              [disabled]="checking() || downloading() || !isElectron()"
               class="flex-1"
             >
-              <mat-icon svgIcon="refresh-cw" class="icon-size-5 mr-2" [class.animate-spin]="checking()"></mat-icon>
-              {{ checking() ? ('updater.downloading' | transloco : {progress: 0}) : ('updater.checkManually' | transloco) }}
+              <mat-icon svgIcon="refresh-cw" class="icon-size-5 mr-2" [class.animate-spin]="checking() || downloading()"></mat-icon>
+              {{ checking() ? ('updater.checking' | transloco) : (downloading() ? ('updater.downloading' | transloco : { progress: roundedPercent() }) : ('updater.checkManually' | transloco)) }}
             </button>
 
             @if (!isElectron()) {
@@ -89,6 +89,13 @@ import { UpdateService } from '@/app/shared/services/update.service';
               </span>
             }
           </div>
+
+          @if (isUpToDate()) {
+            <div class="mt-4 p-3.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 flex items-center">
+              <mat-icon svgIcon="circle-check-big" class="icon-size-4 mr-2 text-emerald-600 dark:text-emerald-400 shrink-0"></mat-icon>
+              <span class="font-medium text-sm">{{ 'updater.upToDate' | transloco }}</span>
+            </div>
+          }
 
           @if (lastCheck()) {
             <div class="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
@@ -185,10 +192,13 @@ export class AboutComponent {
   protected currentVersion = this.updateService.currentVersion;
   protected isElectron = this.updateService.isElectron;
   protected checking = computed(() => this.updateService.status() === 'checking');
+  protected downloading = computed(() => this.updateService.status() === 'downloading');
+  protected isUpToDate = computed(() => this.updateService.status() === 'up-to-date');
   protected updateAvailable = computed(() => this.updateService.status() === 'available');
   protected updateDownloaded = computed(() => this.updateService.status() === 'ready');
   protected updateError = computed(() => this.updateService.error());
   protected updateInfo = computed(() => this.updateService.updateInfo());
+  protected roundedPercent = computed(() => Math.round(this.updateService.downloadProgress()?.percent ?? 0));
 
   protected lastCheck = signal<string | null>(null);
 

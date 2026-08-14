@@ -30,6 +30,7 @@ export class UpdateService {
   private readonly snackBar = inject(MatSnackBar);
 
   private snackbarRef: MatSnackBarRef<UpdateNotificationComponent> | null = null;
+  private checkingTimeout: ReturnType<typeof setTimeout> | null = null;
 
   readonly status = signal<UpdateStatus>('idle');
   readonly updateInfo = signal<UpdateInfo | null>(null);
@@ -61,29 +62,46 @@ export class UpdateService {
     }
   }
 
+  private clearCheckingTimeout(): void {
+    if (this.checkingTimeout) {
+      clearTimeout(this.checkingTimeout);
+      this.checkingTimeout = null;
+    }
+  }
+
   private initElectronListeners(): void {
     if (!this.isElectron()) return;
 
     const updater = window.dolphinUpdater;
 
     updater.onUpdateAvailable((info: UpdateInfo) => {
+      this.clearCheckingTimeout();
       this.updateInfo.set(info);
       this.status.set('available');
       this.showNotification();
     });
 
+    updater.onUpdateNotAvailable?.((info: UpdateInfo) => {
+      this.clearCheckingTimeout();
+      this.status.set('up-to-date');
+      this.error.set(null);
+    });
+
     updater.onDownloadProgress((progress: DownloadProgress) => {
+      this.clearCheckingTimeout();
       this.downloadProgress.set(progress);
       this.status.set('downloading');
     });
 
     updater.onUpdateDownloaded((info: UpdateInfo) => {
+      this.clearCheckingTimeout();
       this.updateInfo.set(info);
       this.status.set('ready');
       this.error.set(null);
     });
 
     updater.onError((error: string) => {
+      this.clearCheckingTimeout();
       this.error.set(error);
       this.status.set('error');
     });
@@ -99,6 +117,13 @@ export class UpdateService {
     this.error.set(null);
     this.updateInfo.set(null);
     this.downloadProgress.set(null);
+
+    this.clearCheckingTimeout();
+    this.checkingTimeout = setTimeout(() => {
+      if (this.status() === 'checking') {
+        this.status.set('up-to-date');
+      }
+    }, 8000);
 
     window.dolphinUpdater.checkForUpdates();
   }
