@@ -8,14 +8,6 @@ import { SessionMonitorService } from './core/auth/session-monitor.service';
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, CookieBannerComponent],
-  host: {
-    '[class.rounded-2xl]': 'isElectron && !isMaximized()',
-    '[class.border]': 'isElectron && !isMaximized()',
-    '[class.border-neutral-200/90]': 'isElectron && !isMaximized()',
-    '[class.dark:border-neutral-800/80]': 'isElectron && !isMaximized()',
-    '[class.shadow-2xl]': 'isElectron && !isMaximized()',
-    class: 'flex h-full w-full flex-auto flex-col overflow-hidden bg-white dark:bg-[#09090b]',
-  },
   template: `
     <router-outlet />
     <app-cookie-banner />

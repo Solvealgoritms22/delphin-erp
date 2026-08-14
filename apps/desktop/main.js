@@ -37,11 +37,10 @@ function createWindow() {
     },
     // Remove native titlebar — the Angular app renders its own controls
     frame: false,
-    transparent: true,
     titleBarStyle: 'hidden',
     icon: path.join(__dirname, 'build', 'icon.ico'),
     autoHideMenuBar: true,
-    backgroundColor: '#00000000',
+    backgroundColor: '#09090b',
   });
 
   const isDev = process.argv.includes('--dev');
