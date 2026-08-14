@@ -19,6 +19,7 @@ import { SucursalesModule } from './modules/sucursales/sucursales.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     PaymentsModule,
     ActivityLogModule,
     NotificationsModule,
+    AiAgentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

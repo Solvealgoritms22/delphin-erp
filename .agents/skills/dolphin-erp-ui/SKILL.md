@@ -76,29 +76,92 @@ Antes de crear código desde cero, **revisa y reutiliza los componentes existent
 * **`breadcrumbs`**: Migas de pan para navegación.
 * **`empty-state`**: Ilustraciones y mensajes de estado vacío.
 * **`skeleton`**: Placeholders de carga.
+* **`confirm-dialog`**: Diálogo de confirmación estándar con soporte para acciones destructivas, íconos y match string de seguridad.
 
 ---
 
 ## 3. Iconografía y Assets Estáticos
 
-### Íconos
-* Utiliza `<mat-icon [svgIcon]="name">` o `svgIcon="name"` con la librería estandarizada Feather/Material Icons:
-  * Nombres válidos comunes: `users`, `box`, `settings`, `check`, `x`, `search`, `chevron-down`, `chevron-left`, `chevron-right`, `plus`, `edit`, `file-text`, `mail`, `printer`, `arrow-right`, `trash`, `filter`, `sliders-horizontal`, `image`, `upload`, `download`, `refresh`, `eye`, `eye-off`, `calendar`, `clock`, `tag`, `link`, `phone`, `globe`, etc.
-* **Evita el uso de prefijos desconocidos** como `heroicons_solid:` o `heroicons_outline:`.
+### Íconos Animados Estándar (`ng-animated-icons`)
+El proyecto utiliza **`ng-animated-icons`** como el estándar oficial de íconos animados e interactivos basados en Lucide para Angular:
+
+* **Importación Standalone**:
+  Importa únicamente los componentes de íconos requeridos en cada componente (asegúrate de usar los nombres exactos exportados):
+  ```typescript
+  import {
+    PlusIcon,
+    TrashIcon,
+    CheckIcon,
+    SearchIcon,
+    SettingsIcon,
+    UserRoundIcon,
+    UserCheckIcon,
+    UserCogIcon,
+    ActivityIcon,
+    DownloadIcon,
+    RefreshCwIcon,
+    RotateCwIcon,
+    RotateCcwIcon,
+    SlidersHorizontalIcon,
+    BellIcon,
+    EyeOffIcon,
+    AwardIcon,
+    TagIcon,
+    PencilIcon,
+    SparklesIcon,
+    ClockIcon,
+    ArrowRightIcon,
+    ArrowUpRightIcon,
+    TriangleAlertIcon,
+    CircleAlertIcon,
+    XIcon,
+    ChevronDownIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon
+  } from 'ng-animated-icons';
+  ```
+* **Uso en Template**:
+  ```html
+  <!-- En botones -->
+  <button mat-flat-button class="rounded-xl bg-blue-600 text-white">
+    <i-plus [size]="18" class="mr-2"></i-plus>
+    {{ 'common.create' | transloco }}
+  </button>
+
+  <!-- En búsquedas -->
+  <i-search [size]="18" class="text-neutral-400"></i-search>
+
+  <!-- En acciones de tabla o botones icon-only -->
+  <button mat-icon-button [matTooltip]="'common.delete' | transloco">
+    <i-trash [size]="18" class="text-red-500"></i-trash>
+  </button>
+  ```
+* **Fallback a `<mat-icon>`**:
+  Para íconos que no están presentes en `ng-animated-icons` (por ejemplo: `ellipsis-vertical`, `wallet`, `eye`), se utiliza el registro estándar de Angular Material:
+  ```html
+  <mat-icon svgIcon="ellipsis-vertical" class="icon-size-5"></mat-icon>
+  ```
+* **Propiedades Disponibles**:
+  * `size`: number (recomendado `16` a `18` en botones, `20` en barras y `24` en cabeceras).
+  * `color`: string (por defecto `'currentColor'`).
+  * `strokeWidth`: number (por defecto `2`).
+  * `animate`: boolean (permite disparar la animación programáticamente con Signals).
+  * `class`: string (clases de Tailwind para espaciado, color, etc.).
+* **Micro-animaciones**: Los íconos ejecutan animaciones fluidas y reactivas al pasar el cursor (`mouseenter`).
 
 ### Íconos en Botones (OBLIGATORIO)
 Todo botón de acción debe incluir un **ícono representativo** junto al texto (o solo ícono en botones compactos/icon-button) que comunique visualmente la acción que ejecuta:
-* **Acciones de creación**: `<mat-icon svgIcon="plus">` en botones "Nuevo X", "Agregar X", "Crear X".
-* **Acciones de edición**: `edit` para "Editar"; **eliminación**: `trash` para "Eliminar" (con confirmación).
-* **Acciones de guardado**: `check` o `save` en botones de "Guardar".
-* **Búsqueda**: `search` dentro del `mat-form-field` (`matPrefix`) o como botón de búsqueda.
-* **Exportar/Imprimir**: `download` / `printer`; **Actualizar**: `refresh`.
-* **Filtros**: `filter` o `sliders-horizontal` en el botón que despliega el panel de filtros avanzados.
-* **Regresar**: `arrow-left` o `chevron-left` en botones de "Volver".
-* **Íconos de estado**: `check` (éxito), `x` (error/cerrar), `info` (informativo), `alert-triangle` (advertencia).
-* El ícono debe ir **antes del texto** (ej. `<mat-icon svgIcon="plus" class="icon-size-5 mr-2"></mat-icon>`), con separación `mr-2` (o `gap-2` usando flex), y tamaño `icon-size-4` o `icon-size-5`.
+* **Acciones de creación**: `<i-plus [size]="18" class="mr-2"></i-plus>` en botones "Nuevo X", "Agregar X", "Crear X".
+* **Acciones de edición**: `<i-edit [size]="18" class="mr-2"></i-edit>` para "Editar"; **eliminación**: `<i-trash [size]="18" class="mr-2"></i-trash>` para "Eliminar".
+* **Acciones de guardado**: `<i-check [size]="18" class="mr-2"></i-check>` o `<i-save [size]="18" class="mr-2"></i-save>` en botones de "Guardar".
+* **Búsqueda**: `<i-search [size]="18"></i-search>` dentro del input o como botón de búsqueda.
+* **Exportar/Descargar**: `<i-download [size]="18" class="mr-2"></i-download>`; **Actualizar/Refrescar**: `<i-refresh-cw [size]="18" class="mr-2"></i-refresh-cw>`.
+* **Filtros**: `<i-sliders-horizontal [size]="18" class="mr-2"></i-sliders-horizontal>` en el botón de filtros.
+* **Regresar**: `<i-arrow-left [size]="18" class="mr-2"></i-arrow-left>` o `<i-chevron-left [size]="18" class="mr-2"></i-chevron-left>`.
+* **Íconos de estado / alertas**: `<i-check>`, `<i-x>`, `<i-info>`, `<i-alert-triangle>`.
+* El ícono debe ir **antes del texto** con separación `mr-2` (o `gap-2` usando flex).
 * Cuando la acción sea icon-only (botón cuadrado o `mat-icon-button`), es **obligatorio** añadir `[matTooltip]` describiendo la acción.
-* **Nunca** dejes un botón sin ícono cuando exista un ícono Feather/Material que represente claramente la acción; tampoco uses un ícono que no corresponda semánticamente al botón (ej. `trash` en un botón de "Guardar").
+* Para íconos estáticos o de terceros heredados, se mantiene compatibilidad con `<mat-icon svgIcon="name">`.
 
 ### Recursos Multimedia (`public/`)
 * **Avatares locales**:
@@ -143,6 +206,35 @@ Siempre que una pantalla de listado **no tenga datos** (estado vacío) o una sec
 * Subtítulos / Labels: `text-sm font-bold text-neutral-500`
 * Redondeado de Tarjetas: `rounded-2xl` o `rounded-3xl`
 * Redondeado de Botones/Inputs: `rounded-xl` o `rounded-full`
+
+### 4.1 Estándar de Modales y Diálogos de Confirmación (Glassmorphism Blur Backdrop & Zoom Animation)
+Todo diálogo, modal de formulario o diálogo de confirmación abierto a través de `MatDialog` o CDK Overlay debe cumplir con el estándar visual de **Glassmorphism con fondo difuminado (Blur Effect)** y **animación Zoom**:
+
+* **Fondo / Backdrop Blur (Global)**:
+  * El backdrop de CDK (`.cdk-overlay-dark-backdrop`) aplica automáticamente `backdrop-filter: blur(8px) saturate(140%)` con tinte `rgba(15, 23, 42, 0.45)` en modo claro, y `blur(12px) saturate(150%)` con `rgba(0, 0, 0, 0.65)` en modo oscuro.
+  * Los menús y selects (`transparent-backdrop`) no aplican blur para mantener fluidez y ligereza visual.
+* **Animación Zoom (Entrada y Salida)**:
+  * **Apertura (Zoom In)**: Escala suave desde `scale(0.90)` y opacidad `0` hasta `scale(1.0)` y opacidad `1` (`240ms cubic-bezier(0.16, 1, 0.3, 1)`).
+  * **Cierre (Zoom Out)**: Escala descendente hacia `scale(0.90)` y desvanecimiento (`180ms cubic-bezier(0.4, 0, 1, 1)`).
+* **Superficie del Diálogo**:
+  * Bordes redondeados modernos `rounded-2xl` (`border-radius: 1.25rem`).
+  * Sombras de alta elevación con micro-borde sutil (`shadow-2xl` + borde fino `border-neutral-200/50 dark:border-neutral-700/50`).
+* **Diálogos de Confirmación (`ConfirmDialogComponent`)**:
+  * Para confirmar acciones destructivas o críticas, usa siempre el componente reutilizable `src/app/shared/components/confirm-dialog/confirm-dialog.component.ts`.
+  * Ejemplo de invocación estándar:
+    ```typescript
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: this.transloco.translate('module.deleteTitle'),
+        message: this.transloco.translate('module.deleteMessage'),
+        confirmLabel: this.transloco.translate('common.delete'),
+        cancelLabel: this.transloco.translate('common.cancel'),
+        destructive: true,
+        icon: 'trash',
+      } satisfies ConfirmDialogData,
+      autoFocus: false,
+    });
+    ```
 
 ---
 

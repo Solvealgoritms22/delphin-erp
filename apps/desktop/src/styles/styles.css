@@ -29,6 +29,7 @@
 @import './components/kbd.css';
 @import './components/material.css';
 @import './components/scrollbar.css';
+@import './components/markdown.css';
 
 /* -------------------------------------------------------------------------- */
 /* Third Party                                                                */
@@ -117,3 +118,96 @@
   width: 100% !important;
   max-width: 100% !important;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Modal & Dialog Glassmorphism Blur Backdrop                                 */
+/* -------------------------------------------------------------------------- */
+.cdk-overlay-backdrop.cdk-overlay-dark-backdrop,
+.cdk-overlay-dark-backdrop {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(140%) !important;
+  transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.dark .cdk-overlay-backdrop.cdk-overlay-dark-backdrop,
+.dark .cdk-overlay-dark-backdrop {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+}
+
+/* Native dialog ::backdrop */
+::backdrop {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(140%) !important;
+}
+
+.dark ::backdrop {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+}
+
+/* Transparent dropdown overlays shouldn't have blur (menus, autocomplete, tooltips) */
+.cdk-overlay-transparent-backdrop,
+.cdk-overlay-backdrop.cdk-overlay-transparent-backdrop,
+.cdk-overlay-backdrop.transparent {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Modal & Dialog Zoom Entrance and Exit Animations                           */
+/* -------------------------------------------------------------------------- */
+@keyframes modalZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.90);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modalZoomOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.90);
+  }
+}
+
+/* Dialog container surface refinement & Zoom Animation */
+.mat-mdc-dialog-container {
+  transform-origin: center center !important;
+}
+
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  transform-origin: center center !important;
+  animation: modalZoomIn 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: transform, opacity !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .mat-mdc-dialog-container .mdc-dialog__surface {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+.mat-mdc-dialog-container.mat-mdc-dialog-container-exit .mdc-dialog__surface,
+.cdk-overlay-pane.mat-mdc-dialog-exit .mdc-dialog__surface {
+  animation: modalZoomOut 180ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
+}
+
+dialog[open] {
+  animation: modalZoomIn 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

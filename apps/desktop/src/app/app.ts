@@ -8,6 +8,9 @@ import { SessionMonitorService } from './core/auth/session-monitor.service';
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, CookieBannerComponent],
+  host: {
+    class: 'flex h-full w-full flex-auto flex-col overflow-hidden bg-white dark:bg-[#09090b]',
+  },
   template: `
     <router-outlet />
     <app-cookie-banner />

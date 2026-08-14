@@ -3,10 +3,11 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MinusIcon, Maximize2Icon, Minimize2Icon, XIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'auth-layout',
-  imports: [CommonModule, RouterOutlet, MatButtonModule, MatIconModule],
+  imports: [CommonModule, RouterOutlet, MatButtonModule, MatIconModule, MinusIcon, Maximize2Icon, Minimize2Icon, XIcon],
   template: `
     <div class="relative min-h-full w-full flex flex-col border-t border-neutral-200/80 dark:border-neutral-800/80">
       @if (isElectron) {
@@ -20,7 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
               (click)="windowMinimize()"
               title="Minimizar"
             >
-              <mat-icon svgIcon="minus" class="icon-size-3.5 flex items-center justify-center !w-3.5 !h-3.5" />
+              <i-minus [size]="14" />
             </button>
             <!-- Maximize / Restore -->
             <button
@@ -29,7 +30,11 @@ import { MatIconModule } from '@angular/material/icon';
               (click)="windowMaximize()"
               [title]="isMaximized() ? 'Restaurar' : 'Maximizar'"
             >
-              <mat-icon [svgIcon]="isMaximized() ? 'minimize-2' : 'maximize-2'" class="icon-size-3.5 flex items-center justify-center !w-3.5 !h-3.5" />
+              @if (isMaximized()) {
+                <i-minimize-2 [size]="14" />
+              } @else {
+                <i-maximize-2 [size]="14" />
+              }
             </button>
             <!-- Close -->
             <button
@@ -38,7 +43,7 @@ import { MatIconModule } from '@angular/material/icon';
               (click)="windowClose()"
               title="Cerrar"
             >
-              <mat-icon svgIcon="x" class="icon-size-3.5 flex items-center justify-center !w-3.5 !h-3.5" />
+              <i-x [size]="14" />
             </button>
           </div>
         </div>

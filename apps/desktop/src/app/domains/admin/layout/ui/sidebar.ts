@@ -8,10 +8,23 @@ import { MatIcon } from '@angular/material/icon';
 import { Navigation } from '@/app/domains/admin/layout/ui/navigation';
 import { User } from '@/app/domains/admin/layout/ui/user';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, SparklesIcon, ArrowUpRightIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'admin-sidebar',
-   imports: [Navigation, User, MatButton, MatIcon, TranslocoPipe],
+  imports: [
+    Navigation,
+    User,
+    MatButton,
+    TranslocoPipe,
+    SearchIcon,
+    XIcon,
+    TriangleAlertIcon,
+    ArrowRightIcon,
+    ClockIcon,
+    SparklesIcon,
+    ArrowUpRightIcon
+  ],
   host: {
     class: 'flex w-full h-full flex-col overflow-hidden border-t border-neutral-200 dark:border-neutral-800',
   },
@@ -43,9 +56,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
     <!-- Search -->
     <div class="relative shrink-0 px-4 pt-4 pb-1">
       <div class="relative">
-        <mat-icon
-          svgIcon="search"
-          class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-neutral-400"
+        <i-search
+          [size]="16"
+          class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-neutral-400"
         />
         <input
           type="text"
@@ -60,7 +73,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
             (click)="clearSearch()"
             class="absolute top-1/2 right-2 flex size-5 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
           >
-            <mat-icon svgIcon="x" class="size-3" />
+            <i-x [size]="14" />
           </button>
         }
       </div>
@@ -83,7 +96,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
           <!-- Trial expirado -->
           <div class="m-4 mb-2 shrink-0 rounded-xl border border-red-200 bg-red-50 dark:border-red-500/20 dark:bg-red-500/10 p-4">
             <div class="flex items-center gap-2 mb-1">
-              <mat-icon svgIcon="alert-triangle" class="!w-4 !h-4 !text-[16px] text-red-500 shrink-0" />
+              <i-triangle-alert [size]="16" class="text-red-500 shrink-0" />
                <div class="text-sm font-bold text-red-700 dark:text-red-400">{{ 'layout.sidebar.trialExpired' | transloco }}</div>
             </div>
             <div class="text-xs text-red-600 dark:text-red-400 mt-1 leading-relaxed">
@@ -92,17 +105,17 @@ import { TranslocoPipe } from '@jsverse/transloco';
             <button
               (click)="goToPlans()"
               matButton="filled"
-              class="small mt-3 w-full cursor-pointer !bg-red-600 hover:!bg-red-700"
+              class="small mt-3 w-full cursor-pointer !bg-red-600 hover:!bg-red-700 flex items-center justify-center gap-2"
             >
                {{ 'layout.sidebar.selectPlan' | transloco }}
-              <mat-icon svgIcon="move-right" iconPositionEnd />
+              <i-arrow-right [size]="16" />
             </button>
           </div>
         } @else if (trialDaysLeft() <= 3) {
           <!-- Trial próximo a expirar (urgente) -->
           <div class="m-4 mb-2 shrink-0 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/10 p-4">
             <div class="flex items-center gap-2 mb-1">
-              <mat-icon svgIcon="clock" class="!w-4 !h-4 !text-[16px] text-amber-600 shrink-0" />
+              <i-clock [size]="16" class="text-amber-600 shrink-0" />
                <div class="text-sm font-bold text-amber-700 dark:text-amber-400">{{ 'layout.sidebar.trialEnding' | transloco }}</div>
             </div>
             <div class="text-xs text-amber-600 dark:text-amber-400 mt-1 leading-relaxed">
@@ -111,17 +124,17 @@ import { TranslocoPipe } from '@jsverse/transloco';
             <button
               (click)="goToPlans()"
               matButton="filled"
-              class="small mt-3 w-full cursor-pointer"
+              class="small mt-3 w-full cursor-pointer flex items-center justify-center gap-2"
             >
                {{ 'layout.sidebar.updatePlan' | transloco }}
-              <mat-icon svgIcon="move-right" iconPositionEnd />
+              <i-arrow-right [size]="16" />
             </button>
           </div>
         } @else {
           <!-- Trial activo (normal) -->
           <div class="m-4 mb-2 shrink-0 rounded-xl border border-blue-200 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10 p-4">
             <div class="flex items-center gap-2 mb-1">
-              <mat-icon svgIcon="sparkles" class="!w-4 !h-4 !text-[16px] text-blue-500 shrink-0" />
+              <i-sparkles [size]="16" class="text-blue-500 shrink-0" />
                <div class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ 'layout.sidebar.freeTrial' | transloco }}</div>
             </div>
             <div class="text-xs text-blue-600 dark:text-blue-400 mt-1 leading-relaxed">
@@ -130,25 +143,25 @@ import { TranslocoPipe } from '@jsverse/transloco';
             <button
               (click)="goToPlans()"
               matButton="outlined"
-              class="small mt-3 w-full cursor-pointer"
+              class="small mt-3 w-full cursor-pointer flex items-center justify-center gap-2"
             >
                {{ 'layout.sidebar.viewPlans' | transloco }}
-              <mat-icon svgIcon="move-right" iconPositionEnd />
+              <i-arrow-right [size]="16" />
             </button>
            </div>
          }
        } @else if (isFree()) {
          <div class="m-4 mb-2 shrink-0 rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/50">
            <div class="flex items-center gap-2 mb-1">
-              <mat-icon svgIcon="arrow-up-right" class="!w-4 !h-4 !text-[16px] text-neutral-500 shrink-0" />
+              <i-arrow-up-right [size]="16" class="text-neutral-500 shrink-0" />
              <div class="text-sm font-bold text-neutral-700 dark:text-neutral-300">{{ 'layout.sidebar.freePlan' | transloco }}</div>
            </div>
            <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
              {{ 'layout.sidebar.freePlanDescription' | transloco }}
            </div>
-           <button (click)="goToPlans()" matButton="outlined" class="small mt-3 w-full cursor-pointer">
+           <button (click)="goToPlans()" matButton="outlined" class="small mt-3 w-full cursor-pointer flex items-center justify-center gap-2">
              {{ 'layout.sidebar.upgradePlan' | transloco }}
-             <mat-icon svgIcon="move-right" iconPositionEnd />
+             <i-arrow-right [size]="16" class="ml-1" />
            </button>
          </div>
         }
@@ -195,7 +208,7 @@ export class AdminSidebar implements OnInit {
           this.isFree.set(true);
         }
       },
-      error: () => {} // Silently ignore
+      error: () => { } // Silently ignore
     });
   }
 

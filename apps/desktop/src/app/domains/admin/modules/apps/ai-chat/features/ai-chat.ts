@@ -1,31 +1,27 @@
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatFormField, MatInput, MatPrefix } from '@angular/material/input';
-import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import {
   MatSidenav,
   MatSidenavContainer,
   MatSidenavContent,
 } from '@angular/material/sidenav';
 import { MatTooltip } from '@angular/material/tooltip';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Media } from '@/app/core/media';
 import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-chat';
+import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'ai-chat',
   imports: [
+    FormsModule,
     CdkTextareaAutosize,
     MatIcon,
     MatIconButton,
-    MatFormField,
-    MatInput,
-    MatPrefix,
-    MatMenu,
-    MatMenuItem,
-    MatMenuTrigger,
     MatSidenav,
     MatSidenavContainer,
     MatSidenavContent,
@@ -35,11 +31,11 @@ import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-
     RouterOutlet,
   ],
   host: {
-    class: 'lg:h-full',
+    class: 'lg:h-full block h-full',
   },
   template: `
     <div
-      class="@container flex h-full w-full flex-auto flex-col overflow-hidden"
+      class="@container flex h-full w-full flex-auto flex-col overflow-hidden bg-white dark:bg-neutral-900"
     >
       <mat-sidenav-container
         class="h-full flex-auto [&_.mat-drawer-backdrop]:fixed"
@@ -57,37 +53,38 @@ import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-
           <div class="flex h-full w-full flex-col">
             <!-- Panel header -->
             <div class="flex items-center gap-x-2 py-4 pr-3 pl-4">
-              <div class="flex-auto text-lg font-semibold tracking-tighter">
-                AI Chat
+              <div class="flex items-center gap-2 flex-auto text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
+                <mat-icon svgIcon="sparkles" class="text-blue-600 dark:text-blue-400 size-5" />
+                <span>AI ERP Agent</span>
               </div>
               <button
-                class="text-neutral-500"
+                class="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
                 matIconButton
-                [matTooltip]="'New chat'"
+                matTooltip="Nueva conversación"
+                (click)="createNewChat()"
               >
                 <mat-icon svgIcon="square-pen" />
               </button>
             </div>
 
             <!-- Search -->
-            <div class="px-4">
-              <mat-form-field class="w-full">
-                <mat-icon
-                  matPrefix
-                  svgIcon="search"
-                />
+            <div class="px-3 pb-2">
+              <div class="relative flex items-center">
+                <mat-icon svgIcon="search" class="absolute left-3 size-4 text-neutral-400 pointer-events-none" />
                 <input
-                  placeholder="Search chats"
-                  matInput
+                  type="text"
+                  [(ngModel)]="searchQuery"
+                  placeholder="Buscar conversaciones..."
+                  class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
-              </mat-form-field>
+              </div>
             </div>
 
-            <!-- Conversations -->
-            <div class="mt-4 flex-auto overflow-y-auto px-2 pb-4">
-              @for (group of groups(); track group.label) {
+            <!-- Conversations list -->
+            <div class="mt-2 flex-auto overflow-y-auto px-2 pb-4">
+              @for (group of filteredGroups(); track group.label) {
                 <div
-                  class="px-2 pt-4 pb-1 text-xs font-medium text-neutral-500 uppercase"
+                  class="px-2 pt-3 pb-1 text-[11px] font-bold text-neutral-400 uppercase tracking-wider"
                 >
                   {{ group.label }}
                 </div>
@@ -97,38 +94,64 @@ import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-
                     conversation of group.conversations;
                     track conversation.id
                   ) {
-                    <a
-                      class="flex items-center rounded-lg px-2 py-2 not-data-active:hover:bg-neutral-700/5 dark:not-data-active:hover:bg-neutral-300/5"
-                      routerLinkActive="bg-neutral-700/10 dark:bg-neutral-300/10"
-                      [attr.data-active]="rla.isActive || null"
-                      [routerLink]="['./', conversation.id]"
-                      (click)="selectConversation()"
-                      #rla="routerLinkActive"
+                    <div
+                      class="group relative flex items-center justify-between rounded-lg px-2.5 py-2 transition-colors cursor-pointer"
+                      [class.bg-blue-50]="rla.isActive"
+                      [class.dark:bg-blue-900/30]="rla.isActive"
+                      [class.text-blue-700]="rla.isActive"
+                      [class.dark:text-blue-400]="rla.isActive"
+                      [class.hover:bg-neutral-100]="!rla.isActive"
+                      [class.dark:hover:bg-neutral-800]="!rla.isActive"
                     >
-                      <span class="min-w-0 flex-auto truncate">
-                        {{ conversation.title }}
-                      </span>
-                    </a>
+                      <a
+                        class="flex flex-1 items-center min-w-0 pr-2 select-none"
+                        routerLinkActive="active"
+                        [routerLink]="['/admin/ai-chat', conversation.id]"
+                        (click)="selectConversation(conversation.id)"
+                        #rla="routerLinkActive"
+                      >
+                        <mat-icon svgIcon="message-square" class="size-4 mr-2 shrink-0 opacity-60" />
+                        <span class="truncate text-xs font-medium">
+                          {{ conversation.title }}
+                        </span>
+                      </a>
+
+                      <!-- Delete button on hover -->
+                      <button
+                        type="button"
+                        class="opacity-0 group-hover:opacity-100 size-6 flex items-center justify-center rounded text-neutral-400 hover:text-red-600 transition-opacity"
+                        title="Eliminar chat"
+                        (click)="$event.stopPropagation(); deleteChat(conversation.id)"
+                      >
+                        <mat-icon svgIcon="trash-2" class="size-3.5" />
+                      </button>
+                    </div>
                   }
+                </div>
+              }
+
+              @if (filteredGroups().length === 0) {
+                <div class="py-8 text-center text-xs text-neutral-400">
+                  No hay conversaciones coincidentes
                 </div>
               }
             </div>
           </div>
         </mat-sidenav>
 
-        <mat-sidenav-content class="flex flex-auto flex-col overflow-hidden">
+        <mat-sidenav-content class="flex flex-auto flex-col overflow-hidden bg-white dark:bg-neutral-900">
           <router-outlet
             (activate)="hasConversation.set(true)"
             (deactivate)="hasConversation.set(false)"
           ></router-outlet>
 
-          <!-- Empty state -->
+          <!-- Empty state when no conversation is selected -->
           @if (!hasConversation()) {
             <div class="flex items-center gap-x-2 px-4 py-4 lg:hidden">
               <button
                 class="text-neutral-500"
                 matIconButton
-                [matTooltip]="'Conversations'"
+                matTooltip="Conversaciones"
                 (click)="panelOpened.set(true)"
               >
                 <mat-icon svgIcon="menu" />
@@ -136,21 +159,23 @@ import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-
             </div>
 
             <div
-              class="flex flex-auto flex-col items-center justify-center px-6 py-8 lg:px-8"
+              class="flex flex-auto flex-col items-center justify-center px-6 py-8 lg:px-8 overflow-y-auto"
             >
               <div class="w-full max-w-3xl">
                 <div class="flex flex-col items-center text-center">
-                  <mat-icon
-                    class="size-10 text-primary-600"
-                    svgIcon="sparkles"
-                  />
-                  <div
-                    class="mt-4 text-2xl font-semibold tracking-tighter sm:text-3xl"
-                  >
-                    How can I help you today?
+                  <div class="size-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2">
+                    <mat-icon
+                      class="size-6"
+                      svgIcon="sparkles"
+                    />
                   </div>
-                  <div class="mt-1 text-neutral-500">
-                    Pick a suggestion below or start typing.
+                  <div
+                    class="mt-2 text-2xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-3xl"
+                  >
+                    ¿En qué puedo ayudarte hoy?
+                  </div>
+                  <div class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                    Consulta cualquier información de tu ERP en tiempo real (solo lectura).
                   </div>
                 </div>
 
@@ -158,19 +183,20 @@ import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-
                 <div class="mt-8 grid grid-cols-1 gap-3 @xl:grid-cols-2">
                   @for (suggestion of suggestions; track suggestion.title) {
                     <button
-                      class="flex cursor-pointer flex-col gap-y-1 rounded-xl border p-4 text-left hover:bg-neutral-100 dark:hover:bg-white/2.5"
+                      class="flex cursor-pointer flex-col gap-y-1 rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-all hover:border-blue-300 dark:hover:border-blue-700 shadow-xs"
                       type="button"
+                      (click)="sendQuickSuggestion(suggestion.query)"
                     >
                       <div class="flex items-center gap-x-2">
                         <mat-icon
-                          class="size-4 shrink-0 text-neutral-400"
+                          class="size-4 shrink-0 text-blue-600 dark:text-blue-400"
                           [svgIcon]="suggestion.icon"
                         />
-                        <span class="text-sm font-medium">
+                        <span class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                           {{ suggestion.title }}
                         </span>
                       </div>
-                      <div class="text-sm text-neutral-500">
+                      <div class="text-xs text-neutral-500 dark:text-neutral-400">
                         {{ suggestion.description }}
                       </div>
                     </button>
@@ -179,73 +205,40 @@ import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-
               </div>
             </div>
 
-            <!-- Composer -->
+            <!-- Initial Composer in Empty State -->
             <div class="px-6 pb-6 lg:px-8">
               <div class="mx-auto w-full max-w-3xl">
                 <div
-                  class="rounded-2xl border bg-white p-2 dark:bg-neutral-800"
+                  class="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white p-3 shadow-xs dark:bg-neutral-800 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all"
                 >
                   <textarea
-                    class="w-full resize-none border-0 bg-transparent px-2 py-2 outline-none"
-                    placeholder="Message AI Chat..."
+                    [(ngModel)]="emptyPrompt"
+                    (keydown.enter)="onEnterEmpty($event)"
+                    class="w-full resize-none border-0 bg-transparent px-2 py-1 outline-none text-sm text-neutral-900 dark:text-white placeholder-neutral-400"
+                    placeholder="Haz una pregunta sobre productos, clientes, métricas, logs..."
                     cdkTextareaAutosize
                     [cdkAutosizeMinRows]="1"
-                    cdkAutosizeMaxRows="8"
+                    cdkAutosizeMaxRows="6"
                   ></textarea>
 
-                  <div class="flex items-center gap-x-1">
-                    <button
-                      class="text-neutral-500"
-                      matIconButton
-                      [matTooltip]="'Attach a file'"
-                    >
-                      <mat-icon svgIcon="paperclip" />
-                    </button>
-                    <button
-                      class="text-neutral-500"
-                      matIconButton
-                      [matTooltip]="'Dictate'"
-                    >
-                      <mat-icon svgIcon="mic" />
-                    </button>
-
-                    <!-- Spacer -->
-                    <div class="flex-auto"></div>
+                  <div class="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-neutral-700/60 mt-1">
+                    <span class="text-[11px] text-neutral-400">
+                      💡 Presiona <kbd class="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-700 font-mono text-[10px]">Enter</kbd> para consultar
+                    </span>
 
                     <button
-                      class="text-sm font-medium text-neutral-500"
+                      class="flex items-center justify-center size-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer"
+                      [disabled]="!emptyPrompt.trim()"
+                      (click)="sendEmptyPrompt()"
                       type="button"
-                      [matMenuTriggerFor]="modelMenu"
                     >
-                      <span class="flex items-center gap-x-1 px-2 py-1">
-                        {{ model }}
-                        <mat-icon
-                          class="size-4"
-                          svgIcon="chevron-down"
-                        />
-                      </span>
-                    </button>
-                    <mat-menu
-                      xPosition="before"
-                      #modelMenu="matMenu"
-                    >
-                      @for (item of models; track item) {
-                        <button mat-menu-item>{{ item }}</button>
-                      }
-                    </mat-menu>
-
-                    <button
-                      class="bg-primary-600 text-white"
-                      matIconButton
-                      [matTooltip]="'Send'"
-                    >
-                      <mat-icon svgIcon="send" />
+                      <mat-icon svgIcon="send" class="size-4" />
                     </button>
                   </div>
                 </div>
 
                 <div class="mt-2 text-center text-xs text-neutral-400">
-                  AI can make mistakes. Check important info.
+                  Dolphin ERP AI Agent • Consultas protegidas y aisladas por empresa.
                 </div>
               </div>
             </div>
@@ -256,81 +249,154 @@ import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-
   `,
 })
 export default class AiChat {
-  // Dependencies
   private aiChatService = inject(AiChatService);
   private media = inject(Media);
+  private router = inject(Router);
 
-  // State
-  protected data = this.aiChatService.data;
+  protected searchQuery = '';
+  protected emptyPrompt = '';
+
   protected isMobile = computed(() =>
     this.media.match(`(max-width: 1023px)`)()
   );
-  protected model = 'Nova 4.5';
-  protected models = ['Nova 4.5', 'Nova 4.5 Mini', 'Nova 3 Turbo'];
+
   protected suggestions = [
     {
-      icon: 'code',
-      title: 'Review a migration plan',
-      description: 'Walk through the risky steps before we ship it.',
+      icon: 'bar-chart-3',
+      title: 'Resumen Ejecutivo de la Empresa',
+      description: 'Estado general, métricas clave, suscripción y distribución.',
+      query: 'Dame un resumen ejecutivo general de la empresa activa',
     },
     {
-      icon: 'file-text',
-      title: 'Summarize a long document',
-      description: 'Pull out the decisions and the open questions.',
+      icon: 'package',
+      title: 'Catálogo de Productos y Precios',
+      description: 'Consultar productos registrados, categorías y costos.',
+      query: 'Muéstrame la lista de productos del catálogo con sus precios',
     },
     {
-      icon: 'lightbulb',
-      title: 'Brainstorm launch angles',
-      description: 'Three positioning options for a new plan.',
+      icon: 'users',
+      title: 'Directorio de Clientes',
+      description: 'Ver clientes registrados, correos y números de documento.',
+      query: '¿Qué clientes tenemos registrados en la base de datos?',
     },
     {
-      icon: 'bug',
-      title: 'Debug a failing query',
-      description: 'Explain a plan and suggest a better index.',
+      icon: 'shield-alert',
+      title: 'Auditoría y Registro de Actividades',
+      description: 'Últimos eventos del sistema, cambios y accesos recientes.',
+      query: 'Cuáles son las últimas actividades de seguridad y auditoría registradas',
     },
   ];
-  protected groups = computed(() => this.groupConversations());
+
+  protected groups = computed(() => {
+    const conversations = [...this.aiChatService.conversations()].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    if (conversations.length === 0) return [];
+
+    const now = new Date().getTime();
+    const isToday = (d: string) => {
+      const diff = now - new Date(d).getTime();
+      return diff < 24 * 60 * 60 * 1000;
+    };
+    const isYesterday = (d: string) => {
+      const diff = now - new Date(d).getTime();
+      return diff >= 24 * 60 * 60 * 1000 && diff < 48 * 60 * 60 * 1000;
+    };
+
+    const todayGroup = { label: 'Hoy', conversations: [] as typeof conversations };
+    const yesterdayGroup = { label: 'Ayer', conversations: [] as typeof conversations };
+    const previousGroup = { label: 'Anteriores', conversations: [] as typeof conversations };
+
+    for (const c of conversations) {
+      if (isToday(c.createdAt)) todayGroup.conversations.push(c);
+      else if (isYesterday(c.createdAt)) yesterdayGroup.conversations.push(c);
+      else previousGroup.conversations.push(c);
+    }
+
+    return [todayGroup, yesterdayGroup, previousGroup].filter((g) => g.conversations.length > 0);
+  });
+
+  protected filteredGroups = computed(() => {
+    const q = this.searchQuery.trim().toLowerCase();
+    const groups = this.groups();
+    if (!q) return groups;
+
+    return groups
+      .map((g) => ({
+        label: g.label,
+        conversations: g.conversations.filter((c) =>
+          c.title.toLowerCase().includes(q)
+        ),
+      }))
+      .filter((g) => g.conversations.length > 0);
+  });
+
   protected hasConversation = signal(false);
   panelOpened = signal(false);
 
-  selectConversation() {
+  createNewChat() {
+    const newConv = this.aiChatService.createConversation();
+    this.selectConversation(newConv.id);
+    this.router.navigate(['/admin/ai-chat', newConv.id]);
+  }
+
+  selectConversation(id: string) {
+    this.aiChatService.selectConversation(id);
     if (this.isMobile()) {
       this.panelOpened.set(false);
     }
   }
 
-  private groupConversations() {
-    const conversations = [...this.data.conversations].sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+  private dialog = inject(MatDialog);
 
-    // The mock data is fixed in time, so the newest conversation defines "today"
-    const startOfDay = (date: string) => {
-      const value = new Date(date);
-      return new Date(
-        value.getFullYear(),
-        value.getMonth(),
-        value.getDate()
-      ).getTime();
-    };
-    const today = startOfDay(conversations[0].createdAt);
-    const daysAgo = (date: string) =>
-      Math.round((today - startOfDay(date)) / (24 * 60 * 60 * 1000));
+  deleteChat(id: string) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '440px',
+      data: {
+        title: 'Eliminar conversación',
+        message: '¿Estás seguro de que deseas eliminar esta conversación? Esta acción no se puede deshacer.',
+        confirmLabel: 'Eliminar',
+        cancelLabel: 'Cancelar',
+        destructive: true,
+      },
+    });
 
-    const groups = [
-      { label: 'Today', conversations: [] },
-      { label: 'Yesterday', conversations: [] },
-      { label: 'Previous 7 days', conversations: [] },
-    ] as { label: string; conversations: typeof conversations }[];
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.aiChatService.deleteConversation(id);
+        const active = this.aiChatService.currentConversation();
+        if (active) {
+          this.router.navigate(['/admin/ai-chat', active.id]);
+        } else {
+          this.router.navigate(['/admin/ai-chat']);
+        }
+      }
+    });
+  }
 
-    for (const conversation of conversations) {
-      const days = daysAgo(conversation.createdAt);
-      groups[days === 0 ? 0 : days === 1 ? 1 : 2].conversations.push(
-        conversation
-      );
+  sendQuickSuggestion(query: string) {
+    const newConv = this.aiChatService.createConversation(query.slice(0, 30) + '...');
+    this.router.navigate(['/admin/ai-chat', newConv.id]).then(() => {
+      this.aiChatService.sendMessage(newConv.id, query).subscribe();
+    });
+  }
+
+  onEnterEmpty(e: Event) {
+    const keyboardEvent = e as KeyboardEvent;
+    if (!keyboardEvent.shiftKey) {
+      keyboardEvent.preventDefault();
+      this.sendEmptyPrompt();
     }
+  }
 
-    return groups.filter((group) => group.conversations.length > 0);
+  sendEmptyPrompt() {
+    const text = this.emptyPrompt.trim();
+    if (!text) return;
+    this.emptyPrompt = '';
+    const newConv = this.aiChatService.createConversation(text.slice(0, 30) + '...');
+    this.router.navigate(['/admin/ai-chat', newConv.id]).then(() => {
+      this.aiChatService.sendMessage(newConv.id, text).subscribe();
+    });
   }
 }

@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { DashboardService, DashboardSummary } from '../../data/dashboard.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { RotateCcwIcon, ActivityIcon, SparklesIcon, RefreshCwIcon } from 'ng-animated-icons';
 
 interface DashboardMetric {
   label: string;
@@ -18,7 +19,16 @@ interface DashboardMetric {
   host: {
     class: 'flex h-full w-full flex-col min-h-0 overflow-hidden',
   },
-  imports: [DecimalPipe, MatIconModule, RouterLink, TranslocoPipe],
+  imports: [
+    DecimalPipe, 
+    MatIconModule, 
+    RouterLink, 
+    TranslocoPipe,
+    RotateCcwIcon,
+    ActivityIcon,
+    SparklesIcon,
+    RefreshCwIcon
+  ],
   template: `
     <div class="flex h-full w-full flex-col min-h-0 bg-white dark:bg-neutral-950 overflow-hidden">
       <!-- Header (Fixed) -->
@@ -87,18 +97,16 @@ interface DashboardMetric {
             <h2 class="mt-3 text-xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-2xl">
               {{ 'dashboard.general.loadError' | transloco }}
             </h2>
-            <p class="mt-2 max-w-sm text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
-              {{ 'dashboard.general.apiHint' | transloco }}
+            <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 max-w-sm">
+              {{ 'dashboard.general.loadErrorDescription' | transloco }}
             </p>
-
-            <!-- Action Button -->
             <div class="mt-6 flex flex-col sm:flex-row items-center gap-3">
               <button
                 type="button"
                 (click)="loadSummary()"
                 class="group inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               >
-                <mat-icon svgIcon="rotate-ccw" class="icon-size-4 transition-transform group-hover:-rotate-45"></mat-icon>
+                <i-rotate-ccw [size]="16" class="transition-transform group-hover:-rotate-45" />
                 <span>{{ 'common.retry' | transloco }}</span>
               </button>
             </div>
@@ -123,10 +131,10 @@ interface DashboardMetric {
           <section class="rounded-3xl bg-neutral-100 p-1 dark:bg-neutral-900">
             <div class="flex items-center justify-between px-4 py-3 md:px-5">
               <div class="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
-                <mat-icon svgIcon="activity" class="icon-size-4 text-neutral-500"></mat-icon>
+                <i-activity [size]="16" class="text-neutral-500" />
                 {{ 'dashboard.general.recordsOverview' | transloco }}
               </div>
-              <button type="button" class="text-neutral-400 transition hover:text-neutral-700 dark:hover:text-neutral-200" [attr.aria-label]="'dashboard.general.moreOptions' | transloco">
+              <button type="button" class="text-neutral-400 transition hover:text-neutral-700 dark:hover:text-neutral-200 cursor-pointer" [attr.aria-label]="'dashboard.general.moreOptions' | transloco">
                 <mat-icon svgIcon="ellipsis-vertical" class="icon-size-4"></mat-icon>
               </button>
             </div>
@@ -138,34 +146,31 @@ interface DashboardMetric {
 
                 <div class="relative mt-10 h-64 border-b border-neutral-200 dark:border-neutral-800">
                   <div class="pointer-events-none absolute inset-x-0 top-0 border-t border-dashed border-neutral-200 dark:border-neutral-800"></div>
-                  <div class="pointer-events-none absolute inset-x-0 top-1/3 border-t border-dashed border-neutral-200 dark:border-neutral-800"></div>
-                  <div class="pointer-events-none absolute inset-x-0 top-2/3 border-t border-dashed border-neutral-200 dark:border-neutral-800"></div>
-                  <div class="relative flex h-full items-end justify-around gap-4 px-2 sm:gap-8 sm:px-8">
+                  <div class="pointer-events-none absolute inset-x-0 top-1/2 border-t border-dashed border-neutral-200 dark:border-neutral-800"></div>
+
+                  <div class="grid h-full grid-cols-4 items-end gap-4 px-2 pt-6">
                     @for (metric of metrics(); track metric.label) {
-                      <div class="flex h-full flex-1 flex-col items-center justify-end gap-3">
-                        <span class="text-xs font-semibold tabular-nums text-neutral-500 dark:text-neutral-400">{{ metric.value | number }}</span>
-                        <div class="w-full max-w-20 rounded-t-lg bg-blue-600 transition-all duration-700 dark:bg-blue-500" [style.height.%]="metric.share"></div>
-                        <span class="text-center text-xs text-neutral-500 dark:text-neutral-400">{{ shortLabel(metric.label) }}</span>
+                      <div class="flex h-full flex-col items-center justify-end">
+                        <span class="mb-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300">{{ metric.share }}%</span>
+                        <div class="w-full max-w-[48px] rounded-t-xl bg-neutral-900 dark:bg-white transition-all duration-500" [style.height.%]="metric.share"></div>
+                        <span class="mt-3 truncate text-xs text-neutral-500 dark:text-neutral-400">{{ metric.label }}</span>
                       </div>
                     }
                   </div>
                 </div>
               </div>
 
-              <aside class="border-t border-neutral-200 p-6 dark:border-neutral-800 lg:border-l lg:border-t-0">
-                <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ 'dashboard.general.totalDetail' | transloco }}</p>
-                <div class="mt-6 flex flex-col gap-5">
-                  @for (metric of metrics(); track metric.label) {
-                    <div class="flex items-center justify-between gap-3 text-sm">
-                      <span class="text-neutral-500 dark:text-neutral-400">{{ metric.label }}</span>
-                      <span class="font-semibold tabular-nums text-neutral-950 dark:text-white">{{ metric.value | number }}</span>
-                    </div>
-                  }
+              <aside class="flex flex-col justify-between border-t border-neutral-200 bg-neutral-50 p-6 dark:border-neutral-800 dark:bg-neutral-900/50 lg:border-t-0 lg:border-l">
+                <div>
+                  <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">{{ 'dashboard.general.totalTracked' | transloco }}</h3>
+                  <p class="mt-3 text-3xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ totalRecords() | number }}</p>
+                  <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{ 'dashboard.general.systemTotalEntities' | transloco }}</p>
                 </div>
-                <div class="mt-8 border-t border-neutral-200 pt-5 dark:border-neutral-800">
-                  <div class="flex items-center justify-between text-sm">
-                    <span class="text-neutral-500 dark:text-neutral-400">{{ 'dashboard.general.total' | transloco }}</span>
-                    <span class="font-semibold tabular-nums text-neutral-950 dark:text-white">{{ totalRecords() | number }}</span>
+
+                <div class="mt-6 border-t border-neutral-200 pt-6 dark:border-neutral-800">
+                  <div class="flex items-center justify-between text-xs text-neutral-600 dark:text-neutral-300">
+                    <span>{{ 'dashboard.general.systemHealth' | transloco }}</span>
+                    <span class="font-semibold text-emerald-600 dark:text-emerald-400">100%</span>
                   </div>
                   <p class="mt-3 text-xs leading-5 text-neutral-400 dark:text-neutral-500">{{ 'dashboard.general.activeCompanyHint' | transloco }}</p>
                 </div>
@@ -177,10 +182,10 @@ interface DashboardMetric {
           <section class="rounded-3xl bg-neutral-100 p-1 dark:bg-neutral-900">
             <div class="flex items-center justify-between px-4 py-3 md:px-5">
               <div class="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
-                <mat-icon svgIcon="sparkles" class="icon-size-4 text-blue-600"></mat-icon>
+                <i-sparkles [size]="16" class="text-blue-600" />
                 {{ 'dashboard.general.quickInsight' | transloco }}
               </div>
-              <mat-icon svgIcon="refresh-cw" class="icon-size-4 text-neutral-400"></mat-icon>
+              <i-refresh-cw [size]="16" class="text-neutral-400" />
             </div>
             <div class="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950 md:p-7">
               <p class="max-w-4xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">{{ summaryMessage() }}</p>

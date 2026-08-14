@@ -1,19 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, signal, inject } from '@angular/core';
+import { Component, OnInit, computed, signal, inject, TemplateRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { RolesService } from '../../data/roles';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { UsersService, User as Account } from '../../data/users';
+import { RolesService } from '../../data/roles';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { StatCardComponent } from '@/app/shared/components/stat-card/stat-card.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { UserDialogComponent, UserDialogData } from './user-dialog.component';
 import { AuthState } from '@/app/core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-users',
@@ -27,8 +28,16 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     MatDialogModule,
     MatSnackBarModule,
     EmptyStateComponent,
-     StatCardComponent,
-     TranslocoPipe
+    StatCardComponent,
+    TranslocoPipe,
+    PlusIcon,
+    UserRoundIcon,
+    UserCheckIcon,
+    UserCogIcon,
+    SearchIcon,
+    ChevronDownIcon,
+    PencilIcon,
+    TrashIcon,
   ],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
@@ -41,10 +50,12 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
              <p class="mt-1 text-sm text-neutral-500">{{ 'settings.users.description' | transloco }}</p>
           </div>
           
-          <button (click)="openUserModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-xs flex items-center gap-2 shrink-0">
-            <mat-icon svgIcon="plus" class="!w-4 !h-4 !text-[16px]"></mat-icon>
-             {{ 'settings.users.create' | transloco }}
-          </button>
+          <div class="flex items-center gap-3">
+            <button (click)="openUserModal()" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer">
+              <i-plus [size]="18" />
+               {{ 'settings.users.create' | transloco }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -57,19 +68,19 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
              [label]="'settings.users.total' | transloco"
             [value]="accounts().length"
             color="blue">
-            <mat-icon slot="icon" svgIcon="users" class="!w-5 !h-5 !text-[20px]"></mat-icon>
+            <i-user-round slot="icon" [size]="20" />
           </app-stat-card>
           <app-stat-card
              [label]="'settings.users.activeMembers' | transloco"
             [value]="activeCount()"
             color="green">
-            <mat-icon slot="icon" svgIcon="user-check" class="!w-5 !h-5 !text-[20px]"></mat-icon>
+            <i-user-check slot="icon" [size]="20" />
           </app-stat-card>
           <app-stat-card
              [label]="'settings.users.inactiveMembers' | transloco"
             [value]="inactiveCount()"
             color="amber">
-            <mat-icon slot="icon" svgIcon="user-x" class="!w-5 !h-5 !text-[20px]"></mat-icon>
+            <i-user-cog slot="icon" [size]="20" />
           </app-stat-card>
         </div>
       </div>
@@ -80,19 +91,19 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
         <!-- Toolbar -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="relative w-full sm:w-72">
-            <mat-icon svgIcon="search" class="absolute left-3 top-1/2 -translate-y-1/2 !w-4 !h-4 !text-[16px] text-neutral-400"></mat-icon>
+            <i-search [size]="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input type="text" [placeholder]="'settings.users.search' | transloco" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" class="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500 outline-none">
           </div>
           
           <div class="flex items-center gap-3 w-full sm:w-auto">
             <!-- Status Filter -->
             <div class="relative flex-auto sm:flex-initial">
-              <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-36 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700">
+              <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-36 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer">
                 <div class="flex items-center gap-2">
                   <div class="w-2.5 h-2.5 rounded-full" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div> 
                   {{ statusFilter() === 'All' ? 'Todos' : (statusFilter() === 'Active' ? 'Activos' : 'Inactivos') }}
                 </div>
-                <mat-icon svgIcon="chevron-down" class="!w-4 !h-4 !text-[16px] text-neutral-500"></mat-icon>
+                <i-chevron-down [size]="16" class="text-neutral-500" />
               </button>
               <mat-menu #statusMenu="matMenu">
                  <button mat-menu-item (click)="statusFilter.set('All')">{{ 'settings.users.allStatuses' | transloco }}</button>
@@ -103,9 +114,9 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
             
             <!-- Role Filter -->
             <div class="relative flex-auto sm:flex-initial">
-              <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-44 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700">
+              <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-44 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer">
                 <span class="truncate pr-2">{{ getSelectedRoleName() }}</span>
-                <mat-icon svgIcon="chevron-down" class="!w-4 !h-4 !text-[16px] text-neutral-500 shrink-0"></mat-icon>
+                <i-chevron-down [size]="16" class="text-neutral-500 shrink-0" />
               </button>
               <mat-menu #roleFilterMenu="matMenu">
                  <button mat-menu-item (click)="roleFilter.set('All')">{{ 'settings.users.allRoles' | transloco }}</button>
@@ -116,110 +127,78 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
             </div>
           </div>
         </div>
-        
-        <!-- Table -->
-        <div class="overflow-x-auto bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xs">
-          <table class="w-full text-left min-w-[700px] border-collapse">
-            <thead>
-              <tr class="border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/60 text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">
-              <th class="py-3.5 px-6">{{ 'settings.users.userEmail' | transloco }}</th>
-              <th class="py-3.5 px-6">{{ 'settings.users.role' | transloco }}</th>
-              <th class="py-3.5 px-6">{{ 'settings.users.accessStatus' | transloco }}</th>
-              <th class="py-3.5 px-6 text-right">{{ 'common.actions' | transloco }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800/50">
-              @for (account of filteredAccounts(); track account.id) {
-                <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20 transition-colors">
-                  <td class="py-4 px-6">
-                    <div class="flex items-center gap-3">
-                      @if (account.avatar) {
-                        <img class="w-9 h-9 rounded-full object-cover border border-neutral-200 dark:border-neutral-700" [src]="account.avatar" alt="">
-                      } @else {
-                        <div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-xs">
-                          {{ (account.name || account.email).charAt(0).toUpperCase() }}
+
+        <!-- Table Container -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/20 text-[13px] font-semibold text-neutral-500 dark:text-neutral-400">
+                  <th class="py-4 px-6">{{ 'settings.users.user' | transloco }}</th>
+                  <th class="py-4 px-6">{{ 'settings.users.role' | transloco }}</th>
+                  <th class="py-4 px-6">{{ 'common.status' | transloco }}</th>
+                  <th class="py-4 px-6 text-right">{{ 'common.actions' | transloco }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
+                @if (filteredAccounts().length === 0) {
+                  <tr>
+                    <td colspan="4" class="p-8">
+                      <app-empty-state
+                        illustration="18.svg"
+                        [title]="'settings.users.emptyTitle' | transloco"
+                        [description]="'settings.users.emptyDescription' | transloco"
+                        [actionLabel]="'settings.users.clearFilters' | transloco"
+                        (actionClick)="clearFilters()">
+                      </app-empty-state>
+                    </td>
+                  </tr>
+                } @else {
+                  @for (account of filteredAccounts(); track account.id) {
+                    <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20 transition-colors">
+                      <td class="py-4 px-6">
+                        <div class="flex items-center gap-3">
+                          <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-sm shrink-0">
+                            {{ (account.name || account.email).charAt(0).toUpperCase() }}
+                          </div>
+                          <div class="flex flex-col">
+                            <span class="text-sm font-bold text-neutral-900 dark:text-white leading-none mb-1">{{ account.name || account.email.split('@')[0] }}</span>
+                            <span class="text-xs text-neutral-500 dark:text-neutral-400 leading-none">{{ account.email }}</span>
+                          </div>
                         </div>
-                      }
-                      <div class="flex flex-col">
-                        <span class="text-sm font-bold text-neutral-900 dark:text-white leading-tight mb-0.5">{{ account.name || account.email.split('@')[0] }}</span>
-                        <span class="text-xs text-neutral-500 dark:text-neutral-400 leading-tight">{{ account.email }}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="py-4 px-6">
-                    @if (account.isOwner) {
-                      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-bold text-xs border border-neutral-200 dark:border-neutral-700">
-                        <mat-icon svgIcon="crown" class="!w-3.5 !h-3.5 !text-[14px] text-amber-500 dark:text-amber-400"></mat-icon>
-                         {{ 'settings.users.owner' | transloco }}
-                      </span>
-                    } @else {
-                      <button [matMenuTriggerFor]="itemRoleMenu" class="text-xs font-semibold px-2.5 py-1 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
-                        {{ getRoleName(account.roleId) }}
-                        <mat-icon svgIcon="chevron-down" class="!w-3 !h-3 !text-[12px] text-neutral-400"></mat-icon>
-                      </button>
-                      <mat-menu #itemRoleMenu="matMenu">
-                        @for (role of roles(); track role.id) {
-                          <button mat-menu-item (click)="changeRole(account.id, role.id)">
-                            {{ role.nombre }}
+                      </td>
+                      <td class="py-4 px-6">
+                        <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                          {{ getRoleName(account.roleId) }}
+                        </span>
+                      </td>
+                      <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                          [ngClass]="account.estado === 'ACTIVO' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'">
+                          {{ account.estado === 'ACTIVO' ? ('settings.users.active' | transloco) : ('settings.users.inactive' | transloco) }}
+                        </span>
+                      </td>
+                      <td class="py-4 px-6 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                          <button (click)="openUserModal(account)" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors cursor-pointer" [title]="'common.edit' | transloco">
+                            <i-pencil [size]="16" />
                           </button>
-                        }
-                        @if (account.estado === 'PENDIENTE') {
-                          <button mat-menu-item (click)="resendInvitation(account)">
-                            <mat-icon svgIcon="send"></mat-icon>
-                             <span>{{ 'settings.users.resendInvitation' | transloco }}</span>
+                          <button (click)="deleteUser(account)" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-neutral-500 hover:text-red-600 transition-colors cursor-pointer" [title]="'common.delete' | transloco">
+                            <i-trash [size]="16" />
                           </button>
-                        }
-                      </mat-menu>
-                    }
-                  </td>
-                  <td class="py-4 px-6">
-                    @if (account.isOwner || account.estado === 'ACTIVO') {
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                         {{ 'common.active' | transloco }}
-                      </span>
-                    } @else {
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700">
-                         {{ 'common.inactive' | transloco }}
-                      </span>
-                    }
-                  </td>
-                  <td class="py-4 px-6 text-right">
-                    @if (account.isOwner) {
-                       <span class="text-xs font-semibold text-neutral-400 dark:text-neutral-500 italic px-2">{{ 'settings.users.primaryAccount' | transloco }}</span>
-                    } @else {
-                      <div class="flex items-center justify-end gap-2">
-                        <button (click)="toggleStatus(account)" class="px-3 py-1.5 rounded-lg text-xs font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
-                           {{ (account.estado === 'ACTIVO' ? 'settings.users.deactivate' : 'settings.users.activate') | transloco }}
-                        </button>
-                         <button (click)="openUserModal(account)" class="w-8 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors" [title]="'settings.users.edit' | transloco">
-                          <mat-icon svgIcon="pencil" class="!w-4 !h-4 !text-[16px]"></mat-icon>
-                        </button>
-                        <button (click)="deleteUser(account)" class="w-8 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                          <mat-icon svgIcon="trash" class="!w-4 !h-4 !text-[16px]"></mat-icon>
-                        </button>
-                      </div>
-                    }
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="4" class="py-12">
-                    <app-empty-state
-                      icon="users"
-                       [title]="'settings.users.emptyTitle' | transloco"
-                       [description]="'settings.users.emptyDescription' | transloco"
-                       [actionLabel]="'settings.users.clearFilters' | transloco"
-                      (actionClick)="clearFilters()">
-                    </app-empty-state>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>
     </div>
+  </div>
   `,
 })
 export class UsersComponent implements OnInit {

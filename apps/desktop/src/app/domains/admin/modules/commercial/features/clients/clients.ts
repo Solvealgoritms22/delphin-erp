@@ -6,11 +6,12 @@ import { ClientsService } from '../../data/clients';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-clients',
   standalone: true,
-   imports: [RouterLink, MatButtonModule, MatIconModule, EmptyStateComponent, TableSkeletonComponent, TranslocoPipe],
+  imports: [RouterLink, MatButtonModule, MatIconModule, EmptyStateComponent, TableSkeletonComponent, TranslocoPipe, PlusIcon, PencilIcon, TrashIcon],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 overflow-hidden">
       
@@ -22,7 +23,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
          </div>
         <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
           <button mat-flat-button class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" [routerLink]="['new']">
-            <mat-icon svgIcon="plus" class="icon-size-5 mr-2"></mat-icon>
+            <i-plus [size]="18" class="mr-2" />
             {{ 'commercial.clients.new' | transloco }}
           </button>
         </div>
@@ -75,12 +76,12 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                       {{ client.estado }}
                     </span>
                   </div>
-                  <div>
-                    <button mat-icon-button [routerLink]="[client.id]" class="text-neutral-500">
-                       <mat-icon svgIcon="pencil" class="icon-size-5"></mat-icon>
+                  <div class="flex items-center gap-1">
+                    <button mat-icon-button [routerLink]="[client.id]" class="text-neutral-500 hover:text-neutral-700">
+                       <i-pencil [size]="18" />
                     </button>
-                    <button mat-icon-button class="text-red-500" (click)="deleteClient(client.id)">
-                      <mat-icon svgIcon="trash" class="icon-size-5"></mat-icon>
+                    <button mat-icon-button class="text-red-500 hover:text-red-700" (click)="deleteClient(client.id)">
+                      <i-trash [size]="18" />
                     </button>
                   </div>
                 </div>

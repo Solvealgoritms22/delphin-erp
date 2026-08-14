@@ -1,145 +1,190 @@
 import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed, ElementRef, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-chat';
+import { MarkdownRendererComponent } from '@/app/shared/components/markdown-renderer/markdown-renderer.component';
 import { TranslocoPipe } from '@jsverse/transloco';
-
-const CONVERSATION_ID = 'b7d0e3a5';
+import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'assistant',
   imports: [
+    FormsModule,
     CdkConnectedOverlay,
     CdkOverlayOrigin,
     CdkTextareaAutosize,
-    MatIcon,
     MatIconButton,
     MatTooltip,
-    RouterLink,
     TranslocoPipe,
+    SparklesIcon,
+    ArrowUpRightIcon,
+    XIcon,
+    SendIcon,
+    MarkdownRendererComponent,
   ],
   template: `
     <button
       matIconButton
       cdkOverlayOrigin
-       [matTooltip]="'layout.assistant.title' | transloco"
+      [matTooltip]="'layout.assistant.title' | transloco"
       (click)="toggle()"
-      #trigger="cdkOverlayOrigin"
+      class="text-primary!"
+      #origin="cdkOverlayOrigin"
     >
-      <mat-icon
-        class="text-primary-600"
-        svgIcon="sparkles"
-      />
+      <i-sparkles [size]="20" />
     </button>
 
     <ng-template
       cdkConnectedOverlay
-      [cdkConnectedOverlayOrigin]="trigger"
+      [cdkConnectedOverlayOrigin]="origin"
       [cdkConnectedOverlayOpen]="opened()"
       [cdkConnectedOverlayHasBackdrop]="true"
+      [cdkConnectedOverlayBackdropClass]="'assistant-backdrop'"
       (detach)="toggle(false)"
       (backdropClick)="toggle(false)"
     >
       <div
-        class="fixed inset-y-0 right-0 flex w-96 max-w-full flex-col bg-white shadow-(--mat-sys-level2) dark:bg-neutral-800"
+        class="fixed inset-y-0 right-0 z-[1000] flex w-[480px] max-w-full flex-col bg-white dark:bg-neutral-900 border-l border-neutral-200 dark:border-neutral-800 shadow-2xl assistant-drawer"
       >
         <!-- Header -->
-        <div class="flex items-center gap-x-2 border-b px-4 py-3">
-          <div class="flex min-w-0 flex-auto items-center gap-x-3">
-            <mat-icon
-              class="size-4.5 text-primary-600"
-              svgIcon="sparkles"
-            />
-            <div class="truncate text-xl font-semibold tracking-tighter">
-               {{ 'layout.assistant.title' | transloco }}
+        <div class="flex shrink-0 items-center justify-between p-4 px-6 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
+          <div class="flex items-center gap-x-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <i-sparkles [size]="18" />
+            </div>
+            <div>
+              <div class="font-bold text-base text-neutral-900 dark:text-white leading-tight">
+                {{ 'layout.assistant.title' | transloco }}
+              </div>
+              <span class="inline-block text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                AI ERP AGENT
+              </span>
             </div>
           </div>
 
-          <button
-            class="text-neutral-500"
-            matIconButton
-             [matTooltip]="'layout.assistant.openChat' | transloco"
-            [routerLink]="'/admin/ai-chat/' + conversation.id"
-            (click)="toggle(false)"
-          >
-            <mat-icon svgIcon="arrow-up-right" />
-          </button>
-          <button
-            class="text-neutral-500"
-            matIconButton
-             [matTooltip]="'common.close' | transloco"
-            (click)="toggle(false)"
-          >
-            <mat-icon svgIcon="x" />
-          </button>
+          <div class="flex items-center gap-1">
+            <!-- Open in full chat app -->
+            <button
+              type="button"
+              class="size-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer"
+              [matTooltip]="'layout.assistant.openFull' | transloco"
+              (click)="openFullChat()"
+            >
+              <i-arrow-up-right [size]="18" />
+            </button>
+
+            <!-- Close button -->
+            <button
+              type="button"
+              class="size-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer"
+              [matTooltip]="'common.close' | transloco"
+              (click)="toggle(false)"
+            >
+              <i-x [size]="18" />
+            </button>
+          </div>
         </div>
 
-        <!-- Messages -->
-        <div class="flex flex-auto flex-col gap-y-6 overflow-y-auto px-4 py-6">
-          @for (message of messages; track message.id) {
-            @if (message.role === 'user') {
-              <!-- User message -->
-              <div class="flex justify-end">
-                <div
-                  class="max-w-[85%] rounded-xl bg-neutral-100 px-3 py-2 dark:bg-neutral-700/50"
-                >
-                  @for (part of message.content; track $index) {
-                    <div class="whitespace-pre-line">{{ part.value }}</div>
-                  }
-                </div>
+        <!-- Messages list -->
+        <div #scrollBox class="flex flex-auto flex-col overflow-y-auto p-4 sm:p-6 gap-4 bg-neutral-50/30 dark:bg-neutral-950/20">
+          @for (message of currentMessages(); track message.id) {
+            <div
+              class="flex flex-col"
+              [class.items-end]="message.role === 'user'"
+              [class.items-start]="message.role === 'assistant'"
+            >
+              <div class="text-[11px] font-semibold text-neutral-400 mb-1 px-1">
+                {{ message.role === 'user' ? 'Tú' : 'Dolphin AI' }}
               </div>
-            } @else {
-              <!-- Assistant message -->
-              <div class="flex gap-x-3">
-                <div
-                  class="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-700/50"
-                >
-                  <mat-icon
-                    class="size-3.5 text-primary-600"
-                    svgIcon="sparkles"
-                  />
-                </div>
-
-                <div class="flex min-w-0 flex-auto flex-col gap-y-3">
-                  @for (part of message.content; track $index) {
-                    <div class="whitespace-pre-line">{{ part.value }}</div>
-                  }
-                </div>
+              <div
+                class="flex max-w-[90%] flex-col rounded-2xl p-3.5 text-sm shadow-xs"
+                [class.bg-blue-600]="message.role === 'user'"
+                [class.text-white]="message.role === 'user'"
+                [class.rounded-tr-xs]="message.role === 'user'"
+                [class.bg-white]="message.role === 'assistant'"
+                [class.dark:bg-neutral-800]="message.role === 'assistant'"
+                [class.text-neutral-800]="message.role === 'assistant'"
+                [class.dark:text-neutral-200]="message.role === 'assistant'"
+                [class.border]="message.role === 'assistant'"
+                [class.border-neutral-200]="message.role === 'assistant'"
+                [class.dark:border-neutral-700]="message.role === 'assistant'"
+                [class.rounded-tl-xs]="message.role === 'assistant'"
+              >
+                @if (message.streaming) {
+                  <div class="flex items-center gap-2 py-1 text-xs text-neutral-500">
+                    <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
+                    <span>Consultando datos...</span>
+                  </div>
+                } @else if (message.role === 'user') {
+                  <span class="leading-relaxed whitespace-pre-wrap">{{ getMessageText(message.content) }}</span>
+                } @else {
+                  <markdown-renderer [content]="getMessageText(message.content)" />
+                }
               </div>
-            }
+            </div>
           }
         </div>
 
-        <!-- Composer -->
-        <div class="px-4 pb-4">
-          <div class="rounded-2xl border bg-white p-2 dark:bg-neutral-800">
+        <!-- Input Box -->
+        <div class="p-4 px-6 border-t border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shrink-0">
+          <!-- Quick suggestions -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none text-[11px]">
+            <button
+              type="button"
+              class="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-neutral-600 dark:text-neutral-300 transition-colors shrink-0 cursor-pointer"
+              (click)="sendQuickText('Resumen de la empresa')"
+            >
+              📊 Resumen
+            </button>
+            <button
+              type="button"
+              class="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-neutral-600 dark:text-neutral-300 transition-colors shrink-0 cursor-pointer"
+              (click)="sendQuickText('Productos recientes')"
+            >
+              📦 Productos
+            </button>
+            <button
+              type="button"
+              class="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-neutral-600 dark:text-neutral-300 transition-colors shrink-0 cursor-pointer"
+              (click)="sendQuickText('Listar clientes')"
+            >
+              👥 Clientes
+            </button>
+          </div>
+
+          <div
+            class="flex flex-col rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 p-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all"
+          >
             <textarea
-              class="w-full resize-none border-0 bg-transparent px-2 py-2 outline-none"
-               [placeholder]="'layout.assistant.placeholder' | transloco"
+              [(ngModel)]="prompt"
+              (keydown.enter)="onEnter($event)"
+              class="w-full resize-none border-0 bg-transparent px-3 py-2 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 outline-none"
+              [placeholder]="'layout.assistant.placeholder' | transloco"
               cdkTextareaAutosize
               [cdkAutosizeMinRows]="1"
-              cdkAutosizeMaxRows="6"
+              cdkAutosizeMaxRows="4"
+              [disabled]="isGenerating()"
             ></textarea>
 
-            <div class="flex items-center gap-x-1">
-              <!-- Spacer -->
-              <div class="flex-auto"></div>
-
+            <div class="flex items-center justify-between pt-1 px-2">
+              <span class="text-[10px] text-neutral-400">Shift + Enter para nueva línea</span>
               <button
-                class="bg-primary-600 text-white"
-                matIconButton
-                 [matTooltip]="'common.send' | transloco"
+                type="button"
+                (click)="sendMessage()"
+                [disabled]="!prompt.trim() || isGenerating()"
+                class="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl h-8 w-8 flex items-center justify-center transition-colors cursor-pointer"
+                [matTooltip]="'common.send' | transloco"
               >
-                <mat-icon svgIcon="send" />
+                <i-send [size]="14" />
               </button>
             </div>
           </div>
 
-          <div class="mt-2 text-center text-xs text-neutral-400">
+          <div class="mt-2 text-center text-[10px] text-neutral-400">
              {{ 'layout.assistant.disclaimer' | transloco }}
           </div>
         </div>
@@ -148,25 +193,83 @@ const CONVERSATION_ID = 'b7d0e3a5';
   `,
 })
 export class Assistant {
-  // Dependencies
   private aiChatService = inject(AiChatService);
+  private router = inject(Router);
 
-  // State
   protected opened = signal(false);
+  protected prompt = '';
+  protected isGenerating = this.aiChatService.isGenerating;
 
-  // Data
-  protected conversation = this.aiChatService.data.conversations.find(
-    (conversation) => conversation.id === CONVERSATION_ID
-  )!;
-  protected messages = this.conversation.messages.slice(0, 4);
+  private scrollBox = viewChild<ElementRef<HTMLDivElement>>('scrollBox');
+
+  protected currentMessages = computed(() => {
+    const active = this.aiChatService.currentConversation();
+    return active?.messages || [];
+  });
+
+  getMessageText(content: any): string {
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) {
+      return content.map((p) => (p.type === 'code' ? `\`\`\`${p.language || ''}\n${p.value}\n\`\`\`` : p.value)).join('\n\n');
+    }
+    return '';
+  }
 
   toggle(force: boolean | null = null) {
     this.opened.update((value) => {
-      if (force === null) {
-        return !value;
+      const next = force === null ? !value : force;
+      if (next) {
+        setTimeout(() => this.scrollToBottom(), 100);
       }
-
-      return force;
+      return next;
     });
+  }
+
+  openFullChat() {
+    this.toggle(false);
+    const active = this.aiChatService.currentConversation();
+    if (active) {
+      this.router.navigate(['/admin/ai-chat', active.id]);
+    } else {
+      this.router.navigate(['/admin/ai-chat']);
+    }
+  }
+
+  onEnter(e: Event) {
+    const kb = e as KeyboardEvent;
+    if (!kb.shiftKey) {
+      kb.preventDefault();
+      this.sendMessage();
+    }
+  }
+
+  sendMessage() {
+    const text = this.prompt.trim();
+    if (!text || this.isGenerating()) return;
+    this.prompt = '';
+
+    const active = this.aiChatService.currentConversation();
+    const convId = active ? active.id : this.aiChatService.createConversation().id;
+
+    this.aiChatService.sendMessage(convId, text).subscribe({
+      next: () => this.scrollToBottom(),
+    });
+  }
+
+  sendQuickText(text: string) {
+    if (this.isGenerating()) return;
+    const active = this.aiChatService.currentConversation();
+    const convId = active ? active.id : this.aiChatService.createConversation().id;
+
+    this.aiChatService.sendMessage(convId, text).subscribe({
+      next: () => this.scrollToBottom(),
+    });
+  }
+
+  private scrollToBottom() {
+    const el = this.scrollBox()?.nativeElement;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
   }
 }

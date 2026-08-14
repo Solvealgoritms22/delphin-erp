@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +13,7 @@ import { EmpresaDialogComponent } from './empresa-dialog.component';
 import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '@/environments/environment';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PlusIcon, BriefcaseIcon, TagIcon, PencilIcon, TrashIcon, ArrowRightLeftIcon } from 'ng-animated-icons';
 
 export interface Empresa {
   id: string;
@@ -25,7 +26,21 @@ export interface Empresa {
 @Component({
   selector: 'app-empresas',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, EmptyStateComponent, TranslocoPipe],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    MatButtonModule, 
+    MatIconModule, 
+    MatMenuModule, 
+    EmptyStateComponent, 
+    TranslocoPipe,
+    PlusIcon,
+    BriefcaseIcon,
+    TagIcon,
+    PencilIcon,
+    TrashIcon,
+    ArrowRightLeftIcon
+  ],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
       
@@ -40,70 +55,64 @@ export interface Empresa {
           </p>
         </div>
         
-        <!-- Actions -->
-        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 gap-3">
-          <button mat-flat-button class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6" (click)="openCreateDialog()">
-            <mat-icon svgIcon="plus" class="mr-2 icon-size-5"></mat-icon>
-             <span class="font-medium text-[13px]">{{ 'companies.new' | transloco }}</span>
+        <div class="flex items-center gap-3 mt-6 sm:mt-0">
+          <button mat-flat-button color="primary" class="rounded-xl shadow-sm cursor-pointer" (click)="openCreateDialog()">
+            <i-plus [size]="18" class="mr-2"></i-plus>
+             {{ 'companies.create' | transloco }}
           </button>
         </div>
       </div>
 
-      <!-- Main container (central scroll) -->
+      <!-- Main Container (central scroll) -->
       <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-12">
         
-        <!-- Loading state -->
-        <div *ngIf="isLoading()" class="flex items-center justify-center h-64">
-          <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <div *ngIf="isLoading()" class="flex justify-center p-12">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
 
-        <!-- Content -->
         <div *ngIf="!isLoading()">
           
-          <!-- Empty state -->
-          <div *ngIf="empresas().length === 0">
-            <app-empty-state
-              icon="briefcase"
-               [title]="'companies.emptyTitle' | transloco"
-               [description]="'companies.emptyDescription' | transloco"
-               [actionLabel]="'companies.createFirst' | transloco"
-              (action)="openCreateDialog()">
-            </app-empty-state>
-          </div>
+          <app-empty-state 
+            *ngIf="empresas().length === 0"
+            illustration="18.svg"
+            [title]="'companies.emptyTitle' | transloco"
+            [description]="'companies.emptyDescription' | transloco"
+            [actionLabel]="'companies.emptyAction' | transloco"
+            (action)="openCreateDialog()">
+          </app-empty-state>
 
           <div *ngIf="empresas().length > 0" class="flex flex-col gap-10">
             
             <!-- Empresa Activa -->
             <div *ngIf="activeEmpresa" class="flex flex-col gap-4">
-               <h3 class="text-xl font-bold">{{ 'companies.active' | transloco }}</h3>
+                <h3 class="text-xl font-bold">{{ 'companies.active' | transloco }}</h3>
               
               <div class="flex flex-col sm:flex-row bg-white dark:bg-neutral-800 rounded-2xl shadow-md border-2 border-blue-500 dark:border-blue-400 overflow-hidden relative">
                 
                 <div class="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
-                   {{ 'companies.current' | transloco }}
+                    {{ 'companies.current' | transloco }}
                 </div>
 
                 <div class="flex items-center justify-center p-8 bg-blue-50 dark:bg-blue-900/10">
-                   <div class="flex items-center justify-center w-24 h-24 rounded-2xl bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm overflow-hidden">
-                     <img *ngIf="activeEmpresa.logo" [src]="activeEmpresa.logo" [alt]="activeEmpresa.razonSocial" class="w-full h-full object-contain p-3">
-                     <mat-icon *ngIf="!activeEmpresa.logo" svgIcon="briefcase" class="icon-size-12"></mat-icon>
-                  </div>
+                    <div class="flex items-center justify-center w-24 h-24 rounded-2xl bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm overflow-hidden">
+                      <img *ngIf="activeEmpresa.logo" [src]="activeEmpresa.logo" [alt]="activeEmpresa.razonSocial" class="w-full h-full object-contain p-3">
+                      <i-briefcase *ngIf="!activeEmpresa.logo" [size]="48"></i-briefcase>
+                   </div>
                 </div>
 
                 <div class="flex flex-col justify-center p-6 flex-1">
                   <h3 class="text-2xl font-bold">{{ activeEmpresa.razonSocial }}</h3>
                   <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mt-2 text-neutral-500">
-                    <span class="flex items-center gap-1"><mat-icon svgIcon="hash" class="icon-size-4"></mat-icon> RNC: {{ activeEmpresa.rnc || 'N/A' }}</span>
+                    <span class="flex items-center gap-1"><i-tag [size]="16"></i-tag> RNC: {{ activeEmpresa.rnc || 'N/A' }}</span>
                   </div>
                 </div>
 
                 <div class="flex items-center p-6 bg-neutral-50 dark:bg-neutral-900/50 border-l border-neutral-100 dark:border-neutral-800">
                   <div class="flex flex-col gap-2 w-full">
                     <button mat-stroked-button (click)="openEditDialog(activeEmpresa)">
-                     <mat-icon svgIcon="pencil" class="icon-size-5 mr-2"></mat-icon>
-                       {{ 'common.edit' | transloco }}
+                      <i-pencil [size]="18" class="mr-2"></i-pencil>
+                        {{ 'common.edit' | transloco }}
                     </button>
-                    <!-- No delete button for active company to prevent edge cases, user must switch first to delete -->
                   </div>
                 </div>
               </div>
@@ -111,7 +120,7 @@ export interface Empresa {
 
             <!-- Otras Empresas -->
             <div *ngIf="otherEmpresas.length > 0" class="flex flex-col gap-4">
-               <h3 class="text-xl font-bold">{{ 'companies.other' | transloco }}</h3>
+                <h3 class="text-xl font-bold">{{ 'companies.other' | transloco }}</h3>
               
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div *ngFor="let empresa of otherEmpresas" class="flex flex-col bg-white dark:bg-neutral-800 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -119,10 +128,10 @@ export interface Empresa {
                   <!-- Card Header -->
                   <div class="flex items-start justify-between p-6 pb-4">
                     <div class="flex items-center gap-4">
-                       <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 overflow-hidden">
-                         <img *ngIf="empresa.logo" [src]="empresa.logo" [alt]="empresa.razonSocial" class="w-full h-full object-contain p-1">
-                         <mat-icon *ngIf="!empresa.logo" svgIcon="briefcase" class="icon-size-6"></mat-icon>
-                      </div>
+                        <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 overflow-hidden">
+                          <img *ngIf="empresa.logo" [src]="empresa.logo" [alt]="empresa.razonSocial" class="w-full h-full object-contain p-1">
+                          <i-briefcase *ngIf="!empresa.logo" [size]="24"></i-briefcase>
+                       </div>
                       <div>
                         <h3 class="text-lg font-semibold leading-tight line-clamp-1">{{ empresa.razonSocial }}</h3>
                         <p class="text-sm text-neutral-500 mt-0.5">RNC: {{ empresa.rnc || 'N/A' }}</p>
@@ -130,15 +139,19 @@ export interface Empresa {
                     </div>
                     
                     <button mat-icon-button [matMenuTriggerFor]="menu">
-                       <mat-icon svgIcon="ellipsis-vertical"></mat-icon>
+                       <mat-icon svgIcon="ellipsis-vertical" class="icon-size-5 text-neutral-500"></mat-icon>
                     </button>
                     <mat-menu #menu="matMenu">
+                      <button mat-menu-item (click)="switchTenant(empresa.id)">
+                        <i-arrow-right-left [size]="16" class="mr-2"></i-arrow-right-left>
+                         <span>{{ 'companies.switch' | transloco }}</span>
+                      </button>
                       <button mat-menu-item (click)="openEditDialog(empresa)">
-                         <mat-icon svgIcon="pencil"></mat-icon>
-                         <span>{{ 'companies.editInfo' | transloco }}</span>
+                          <i-pencil [size]="16" class="mr-2"></i-pencil>
+                          <span>{{ 'companies.editInfo' | transloco }}</span>
                       </button>
                       <button mat-menu-item class="text-red-600" (click)="deleteEmpresa(empresa)">
-                        <mat-icon svgIcon="trash" class="text-red-600"></mat-icon>
+                        <i-trash [size]="16" class="mr-2"></i-trash>
                          <span>{{ 'companies.delete' | transloco }}</span>
                       </button>
                     </mat-menu>
@@ -218,6 +231,9 @@ export class EmpresasComponent implements OnInit {
   switchTenant(id: string) {
     this.authService.switchTenant(id).subscribe({
       next: () => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('active_empresa_id', id);
+        }
         window.location.reload();
       }
     });

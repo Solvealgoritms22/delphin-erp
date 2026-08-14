@@ -29,6 +29,13 @@
               }
             ],
             "styles": ["src/styles/styles.css"],
+            "allowedCommonJsDependencies": [
+              "prismjs",
+              "marked",
+              "apexcharts",
+              "chroma-js",
+              "hsluv"
+            ],
             "ssr": false,
             "prerender": false
           },

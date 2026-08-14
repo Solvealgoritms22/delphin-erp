@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { XIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-sucursal-dialog',
@@ -18,8 +19,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
-     MatSelectModule,
-     TranslocoPipe
+    MatSelectModule,
+    TranslocoPipe,
+    XIcon,
   ],
   template: `
     <div class="flex flex-col w-full">
@@ -28,7 +30,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
            {{ (isEdit ? 'branches.edit' : 'branches.new') | transloco }}
         </h2>
         <button mat-icon-button (click)="dialogRef.close()" class="text-neutral-500 hover:text-neutral-700">
-          <mat-icon svgIcon="x" class="icon-size-5"></mat-icon>
+          <i-x [size]="18" />
         </button>
       </div>
 

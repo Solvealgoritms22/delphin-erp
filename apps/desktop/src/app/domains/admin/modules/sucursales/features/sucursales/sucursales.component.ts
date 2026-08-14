@@ -8,11 +8,12 @@ import { SucursalesService } from '../../data/sucursales.service';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
 import { SucursalDialogComponent } from './sucursal-dialog.component';
+import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-sucursales',
   standalone: true,
-   imports: [MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule, TranslocoPipe, EmptyStateComponent, TableSkeletonComponent],
+  imports: [MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule, TranslocoPipe, EmptyStateComponent, TableSkeletonComponent, PlusIcon, PencilIcon, TrashIcon],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 overflow-hidden">
       <!-- Header -->
@@ -23,7 +24,7 @@ import { SucursalDialogComponent } from './sucursal-dialog.component';
          </div>
         <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
           <button mat-flat-button (click)="openDialog()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-            <mat-icon svgIcon="plus" class="icon-size-5 mr-2"></mat-icon>
+            <i-plus [size]="18" class="mr-2" />
              {{ 'branches.new' | transloco }}
           </button>
         </div>
@@ -78,11 +79,11 @@ import { SucursalDialogComponent } from './sucursal-dialog.component';
                     </span>
                   </div>
                   <div class="flex items-center gap-1">
-                     <button mat-icon-button (click)="openDialog(sucursal)" class="text-neutral-500" [matTooltip]="'branches.edit' | transloco">
-                       <mat-icon svgIcon="pencil" class="icon-size-5"></mat-icon>
+                     <button mat-icon-button (click)="openDialog(sucursal)" class="text-neutral-500 hover:text-neutral-700" [matTooltip]="'branches.edit' | transloco">
+                       <i-pencil [size]="18" />
                     </button>
-                     <button mat-icon-button (click)="deleteSucursal(sucursal)" class="text-red-500" [matTooltip]="'branches.delete' | transloco">
-                      <mat-icon svgIcon="trash" class="icon-size-5"></mat-icon>
+                     <button mat-icon-button (click)="deleteSucursal(sucursal)" class="text-red-500 hover:text-red-700" [matTooltip]="'branches.delete' | transloco">
+                      <i-trash [size]="18" />
                     </button>
                   </div>
                 </div>

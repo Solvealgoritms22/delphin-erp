@@ -16,6 +16,7 @@ import { CurrentSessionsService, SessionLog } from '../../data/current-sessions.
 import { ConfirmDialogComponent } from '../../../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AuthState } from '../../../../../../core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, MonitorCheckIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'current-sessions',
@@ -31,7 +32,15 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     MatMenuModule,
     MatRippleModule,
     MatTooltipModule,
-    TranslocoPipe
+    TranslocoPipe,
+    SearchIcon,
+    SlidersHorizontalIcon,
+    LogOutIcon,
+    ArrowUpIcon,
+    ChevronDownIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    MonitorCheckIcon,
   ],
   template: `
     <div class="flex flex-col w-full h-full bg-white dark:bg-neutral-900 overflow-hidden relative border-t sm:border-t-0 sm:border-l border-neutral-200 dark:border-neutral-800">
@@ -51,7 +60,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
               <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                 <!-- Search -->
                 <div class="relative flex items-center h-10 px-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent min-w-[200px] sm:min-w-64 max-w-full flex-auto sm:flex-initial">
-                  <mat-icon svgIcon="search" class="absolute left-3 !w-5 !h-5 text-neutral-400"></mat-icon>
+                  <i-search [size]="18" class="absolute left-3 text-neutral-400" />
                   <input
                     type="text"
                     [ngModel]="searchQuery()"
@@ -61,22 +70,46 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                 </div>
                 
                 <!-- Browser Filter -->
-                <button class="flex items-center gap-2 h-10 px-3.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0">
-                  <mat-icon svgIcon="list-filter" class="!w-4 !h-4"></mat-icon>
-                   {{ 'sessions.browser' | transloco }}
+                <button [matMenuTriggerFor]="browserMenu" type="button"
+                  class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
+                  <i-sliders-horizontal [size]="16" />
+                  <span>{{ selectedBrowser() ? selectedBrowser() : ('sessions.browser' | transloco) }}</span>
+                  <i-chevron-down [size]="14" class="text-neutral-400" />
                 </button>
+                <mat-menu #browserMenu="matMenu" class="!rounded-xl !p-1">
+                  <button mat-menu-item (click)="selectedBrowser.set('')">
+                    <span>{{ 'common.all' | transloco }} ({{ 'sessions.browser' | transloco }})</span>
+                  </button>
+                  @for (b of availableBrowsers(); track b) {
+                    <button mat-menu-item (click)="selectedBrowser.set(b)">
+                      <span>{{ b }}</span>
+                    </button>
+                  }
+                </mat-menu>
 
                 <!-- Location Filter -->
-                <button class="flex items-center gap-2 h-10 px-3.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0">
-                  <mat-icon svgIcon="list-filter" class="!w-4 !h-4"></mat-icon>
-                   {{ 'sessions.location' | transloco }}
+                <button [matMenuTriggerFor]="locationMenu" type="button"
+                  class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
+                  <i-sliders-horizontal [size]="16" />
+                  <span>{{ selectedLocation() ? selectedLocation() : ('sessions.location' | transloco) }}</span>
+                  <i-chevron-down [size]="14" class="text-neutral-400" />
                 </button>
+                <mat-menu #locationMenu="matMenu" class="!rounded-xl !p-1">
+                  <button mat-menu-item (click)="selectedLocation.set('')">
+                    <span>{{ 'common.all' | transloco }} ({{ 'sessions.location' | transloco }})</span>
+                  </button>
+                  @for (loc of availableLocations(); track loc) {
+                    <button mat-menu-item (click)="selectedLocation.set(loc)">
+                      <span>{{ loc }}</span>
+                    </button>
+                  }
+                </mat-menu>
               </div>
 
               <div class="flex flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto justify-start lg:justify-end">
                 <button mat-stroked-button type="button" (click)="revokeOthers()" [disabled]="loading()"
                   class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400 !whitespace-nowrap shrink-0 !h-10">
-                  <mat-icon svgIcon="log-out" class="icon-size-4 mr-1.5"></mat-icon>
+                  <i-log-out [size]="16" class="mr-1.5 text-red-500" />
                   <span class="whitespace-nowrap">{{ 'sessions.closeOthers' | transloco }}</span>
                 </button>
                 <!-- Active Toggle -->
@@ -86,10 +119,38 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                 </div>
 
                 <!-- Columns -->
-                <button class="flex items-center gap-2 h-10 px-3.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0">
-                  <mat-icon svgIcon="settings-2" class="!w-4 !h-4"></mat-icon>
-                   {{ 'sessions.columns' | transloco }}
+                <button [matMenuTriggerFor]="columnsMenu" type="button"
+                  class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
+                  <i-sliders-horizontal [size]="16" />
+                  <span>{{ 'sessions.columns' | transloco }}</span>
                 </button>
+
+                <mat-menu #columnsMenu="matMenu" class="!rounded-xl !p-1">
+                  <button mat-menu-item (click)="toggleColumn('person')">
+                    <span class="inline-flex items-center gap-2">
+                      <input type="checkbox" [checked]="columns().person" (click)="$event.stopPropagation()" class="rounded text-blue-600">
+                      Person
+                    </span>
+                  </button>
+                  <button mat-menu-item (click)="toggleColumn('browser')">
+                    <span class="inline-flex items-center gap-2">
+                      <input type="checkbox" [checked]="columns().browser" (click)="$event.stopPropagation()" class="rounded text-blue-600">
+                      Browser
+                    </span>
+                  </button>
+                  <button mat-menu-item (click)="toggleColumn('ipAddress')">
+                    <span class="inline-flex items-center gap-2">
+                      <input type="checkbox" [checked]="columns().ipAddress" (click)="$event.stopPropagation()" class="rounded text-blue-600">
+                      IP Address
+                    </span>
+                  </button>
+                  <button mat-menu-item (click)="toggleColumn('location')">
+                    <span class="inline-flex items-center gap-2">
+                      <input type="checkbox" [checked]="columns().location" (click)="$event.stopPropagation()" class="rounded text-blue-600">
+                      Location
+                    </span>
+                  </button>
+                </mat-menu>
               </div>
 
             </div>
@@ -102,26 +163,34 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                     <th class="w-14 px-4 py-3 text-center">
                       <mat-checkbox [checked]="allSelected()" (change)="toggleAll()"></mat-checkbox>
                     </th>
-                    <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
-                      <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-                        Person <mat-icon svgIcon="arrow-up" class="!w-3 !h-3 text-neutral-400"></mat-icon>
-                      </div>
-                    </th>
-                    <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
-                      <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-                        Browser <mat-icon svgIcon="chevron-down" class="!w-3 !h-3 text-neutral-400"></mat-icon>
-                      </div>
-                    </th>
-                    <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
-                      <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-                        IP Address <mat-icon svgIcon="chevron-down" class="!w-3 !h-3 text-neutral-400"></mat-icon>
-                      </div>
-                    </th>
-                    <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
-                      <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-                        Location <mat-icon svgIcon="chevron-down" class="!w-3 !h-3 text-neutral-400"></mat-icon>
-                      </div>
-                    </th>
+                    @if (columns().person) {
+                      <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
+                        <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
+                          Person <i-arrow-up [size]="12" class="text-neutral-400" />
+                        </div>
+                      </th>
+                    }
+                    @if (columns().browser) {
+                      <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
+                        <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
+                          Browser <i-chevron-down [size]="12" class="text-neutral-400" />
+                        </div>
+                      </th>
+                    }
+                    @if (columns().ipAddress) {
+                      <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
+                        <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
+                          IP Address <i-chevron-down [size]="12" class="text-neutral-400" />
+                        </div>
+                      </th>
+                    }
+                    @if (columns().location) {
+                      <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
+                        <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
+                          Location <i-chevron-down [size]="12" class="text-neutral-400" />
+                        </div>
+                      </th>
+                    }
                     <th class="w-14 px-4 py-3"></th>
                   </tr>
                 </thead>
@@ -131,46 +200,54 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                       <td class="w-14 px-4 py-4 text-center">
                         <mat-checkbox [checked]="isSelected(session.id)" (change)="toggleSelection(session.id)"></mat-checkbox>
                       </td>
-                      <td class="px-4 py-4">
-                        <div class="flex items-center gap-3">
-                          @if (session.personAvatar) {
-                            <img [src]="session.personAvatar" class="w-8 h-8 rounded-full object-cover" alt="">
-                          } @else {
-                            <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-xs shrink-0">
-                              {{ initials(session.personName) }}
-                            </div>
-                          }
-                          <span class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{{ session.personName }}</span>
-                        </div>
-                      </td>
-                      <td class="px-4 py-4">
-                        <div class="flex items-center gap-2">
-                           <mat-icon [svgIcon]="session.browserIcon" class="!w-4 !h-4 text-neutral-400 dark:text-neutral-500"></mat-icon>
-                           <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.browserName }} {{ 'sessions.on' | transloco }} {{ session.osName }}</span>
-                        </div>
-                      </td>
-                      <td class="px-4 py-4">
-                        <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.ipAddress }}</span>
-                      </td>
-                      <td class="px-4 py-4">
-                        <div class="flex items-center gap-2">
-                          @if (session.locationFlagUrl) {
-                            <img [src]="session.locationFlagUrl" class="w-4 h-3 rounded-sm object-cover" [alt]="session.locationCountry">
-                          }
-                          <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.locationCountry }}</span>
-                        </div>
-                      </td>
+                      @if (columns().person) {
+                        <td class="px-4 py-4">
+                          <div class="flex items-center gap-3">
+                            @if (session.personAvatar) {
+                              <img [src]="session.personAvatar" class="w-8 h-8 rounded-full object-cover" alt="">
+                            } @else {
+                              <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-xs shrink-0">
+                                {{ initials(session.personName) }}
+                              </div>
+                            }
+                            <span class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{{ session.personName }}</span>
+                          </div>
+                        </td>
+                      }
+                      @if (columns().browser) {
+                        <td class="px-4 py-4">
+                          <div class="flex items-center gap-2">
+                              <mat-icon [svgIcon]="session.browserIcon" class="!w-4 !h-4 text-neutral-400 dark:text-neutral-500"></mat-icon>
+                              <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.browserName }} {{ 'sessions.on' | transloco }} {{ session.osName }}</span>
+                          </div>
+                        </td>
+                      }
+                      @if (columns().ipAddress) {
+                        <td class="px-4 py-4">
+                          <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.ipAddress }}</span>
+                        </td>
+                      }
+                      @if (columns().location) {
+                        <td class="px-4 py-4">
+                          <div class="flex items-center gap-2">
+                            @if (session.locationFlagUrl) {
+                              <img [src]="session.locationFlagUrl" class="w-4 h-3 rounded-sm object-cover" [alt]="session.locationCountry">
+                            }
+                            <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.locationCountry }}</span>
+                          </div>
+                        </td>
+                      }
                       <td class="px-4 py-4 text-right">
                          <button mat-icon-button type="button" [matTooltip]="session.isCurrent ? 'Revoke current session (sign out)' : 'Revoke session'" (click)="revokeSession(session)" [disabled]="!session.isActive" class="!w-8 !h-8 text-neutral-400">
-                           <mat-icon svgIcon="ellipsis-vertical" class="!w-5 !h-5"></mat-icon>
-                        </button>
+                            <mat-icon svgIcon="ellipsis-vertical" class="!w-5 !h-5"></mat-icon>
+                         </button>
                       </td>
                     </tr>
                   } @empty {
                     <tr>
                       <td colspan="6" class="px-4 py-8 text-center">
                         <div class="flex flex-col items-center justify-center p-6 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl border border-dashed border-neutral-300 dark:border-neutral-600 m-4">
-                          <mat-icon svgIcon="monitor-smartphone" class="icon-size-14 text-neutral-400 mb-3"></mat-icon>
+                          <i-monitor-check [size]="48" class="text-neutral-400 mb-3" />
                            <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-1">{{ 'sessions.emptyTitle' | transloco }}</h3>
                            <p class="text-sm text-neutral-500 text-center max-w-sm">{{ 'sessions.emptyDescription' | transloco }}</p>
                         </div>
@@ -195,11 +272,11 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
               </span>
               
               <div class="flex gap-2">
-                <button mat-icon-button disabled class="!w-8 !h-8 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-                  <mat-icon svgIcon="chevron-left" class="!w-4 !h-4 text-neutral-400"></mat-icon>
+                <button mat-icon-button disabled class="!w-8 !h-8 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex items-center justify-center">
+                  <i-chevron-left [size]="16" class="text-neutral-400" />
                 </button>
-                <button mat-icon-button disabled class="!w-8 !h-8 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-                  <mat-icon svgIcon="chevron-right" class="!w-4 !h-4 text-neutral-400"></mat-icon>
+                <button mat-icon-button disabled class="!w-8 !h-8 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex items-center justify-center">
+                  <i-chevron-right [size]="16" class="text-neutral-400" />
                 </button>
               </div>
             </div>
@@ -221,6 +298,30 @@ export default class CurrentSessionsComponent implements OnInit {
 
   searchQuery = signal<string>('');
   onlyActive = signal<boolean>(true);
+  selectedBrowser = signal<string>('');
+  selectedLocation = signal<string>('');
+
+  columns = signal({
+    person: true,
+    browser: true,
+    ipAddress: true,
+    location: true,
+  });
+
+  toggleColumn(col: 'person' | 'browser' | 'ipAddress' | 'location') {
+    this.columns.update(curr => ({
+      ...curr,
+      [col]: !curr[col]
+    }));
+  }
+
+  availableBrowsers = computed(() => {
+    return Array.from(new Set(this.sessions().map(s => s.browserName).filter(Boolean)));
+  });
+
+  availableLocations = computed(() => {
+    return Array.from(new Set(this.sessions().map(s => s.locationCountry).filter(Boolean)));
+  });
 
   selectedIds = signal<Set<string>>(new Set<string>());
   loading = signal(false);
@@ -321,6 +422,14 @@ export default class CurrentSessionsComponent implements OnInit {
 
     if (this.onlyActive()) {
       current = current.filter(s => s.isActive);
+    }
+
+    if (this.selectedBrowser()) {
+      current = current.filter(s => s.browserName.toLowerCase() === this.selectedBrowser().toLowerCase());
+    }
+
+    if (this.selectedLocation()) {
+      current = current.filter(s => s.locationCountry.toLowerCase() === this.selectedLocation().toLowerCase());
     }
 
     return current;

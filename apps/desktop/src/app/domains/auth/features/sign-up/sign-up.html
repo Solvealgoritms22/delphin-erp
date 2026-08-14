@@ -109,10 +109,10 @@
                   : (passwordField.type = 'password')
               " matSuffix>
               @if (passwordField.type === 'password') {
-              <mat-icon class="size-5" svgIcon="eye"></mat-icon>
+                <mat-icon svgIcon="eye" class="icon-size-5"></mat-icon>
               }
               @if (passwordField.type === 'text') {
-              <mat-icon class="size-5" svgIcon="eye-off"></mat-icon>
+                <i-eye-off [size]="18" />
               }
             </button>
             <mat-error>
@@ -138,9 +138,9 @@
                   : (confirmPasswordField.type = 'password')
               " matSuffix>
               @if (confirmPasswordField.type === 'password') {
-              <mat-icon class="size-5" svgIcon="eye"></mat-icon>
+                <mat-icon svgIcon="eye" class="icon-size-5"></mat-icon>
               } @else {
-              <mat-icon class="size-5" svgIcon="eye-off"></mat-icon>
+                <i-eye-off [size]="18" />
               }
             </button>
             <mat-error>

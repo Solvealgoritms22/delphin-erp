@@ -9,9 +9,10 @@ export type MessagePart = {
 export type Message = {
   id: string;
   role: MessageRole;
-  content: MessagePart[];
+  content: string | MessagePart[];
   createdAt: string;
   streaming?: boolean;
+  toolsUsed?: string[];
 };
 
 export type Conversation = {
@@ -20,3 +21,4 @@ export type Conversation = {
   createdAt: string;
   messages: Message[];
 };
+

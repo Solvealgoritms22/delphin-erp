@@ -10,7 +10,7 @@ import { RolesService, Role } from '../../data/roles';
 import { UsersService } from '../../data/users';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-
+import { PlusIcon, ArrowRightIcon, SearchIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CheckIcon, AwardIcon, XIcon } from 'ng-animated-icons';
 
 export interface PermissionModule {
   id: string;
@@ -27,7 +27,26 @@ export interface RolePermissions {
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, MatDialogModule, MatSnackBarModule, EmptyStateComponent, TranslocoPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    EmptyStateComponent,
+    TranslocoPipe,
+    PlusIcon,
+    ArrowRightIcon,
+    SearchIcon,
+    ChevronDownIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    CheckIcon,
+    AwardIcon,
+    XIcon,
+  ],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
       
@@ -39,8 +58,8 @@ export interface RolePermissions {
               <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'roles.description' | transloco }}</p>
            </div>
           
-          <button (click)="openRoleModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm align-center flex items-center gap-2">
-            <mat-icon svgIcon="plus" class="!w-4 !h-4 !text-[16px]"></mat-icon>
+          <button (click)="openRoleModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm align-center flex items-center gap-2 cursor-pointer">
+            <i-plus [size]="16" />
              {{ 'roles.create' | transloco }}
           </button>
         </div>
@@ -71,8 +90,8 @@ export interface RolePermissions {
                         </div>
                       }
                     </div>
-                    <button (click)="openRoleModal(role)" class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 transition-colors">
-                       {{ 'roles.edit' | transloco }} <mat-icon svgIcon="arrow-right" class="icon-size-4"></mat-icon>
+                    <button (click)="openRoleModal(role)" class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
+                       {{ 'roles.edit' | transloco }} <i-arrow-right [size]="14" />
                     </button>
                   </div>
                 </div>
@@ -97,19 +116,19 @@ export interface RolePermissions {
           <!-- Toolbar -->
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="relative w-full sm:w-72 flex-auto sm:flex-initial">
-              <mat-icon svgIcon="search" class="absolute left-3 top-1/2 -translate-y-1/2 icon-size-4 text-neutral-400"></mat-icon>
+              <i-search [size]="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input type="text" placeholder="Search..." [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500">
             </div>
             
             <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <!-- Status Filter -->
               <div class="relative flex-auto sm:flex-initial">
-                <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-32 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap">
+                <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-32 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap cursor-pointer">
                   <div class="flex items-center gap-2">
                     <div class="w-2.5 h-2.5 rounded-full" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div> 
                     {{ statusFilter() === 'All' ? 'All Status' : statusFilter() }}
                   </div>
-                  <mat-icon svgIcon="chevron-down" class="icon-size-4 text-neutral-500"></mat-icon>
+                  <i-chevron-down [size]="16" class="text-neutral-500" />
                 </button>
                 <mat-menu #statusMenu="matMenu">
                   <button mat-menu-item (click)="statusFilter.set('All')">All Status</button>
@@ -120,9 +139,9 @@ export interface RolePermissions {
               
               <!-- Role Filter -->
               <div class="relative flex-auto sm:flex-initial">
-                <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-40 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap">
+                <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-40 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap cursor-pointer">
                   <span class="truncate pr-2">{{ getSelectedRoleName() }}</span>
-                  <mat-icon svgIcon="chevron-down" class="icon-size-4 text-neutral-500 shrink-0"></mat-icon>
+                  <i-chevron-down [size]="16" class="text-neutral-500 shrink-0" />
                 </button>
                 <mat-menu #roleFilterMenu="matMenu">
                   <button mat-menu-item (click)="roleFilter.set('All')">All Roles</button>
@@ -142,16 +161,16 @@ export interface RolePermissions {
                   <th class="py-4 pl-0 pr-4 w-12 cursor-pointer" (click)="toggleAllAccounts()">
                     @if (isAllAccountsSelected()) {
                       <div class="w-4 h-4 rounded-[4px] bg-blue-500 border border-blue-500 flex items-center justify-center text-white mx-auto shadow-sm">
-                        <mat-icon svgIcon="check" class="icon-size-3"></mat-icon>
+                        <i-check [size]="12" />
                       </div>
                     } @else {
                       <div class="w-4 h-4 rounded-[4px] border-2 border-neutral-200 dark:border-neutral-700 mx-auto"></div>
                     }
                   </th>
-                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Name <mat-icon svgIcon="chevron-down" class="icon-size-4 ml-1 text-neutral-400 dark:text-neutral-500"></mat-icon></div></th>
-                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Status <mat-icon svgIcon="chevron-down" class="icon-size-4 ml-1 text-neutral-400 dark:text-neutral-500"></mat-icon></div></th>
-                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Last Online <mat-icon svgIcon="chevron-down" class="icon-size-4 ml-1 text-neutral-400 dark:text-neutral-500"></mat-icon></div></th>
-                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Role <mat-icon svgIcon="chevron-down" class="icon-size-4 ml-1 text-neutral-400 dark:text-neutral-500"></mat-icon></div></th>
+                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Name <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
+                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Status <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
+                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Last Online <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
+                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Role <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -162,7 +181,7 @@ export interface RolePermissions {
                     <td class="py-4 pl-0 pr-4 cursor-pointer" (click)="toggleAccountSelection(account.id)">
                       @if (isAccountSelected(account.id)) {
                         <div class="w-4 h-4 rounded-[4px] bg-blue-500 border border-blue-500 flex items-center justify-center text-white mx-auto shadow-sm">
-                          <mat-icon svgIcon="check" class="icon-size-3"></mat-icon>
+                          <i-check [size]="12" />
                         </div>
                       } @else {
                         <div class="w-4 h-4 rounded-[4px] border-2 border-neutral-200 dark:border-neutral-700 mx-auto"></div>
@@ -179,33 +198,32 @@ export interface RolePermissions {
                         }
                         <div class="flex flex-col">
                           <span class="text-sm font-bold text-neutral-900 dark:text-white leading-none mb-1">{{ account.name || account.email.split('@')[0] }}</span>
-                          <span class="text-sm text-neutral-500 dark:text-neutral-400 leading-none">{{ account.email }}</span>
+                          <span class="text-xs text-neutral-500 dark:text-neutral-400 leading-none">{{ account.email }}</span>
                         </div>
                       </div>
                     </td>
                     <td class="py-4 px-4">
-                      @if (account.estado === 'ACTIVO') {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">Activo</span>
-                      } @else {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">Inactivo</span>
-                      }
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full" [ngClass]="account.estado === 'ACTIVO' ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-600'"></div>
+                        <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">{{ account.estado === 'ACTIVO' ? 'Active' : 'Inactive' }}</span>
+                      </div>
                     </td>
                     <td class="py-4 px-4">
                       <div class="flex flex-col">
-                        <span class="text-sm font-medium text-neutral-900 dark:text-white leading-none mb-1">{{ account.lastOnlineDate || 'N/A' }}</span>
+                        <span class="text-sm font-bold text-neutral-900 dark:text-white leading-none mb-1">{{ account.lastOnlineDate || 'Never' }}</span>
                         <span class="text-xs text-neutral-500 dark:text-neutral-400 leading-none">{{ account.lastOnlineTime || '' }}</span>
                       </div>
                     </td>
                     <td class="py-4 px-4">
                       @if (account.isOwner) {
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-bold text-xs border border-neutral-200 dark:border-neutral-700">
-                          <mat-icon svgIcon="crown" class="!w-3.5 !h-3.5 !text-[14px] text-amber-500 dark:text-amber-400"></mat-icon>
-                          Propietario (Owner)
+                          <i-award [size]="14" class="text-amber-500 dark:text-amber-400" />
+                          Owner
                         </span>
                       } @else {
                         <!-- Dropdown Trigger -->
-                        <button [matMenuTriggerFor]="roleMenu" class="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                          {{ getRoleName(account.roleId) }} <mat-icon svgIcon="chevron-down" class="icon-size-3 text-neutral-500 dark:text-neutral-400"></mat-icon>
+                        <button [matMenuTriggerFor]="roleMenu" class="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                          {{ getRoleName(account.roleId) }} <i-chevron-down [size]="12" class="text-neutral-500 dark:text-neutral-400" />
                         </button>
                         <!-- Dropdown Menu -->
                         <mat-menu #roleMenu="matMenu">
@@ -240,18 +258,18 @@ export interface RolePermissions {
           <div class="flex items-center justify-between px-6 py-4 border-t border-neutral-100 dark:border-neutral-800">
             <div class="flex items-center gap-3">
               <span class="text-sm font-medium text-neutral-500 dark:text-neutral-400">Rows per page:</span>
-              <button class="text-sm font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition-colors">
-                10 <mat-icon svgIcon="chevron-down" class="icon-size-4 text-neutral-500 dark:text-neutral-400"></mat-icon>
+              <button class="text-sm font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer">
+                10 <i-chevron-down [size]="14" class="text-neutral-500 dark:text-neutral-400" />
               </button>
             </div>
             <div class="flex items-center gap-6">
               <span class="text-sm font-medium text-neutral-500 dark:text-neutral-400">1 - 3 of 3</span>
               <div class="flex items-center gap-1">
-                <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50">
-                  <mat-icon svgIcon="chevron-left" class="icon-size-5"></mat-icon>
+                <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50 cursor-pointer">
+                  <i-chevron-left [size]="16" />
                 </button>
-                <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50">
-                  <mat-icon svgIcon="chevron-right" class="icon-size-5"></mat-icon>
+                <button class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50 cursor-pointer">
+                  <i-chevron-right [size]="16" />
                 </button>
               </div>
             </div>
@@ -271,8 +289,8 @@ export interface RolePermissions {
             <h2 class="text-xl font-bold text-neutral-900 dark:text-white">
               {{ editingRole ? 'Edit role' : 'Create role' }}
             </h2>
-            <button (click)="closeRoleModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-              <mat-icon svgIcon="x" class="icon-size-4"></mat-icon>
+            <button (click)="closeRoleModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors cursor-pointer">
+              <i-x [size]="16" />
             </button>
           </div>
           
@@ -309,14 +327,14 @@ export interface RolePermissions {
                       </div>
                     </div>
                     <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
-                      <button (click)="togglePermission(mod.slug, 'read')" [ngClass]="getPermissionClass(mod.slug, 'read')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors">
-                        @if(modalRoleData.permissions[mod.slug]?.read){<mat-icon svgIcon="check" class="icon-size-4"></mat-icon>} Read
+                      <button (click)="togglePermission(mod.slug, 'read')" [ngClass]="getPermissionClass(mod.slug, 'read')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors cursor-pointer">
+                        @if(modalRoleData.permissions[mod.slug]?.read){<i-check [size]="14" />} Read
                       </button>
-                      <button (click)="togglePermission(mod.slug, 'write')" [ngClass]="getPermissionClass(mod.slug, 'write')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors">
-                        @if(modalRoleData.permissions[mod.slug]?.write){<mat-icon svgIcon="check" class="icon-size-4"></mat-icon>} Write
+                      <button (click)="togglePermission(mod.slug, 'write')" [ngClass]="getPermissionClass(mod.slug, 'write')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors cursor-pointer">
+                        @if(modalRoleData.permissions[mod.slug]?.write){<i-check [size]="14" />} Write
                       </button>
-                      <button (click)="togglePermission(mod.slug, 'delete')" [ngClass]="getPermissionClass(mod.slug, 'delete')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors">
-                        @if(modalRoleData.permissions[mod.slug]?.delete){<mat-icon svgIcon="check" class="icon-size-4"></mat-icon>} Delete
+                      <button (click)="togglePermission(mod.slug, 'delete')" [ngClass]="getPermissionClass(mod.slug, 'delete')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors cursor-pointer">
+                        @if(modalRoleData.permissions[mod.slug]?.delete){<i-check [size]="14" />} Delete
                       </button>
                     </div>
                   </div>

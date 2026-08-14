@@ -25,6 +25,7 @@ import {
 import { Theming } from '@/app/core/theming';
 import { ProjectDashboardService } from '@/app/domains/admin/modules/dashboards/data/project';
 import { ProjectDashboardBudgetTable } from '@/app/domains/admin/modules/dashboards/features/project/budget-table';
+import { SlidersHorizontalIcon, ChartLineIcon, SparklesIcon, RefreshCwIcon, ArrowUpIcon, ArrowDownIcon, ChevronRightIcon, CalendarDaysIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'project-dashboard',
@@ -44,6 +45,14 @@ import { ProjectDashboardBudgetTable } from '@/app/domains/admin/modules/dashboa
     ProjectDashboardBudgetTable,
     MatButton,
     TranslocoPipe,
+    SlidersHorizontalIcon,
+    ChartLineIcon,
+    SparklesIcon,
+    RefreshCwIcon,
+    ArrowUpIcon,
+    ArrowDownIcon,
+    ChevronRightIcon,
+    CalendarDaysIcon,
   ],
   template: `
     <div
@@ -63,8 +72,8 @@ import { ProjectDashboardBudgetTable } from '@/app/domains/admin/modules/dashboa
         <!-- Spacer -->
         <div class="flex-auto"></div>
 
-        <button matButton="filled">
-          <mat-icon svgIcon="settings-2" />
+        <button matButton="filled" class="flex items-center gap-2">
+          <i-sliders-horizontal [size]="16" />
           Customize
         </button>
       </div>
@@ -76,10 +85,7 @@ import { ProjectDashboardBudgetTable } from '@/app/domains/admin/modules/dashboa
       >
         <mat-card-header>
           <div class="flex flex-auto items-center gap-x-2">
-            <mat-icon
-              class="size-4"
-              svgIcon="chart-line"
-            />
+            <i-chart-line [size]="16" />
             <div class="font-medium tracking-tight">Issues Overview</div>
             <div class="ml-auto">
               <button
@@ -171,17 +177,14 @@ import { ProjectDashboardBudgetTable } from '@/app/domains/admin/modules/dashboa
       >
         <mat-card-header>
           <div class="flex flex-auto items-center gap-x-2">
-            <mat-icon
-              class="size-4 text-primary-600 dark:text-primary-500"
-              svgIcon="sparkles"
-            />
+            <i-sparkles [size]="16" class="text-primary-600 dark:text-primary-500" />
             <div class="font-medium tracking-tight">AI Summary</div>
             <div class="ml-auto">
               <button
                 class="tiny"
                 matIconButton
               >
-                <mat-icon svgIcon="refresh-cw" />
+                <i-refresh-cw [size]="16" />
               </button>
             </div>
           </div>
@@ -232,15 +235,9 @@ import { ProjectDashboardBudgetTable } from '@/app/domains/admin/modules/dashboa
               </div>
               <div class="mt-2 flex items-center gap-x-1">
                 @if (item.change.up) {
-                  <mat-icon
-                    class="size-4 text-green-600"
-                    svgIcon="arrow-up"
-                  />
+                  <i-arrow-up [size]="16" class="text-green-600" />
                 } @else {
-                  <mat-icon
-                    class="size-4 text-red-600"
-                    svgIcon="arrow-down"
-                  />
+                  <i-arrow-down [size]="16" class="text-red-600" />
                 }
                 <div
                   class="flex items-center gap-x-1 text-sm font-medium text-neutral-500"
@@ -309,10 +306,7 @@ import { ProjectDashboardBudgetTable } from '@/app/domains/admin/modules/dashboa
         <mat-card appearance="filled">
           <mat-card-header>
             <div class="flex flex-auto items-center gap-x-2">
-              <mat-icon
-                class="size-4"
-                svgIcon="calendar-clock"
-              />
+              <i-calendar-days [size]="16" />
               <div class="font-medium tracking-tight">Upcoming Schedule</div>
               <div class="ml-auto">
                 <button
@@ -360,7 +354,7 @@ import { ProjectDashboardBudgetTable } from '@/app/domains/admin/modules/dashboa
 
                 <div class="ml-auto">
                   <button matIconButton>
-                    <mat-icon svgIcon="chevron-right" />
+                    <i-chevron-right [size]="16" />
                   </button>
                 </div>
               </div>

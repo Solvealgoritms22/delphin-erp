@@ -3,6 +3,7 @@ import { MAT_SNACK_BAR_DATA, MatSnackBarRef } from '@angular/material/snack-bar'
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NgClass } from '@angular/common';
+import { CircleCheckIcon, CircleAlertIcon, TriangleAlertIcon, RefreshCwIcon, XIcon } from 'ng-animated-icons';
 
 export interface ToastData {
   title?: string;
@@ -13,7 +14,7 @@ export interface ToastData {
 @Component({
   selector: 'app-toast',
   standalone: true,
-  imports: [MatIconModule, MatButtonModule, NgClass],
+  imports: [MatIconModule, MatButtonModule, NgClass, CircleCheckIcon, CircleAlertIcon, TriangleAlertIcon, RefreshCwIcon, XIcon],
   template: `
     <div
       class="flex w-full items-start gap-x-4 rounded-lg p-4 shadow-lg ring-1 ring-black/5"
@@ -25,13 +26,19 @@ export interface ToastData {
         'bg-neutral-50 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-300': data.type === 'loading'
       }"
     >
-      <mat-icon
-        class="mt-0.5 shrink-0"
-        [svgIcon]="getIcon()"
-        [ngClass]="{
-          'animate-spin': data.type === 'loading'
-        }"
-      />
+      <div class="mt-0.5 shrink-0">
+        @if (data.type === 'success') {
+          <i-circle-check [size]="20" />
+        } @else if (data.type === 'error') {
+          <i-circle-alert [size]="20" />
+        } @else if (data.type === 'warning') {
+          <i-triangle-alert [size]="20" />
+        } @else if (data.type === 'loading') {
+          <i-refresh-cw [size]="20" [animate]="true" />
+        } @else {
+          <i-circle-alert [size]="20" />
+        }
+      </div>
       <div class="flex-auto">
         @if (data.title) {
           <div class="font-semibold">{{ data.title }}</div>
@@ -40,10 +47,10 @@ export interface ToastData {
       </div>
       <button
         mat-icon-button
-        class="-m-2 shrink-0"
+        class="-m-2 shrink-0 cursor-pointer"
         (click)="snackBarRef.dismiss()"
       >
-        <mat-icon svgIcon="x" class="size-5" />
+        <i-x [size]="18" />
       </button>
     </div>
   `,
@@ -55,21 +62,4 @@ export class ToastComponent {
   snackBarRef = inject(MatSnackBarRef);
 
   constructor(@Inject(MAT_SNACK_BAR_DATA) public data: ToastData) {}
-
-  getIcon(): string {
-    switch (this.data.type) {
-      case 'success':
-        return 'circle-check';
-      case 'error':
-        return 'circle-alert';
-      case 'warning':
-        return 'triangle-alert';
-      case 'info':
-        return 'info';
-      case 'loading':
-        return 'loader-circle';
-      default:
-        return 'info';
-    }
-  }
 }

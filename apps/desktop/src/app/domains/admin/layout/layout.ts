@@ -257,7 +257,21 @@ export class AdminLayout implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.authService.getMyEmpresas().subscribe({
-      next: (list) => this.empresas.set(list),
+      next: (list) => {
+        this.empresas.set(list);
+        if (list.length > 0 && isPlatformBrowser(this.platformId)) {
+          const savedEmpresaId = localStorage.getItem('active_empresa_id');
+          const currentId = this.currentEmpresaId();
+
+          if (savedEmpresaId && list.some(e => e.id === savedEmpresaId) && savedEmpresaId !== currentId) {
+            const target = list.find(e => e.id === savedEmpresaId)!;
+            this.switchTenant(target);
+          } else if (!currentId) {
+            const target = (savedEmpresaId && list.find(e => e.id === savedEmpresaId)) || list[0];
+            this.switchTenant(target);
+          }
+        }
+      },
       error: () => { } // silently fail if not connected
     });
 
@@ -276,11 +290,14 @@ export class AdminLayout implements OnInit, OnDestroy {
   ngOnDestroy() { /* nothing to clean up */ }
 
   switchTenant(empresa: Empresa) {
-    if (empresa.id === this.currentEmpresaId()) return;
+    if (empresa.id === this.currentEmpresaId() && (!isPlatformBrowser(this.platformId) || localStorage.getItem('active_empresa_id') === empresa.id)) return;
     this.loadingSwitch.set(true);
     this.authService.switchTenant(empresa.id).subscribe({
       next: () => {
         this.loadingSwitch.set(false);
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem('active_empresa_id', empresa.id);
+        }
         // Reload the current route to refresh data for the new tenant
         const currentUrl = this.router.url;
         this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {

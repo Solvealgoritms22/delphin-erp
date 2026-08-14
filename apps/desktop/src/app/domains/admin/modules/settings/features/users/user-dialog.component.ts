@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { Role } from '../../data/roles';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { XIcon } from 'ng-animated-icons';
 
 export interface UserDialogData {
   user?: {
@@ -33,8 +34,9 @@ export interface UserDialogData {
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
-     MatSelectModule,
-     TranslocoPipe,
+    MatSelectModule,
+    TranslocoPipe,
+    XIcon,
   ],
   template: `
     <div class="flex flex-col w-full min-w-[320px] sm:min-w-[400px] max-h-[85vh] overflow-hidden">
@@ -42,8 +44,8 @@ export interface UserDialogData {
         <h2 class="text-xl font-bold text-neutral-900 dark:text-white">
            {{ (isEditing ? 'settings.users.edit' : 'settings.users.create') | transloco }}
         </h2>
-        <button (click)="dialogRef.close()" class="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-          <mat-icon svgIcon="x" class="!w-4 !h-4 !text-[16px]"></mat-icon>
+        <button (click)="dialogRef.close()" class="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors cursor-pointer">
+          <i-x [size]="16" />
         </button>
       </div>
 

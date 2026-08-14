@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
+import { ChevronRightIcon } from 'ng-animated-icons';
 
 export interface Breadcrumb {
   label: string;
@@ -10,7 +10,7 @@ export interface Breadcrumb {
 @Component({
   selector: 'app-breadcrumbs',
   standalone: true,
-  imports: [RouterLink, MatIconModule],
+  imports: [RouterLink, ChevronRightIcon],
   template: `
     <nav class="flex" aria-label="Breadcrumb">
       <ol class="flex items-center space-x-2">
@@ -31,9 +31,9 @@ export interface Breadcrumb {
               }
               
               @if (!last) {
-                <mat-icon
-                  svgIcon="chevron-right"
-                  class="mx-1 size-4 shrink-0 text-neutral-400"
+                <i-chevron-right
+                  [size]="14"
+                  class="mx-1 shrink-0 text-neutral-400"
                 />
               }
             </div>

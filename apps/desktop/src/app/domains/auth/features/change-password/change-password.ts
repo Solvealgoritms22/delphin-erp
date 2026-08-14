@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '@/app/core/auth/auth.service';
 import { AuthState } from '@/app/core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { KeyRoundIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'auth-change-password',
@@ -19,13 +20,14 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     MatIconModule,
     MatInputModule,
     TranslocoPipe,
+    KeyRoundIcon,
   ],
   template: `
     <div class="flex min-h-full items-center justify-center bg-neutral-50 px-6 py-10 dark:bg-neutral-950">
       <div class="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div class="mb-8">
           <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white">
-            <mat-icon svgIcon="lock-keyhole" class="icon-size-5"></mat-icon>
+            <i-key-round [size]="20" />
           </div>
            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">{{ 'auth.changePassword.firstAccess' | transloco }}</p>
            <h1 class="mt-2 text-2xl font-bold tracking-tight text-neutral-950 dark:text-white">{{ 'auth.changePassword.title' | transloco }}</h1>

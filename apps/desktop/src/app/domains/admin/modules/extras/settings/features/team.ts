@@ -8,22 +8,22 @@ import { MatIcon } from '@angular/material/icon';
 import { MatFormField, MatInput } from '@angular/material/input';
 import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { TrashIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'team-settings',
   imports: [
     FormsModule,
     MatFormField,
-    MatIcon,
     MatIconButton,
     MatInput,
     MatButton,
-    MatDivider,
     MatOption,
     MatSelect,
     MatSelectTrigger,
     TitleCasePipe,
     TranslocoPipe,
+    TrashIcon,
   ],
   template: `
     <div class="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-8">
@@ -38,49 +38,38 @@ import { TranslocoPipe } from '@jsverse/transloco';
       </div>
 
       <!-- Divider -->
-      <mat-divider class="col-span-full" />
+      <div class="col-span-full border-t border-neutral-200 dark:border-neutral-800"></div>
 
-      <!-- Team members -->
-      @for (member of members; track member.id) {
+      <!-- Members -->
+      @for (member of members; track member.name) {
         <div class="col-span-full flex flex-col sm:flex-row sm:items-center">
-          <div class="flex items-center">
-            <div
-              class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
-            >
+          <div class="flex flex-auto items-center">
+            <div class="size-10 overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm">
               @if (member.photo) {
                 <img
-                  class="size-full object-cover"
                   [src]="member.photo"
-                  alt="Member photo"
+                  alt="Member avatar"
+                  class="w-full h-full object-cover"
                 />
-              }
-              @if (!member.photo) {
-                <div
-                  class="flex size-full items-center justify-center rounded-full bg-gray-200 text-lg text-gray-600 uppercase dark:bg-gray-700 dark:text-gray-200"
-                >
-                  {{ member.name.charAt(0) }}
-                </div>
+              } @else {
+                {{ member.name.charAt(0) }}
               }
             </div>
             <div class="ml-4">
-              <div class="font-medium">{{ member.name }}</div>
-              <div class="text-neutral-500">{{ member.email }}</div>
+              <div class="font-medium tracking-tight">
+                {{ member.name }}
+              </div>
+              <div class="text-sm text-neutral-500">
+                {{ member.email }}
+              </div>
             </div>
           </div>
-          <div class="mt-4 flex items-center sm:mt-0 sm:ml-auto">
-            <div class="order-2 ml-4 sm:order-1 sm:ml-0">
-              <mat-form-field class="fuse-mat-dense w-32">
-                <mat-select
-                  [panelClass]="'w-72 min-w-72 max-w-72 h-auto max-h-none'"
-                  [value]="member.role"
-                  [disableOptionCentering]="true"
-                  #roleSelect="matSelect"
-                >
+          <div class="mt-4 flex items-center sm:mt-0">
+            <div class="order-2 flex-auto sm:order-1 sm:ml-4 sm:w-48 sm:flex-none">
+              <mat-form-field class="w-full">
+                <mat-select [value]="member.role">
                   <mat-select-trigger>
-                     <span>{{ 'extras.team.role' | transloco }}:</span>
-                    <span class="ml-1 font-medium">{{
-                      roleSelect.value | titlecase
-                    }}</span>
+                    {{ member.role | titlecase }}
                   </mat-select-trigger>
                   @for (role of roles; track role.value) {
                     <mat-option
@@ -101,11 +90,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
               </mat-form-field>
             </div>
             <div class="order-1 sm:order-2 sm:ml-3">
-              <button mat-icon-button>
-                <mat-icon
-                  class="text-neutral-500"
-                  svgIcon="trash"
-                ></mat-icon>
+              <button mat-icon-button class="cursor-pointer">
+                <i-trash [size]="18" class="text-neutral-500 hover:text-red-500 transition-colors" />
               </button>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { TrashIcon, TriangleAlertIcon, CheckIcon, XIcon } from 'ng-animated-icons';
 
 export interface ConfirmDialogData {
   title?: string;
@@ -21,7 +22,19 @@ export interface ConfirmDialogData {
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, FormsModule, MatInputModule, MatFormFieldModule],
+  imports: [
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatIconModule,
+    FormsModule,
+    MatInputModule,
+    MatFormFieldModule,
+    TrashIcon,
+    TriangleAlertIcon,
+    CheckIcon,
+    XIcon,
+  ],
   template: `
     <div class="flex flex-col w-full">
       <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
@@ -33,14 +46,18 @@ export interface ConfirmDialogData {
             [class.bg-blue-100]="!data.destructive"
             [class.text-blue-600]="!data.destructive"
           >
-            <mat-icon class="size-5" [svgIcon]="data.icon || (data.destructive ? 'trash' : 'alert-triangle')" />
+            @if (data.destructive) {
+              <i-trash [size]="20" />
+            } @else {
+              <i-triangle-alert [size]="20" />
+            }
           </div>
           <h2 class="text-xl font-bold text-neutral-900 dark:text-white">
             {{ data.title || (data.destructive ? '¿Confirmar acción?' : 'Aviso') }}
           </h2>
         </div>
         <button mat-icon-button (click)="dialogRef.close(false)" class="text-neutral-500 hover:text-neutral-700">
-          <mat-icon svgIcon="x" class="icon-size-5"></mat-icon>
+          <i-x [size]="18" />
         </button>
       </div>
 
@@ -71,7 +88,11 @@ export interface ConfirmDialogData {
           [class.bg-blue-600]="!data.destructive"
           [class.hover:bg-blue-700]="!data.destructive"
         >
-          <mat-icon class="icon-size-4 mr-2" [svgIcon]="data.destructive ? 'trash' : 'check'"></mat-icon>
+          @if (data.destructive) {
+            <i-trash [size]="16" class="mr-2" />
+          } @else {
+            <i-check [size]="16" class="mr-2" />
+          }
           {{ data.confirmLabel || 'Confirmar' }}
         </button>
       </div>

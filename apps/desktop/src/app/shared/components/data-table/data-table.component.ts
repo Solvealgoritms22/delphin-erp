@@ -18,6 +18,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SelectionModel } from '@angular/cdk/collections';
 import { FormsModule } from '@angular/forms';
+import { SearchIcon } from 'ng-animated-icons';
 
 export interface TableColumn<T> {
   key: Extract<keyof T, string>;
@@ -47,6 +48,7 @@ export interface TableAction<T> {
     MatInputModule,
     MatFormFieldModule,
     FormsModule,
+    SearchIcon,
   ],
   template: `
     <div class="flex flex-col bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
@@ -54,11 +56,11 @@ export interface TableAction<T> {
       <div class="flex items-center justify-between p-4 sm:p-6 border-b border-neutral-200 dark:border-neutral-800">
         <!-- Search -->
         <mat-form-field class="fuse-mat-dense fuse-mat-rounded w-full sm:w-72" subscriptSizing="dynamic">
-          <mat-icon
+          <i-search
             matPrefix
-            class="icon-size-5 text-neutral-500"
-            svgIcon="search"
-          ></mat-icon>
+            [size]="18"
+            class="text-neutral-500 mr-2 ml-1"
+          />
           <input
             matInput
             [(ngModel)]="searchQuery"
@@ -126,7 +128,7 @@ export interface TableAction<T> {
               <th mat-header-cell *matHeaderCellDef class="w-16 px-4"></th>
               <td mat-cell *matCellDef="let row" class="w-16 px-4 text-right">
                 <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-                  <mat-icon svgIcon="ellipsis-vertical" class="icon-size-5"></mat-icon>
+                  <mat-icon svgIcon="ellipsis-vertical" class="text-neutral-500"></mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
                   @for (action of actions(); track action.id) {

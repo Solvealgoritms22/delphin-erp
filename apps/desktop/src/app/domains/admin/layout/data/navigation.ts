@@ -26,6 +26,13 @@ export const NAVIGATION: NavigationItem[] = [
         icon: 'layout-dashboard',
         route: '/admin/dashboards/general',
         activeOptions: { exact: false }
+      },
+      {
+        id: 'ai-chat',
+        label: 'nav.aiChat',
+        icon: 'sparkles',
+        route: '/admin/ai-chat',
+        activeOptions: { exact: false }
       }
     ]
   },

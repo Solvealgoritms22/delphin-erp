@@ -5,11 +5,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { NotificationService } from '../../../../../../core/notifications/notification.service';
 import { environment } from '../../../../../../../environments/environment';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { BellIcon, CheckCheckIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'notifications',
   standalone: true,
-   imports: [CommonModule, MatButtonModule, MatIconModule, TranslocoPipe],
+   imports: [CommonModule, MatButtonModule, MatIconModule, TranslocoPipe, BellIcon, CheckCheckIcon],
   template: `
     <div class="flex h-full w-full min-w-0 flex-col bg-white dark:bg-neutral-900 overflow-hidden">
       <header class="shrink-0 flex flex-col gap-1 border-b border-neutral-200 px-6 py-8 dark:border-neutral-800 md:px-8">
@@ -27,11 +28,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" mat-stroked-button class="!rounded-xl" [disabled]="!environment.webPushPublicKey" (click)="enableWebPush()">
-            <mat-icon svgIcon="bell" class="icon-size-4 mr-2"></mat-icon>
+            <i-bell [size]="16" class="mr-2" />
              {{ 'extras.notifications.enable' | transloco }}
           </button>
           <button type="button" mat-stroked-button class="!rounded-xl" [disabled]="notifications().length === 0" (click)="markAllRead()">
-          <mat-icon svgIcon="check-check" class="icon-size-4 mr-2"></mat-icon>
+            <i-check-check [size]="16" class="mr-2" />
            {{ 'extras.notifications.markAll' | transloco }}
           </button>
         </div>

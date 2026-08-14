@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
+import { BriefcaseIcon, UploadIcon, TrashIcon, RefreshCwIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-empresa-dialog',
@@ -20,13 +21,17 @@ import { environment } from '@/environments/environment';
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-     MatIconModule,
-     TranslocoPipe
+    MatIconModule,
+    TranslocoPipe,
+    BriefcaseIcon,
+    UploadIcon,
+    TrashIcon,
+    RefreshCwIcon,
   ],
   template: `
     <h2 mat-dialog-title class="flex items-center gap-2">
       <div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600">
-        <mat-icon svgIcon="briefcase" class="icon-size-5"></mat-icon>
+        <i-briefcase [size]="20" />
       </div>
        <span class="text-xl font-bold">{{ (data ? 'companies.edit' : 'companies.new') | transloco }}</span>
     </h2>
@@ -38,19 +43,19 @@ import { environment } from '@/environments/environment';
         <div class="flex items-center gap-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 p-4">
           <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-sm">
              <img *ngIf="logoPreview()" [src]="logoPreview()" [alt]="'companies.logoAlt' | transloco" class="h-full w-full object-contain p-2">
-            <mat-icon *ngIf="!logoPreview()" svgIcon="briefcase" class="icon-size-8"></mat-icon>
+            <i-briefcase *ngIf="!logoPreview()" [size]="32" />
           </div>
           <div class="flex min-w-0 flex-col gap-2">
              <span class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">{{ 'companies.logo' | transloco }}</span>
              <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ 'companies.logoHint' | transloco }}</span>
             <div class="flex items-center gap-2">
               <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700">
-                <mat-icon svgIcon="upload" class="icon-size-4"></mat-icon>
+                <i-upload [size]="16" />
                  {{ 'companies.uploadLogo' | transloco }}
                 <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onLogoSelected($event)" class="hidden">
               </label>
               <button *ngIf="logoPreview()" type="button" mat-stroked-button class="!rounded-lg !text-xs" (click)="removeLogo()">
-                <mat-icon svgIcon="trash" class="icon-size-4 mr-1"></mat-icon>
+                <i-trash [size]="16" class="mr-1 text-red-500" />
                  {{ 'companies.removeLogo' | transloco }}
               </button>
             </div>
@@ -94,7 +99,7 @@ import { environment } from '@/environments/environment';
       <button mat-flat-button class="bg-blue-600 hover:bg-blue-700 text-white ml-2 rounded-full px-6" (click)="save()" [disabled]="form.invalid || isSaving">
          <span *ngIf="!isSaving">{{ (data ? 'common.saveChanges' : 'companies.create') | transloco }}</span>
         <span *ngIf="isSaving" class="flex items-center gap-2">
-          <mat-icon class="animate-spin icon-size-4" svgIcon="refresh"></mat-icon>
+          <i-refresh-cw [size]="16" class="animate-spin" />
            {{ 'common.saving' | transloco }}
         </span>
       </button>

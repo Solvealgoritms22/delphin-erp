@@ -10,6 +10,8 @@ import { NotificationService } from '../../../../core/notifications/notification
 import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
+import { BellIcon } from 'ng-animated-icons';
+
 @Component({
   selector: 'notifications',
   imports: [
@@ -23,6 +25,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     MatMenu,
     MatMenuItem,
     TranslocoPipe,
+    BellIcon,
   ],
   template: `
     <button
@@ -32,7 +35,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
       (click)="toggle()"
       #trigger="cdkOverlayOrigin"
     >
-      <mat-icon svgIcon="bell" />
+      <i-bell [size]="20" />
       @if (unreadCount() > 0) {
         <span class="pointer-events-none absolute right-0.5 top-0.5 z-20 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-white dark:ring-neutral-900 shadow-xs">
           {{ unreadCount() > 99 ? '99+' : unreadCount() }}

@@ -92,8 +92,8 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
               <a
                 cdkMonitorElementFocus
                 ngTreeItem
-                routerLinkActive="bg-neutral-700/10 dark:bg-neutral-300/10"
-                class="navigation-item flex cursor-pointer items-center gap-x-2 rounded-lg px-2.5 py-2 select-none hover:bg-neutral-700/10 dark:hover:bg-neutral-300/10"
+                routerLinkActive="!bg-blue-50 !text-blue-600 dark:!bg-blue-950/40 dark:!text-blue-400 font-bold"
+                class="group navigation-item flex cursor-pointer items-center gap-x-2.5 rounded-xl px-3 py-2 select-none text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all duration-200 text-sm"
                 [parent]="parent"
                 [value]="node.id"
                  [label]="node.label | transloco"
@@ -111,18 +111,18 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
                 <!-- Icon -->
                 @if (node.icon) {
                   <mat-icon
-                    class="pointer-events-none size-4"
+                    class="pointer-events-none size-4.5 shrink-0 transition-transform duration-250 ease-out group-hover:scale-115 group-hover:-rotate-6"
                     [svgIcon]="node.icon"
                   />
                 }
 
                 <!-- Label -->
-                <div class="flex flex-auto flex-col font-medium">
+                <div class="flex flex-auto flex-col font-medium truncate">
                    {{ node.label | transloco }}
 
                   <!-- Description -->
                   @if (node.description) {
-                    <div class="text-xs">
+                    <div class="text-[11px] text-neutral-400 font-normal truncate">
                        {{ node.description | transloco }}
                     </div>
                   }
@@ -131,7 +131,7 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
                 <!-- Badge -->
                 @if (node.badge) {
                   <div
-                    class="rounded bg-pink-400 px-1.5 py-0.5 text-xs font-semibold text-white dark:bg-pink-700"
+                    class="rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 text-[10px] font-bold"
                   >
                     {{ node.badge }}
                   </div>
@@ -141,7 +141,7 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
                 @if (node.children && node.children.length > 0) {
                   <mat-icon
                     svgIcon="chevron-right"
-                    class="pointer-events-none size-4 transition-[rotate]"
+                    class="pointer-events-none size-4 transition-transform duration-200"
                     [class.rotate-90]="node.expanded"
                   />
                 }

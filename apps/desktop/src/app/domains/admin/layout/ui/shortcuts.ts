@@ -20,6 +20,7 @@ import {
   NAVIGATION,
   NavigationItem,
 } from '@/app/domains/admin/layout/data/navigation';
+import { StarIcon, SearchIcon } from 'ng-animated-icons';
 
 const STORAGE_KEY = 'shortcuts';
 const DEFAULT_SHORTCUTS = [
@@ -40,6 +41,8 @@ const DEFAULT_SHORTCUTS = [
     RouterLink,
     MatBadge,
     TranslocoPipe,
+    StarIcon,
+    SearchIcon,
   ],
   host: {
     class: 'flex items-center',
@@ -66,10 +69,7 @@ const DEFAULT_SHORTCUTS = [
       [matBadgeHidden]="!badgeCount()"
       #trigger="matMenuTrigger"
     >
-      <mat-icon
-        class="text-amber-500"
-        svgIcon="star"
-      />
+      <i-star [size]="20" class="text-amber-500" />
     </button>
     <mat-menu
       class="min-w-60"
@@ -77,10 +77,7 @@ const DEFAULT_SHORTCUTS = [
     >
       <!-- Search -->
       <div class="flex items-center gap-x-3 px-4">
-        <mat-icon
-          class="size-4 text-neutral-500"
-          svgIcon="search"
-        />
+        <i-search [size]="16" class="text-neutral-500" />
         <input
           class="border-0 bg-transparent py-2 outline-none"
           type="text"

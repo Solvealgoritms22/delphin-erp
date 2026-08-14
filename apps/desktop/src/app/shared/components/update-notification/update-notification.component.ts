@@ -4,6 +4,7 @@ import { MatSnackBarRef, MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar'
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UpdateService, UpdateStatus, UpdateInfo, DownloadProgress } from '../../services/update.service';
+import { XIcon, DownloadIcon, RotateCwIcon, RefreshCwIcon } from 'ng-animated-icons';
 
 interface SnackBarData {
   service: UpdateService;
@@ -16,7 +17,7 @@ interface SnackBarData {
 @Component({
   selector: 'app-update-notification',
   standalone: true,
-  imports: [CommonModule, MatIconModule, TranslocoPipe],
+  imports: [CommonModule, MatIconModule, TranslocoPipe, XIcon, DownloadIcon, RotateCwIcon, RefreshCwIcon],
   template: `
     <div class="w-full max-w-[440px] select-none p-1.5 font-sans">
       <div class="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-2xl backdrop-blur-2xl transition-all dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-neutral-950/80">
@@ -51,7 +52,7 @@ interface SnackBarData {
                 class="rounded-lg p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
                 [attr.aria-label]="'common.close' | transloco"
               >
-                <mat-icon svgIcon="x" class="icon-size-4"></mat-icon>
+                <i-x [size]="16" />
               </button>
             </div>
 
@@ -91,7 +92,7 @@ interface SnackBarData {
                 (click)="downloadAndInstall()"
                 class="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-blue-700 active:scale-95 cursor-pointer"
               >
-                <mat-icon svgIcon="download" class="icon-size-3.5"></mat-icon>
+                <i-download [size]="14" />
                 {{ 'updater.installNow' | transloco }}
               </button>
             }
@@ -112,7 +113,7 @@ interface SnackBarData {
                 (click)="installAndRestart()"
                 class="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95 cursor-pointer"
               >
-                <mat-icon svgIcon="rotate-cw" class="icon-size-3.5"></mat-icon>
+                <i-rotate-cw [size]="14" />
                 {{ 'updater.restart' | transloco }}
               </button>
             }
@@ -130,7 +131,7 @@ interface SnackBarData {
                 (click)="retry()"
                 class="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-blue-700 active:scale-95 cursor-pointer"
               >
-                <mat-icon svgIcon="refresh-cw" class="icon-size-3.5"></mat-icon>
+                <i-refresh-cw [size]="14" />
                 {{ 'updater.retry' | transloco }}
               </button>
             }

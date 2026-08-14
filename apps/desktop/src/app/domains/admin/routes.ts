@@ -73,6 +73,10 @@ const routes: Routes = [
         loadChildren: () => import('./modules/apps/ai-chat/routes'),
       },
       {
+        path: 'apps/ai-chat',
+        redirectTo: 'ai-chat',
+      },
+      {
         path: 'contacts',
         loadChildren: () => import('./modules/apps/contacts/routes'),
       },

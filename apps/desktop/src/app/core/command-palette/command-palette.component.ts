@@ -3,6 +3,7 @@ import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dial
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { SearchIcon } from 'ng-animated-icons';
 
 export interface CommandItem {
   id: string;
@@ -15,12 +16,12 @@ export interface CommandItem {
 @Component({
   selector: 'app-command-palette-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatIconModule, FormsModule],
+  imports: [MatDialogModule, MatIconModule, FormsModule, SearchIcon],
   template: `
     <div class="flex flex-col bg-white dark:bg-neutral-900 rounded-xl overflow-hidden shadow-2xl ring-1 ring-black/5 max-h-[80vh]">
       <!-- Search input -->
       <div class="flex items-center border-b border-neutral-200 px-4 dark:border-neutral-800">
-        <mat-icon svgIcon="search" class="text-neutral-400" />
+        <i-search [size]="18" class="text-neutral-400 mr-2" />
         <input
           type="text"
           class="w-full bg-transparent p-4 outline-none text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400"

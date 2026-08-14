@@ -16,6 +16,8 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@/app/core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
+import { EyeOffIcon } from 'ng-animated-icons';
+
 @Component({
   selector: 'auth-sign-up',
   templateUrl: './sign-up.html',
@@ -29,6 +31,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     MatSelectModule,
     FormField,
     TranslocoPipe,
+    EyeOffIcon,
   ],
 })
 export default class AuthSignUp {

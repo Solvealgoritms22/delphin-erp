@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { UpdateService } from '@/app/shared/services/update.service';
+import { RefreshCwIcon, MonitorCheckIcon, CircleCheckBigIcon, CircleAlertIcon, DownloadIcon, RotateCwIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-about',
@@ -17,6 +18,12 @@ import { UpdateService } from '@/app/shared/services/update.service';
     MatIconModule,
     MatProgressSpinnerModule,
     TranslocoModule,
+    RefreshCwIcon,
+    MonitorCheckIcon,
+    CircleCheckBigIcon,
+    CircleAlertIcon,
+    DownloadIcon,
+    RotateCwIcon,
   ],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
@@ -36,44 +43,44 @@ import { UpdateService } from '@/app/shared/services/update.service';
       <div class="flex-auto min-h-0 overflow-y-auto p-4 sm:p-6 pb-12">
         <div class="w-full max-w-3xl mx-auto">
 
-      <!-- Version Card -->
-      <mat-card class="mb-6" appearance="outlined">
-        <mat-card-content class="p-6">
-          <div class="flex items-center justify-between gap-4">
-            <div>
-              <div class="text-4xl font-bold text-neutral-900 dark:text-white font-mono">
-                {{ currentVersion() || '—' }}
+          <!-- Version Card -->
+          <mat-card class="mb-6" appearance="outlined">
+            <mat-card-content class="p-6">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <div class="text-4xl font-bold text-neutral-900 dark:text-white font-mono">
+                    {{ currentVersion() || '—' }}
+                  </div>
+                  <div class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                    Dolphin ERP Desktop
+                  </div>
+                </div>
+                <div class="w-20 h-20 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0 p-2">
+                  <img
+                    src="/images/logo/logo_dolphin_light.png"
+                    alt="Dolphin ERP"
+                    class="w-full h-full object-contain dark:hidden"
+                  />
+                  <img
+                    src="/images/logo/logo_dolphin_dark.png"
+                    alt="Dolphin ERP"
+                    class="w-full h-full object-contain hidden dark:block"
+                  />
+                </div>
               </div>
-              <div class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                Dolphin ERP Desktop
-              </div>
-            </div>
-            <div class="w-20 h-20 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0 p-2">
-              <img
-                src="/images/logo/logo_dolphin_light.png"
-                alt="Dolphin ERP"
-                class="w-full h-full object-contain dark:hidden"
-              />
-              <img
-                src="/images/logo/logo_dolphin_dark.png"
-                alt="Dolphin ERP"
-                class="w-full h-full object-contain hidden dark:block"
-              />
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+            </mat-card-content>
+          </mat-card>
 
-      <!-- Update Actions Card -->
-      <mat-card appearance="outlined">
-        <mat-card-header>
-          <mat-card-title class="text-lg font-semibold">
-            {{ 'updater.checkManually' | transloco }}
-          </mat-card-title>
-          <mat-card-subtitle>
-            Comprueba manualmente si hay una nueva versión disponible
-          </mat-card-subtitle>
-        </mat-card-header>
+          <!-- Update Card -->
+          <mat-card appearance="outlined" class="overflow-hidden">
+            <mat-card-header>
+              <mat-card-title class="text-lg font-semibold">
+                {{ 'updater.checkManually' | transloco }}
+              </mat-card-title>
+              <mat-card-subtitle>
+                Comprueba manualmente si hay una nueva versión disponible
+              </mat-card-subtitle>
+            </mat-card-header>
         <mat-card-content class="pt-4">
           <div class="flex flex-col sm:flex-row gap-4">
             <button
@@ -83,13 +90,13 @@ import { UpdateService } from '@/app/shared/services/update.service';
               [disabled]="checking() || downloading() || !isElectron()"
               class="flex-1"
             >
-              <mat-icon svgIcon="refresh-cw" class="icon-size-5 mr-2" [class.animate-spin]="checking() || downloading()"></mat-icon>
+              <i-refresh-cw [size]="18" class="mr-2" [animate]="checking() || downloading()" />
               {{ checking() ? ('updater.checking' | transloco) : (downloading() ? ('updater.downloading' | transloco : { progress: roundedPercent() }) : ('updater.checkManually' | transloco)) }}
             </button>
 
             @if (!isElectron()) {
               <span class="flex items-center justify-center text-sm text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-2">
-                <mat-icon svgIcon="monitor" class="icon-size-4 mr-2"></mat-icon>
+                <i-monitor-check [size]="16" class="mr-2" />
                 {{ 'updater.notElectron' | transloco }}
               </span>
             }
@@ -97,7 +104,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
 
           @if (isUpToDate()) {
             <div class="mt-4 p-3.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 flex items-center">
-              <mat-icon svgIcon="circle-check-big" class="icon-size-4 mr-2 text-emerald-600 dark:text-emerald-400 shrink-0"></mat-icon>
+              <i-circle-check-big [size]="16" class="mr-2 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span class="font-medium text-sm">{{ 'updater.upToDate' | transloco }}</span>
             </div>
           }
@@ -110,7 +117,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
 
           @if (updateError()) {
             <div class="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 flex items-center">
-              <mat-icon svgIcon="circle-alert" class="icon-size-4 mr-2 shrink-0"></mat-icon>
+              <i-circle-alert [size]="16" class="mr-2 shrink-0 text-red-600" />
               <span>{{ updateError() }}</span>
             </div>
           }
@@ -129,7 +136,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
                 (click)="installUpdate()"
                 class="text-white"
               >
-                <mat-icon svgIcon="download" class="icon-size-4 mr-2"></mat-icon>
+                <i-download [size]="16" class="mr-2" />
                 {{ 'updater.installNow' | transloco }}
               </button>
             </div>
@@ -149,7 +156,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
                 (click)="restartApp()"
                 class="text-white"
               >
-                <mat-icon svgIcon="rotate-cw" class="icon-size-4 mr-2"></mat-icon>
+                <i-rotate-cw [size]="16" class="mr-2" />
                 {{ 'updater.restart' | transloco }}
               </button>
             </div>

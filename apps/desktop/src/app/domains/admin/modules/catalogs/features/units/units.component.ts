@@ -7,11 +7,12 @@ import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-s
 import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
 import { UnitDialogComponent } from './unit-dialog.component';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PlusIcon, PencilIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-units',
   standalone: true,
-    imports: [MatButtonModule, MatIconModule, EmptyStateComponent, MatDialogModule, TableSkeletonComponent, TranslocoPipe],
+  imports: [MatButtonModule, MatIconModule, EmptyStateComponent, MatDialogModule, TableSkeletonComponent, TranslocoPipe, PlusIcon, PencilIcon],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 overflow-hidden">
       <!-- Header -->
@@ -22,7 +23,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
          </div>
         <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
           <button mat-flat-button (click)="openDialog()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-            <mat-icon svgIcon="plus" class="icon-size-5 mr-2"></mat-icon>
+            <i-plus [size]="18" class="mr-2" />
              {{ 'catalogs.units.new' | transloco }}
           </button>
         </div>
@@ -64,8 +65,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
                     </span>
                   </div>
                   <div>
-                    <button mat-icon-button (click)="openDialog(unidad)" class="text-neutral-500">
-                       <mat-icon svgIcon="pencil" class="icon-size-5"></mat-icon>
+                    <button mat-icon-button (click)="openDialog(unidad)" class="text-neutral-500 hover:text-neutral-700">
+                       <i-pencil [size]="18" />
                     </button>
                   </div>
                 </div>

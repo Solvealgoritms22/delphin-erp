@@ -14,21 +14,28 @@ import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/c
 import { AccountDialogComponent } from './account-dialog.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
+import { UserRoundIcon, BellIcon, SunIcon, LogOutIcon, ArrowUpRightIcon } from 'ng-animated-icons';
+
 @Component({
   selector: 'user',
   imports: [
     MatDivider,
-    MatIcon,
     MatMenu,
     MatMenuItem,
     MatPseudoCheckbox,
     MatMenuTrigger,
+    MatIcon,
     RouterLink,
     TranslocoPipe,
+    UserRoundIcon,
+    BellIcon,
+    SunIcon,
+    LogOutIcon,
+    ArrowUpRightIcon,
   ],
   template: `
     <button
-      class="flex w-full cursor-pointer items-center gap-x-3 rounded-xl p-2 text-left hover:bg-neutral-700/10 dark:hover:bg-neutral-300/10"
+      class="hover:bg-neutral-100 dark:hover:bg-neutral-800 flex h-14 w-full items-center gap-x-3 rounded-lg px-3 text-left transition-colors cursor-pointer"
       [matMenuTriggerFor]="userMenu"
     >
       @if (user()?.avatar) {
@@ -44,10 +51,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
           {{ email() }}
         </div>
       </div>
-      <mat-icon
-        class="size-4"
-        svgIcon="ellipsis-vertical"
-      />
+      <mat-icon svgIcon="ellipsis-vertical" class="icon-size-4 text-neutral-400 shrink-0"></mat-icon>
     </button>
 
     <mat-menu
@@ -77,21 +81,21 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
       <mat-divider />
       @if (!isEnterprise()) {
         <button mat-menu-item (click)="goToPlans()">
-           <mat-icon svgIcon="arrow-up-right" />
+           <i-arrow-up-right [size]="18" class="mr-3" />
            {{ 'layout.user.upgrade' | transloco }}
         </button>
         <mat-divider />
       }
       <button mat-menu-item (click)="openAccountModal()">
-        <mat-icon svgIcon="user-round" />
+        <i-user-round [size]="18" class="mr-3" />
          {{ 'layout.user.account' | transloco }}
       </button>
       <button mat-menu-item routerLink="/admin/billing">
-        <mat-icon svgIcon="wallet" />
+        <mat-icon svgIcon="wallet" class="mr-3 icon-size-5"></mat-icon>
          {{ 'layout.user.billing' | transloco }}
       </button>
        <button mat-menu-item routerLink="/admin/notifications">
-        <mat-icon svgIcon="bell" />
+        <i-bell [size]="18" class="mr-3" />
          {{ 'layout.user.notifications' | transloco }}
       </button>
       <mat-divider />
@@ -99,7 +103,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
         mat-menu-item
         [matMenuTriggerFor]="appearanceMenu"
       >
-        <mat-icon svgIcon="sun-moon" />
+        <i-sun [size]="18" class="mr-3" />
          {{ 'layout.user.appearance' | transloco }}
       </button>
       <mat-divider />
@@ -107,7 +111,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
         mat-menu-item
         (click)="signOut()"
       >
-        <mat-icon svgIcon="log-out" />
+        <i-log-out [size]="18" class="mr-3 text-red-500" />
          {{ 'layout.user.signOut' | transloco }}
       </button>
     </mat-menu>
