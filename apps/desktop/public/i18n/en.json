@@ -51,6 +51,7 @@
     "categories": "Categories",
     "brands": "Brands",
     "units": "Units of measure",
+    "inventory": "Inventory & Warehouses",
     "commercial": "Commercial",
     "commercialDescription": "Clients and suppliers",
     "clients": "Clients",
@@ -455,6 +456,13 @@
       "abbreviation": "Abbreviation",
       "emptyTitle": "No units registered",
       "emptyDescription": "Add units such as Pieces, Kilograms, or Meters."
+    },
+    "inventory": {
+      "title": "Inventory & Warehouses",
+      "description": "Multi-branch stock control, warehouses, transfers, and immutable Kardex ledger.",
+      "newWarehouse": "New Warehouse",
+      "stockAdjustment": "Stock Adjustment",
+      "newTransfer": "New Transfer"
     }
   },
   "commercial": {

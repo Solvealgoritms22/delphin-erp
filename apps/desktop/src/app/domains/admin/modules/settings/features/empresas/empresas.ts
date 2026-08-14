@@ -1,4 +1,6 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -197,6 +199,7 @@ export class EmpresasComponent implements OnInit {
   private dialog = inject(MatDialog);
   private http = inject(HttpClient);
   private transloco = inject(TranslocoService);
+  private destroyRef = inject(DestroyRef);
   
   empresas = signal<Empresa[]>([]);
   isLoading = signal<boolean>(true);
@@ -217,62 +220,64 @@ export class EmpresasComponent implements OnInit {
 
   loadEmpresas() {
     this.isLoading.set(true);
-    this.authService.getMyEmpresas().subscribe({
-      next: (data) => {
-        this.empresas.set(data);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.isLoading.set(false);
-      }
-    });
+    this.authService.getMyEmpresas()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.empresas.set(data);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.isLoading.set(false);
+        }
+      });
   }
 
   switchTenant(id: string) {
-    this.authService.switchTenant(id).subscribe({
-      next: () => {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.setItem('active_empresa_id', id);
+    this.authService.switchTenant(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem('active_empresa_id', id);
+          }
+          window.location.reload();
         }
-        window.location.reload();
-      }
-    });
+      });
   }
 
-  openCreateDialog() {
+  async openCreateDialog() {
     const dialogRef = this.dialog.open(EmpresaDialogComponent, {
       width: '500px',
       panelClass: 'dolphin-dialog'
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadEmpresas();
-      }
-    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      this.loadEmpresas();
+    }
   }
 
-  openEditDialog(empresa: Empresa) {
+  async openEditDialog(empresa: Empresa) {
     const dialogRef = this.dialog.open(EmpresaDialogComponent, {
       width: '500px',
       panelClass: 'dolphin-dialog',
       data: empresa
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadEmpresas();
-        if (empresa.id === this.currentEmpresaId()) {
-          // Si editamos la actual, idealmente actualizamos el usuario en el storage para que se refleje globalmente si aplica,
-          // pero como AuthState jala el nombre desde el token (switchTenant hace refresh de esto).
-          // Recargando la vista por ahora es mas seguro.
-          window.location.reload();
-        }
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      this.loadEmpresas();
+      if (empresa.id === this.currentEmpresaId()) {
+        // Si editamos la actual, idealmente actualizamos el usuario en el storage para que se refleje globalmente si aplica,
+        // pero como AuthState jala el nombre desde el token (switchTenant hace refresh de esto).
+        // Recargando la vista por ahora es mas seguro.
+        window.location.reload();
       }
-    });
+    }
   }
 
-  deleteEmpresa(empresa: Empresa) {
+  async deleteEmpresa(empresa: Empresa) {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'dolphin-dialog',
       data: {
@@ -285,10 +290,12 @@ export class EmpresasComponent implements OnInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.isLoading.set(true);
-        this.http.delete(`${environment.apiUrl}/empresas/${empresa.id}`).subscribe({
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      this.isLoading.set(true);
+      this.http.delete(`${environment.apiUrl}/empresas/${empresa.id}`)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
           next: () => {
             this.loadEmpresas();
           },
@@ -296,7 +303,6 @@ export class EmpresasComponent implements OnInit {
             this.isLoading.set(false);
           }
         });
-      }
-    });
+    }
   }
 }

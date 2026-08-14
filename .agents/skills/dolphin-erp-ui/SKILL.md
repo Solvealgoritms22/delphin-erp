@@ -66,6 +66,31 @@ Un módulo no está terminado si falta cualquiera de los puntos aplicables. En l
 
 ---
 
+## 1.2 Estándar de Cabeceras de Página (Page Headers)
+
+* **Prohibido colocar íconos al lado del título principal**: Las cabeceras de página principales (`Header`) deben mantener un diseño tipográfico limpio y minimalista. **Nunca** agregues cajas de íconos decorativos (`div` con fondo y `mat-icon`) al lado del título `<h1>` o `<div>`.
+* **Estructura Estándar Oficial**:
+  ```html
+  <!-- Header -->
+  <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+    <!-- Title & Subtitle -->
+    <div>
+      <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+        {{ 'module.title' | transloco }}
+      </div>
+      <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+        {{ 'module.description' | transloco }}
+      </p>
+    </div>
+    <!-- Actions / Buttons -->
+    <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 gap-3">
+      <!-- Botones de acción principales -->
+    </div>
+  </div>
+  ```
+
+---
+
 ## 2. Componentes Reutilizables Disponibles
 
 Antes de crear código desde cero, **revisa y reutiliza los componentes existentes en `src/app/shared/components/`**:

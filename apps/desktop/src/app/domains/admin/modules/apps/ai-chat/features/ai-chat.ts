@@ -262,7 +262,7 @@ export default class AiChat {
 
   protected suggestions = [
     {
-      icon: 'bar-chart-3',
+      icon: 'building-2',
       title: 'Resumen Ejecutivo de la Empresa',
       description: 'Estado general, métricas clave, suscripción y distribución.',
       query: 'Dame un resumen ejecutivo general de la empresa activa',

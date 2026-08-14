@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, signal, inject, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, computed, signal, inject, TemplateRef, ViewChild, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,7 +8,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { RolesService, Role } from '../../data/roles';
-import { UsersService } from '../../data/users';
+import { UsersService, User } from '../../data/users';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PlusIcon, ArrowRightIcon, SearchIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CheckIcon, AwardIcon, XIcon } from 'ng-animated-icons';
@@ -79,15 +80,24 @@ export interface RolePermissions {
                   <h3 class="text-base font-bold text-neutral-900 dark:text-white">{{ role.nombre }}</h3>
                    <p class="text-sm text-neutral-500 dark:text-neutral-400 min-h-[40px] leading-relaxed">{{ role.descripcion || ('roles.defaultDescription' | transloco) }}</p>
                   
-                  <div class="flex justify-between items-end mt-auto pt-2">
-                    <div class="flex -space-x-2">
-                      @for (avatar of getRoleAvatars(role.id).slice(0, 4); track avatar; let i = $index) {
-                        <img class="w-6 h-6 rounded-full border border-neutral-50 dark:border-neutral-800 object-cover" [src]="avatar" alt="">
+                  <div class="flex justify-between items-center mt-auto pt-2">
+                    <div class="flex items-center -space-x-1.5 min-h-[28px]">
+                      @for (acc of getRoleAccounts(role.id).slice(0, 4); track acc.id) {
+                        @if (acc.avatar) {
+                          <img class="w-7 h-7 rounded-full border-2 border-white dark:border-neutral-800 object-cover shadow-xs" [src]="acc.avatar" [alt]="acc.name || acc.email" [title]="acc.name || acc.email">
+                        } @else {
+                          <div class="w-7 h-7 rounded-full border-2 border-white dark:border-neutral-800 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-[10px] shrink-0 shadow-xs" [title]="acc.name || acc.email">
+                            {{ (acc.name || acc.email).charAt(0).toUpperCase() }}
+                          </div>
+                        }
                       }
                       @if (getRoleUsersCount(role.id) > 4) {
-                        <div class="w-6 h-6 rounded-full border border-neutral-50 dark:border-neutral-800 bg-neutral-300 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 flex items-center justify-center text-[10px] font-bold z-10">
+                        <div class="w-7 h-7 rounded-full border-2 border-white dark:border-neutral-800 bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 flex items-center justify-center text-[10px] font-bold z-10">
                           +{{ getRoleUsersCount(role.id) - 4 }}
                         </div>
+                      }
+                      @if (getRoleUsersCount(role.id) === 0) {
+                        <span class="text-xs text-neutral-400 dark:text-neutral-500 italic">0 miembros</span>
                       }
                     </div>
                     <button (click)="openRoleModal(role)" class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
@@ -364,6 +374,7 @@ export class RolesComponent implements OnInit {
   dialog = inject(MatDialog);
   snackBar = inject(MatSnackBar);
   transloco = inject(TranslocoService);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('roleModalTemplate') roleModalTemplate!: TemplateRef<any>;
   private dialogRef?: MatDialogRef<any>;
@@ -425,6 +436,13 @@ export class RolesComponent implements OnInit {
       icon: 'layout-dashboard'
     },
     {
+      id: 'mod-ai-chat',
+      name: 'Asistente IA',
+      slug: 'ai_chat',
+      description: 'Consultas inteligentes, análisis y ejecución de herramientas con IA',
+      icon: 'sparkles'
+    },
+    {
       id: 'mod-catalogs',
       name: 'Catálogos Maestros',
       slug: 'catalogs',
@@ -450,7 +468,7 @@ export class RolesComponent implements OnInit {
       name: 'Mi Empresa',
       slug: 'settings_company',
       description: 'Configuración de datos de la empresa, RNC y redes sociales',
-      icon: 'building'
+      icon: 'briefcase'
     },
     {
       id: 'mod-roles',
@@ -467,11 +485,46 @@ export class RolesComponent implements OnInit {
       icon: 'user-check'
     },
     {
+      id: 'mod-security-logs',
+      name: 'Registros de Auditoría',
+      slug: 'security_logs',
+      description: 'Auditoría de eventos de seguridad y accesos al sistema',
+      icon: 'shield-alert'
+    },
+    {
+      id: 'mod-current-sessions',
+      name: 'Sesiones Activas',
+      slug: 'current_sessions',
+      description: 'Visualización y control de sesiones y dispositivos conectados',
+      icon: 'monitor-smartphone'
+    },
+    {
+      id: 'mod-activity',
+      name: 'Registro de Actividad',
+      slug: 'activity',
+      description: 'Historial detallado de operaciones realizadas en la empresa',
+      icon: 'activity'
+    },
+    {
+      id: 'mod-inventory',
+      name: 'Inventario y Almacenes',
+      slug: 'inventory',
+      description: 'Control de existencias multi-almacén, transferencias y Kardex',
+      icon: 'boxes'
+    },
+    {
       id: 'mod-billing',
       name: 'Plan y Facturación',
       slug: 'billing',
       description: 'Gestión de planes, tarjetas de pago y facturas emitidas',
       icon: 'credit-card'
+    },
+    {
+      id: 'mod-about',
+      name: 'Acerca del Sistema',
+      slug: 'about',
+      description: 'Información de versión, comprobación de actualizaciones y mantenimiento',
+      icon: 'package-check'
     }
   ];
 
@@ -490,8 +543,12 @@ export class RolesComponent implements OnInit {
 
 
   ngOnInit() {
-    this.rolesService.findAll().subscribe();
-    this.usersService.findAll().subscribe();
+    this.rolesService.findAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+    this.usersService.findAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   // --- Logic for Accounts Selection ---
@@ -523,14 +580,12 @@ export class RolesComponent implements OnInit {
 
   // --- Logic for Roles ---
 
-  getRoleUsersCount(roleId: string): number {
-    return this.accounts().filter(a => a.roleId === roleId && !a.isOwner).length;
+  getRoleAccounts(roleId: string): User[] {
+    return this.accounts().filter(a => a.roleId === roleId);
   }
 
-  getRoleAvatars(roleId: string): string[] {
-    return this.accounts()
-      .filter(a => a.roleId === roleId && !a.isOwner)
-      .map(a => a.avatar || 'avatars/300-1.png');
+  getRoleUsersCount(roleId: string): number {
+    return this.getRoleAccounts(roleId).length;
   }
 
   getRoleName(roleId: string | undefined): string {
@@ -557,6 +612,18 @@ export class RolesComponent implements OnInit {
       commercial: 'commercial',
       sucursales: 'sucursales',
       billing: 'billing',
+      ai_chat: 'ai_chat',
+      'ai-chat': 'ai_chat',
+      security: 'security_logs',
+      security_logs: 'security_logs',
+      'security-logs': 'security_logs',
+      sessions: 'current_sessions',
+      current_sessions: 'current_sessions',
+      'current-sessions': 'current_sessions',
+      activity: 'activity',
+      inventory: 'inventory',
+      about: 'about',
+      legal: 'legal',
     };
     const result: RolePermissions = {};
     for (const p of perms) {

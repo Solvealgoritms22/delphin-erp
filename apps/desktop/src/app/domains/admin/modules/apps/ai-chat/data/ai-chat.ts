@@ -1,17 +1,22 @@
 import { Injectable, inject, signal, computed, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { Conversation, Message } from './model';
 import { environment } from '@/environments/environment';
+import { AuthState } from '@/app/core/auth/auth.state';
 
 @Injectable({ providedIn: 'root' })
 export class AiChatService {
   private http = inject(HttpClient);
+  private authState = inject(AuthState);
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
   private readonly apiUrl = `${environment.apiUrl}/ai`;
   private readonly storageKey = 'dolphin_ai_conversations';
+
+  /** rAF handle used for batching streaming token updates */
+  private streamingRafHandle: number | null = null;
 
   readonly conversations = signal<Conversation[]>([]);
   readonly activeConversationId = signal<string>('');
@@ -141,7 +146,65 @@ export class AiChatService {
   }
 
   /**
-   * Send a message in a conversation thread and process AI response
+   * Updates a streaming message in real-time.
+   * When `streaming` is true (during token emission) we schedule the update via
+   * requestAnimationFrame so multiple tokens arriving in the same frame are
+   * batched into a single signal write (max 60 signal updates/sec instead of
+   * one per token). Final cleanup calls (streaming=false) are always applied
+   * immediately to ensure the "done" state is flushed without delay.
+   */
+  private updateStreamingMessage(
+    conversationId: string,
+    messageId: string,
+    content: string,
+    streaming: boolean,
+    toolsUsed?: string[],
+  ): void {
+    const applyUpdate = () => {
+      this.conversations.update((list) =>
+        list.map((conv) => {
+          if (conv.id === conversationId) {
+            return {
+              ...conv,
+              messages: conv.messages.map((m) =>
+                m.id === messageId
+                  ? {
+                      ...m,
+                      content,
+                      streaming,
+                      toolsUsed: toolsUsed && toolsUsed.length > 0 ? toolsUsed : m.toolsUsed,
+                    }
+                  : m,
+              ),
+            };
+          }
+          return conv;
+        }),
+      );
+    };
+
+    if (!streaming) {
+      // Final update: cancel any pending rAF and apply immediately
+      if (this.streamingRafHandle !== null) {
+        cancelAnimationFrame(this.streamingRafHandle);
+        this.streamingRafHandle = null;
+      }
+      applyUpdate();
+      return;
+    }
+
+    // During streaming: schedule via rAF, replacing any previously queued frame
+    if (this.streamingRafHandle !== null) {
+      cancelAnimationFrame(this.streamingRafHandle);
+    }
+    this.streamingRafHandle = requestAnimationFrame(() => {
+      this.streamingRafHandle = null;
+      applyUpdate();
+    });
+  }
+
+  /**
+   * Send a message and consume real-time token-by-token stream (SSE)
    */
   sendMessage(conversationId: string, text: string): Observable<any> {
     const trimmed = text.trim();
@@ -164,11 +227,10 @@ export class AiChatService {
       streaming: true,
     };
 
-    // Add user message & placeholder to state
+    // Add user message & streaming placeholder to state
     this.conversations.update((list) =>
       list.map((conv) => {
         if (conv.id === conversationId) {
-          // Update title if it's the first user message in a new chat
           const isDefaultTitle = conv.title === 'Nueva Conversación' || conv.messages.length <= 1;
           const newTitle = isDefaultTitle
             ? trimmed.slice(0, 36) + (trimmed.length > 36 ? '...' : '')
@@ -185,7 +247,6 @@ export class AiChatService {
 
     this.isGenerating.set(true);
 
-    // Build history for context
     const current = this.conversations().find((c) => c.id === conversationId);
     const history = (current?.messages || [])
       .filter((m) => !m.streaming && m.id !== assistantMsgId)
@@ -195,69 +256,79 @@ export class AiChatService {
         content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
       }));
 
-    return this.http
-      .post<{ reply: string; conversationId: string; toolsUsed: string[] }>(
-        `${this.apiUrl}/chat`,
-        {
+    return new Observable((subscriber) => {
+      const token = this.authState.accessToken() || '';
+
+      fetch(`${this.apiUrl}/chat/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
           message: trimmed,
           conversationId,
           history,
-        },
-      )
-      .pipe(
-        tap((res) => {
-          this.conversations.update((list) =>
-            list.map((conv) => {
-              if (conv.id === conversationId) {
-                return {
-                  ...conv,
-                  messages: conv.messages.map((m) =>
-                    m.id === assistantMsgId
-                      ? {
-                          ...m,
-                          content: res.reply,
-                          streaming: false,
-                          toolsUsed: res.toolsUsed,
-                        }
-                      : m,
-                  ),
-                };
+        }),
+      })
+        .then(async (response) => {
+          if (!response.ok || !response.body) {
+            throw new Error(`Error en el servicio de IA (HTTP ${response.status})`);
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let buffer = '';
+          let accumulatedContent = '';
+          let toolsUsedList: string[] = [];
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const chunks = buffer.split('\n\n');
+            buffer = chunks.pop() || '';
+
+            for (const chunk of chunks) {
+              const trimmedChunk = chunk.trim();
+              if (!trimmedChunk || !trimmedChunk.startsWith('data:')) continue;
+              const jsonStr = trimmedChunk.replace(/^data:\s*/, '');
+              try {
+                const event = JSON.parse(jsonStr);
+                if (event.type === 'tools' && event.toolsUsed) {
+                  toolsUsedList = event.toolsUsed;
+                  this.updateStreamingMessage(conversationId, assistantMsgId, accumulatedContent, true, toolsUsedList);
+                } else if (event.type === 'token' && event.token) {
+                  accumulatedContent += event.token;
+                  this.updateStreamingMessage(conversationId, assistantMsgId, accumulatedContent, true, toolsUsedList);
+                } else if (event.type === 'done') {
+                  this.updateStreamingMessage(conversationId, assistantMsgId, accumulatedContent, false, event.toolsUsed || toolsUsedList);
+                }
+              } catch {
+                // ignore partial JSON chunks
               }
-              return conv;
-            }),
-          );
+            }
+          }
+
+          this.updateStreamingMessage(conversationId, assistantMsgId, accumulatedContent, false, toolsUsedList);
           this.isGenerating.set(false);
           this.saveToStorage();
-        }),
-        catchError((err) => {
+          subscriber.next({ reply: accumulatedContent });
+          subscriber.complete();
+        })
+        .catch((err) => {
           const fallbackError =
             `> [!WARNING]\n` +
             `> No se pudo conectar con el servicio de IA o no hay una empresa activa seleccionada.\n\n` +
-            `Detalle: \`${err?.error?.message || err?.message || 'Error de conexión'}\``;
+            `Detalle: \`${err?.message || 'Error de conexión'}\``;
 
-          this.conversations.update((list) =>
-            list.map((conv) => {
-              if (conv.id === conversationId) {
-                return {
-                  ...conv,
-                  messages: conv.messages.map((m) =>
-                    m.id === assistantMsgId
-                      ? {
-                          ...m,
-                          content: fallbackError,
-                          streaming: false,
-                        }
-                      : m,
-                  ),
-                };
-              }
-              return conv;
-            }),
-          );
+          this.updateStreamingMessage(conversationId, assistantMsgId, fallbackError, false, []);
           this.isGenerating.set(false);
           this.saveToStorage();
-          return of(null);
-        }),
-      );
+          subscriber.next({ error: fallbackError });
+          subscriber.complete();
+        });
+    });
   }
 }

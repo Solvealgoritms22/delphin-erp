@@ -224,13 +224,15 @@ export class PaymentsController {
     const amount =
       dto.billingCycle === 'annual' ? plan.precioAnual : plan.precioMensual;
 
-    if (amount > 0 && process.env.AZUL_ENV !== 'MOCK') {
+    const numAmount = Number(amount);
+
+    if (numAmount > 0 && process.env.AZUL_ENV !== 'MOCK') {
       const orderNumber = `UPG-${empresaId.substring(0, 8)}-${Date.now()}`;
       const azulResponse = await this.azulService.processTokenSale({
         dataVaultToken: suscripcion.azulDataVaultToken,
         dataVaultExpiration: suscripcion.azulDataVaultExpiration || '202812',
-        amountCents: Math.round(amount * 100),
-        itbisCents: Math.round(amount * 18),
+        amountCents: Math.round(numAmount * 100),
+        itbisCents: Math.round(numAmount * 18),
         orderNumber,
       });
       if (!this.azulService.isApproved(azulResponse)) {

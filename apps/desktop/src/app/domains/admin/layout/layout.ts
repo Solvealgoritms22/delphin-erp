@@ -1,4 +1,5 @@
-import { Component, computed, signal, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { Component, computed, signal, inject, OnInit, OnDestroy, PLATFORM_ID, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,6 +27,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
 
 @Component({
   selector: 'admin-layout',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'flex h-full w-full flex-1 flex-col min-h-0 overflow-hidden',
   },
@@ -220,6 +222,9 @@ export class AdminLayout implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private authState = inject(AuthState);
   private updateService = inject(UpdateService);
+  private destroyRef = inject(DestroyRef);
+  /** Cleanup handle for the Electron maximize-change native callback */
+  private electronMaximizeCleanup?: () => void;
 
   // Electron frameless window support
   readonly isElectron = isPlatformBrowser(this.platformId) && !!(window as any).dolphinWindow;
@@ -256,24 +261,26 @@ export class AdminLayout implements OnInit, OnDestroy {
   );
 
   ngOnInit() {
-    this.authService.getMyEmpresas().subscribe({
-      next: (list) => {
-        this.empresas.set(list);
-        if (list.length > 0 && isPlatformBrowser(this.platformId)) {
-          const savedEmpresaId = localStorage.getItem('active_empresa_id');
-          const currentId = this.currentEmpresaId();
+    this.authService.getMyEmpresas()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => {
+          this.empresas.set(list);
+          if (list.length > 0 && isPlatformBrowser(this.platformId)) {
+            const savedEmpresaId = localStorage.getItem('active_empresa_id');
+            const currentId = this.currentEmpresaId();
 
-          if (savedEmpresaId && list.some(e => e.id === savedEmpresaId) && savedEmpresaId !== currentId) {
-            const target = list.find(e => e.id === savedEmpresaId)!;
-            this.switchTenant(target);
-          } else if (!currentId) {
-            const target = (savedEmpresaId && list.find(e => e.id === savedEmpresaId)) || list[0];
-            this.switchTenant(target);
+            if (savedEmpresaId && list.some(e => e.id === savedEmpresaId) && savedEmpresaId !== currentId) {
+              const target = list.find(e => e.id === savedEmpresaId)!;
+              this.switchTenant(target);
+            } else if (!currentId) {
+              const target = (savedEmpresaId && list.find(e => e.id === savedEmpresaId)) || list[0];
+              this.switchTenant(target);
+            }
           }
-        }
-      },
-      error: () => { } // silently fail if not connected
-    });
+        },
+        error: () => { } // silently fail if not connected
+      });
 
     if (this.updateService.isElectron()) {
       this.updateService.checkForUpdates();
@@ -281,31 +288,38 @@ export class AdminLayout implements OnInit, OnDestroy {
 
     // Subscribe to maximize state changes from Electron main process
     if (this.isElectron) {
-      (window as any).dolphinWindow.onMaximizeChange((maximized: boolean) => {
-        this.isMaximized.set(maximized);
-      });
+      const handler = (maximized: boolean) => this.isMaximized.set(maximized);
+      (window as any).dolphinWindow.onMaximizeChange(handler);
+      // Store cleanup handle if the Electron API supports unsubscribing
+      this.electronMaximizeCleanup = () => {
+        (window as any).dolphinWindow?.removeMaximizeListener?.(handler);
+      };
     }
   }
 
-  ngOnDestroy() { /* nothing to clean up */ }
+  ngOnDestroy() {
+    this.electronMaximizeCleanup?.();
+  }
 
   switchTenant(empresa: Empresa) {
     if (empresa.id === this.currentEmpresaId() && (!isPlatformBrowser(this.platformId) || localStorage.getItem('active_empresa_id') === empresa.id)) return;
     this.loadingSwitch.set(true);
-    this.authService.switchTenant(empresa.id).subscribe({
-      next: () => {
-        this.loadingSwitch.set(false);
-        if (isPlatformBrowser(this.platformId)) {
-          localStorage.setItem('active_empresa_id', empresa.id);
-        }
-        // Reload the current route to refresh data for the new tenant
-        const currentUrl = this.router.url;
-        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-          this.router.navigate([currentUrl]);
-        });
-      },
-      error: () => this.loadingSwitch.set(false)
-    });
+    this.authService.switchTenant(empresa.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadingSwitch.set(false);
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('active_empresa_id', empresa.id);
+          }
+          // Reload the current route to refresh data for the new tenant
+          const currentUrl = this.router.url;
+          this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+            this.router.navigate([currentUrl]);
+          });
+        },
+        error: () => this.loadingSwitch.set(false)
+      });
   }
 
   getRouteUrl() {

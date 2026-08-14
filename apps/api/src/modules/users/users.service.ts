@@ -89,6 +89,7 @@ export class UsersService {
           email: data.email,
           passwordHash,
           nombre: data.name || data.nombre || null,
+          avatar: data.avatar || null,
           ...(usingInvitation
             ? {
                 isVerified: false,
@@ -98,6 +99,28 @@ export class UsersService {
             : { debeCambiarPassword: true }),
         },
       });
+    } else {
+      // Update avatar or name if provided
+      const updatePayload: any = {};
+      if (data.avatar !== undefined) updatePayload.avatar = data.avatar;
+      if (data.name || data.nombre) updatePayload.nombre = data.name || data.nombre;
+      if (Object.keys(updatePayload).length > 0) {
+        user = await this.prisma.usuario.update({
+          where: { id: user.id },
+          data: updatePayload,
+        });
+      }
+      // If the user has not verified yet and invitation was requested, generate a new token
+      if (!user.isVerified && usingInvitation) {
+        invitationToken = randomBytes(32).toString('hex');
+        user = await this.prisma.usuario.update({
+          where: { id: user.id },
+          data: {
+            invitacionTokenHash: createHash('sha256').update(invitationToken).digest('hex'),
+            invitacionExpiraEn: new Date(Date.now() + 48 * 60 * 60 * 1000),
+          },
+        });
+      }
     }
 
     const initialStatus = invitationToken ? 'PENDIENTE' : data.estado || 'ACTIVO';
@@ -182,24 +205,83 @@ export class UsersService {
   }
 
   private async sendInvitation(to: string, name: string, token: string, companies: string) {
-    if (!this.mailer) throw new BadRequestException('El servicio de correo no está configurado');
     const frontendUrl = process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
     const invitationUrl = `${frontendUrl}/auth/accept-invitation?token=${encodeURIComponent(token)}`;
-    await this.mailer.sendMail({
-      to,
-      subject: 'Invitación para acceder a Dolphin ERP',
-      text: [
-        `Hola ${name},`,
-        '',
-        'Has sido invitado a Dolphin ERP.',
-        `Empresas asignadas: ${companies || 'Empresa asignada'}.`,
-        '',
-        'Activa tu cuenta y crea tu contraseña desde este enlace:',
-        invitationUrl,
-        '',
-        'El enlace expira en 48 horas.',
-      ].join('\n'),
-    });
+    const subject = 'Invitación para acceder a Dolphin ERP';
+
+    const html = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
+        <div style="text-align: center; margin-bottom: 28px;">
+          <div style="display: inline-block; font-size: 22px; font-weight: 800; color: #2563eb; letter-spacing: 0.1em; text-transform: uppercase;">
+            DOLPHIN <span style="color: #0f172a;">ERP</span>
+          </div>
+        </div>
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px;">
+          <h2 style="margin-top: 0; color: #0f172a; font-size: 20px; font-weight: 700;">¡Hola, ${name || 'bienvenido'}!</h2>
+          <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+            Has sido invitado a formar parte del equipo en <strong>Dolphin ERP</strong>.
+          </p>
+          <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px;">
+            <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Empresas asignadas:</span>
+            <span style="font-size: 14px; font-weight: 600; color: #0f172a;">${companies || 'Tu empresa'}</span>
+          </div>
+          <p style="font-size: 14px; line-height: 1.5; color: #475569; margin-bottom: 24px;">
+            Para activar tu cuenta y configurar tu contraseña de acceso seguro, haz clic en el siguiente botón:
+          </p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${invitationUrl}" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">
+              Activar Mi Cuenta
+            </a>
+          </div>
+          <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 20px;">
+            Este enlace de invitación expirará en 48 horas.<br>
+            Si no esperabas esta invitación, puedes ignorar este correo de forma segura.
+          </p>
+        </div>
+        <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #94a3b8;">
+          © ${new Date().getFullYear()} Dolphin ERP. Todos los derechos reservados.
+        </div>
+      </div>
+    `;
+
+    const text = [
+      `Hola ${name || ''},`,
+      '',
+      'Has sido invitado a Dolphin ERP.',
+      `Empresas asignadas: ${companies || 'Empresa asignada'}.`,
+      '',
+      'Activa tu cuenta y crea tu contraseña desde este enlace:',
+      invitationUrl,
+      '',
+      'El enlace expira en 48 horas.',
+    ].join('\n');
+
+    try {
+      if (process.env.EMAIL_PROVIDER === 'resend' && process.env.RESEND_API_KEY) {
+        const { Resend } = await import('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: process.env.RESEND_FROM || process.env.SMTP_FROM || 'admin@fiscalbridge.app',
+          to,
+          subject,
+          html,
+          text,
+        });
+        return;
+      }
+
+      if (this.mailer) {
+        await this.mailer.sendMail({
+          to,
+          from: `"Dolphin ERP" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+          subject,
+          html,
+          text,
+        });
+      }
+    } catch (err: any) {
+      console.error('[UsersService] Error sending invitation email:', err?.message || err);
+    }
   }
 
   async update(empresaId: string, id: string, data: any, actorUserId?: string) {
@@ -226,6 +308,13 @@ export class UsersService {
       await this.prisma.usuario.update({
         where: { id },
         data: { nombre: data.name ?? data.nombre },
+      });
+    }
+
+    if (data.avatar !== undefined) {
+      await this.prisma.usuario.update({
+        where: { id },
+        data: { avatar: data.avatar },
       });
     }
 

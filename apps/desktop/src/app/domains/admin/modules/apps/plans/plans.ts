@@ -20,31 +20,127 @@ interface Plan {
   caracteristicas: string[];
 }
 
+interface ComparisonRow {
+  name: string;
+  starter: boolean | string;
+  pro: boolean | string;
+  enterprise: boolean | string;
+}
+
+interface ComparisonCategory {
+  category: string;
+  rows: ComparisonRow[];
+}
+
 const DEFAULT_PLANS: Plan[] = [
   {
     id: 'starter',
     nombre: 'Starter',
-    descripcion: 'Para empezar a gestionar tu negocio.',
+    descripcion: 'Para pequeñas empresas que inician su gestión comercial.',
     precioMensual: 19,
     precioAnual: 17,
-    caracteristicas: ['Hasta 5 miembros', 'Productos ilimitados', 'Soporte por correo'],
+    caracteristicas: [
+      '1 empresa incluida',
+      'Hasta 5 usuarios incluidos',
+      'Roles y permisos avanzados',
+      'Catálogo de productos ilimitado',
+      'Directorio de clientes y proveedores',
+      'Asistente IA integrado',
+      'Soporte por correo',
+    ],
   },
   {
     id: 'pro',
     nombre: 'Pro',
-    descripcion: 'Para negocios en crecimiento.',
+    descripcion: 'Para empresas en crecimiento con múltiples sucursales y negocios.',
     precioMensual: 49,
     precioAnual: 44,
     destacado: true,
-    caracteristicas: ['Hasta 50 miembros', 'Cuentas con sucursales', 'Reportes de actividad', 'Soporte prioritario'],
+    caracteristicas: [
+      'Hasta 3 empresas incluidas',
+      'Hasta 50 usuarios incluidos',
+      'Hasta 5 sucursales por empresa',
+      'Roles y permisos avanzados',
+      'Catálogo de productos ilimitado',
+      'Asistente IA con streaming',
+      'Logs de auditoría y reportes',
+      'Soporte prioritario',
+    ],
   },
   {
     id: 'enterprise',
     nombre: 'Enterprise',
-    descripcion: 'Para empresas con necesidades avanzadas.',
+    descripcion: 'Para corporaciones con gestión multi-empresa ilimitada.',
     precioMensual: 119,
     precioAnual: 107,
-    caracteristicas: ['Miembros ilimitados', 'Todo lo de Pro', 'Soporte dedicado', 'API avanzada'],
+    caracteristicas: [
+      'Empresas ilimitadas (Multi-empresa)',
+      'Usuarios y miembros ilimitados',
+      'Sucursales ilimitadas',
+      'Roles y permisos avanzados',
+      'Catálogo de productos ilimitado',
+      'Agente IA completo',
+      'Soporte dedicado 24/7',
+    ],
+  },
+];
+
+const COMPARISON_CATEGORIES: ComparisonCategory[] = [
+  {
+    category: 'Estructura Empresarial y Sucursales',
+    rows: [
+      { name: 'Empresas incluidas por cuenta', starter: '1 empresa', pro: 'Hasta 3 empresas', enterprise: 'Empresas ilimitadas' },
+      { name: 'Sucursales y almacenes', starter: '1 sucursal', pro: 'Hasta 5 por empresa', enterprise: 'Ilimitadas' },
+      { name: 'Gestión multi-empresa centralizada', starter: false, pro: true, enterprise: true },
+      { name: 'Perfil y configuración fiscal (RNC / Cédula)', starter: true, pro: true, enterprise: true },
+    ],
+  },
+  {
+    category: 'Equipo y Accesos',
+    rows: [
+      { name: 'Usuarios y miembros incluidos', starter: 'Hasta 5', pro: 'Hasta 50', enterprise: 'Ilimitados' },
+      { name: 'Roles y permisos avanzados', starter: true, pro: true, enterprise: true },
+      { name: 'Control de sesiones y accesos', starter: true, pro: true, enterprise: true },
+    ],
+  },
+  {
+    category: 'Catálogos e Inventario',
+    rows: [
+      { name: 'Catálogo de productos y servicios', starter: 'Ilimitado', pro: 'Ilimitado', enterprise: 'Ilimitado' },
+      { name: 'Gestión de categorías y marcas', starter: true, pro: true, enterprise: true },
+      { name: 'Unidades de medida y códigos', starter: true, pro: true, enterprise: true },
+    ],
+  },
+  {
+    category: 'Módulo Comercial',
+    rows: [
+      { name: 'Directorio de clientes y contactos', starter: true, pro: true, enterprise: true },
+      { name: 'Directorio de proveedores y suplidores', starter: true, pro: true, enterprise: true },
+    ],
+  },
+  {
+    category: 'Inteligencia Artificial (Dolphin AI)',
+    rows: [
+      { name: 'Asistente IA con chat y widget flotante', starter: true, pro: true, enterprise: true },
+      { name: 'Streaming token a token en tiempo real', starter: true, pro: true, enterprise: true },
+      { name: 'Consultas seguras de base de datos (solo lectura)', starter: true, pro: true, enterprise: true },
+      { name: 'Resúmenes ejecutivos y análisis de negocio', starter: true, pro: true, enterprise: true },
+    ],
+  },
+  {
+    category: 'Seguridad y Auditoría',
+    rows: [
+      { name: 'Registro de auditoría (Activity Logs)', starter: '7 días', pro: '90 días', enterprise: 'Historial completo' },
+      { name: 'Exportación de reportes de auditoría', starter: false, pro: true, enterprise: true },
+    ],
+  },
+  {
+    category: 'Soporte y Plataforma',
+    rows: [
+      { name: 'Soporte técnico', starter: 'Por correo', pro: 'Prioritario', enterprise: 'Dedicado 24/7' },
+      { name: 'Actualizaciones continuas del sistema', starter: true, pro: true, enterprise: true },
+      { name: 'Tema claro / oscuro y multi-idioma (ES/EN)', starter: true, pro: true, enterprise: true },
+    ],
   },
 ];
 
@@ -58,7 +154,7 @@ const DEFAULT_PLANS: Plan[] = [
       <!-- Header with Back button (Pinned) -->
       <div class="shrink-0 flex items-center justify-start p-6 pb-4 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <button (click)="goBack()"
-                class="h-9 px-4 rounded-xl text-sm font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors flex items-center gap-2 shadow-xs">
+                class="h-9 px-4 rounded-xl text-sm font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors flex items-center gap-2 shadow-xs cursor-pointer">
           <mat-icon svgIcon="arrow-left" class="!w-4 !h-4 !text-[16px] text-neutral-500 dark:text-neutral-400"></mat-icon>
            {{ 'plans.back' | transloco }}
         </button>
@@ -114,7 +210,7 @@ const DEFAULT_PLANS: Plan[] = [
                   [class.dark:bg-neutral-900]="billingCycle === 'monthly'"
                   [class.dark:text-white]="billingCycle === 'monthly'"
                   [class.text-neutral-500]="billingCycle !== 'monthly'"
-                   class="px-6 py-2 rounded-full text-sm font-medium transition-all z-10">{{ 'plans.monthly' | transloco }}</button>
+                   class="px-6 py-2 rounded-full text-sm font-medium transition-all z-10 cursor-pointer">{{ 'plans.monthly' | transloco }}</button>
           <button (click)="billingCycle = 'annual'"
                   [class.bg-white]="billingCycle === 'annual'"
                   [class.shadow-sm]="billingCycle === 'annual'"
@@ -122,7 +218,7 @@ const DEFAULT_PLANS: Plan[] = [
                   [class.dark:bg-neutral-900]="billingCycle === 'annual'"
                   [class.dark:text-white]="billingCycle === 'annual'"
                   [class.text-neutral-500]="billingCycle !== 'annual'"
-                   class="px-6 py-2 rounded-full text-sm font-medium transition-all z-10">{{ 'plans.annual' | transloco }}</button>
+                   class="px-6 py-2 rounded-full text-sm font-medium transition-all z-10 cursor-pointer">{{ 'plans.annual' | transloco }}</button>
         </div>
       </div>
 
@@ -131,21 +227,15 @@ const DEFAULT_PLANS: Plan[] = [
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           @for (i of [1, 2, 3]; track i) {
             <div class="flex flex-col bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-8 animate-pulse">
-              <!-- Icon skeleton -->
               <div class="relative w-10 h-10 mb-6">
                 <div class="w-7 h-7 rounded-full absolute top-0 left-0 bg-neutral-200 dark:bg-neutral-700"></div>
                 <div class="w-7 h-7 rounded-full absolute top-0 left-3.5 bg-neutral-300 dark:bg-neutral-600"></div>
               </div>
-              <!-- Title skeleton -->
               <div class="h-5 w-24 rounded-lg bg-neutral-200 dark:bg-neutral-700 mb-2"></div>
-              <!-- Description skeleton -->
               <div class="h-3 w-40 rounded-lg bg-neutral-100 dark:bg-neutral-800 mb-4"></div>
-              <!-- Price skeleton -->
               <div class="h-10 w-20 rounded-lg bg-neutral-200 dark:bg-neutral-700 mb-1"></div>
               <div class="h-3 w-32 rounded-lg bg-neutral-100 dark:bg-neutral-800 mb-8"></div>
-              <!-- Button skeleton -->
               <div class="h-10 w-full rounded-xl bg-neutral-100 dark:bg-neutral-800 mb-8"></div>
-              <!-- Features skeleton -->
               <div class="flex flex-col gap-3">
                 <div class="flex items-center gap-2">
                   <div class="w-4 h-4 rounded-full bg-neutral-200 dark:bg-neutral-700 shrink-0"></div>
@@ -190,7 +280,7 @@ const DEFAULT_PLANS: Plan[] = [
               </div>
 
               <h2 class="text-xl font-bold text-neutral-900 dark:text-white mb-2">{{ plan.nombre }}</h2>
-              <p class="text-xs text-neutral-500 mb-4">{{ plan.descripcion }}</p>
+              <p class="text-xs text-neutral-500 mb-4 min-h-[32px]">{{ plan.descripcion }}</p>
               <div class="flex items-baseline gap-1 mb-1">
                 <span class="text-4xl font-extrabold text-neutral-900 dark:text-white">
                   $<ng-container>{{ billingCycle === 'monthly' ? plan.precioMensual : plan.precioAnual }}</ng-container>
@@ -204,7 +294,7 @@ const DEFAULT_PLANS: Plan[] = [
                 </button>
               } @else {
                 <button (click)="selectPlan(plan)"
-                        class="w-full py-3 mb-8 rounded-xl font-medium text-sm border border-neutral-200 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 transition-colors">
+                        class="w-full py-3 mb-8 rounded-xl font-medium text-sm border border-neutral-200 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 transition-colors cursor-pointer">
                   Seleccionar
                 </button>
               }
@@ -223,56 +313,86 @@ const DEFAULT_PLANS: Plan[] = [
       }
 
       <!-- Contact Link -->
-      <div class="text-center mb-24 flex items-center justify-center gap-4">
-        <span class="text-neutral-500 text-sm">¿Necesitas un plan personalizado?</span>
+      <div class="text-center mb-20 flex items-center justify-center gap-4">
+        <span class="text-neutral-500 text-sm">¿Necesitas un plan personalizado o mayor capacidad?</span>
         <a href="mailto:admin@dolphin-erp.com?subject=Consulta%20sobre%20plan%20personalizado&body=Hola%2C%20me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20sobre%20un%20plan%20personalizado%20para%20mi%20empresa."
            class="px-4 py-1.5 rounded-lg text-sm font-medium border border-neutral-200 text-neutral-900 hover:bg-neutral-50 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 transition-colors">
            Contáctanos
         </a>
       </div>
 
-      <!-- Compare Plans -->
+      <!-- Real Features Comparator Matrix -->
       @if (!isLoading()) {
         <div class="mt-8">
-          <h2 class="text-xl font-bold text-center text-neutral-900 dark:text-white mb-12">Comparar planes</h2>
-          <div class="overflow-x-auto">
+          <h2 class="text-2xl font-bold text-center text-neutral-900 dark:text-white mb-2">Comparar capacidades reales del sistema</h2>
+          <p class="text-center text-xs text-neutral-500 dark:text-neutral-400 mb-12">Detalle exacto de las funcionalidades incluidas en cada nivel de suscripción</p>
+          
+          <div class="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-neutral-800">
             <table class="w-full text-left border-collapse min-w-[700px]">
               <thead>
-                <tr>
-                  <th class="w-1/4 pb-8 align-bottom"></th>
-                  @for (plan of plans(); track plan.id) {
-                    <th class="w-[18.75%] pb-8 px-4 align-bottom text-center">
-                      <div class="flex flex-col items-center">
-                        <span class="font-bold text-neutral-900 dark:text-white text-base">{{ plan.nombre }}</span>
-                        <span class="text-neutral-500 text-xs font-normal mt-1 mb-4">$<ng-container>{{ billingCycle === 'monthly' ? plan.precioMensual : plan.precioAnual }}</ng-container> por mes</span>
-                        @if (currentPlan().toLowerCase() === plan.nombre.toLowerCase()) {
-                          <button class="w-full py-2 rounded-lg font-medium text-xs bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-xs">Plan actual</button>
-                        } @else {
-                          <button (click)="selectPlan(plan)"
-                                  class="w-full py-2 rounded-lg font-medium text-xs border border-neutral-200 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 transition-colors">Seleccionar</button>
-                        }
-                      </div>
-                    </th>
-                  }
+                <tr class="bg-neutral-50 dark:bg-neutral-800/60 border-b border-neutral-200 dark:border-neutral-800">
+                  <th class="w-2/5 p-5 text-sm font-semibold text-neutral-900 dark:text-white">Módulos y Funcionalidades</th>
+                  <th class="w-1/5 p-5 text-center text-sm font-semibold text-neutral-900 dark:text-white">Starter ($19)</th>
+                  <th class="w-1/5 p-5 text-center text-sm font-semibold text-blue-600 dark:text-blue-400">Pro ($49)</th>
+                  <th class="w-1/5 p-5 text-center text-sm font-semibold text-neutral-900 dark:text-white">Enterprise ($119)</th>
                 </tr>
               </thead>
-              <tbody class="text-sm divide-y divide-neutral-100 dark:divide-neutral-800/50">
-                <tr>
-                  <td class="py-6 font-bold text-base text-neutral-900 dark:text-white">Características</td>
-                </tr>
-                @for (feature of planFeatures(); track feature) {
-                  <tr class="group">
-                    <td class="py-4 text-neutral-600 dark:text-neutral-400">{{ feature }}</td>
-                    @for (plan of plans(); track plan.id) {
-                      <td class="py-4 px-4 text-center">
-                        @if (plan.caracteristicas.includes(feature)) {
-                          <mat-icon svgIcon="check" class="!w-5 !h-5 !text-[20px] text-blue-600 mx-auto"></mat-icon>
+              <tbody class="text-sm divide-y divide-neutral-100 dark:divide-neutral-800">
+                @for (cat of comparisonCategories; track cat.category) {
+                  <!-- Category Header Row -->
+                  <tr class="bg-neutral-100/70 dark:bg-neutral-800/30">
+                    <td colspan="4" class="py-3 px-5 font-bold text-xs uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+                      {{ cat.category }}
+                    </td>
+                  </tr>
+
+                  <!-- Category Feature Rows -->
+                  @for (row of cat.rows; track row.name) {
+                    <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20 transition-colors">
+                      <td class="py-3.5 px-5 text-neutral-700 dark:text-neutral-300 font-medium">
+                        {{ row.name }}
+                      </td>
+                      
+                      <!-- Starter -->
+                      <td class="py-3.5 px-5 text-center">
+                        @if (isBoolean(row.starter)) {
+                          @if (row.starter) {
+                            <mat-icon svgIcon="check" class="!w-5 !h-5 !text-[20px] text-blue-600 mx-auto"></mat-icon>
+                          } @else {
+                            <span class="text-neutral-300 dark:text-neutral-600 font-bold">&ndash;</span>
+                          }
                         } @else {
-                          <span class="text-neutral-300 dark:text-neutral-600">&ndash;</span>
+                          <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-300">{{ row.starter }}</span>
                         }
                       </td>
-                    }
-                  </tr>
+
+                      <!-- Pro -->
+                      <td class="py-3.5 px-5 text-center bg-blue-50/30 dark:bg-blue-950/10">
+                        @if (isBoolean(row.pro)) {
+                          @if (row.pro) {
+                            <mat-icon svgIcon="check" class="!w-5 !h-5 !text-[20px] text-blue-600 mx-auto"></mat-icon>
+                          } @else {
+                            <span class="text-neutral-300 dark:text-neutral-600 font-bold">&ndash;</span>
+                          }
+                        } @else {
+                          <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">{{ row.pro }}</span>
+                        }
+                      </td>
+
+                      <!-- Enterprise -->
+                      <td class="py-3.5 px-5 text-center">
+                        @if (isBoolean(row.enterprise)) {
+                          @if (row.enterprise) {
+                            <mat-icon svgIcon="check" class="!w-5 !h-5 !text-[20px] text-blue-600 mx-auto"></mat-icon>
+                          } @else {
+                            <span class="text-neutral-300 dark:text-neutral-600 font-bold">&ndash;</span>
+                          }
+                        } @else {
+                          <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-300">{{ row.enterprise }}</span>
+                        }
+                      </td>
+                    </tr>
+                  }
                 }
               </tbody>
             </table>
@@ -298,20 +418,18 @@ export class PlansComponent implements OnInit {
   trialDaysLeft = signal<number | null>(null);
   trialExpired = signal(false);
 
+  comparisonCategories = COMPARISON_CATEGORIES;
+
+  isBoolean(val: any): boolean {
+    return typeof val === 'boolean';
+  }
+
   goBack() {
     if (window.history.length > 1) {
       this.location.back();
     } else {
       this.router.navigate(['/admin/billing']);
     }
-  }
-
-  planFeatures(): string[] {
-    const set = new Set<string>();
-    for (const p of this.plans()) {
-      for (const f of p.caracteristicas) set.add(f);
-    }
-    return [...set];
   }
 
   ngOnInit() {
@@ -363,21 +481,23 @@ export class PlansComponent implements OnInit {
   }
 
   selectPlan(plan: Plan) {
-    this.dialog.open(CheckoutDialogComponent, {
-      width: '100%',
-      maxWidth: '28rem',
-      panelClass: 'dialog-panel-no-padding',
+    const dialogRef = this.dialog.open(CheckoutDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      disableClose: true,
       data: {
         planId: plan.id,
         planNombre: plan.nombre,
         amount: this.billingCycle === 'monthly' ? plan.precioMensual : plan.precioAnual,
         billingCycle: this.billingCycle,
         simulated: this.simulatedMode(),
-      } satisfies CheckoutDialogData,
-    }).afterClosed().subscribe((result: CheckoutResult | null) => {
+      } as CheckoutDialogData,
+    });
+
+    dialogRef.afterClosed().subscribe((result: CheckoutResult | null) => {
       if (result?.ok) {
-        this.currentPlan.set(result.plan);
-        window.alert(`Plan "${result.plan}" activado correctamente${result.simulated ? ' (pago simulado)' : ''}`);
+        this.currentPlan.set(plan.nombre);
+        this.router.navigate(['/admin/billing']);
       }
     });
   }

@@ -20,6 +20,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
     ActivityLogModule,
     NotificationsModule,
     AiAgentModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

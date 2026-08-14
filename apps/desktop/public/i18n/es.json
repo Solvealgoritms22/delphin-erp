@@ -51,6 +51,7 @@
     "categories": "Categorías",
     "brands": "Marcas",
     "units": "Unidades de medida",
+    "inventory": "Inventario y Almacenes",
     "commercial": "Comercial",
     "commercialDescription": "Clientes y proveedores",
     "clients": "Clientes",
@@ -455,6 +456,13 @@
       "abbreviation": "Abreviatura",
       "emptyTitle": "No hay unidades registradas",
       "emptyDescription": "Añade unidades como Piezas, Kilogramos o Metros."
+    },
+    "inventory": {
+      "title": "Inventario y Almacenes",
+      "description": "Control de existencias multi-sucursal, bodegas, transferencias y Kardex inmutable.",
+      "newWarehouse": "Nuevo Almacén",
+      "stockAdjustment": "Ajuste de Stock",
+      "newTransfer": "Nueva Transferencia"
     }
   },
   "commercial": {

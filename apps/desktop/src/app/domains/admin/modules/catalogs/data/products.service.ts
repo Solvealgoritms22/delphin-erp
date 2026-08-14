@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '@/environments/environment';
-import { tap, catchError, of } from 'rxjs';
+import { tap, catchError, of, switchMap } from 'rxjs';
 
 export interface Product {
   id: string;
@@ -55,7 +55,8 @@ export class ProductsService {
 
   create(product: Partial<Product>) {
     return this.http.post<Product>(this.apiUrl, product).pipe(
-      tap(() => this.findAll().subscribe())
+      // switchMap chains the refresh properly — no nested subscribe
+      switchMap(() => this.findAll())
     );
   }
 }

@@ -68,6 +68,13 @@ export const NAVIGATION: NavigationItem[] = [
         icon: 'scale',
         route: '/admin/catalogs/units',
         activeOptions: { exact: false }
+      },
+      {
+        id: 'catalogs/inventory',
+        label: 'nav.inventory',
+        icon: 'boxes',
+        route: '/admin/catalogs/inventory',
+        activeOptions: { exact: false }
       }
     ],
   },

@@ -8,7 +8,11 @@ import {
   ElementRef,
   viewChild,
   effect,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  untracked,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
@@ -21,6 +25,7 @@ import { MarkdownRendererComponent } from '@/app/shared/components/markdown-rend
 
 @Component({
   selector: 'conversation',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     CdkTextareaAutosize,
@@ -133,7 +138,7 @@ import { MarkdownRendererComponent } from '@/app/shared/components/markdown-rend
                   }
 
                   <!-- Content / Streaming -->
-                  @if (message.streaming) {
+                  @if (message.streaming && !message.content) {
                     <div class="flex items-center gap-2 py-2 text-neutral-500 dark:text-neutral-400 text-xs">
                       <div class="flex gap-1">
                         <span class="size-2 rounded-full bg-blue-500 animate-bounce"></span>
@@ -143,7 +148,12 @@ import { MarkdownRendererComponent } from '@/app/shared/components/markdown-rend
                       <span class="font-medium text-neutral-600 dark:text-neutral-300">Consultando base de datos y procesando respuesta...</span>
                     </div>
                   } @else {
-                    <markdown-renderer [content]="getMessageText(message.content)" />
+                    <div class="relative">
+                      <markdown-renderer [content]="getMessageText(message.content)" />
+                      @if (message.streaming) {
+                        <span class="ai-typing-cursor"></span>
+                      }
+                    </div>
                   }
                 </div>
               </div>
@@ -225,6 +235,7 @@ import { MarkdownRendererComponent } from '@/app/shared/components/markdown-rend
 export default class ConversationComponent {
   private aiChatService = inject(AiChatService);
   protected aiChat = inject(AiChat);
+  private destroyRef = inject(DestroyRef);
 
   // Route input id
   id = input.required<string>();
@@ -243,11 +254,14 @@ export default class ConversationComponent {
   });
 
   constructor() {
-    // Auto-scroll to bottom on new messages
+    // Auto-scroll to bottom when conversation messages change.
+    // Using untracked to read the scrollContainer without creating a reactive dependency,
+    // preventing the effect from re-running when the element ref changes.
     effect(() => {
       const conv = this.currentConversation();
       if (conv) {
-        setTimeout(() => this.scrollToBottom(), 50);
+        // Schedule scroll after Angular has updated the DOM
+        untracked(() => setTimeout(() => this.scrollToBottom(), 0));
       }
     });
   }
@@ -274,17 +288,21 @@ export default class ConversationComponent {
     this.prompt = '';
 
     const convId = this.id();
-    this.aiChatService.sendMessage(convId, text).subscribe({
-      next: () => this.scrollToBottom(),
-    });
+    this.aiChatService.sendMessage(convId, text)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.scrollToBottom(),
+      });
   }
 
   sendQuickQuery(query: string) {
     if (this.isGenerating()) return;
     const convId = this.id();
-    this.aiChatService.sendMessage(convId, query).subscribe({
-      next: () => this.scrollToBottom(),
-    });
+    this.aiChatService.sendMessage(convId, query)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.scrollToBottom(),
+      });
   }
 
   startEditTitle(currentTitle: string) {

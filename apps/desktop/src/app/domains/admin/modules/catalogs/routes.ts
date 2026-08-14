@@ -24,5 +24,9 @@ export default [
   {
     path: 'units',
     loadComponent: () => import('./features/units/units.component'),
+  },
+  {
+    path: 'inventory',
+    loadComponent: () => import('./features/inventory/inventory.component'),
   }
 ] as Routes;

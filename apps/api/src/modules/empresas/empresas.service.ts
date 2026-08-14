@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -11,9 +11,11 @@ export class EmpresasService {
       precioMensual: 0,
       precioAnual: 0,
       caracteristicas: [
+        '1 empresa incluida',
         'Acceso completo por 15 días',
+        'Asistente IA integrado',
+        'Catálogo de productos y clientes',
         'Sin tarjeta de crédito requerida',
-        'Todos los módulos incluidos',
       ],
     },
     {
@@ -23,8 +25,12 @@ export class EmpresasService {
       precioMensual: 19,
       precioAnual: 17,
       caracteristicas: [
-        'Hasta 5 miembros',
-        'Productos ilimitados',
+        '1 empresa incluida',
+        'Hasta 5 usuarios incluidos',
+        'Roles y permisos avanzados',
+        'Catálogo de productos ilimitado',
+        'Directorio de clientes y proveedores',
+        'Asistente IA integrado',
         'Soporte por correo',
       ],
     },
@@ -36,9 +42,13 @@ export class EmpresasService {
       precioAnual: 44,
       destacado: true,
       caracteristicas: [
-        'Hasta 50 miembros',
-        'Cuentas con sucursales',
-        'Reportes de actividad',
+        'Hasta 3 empresas incluidas',
+        'Hasta 50 usuarios incluidos',
+        'Hasta 5 sucursales por empresa',
+        'Roles y permisos avanzados',
+        'Catálogo de productos ilimitado',
+        'Asistente IA con streaming',
+        'Logs de auditoría y reportes',
         'Soporte prioritario',
       ],
     },
@@ -49,15 +59,18 @@ export class EmpresasService {
       precioMensual: 119,
       precioAnual: 107,
       caracteristicas: [
-        'Miembros ilimitados',
-        'Todo lo de Pro',
-        'Soporte dedicado',
-        'API avanzada',
+        'Empresas ilimitadas (Multi-empresa)',
+        'Usuarios y miembros ilimitados',
+        'Sucursales ilimitadas',
+        'Roles y permisos avanzados',
+        'Catálogo de productos ilimitado',
+        'Agente IA completo',
+        'Soporte dedicado 24/7',
       ],
     },
   ];
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   getPlans() {
     return EmpresasService.PLANS;
@@ -85,6 +98,35 @@ export class EmpresasService {
 
   async create(userId: string, data: any) {
     const { razonSocial, rnc, telefono, email, paginaWeb, descripcion, logo } = data;
+
+    // Verificar límite de empresas según el plan del usuario
+    const userOwnedCount = await this.prisma.empresa.count({
+      where: { propietarioId: userId },
+    });
+
+    if (userOwnedCount > 0) {
+      const existingEmpresas = await this.prisma.empresa.findMany({
+        where: { propietarioId: userId },
+        include: { suscripcion: true },
+      });
+
+      let maxEmpresas = 1;
+      for (const emp of existingEmpresas) {
+        const plan = emp.suscripcion?.planId?.toLowerCase();
+        if (plan === 'enterprise') {
+          maxEmpresas = 999999;
+          break;
+        } else if (plan === 'pro') {
+          maxEmpresas = Math.max(maxEmpresas, 3);
+        }
+      }
+
+      if (userOwnedCount >= maxEmpresas) {
+        throw new BadRequestException(
+          `Has alcanzado el límite de empresas permitidas para tu plan (${maxEmpresas} empresa${maxEmpresas > 1 ? 's' : ''}). Actualiza tu plan a Pro o Enterprise para crear más empresas.`,
+        );
+      }
+    }
 
     // Calcular la fecha de expiración del trial: +15 días
     const trialExpiry = new Date();
@@ -174,20 +216,20 @@ export class EmpresasService {
     owned.forEach((e) =>
       map.set(e.id, {
         id: e.id,
-         razonSocial: e.razonSocial,
-         rnc: e.rnc,
-         logo: e.logo,
-         estado: e.estado,
+        razonSocial: e.razonSocial,
+        rnc: e.rnc,
+        logo: e.logo,
+        estado: e.estado,
       }),
     );
     membresias.forEach((m) => {
       if (!map.has(m.empresa.id)) {
         map.set(m.empresa.id, {
           id: m.empresa.id,
-           razonSocial: m.empresa.razonSocial,
-           rnc: m.empresa.rnc,
-           logo: m.empresa.logo,
-           estado: m.estado,
+          razonSocial: m.empresa.razonSocial,
+          rnc: m.empresa.rnc,
+          logo: m.empresa.logo,
+          estado: m.estado,
         });
       }
     });

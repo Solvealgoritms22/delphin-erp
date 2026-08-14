@@ -42,7 +42,7 @@ export class BillingCronService {
           ? sub.plan.precioAnual
           : sub.plan.precioMensual;
       // Asumiendo que el monto viene en USD pero procesamos en una moneda base. Para simplificar, multiplicamos x 100.
-      const amountCents = amountToCharge * 100;
+      const amountCents = Math.round(Number(amountToCharge) * 100);
       const orderNumber = `RENEW-${sub.id.substring(0, 8)}-${Date.now()}`;
 
       try {

@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
@@ -12,6 +13,7 @@ import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, Sparkl
 
 @Component({
   selector: 'admin-sidebar',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     Navigation,
     User,
@@ -177,6 +179,7 @@ export class AdminSidebar implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private authState = inject(AuthState);
+  private destroyRef = inject(DestroyRef);
 
   searchQuery = signal('');
   isTrial = signal(false);
@@ -185,31 +188,33 @@ export class AdminSidebar implements OnInit {
   trialExpired = signal(false);
 
   ngOnInit() {
-    this.http.get<any>(`${environment.apiUrl}/empresas/subscription`).subscribe({
-      next: (sub) => {
-        const planName = String(sub?.plan?.nombre || this.authState.user()?.plan || '').toLowerCase();
-        if (sub?.estado === 'TRIAL') {
-          this.isTrial.set(true);
-          const expiry = sub.fechaRenovacion ? new Date(sub.fechaRenovacion) : null;
-          if (expiry) {
-            const diffMs = expiry.getTime() - Date.now();
-            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-            if (diffDays <= 0) {
-              this.trialDaysLeft.set(0);
-              this.trialExpired.set(true);
+    this.http.get<any>(`${environment.apiUrl}/empresas/subscription`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (sub) => {
+          const planName = String(sub?.plan?.nombre || this.authState.user()?.plan || '').toLowerCase();
+          if (sub?.estado === 'TRIAL') {
+            this.isTrial.set(true);
+            const expiry = sub.fechaRenovacion ? new Date(sub.fechaRenovacion) : null;
+            if (expiry) {
+              const diffMs = expiry.getTime() - Date.now();
+              const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+              if (diffDays <= 0) {
+                this.trialDaysLeft.set(0);
+                this.trialExpired.set(true);
+              } else {
+                this.trialDaysLeft.set(diffDays);
+                this.trialExpired.set(false);
+              }
             } else {
-              this.trialDaysLeft.set(diffDays);
-              this.trialExpired.set(false);
+              this.trialExpired.set(true);
             }
-          } else {
-            this.trialExpired.set(true);
+          } else if (planName === 'free' || planName.includes('gratuito')) {
+            this.isFree.set(true);
           }
-        } else if (planName === 'free' || planName.includes('gratuito')) {
-          this.isFree.set(true);
-        }
-      },
-      error: () => { } // Silently ignore
-    });
+        },
+        error: () => { } // Silently ignore
+      });
   }
 
   onSearch(event: Event) {

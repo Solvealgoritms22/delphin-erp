@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, PLATFORM_ID } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, PLATFORM_ID } from '@angular/core';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { CommandPaletteService } from './core/command-palette/command-palette.component';
@@ -16,11 +16,13 @@ import { SessionMonitorService } from './core/auth/session-monitor.service';
     <app-cookie-banner />
   `,
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private commandPalette = inject(CommandPaletteService);
   private document = inject(DOCUMENT);
   private sessionMonitor = inject(SessionMonitorService);
+  /** Cleanup handle for the Electron maximize-change native callback */
+  private electronMaximizeCleanup?: () => void;
 
   readonly isElectron = isPlatformBrowser(this.platformId) && typeof window !== 'undefined' && !!(window as any).dolphinWindow;
   readonly isMaximized = signal(false);
@@ -29,9 +31,11 @@ export class App implements OnInit {
     this.sessionMonitor.start();
 
     if (this.isElectron) {
-      (window as any).dolphinWindow.onMaximizeChange((maximized: boolean) => {
-        this.isMaximized.set(maximized);
-      });
+      const handler = (maximized: boolean) => this.isMaximized.set(maximized);
+      (window as any).dolphinWindow.onMaximizeChange(handler);
+      this.electronMaximizeCleanup = () => {
+        (window as any).dolphinWindow?.removeMaximizeListener?.(handler);
+      };
     }
 
     // Give the splash screen a minimum display time of 1.5 seconds
@@ -45,5 +49,9 @@ export class App implements OnInit {
         }, 500);
       }
     }, 1500);
+  }
+
+  ngOnDestroy(): void {
+    this.electronMaximizeCleanup?.();
   }
 }

@@ -16,6 +16,16 @@ export const MODULE_PERMISSION_NAMESPACES: Record<string, string> = {
   commercial: 'commercial',
   sucursales: 'sucursales',
   billing: 'billing',
+  ai_chat: 'ai_chat',
+  'ai-chat': 'ai_chat',
+  security_logs: 'security',
+  'security-logs': 'security',
+  current_sessions: 'sessions',
+  'current-sessions': 'sessions',
+  activity: 'activity',
+  inventory: 'inventory',
+  about: 'about',
+  legal: 'legal',
 };
 
 /**

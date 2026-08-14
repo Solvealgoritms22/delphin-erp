@@ -174,3 +174,35 @@
   border-left-color: #3b82f6;
   color: #93c5fd;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Real-time Token Streaming Typing Cursor                                    */
+/* -------------------------------------------------------------------------- */
+.ai-typing-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  margin-left: 3px;
+  vertical-align: middle;
+  background-color: #2563eb;
+  border-radius: 2px;
+  animation: aiTypewriterBlink 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.dark .ai-typing-cursor,
+.scheme-dark .ai-typing-cursor {
+  background-color: #60a5fa;
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.6);
+}
+
+@keyframes aiTypewriterBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 0;
+    transform: scaleY(0.75);
+  }
+}
+

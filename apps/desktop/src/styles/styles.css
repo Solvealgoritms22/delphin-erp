@@ -166,7 +166,11 @@
 @keyframes modalZoomIn {
   0% {
     opacity: 0;
-    transform: scale(0.90);
+    transform: scale(0.65);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.02);
   }
   100% {
     opacity: 1;
@@ -181,33 +185,99 @@
   }
   100% {
     opacity: 0;
-    transform: scale(0.90);
+    transform: scale(0.65);
   }
 }
 
-/* Dialog container surface refinement & Zoom Animation */
-.mat-mdc-dialog-container {
+/* Native HTML <dialog> modern zoom transition with @starting-style & allow-discrete */
+dialog {
+  opacity: 0;
+  transform: scale(0.65);
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    display 0.28s allow-discrete,
+    overlay 0.28s allow-discrete;
+}
+
+dialog[open] {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+}
+
+dialog::backdrop {
+  opacity: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  transition:
+    opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    display 0.28s allow-discrete,
+    overlay 0.28s allow-discrete;
+}
+
+dialog[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* Angular Material MDC Dialog Zoom In / Out */
+.cdk-overlay-pane:has(.mat-mdc-dialog-container),
+.mat-mdc-dialog-container,
+.cdk-dialog-container {
   transform-origin: center center !important;
 }
 
-.mat-mdc-dialog-container .mdc-dialog__surface {
+.mat-mdc-dialog-container .mdc-dialog__surface,
+.mat-mdc-dialog-container .mat-mdc-dialog-surface,
+.mat-mdc-dialog-surface,
+.cdk-dialog-container {
   transform-origin: center center !important;
-  animation: modalZoomIn 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  animation: modalZoomIn 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   will-change: transform, opacity !important;
   border-radius: 1.25rem !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
 }
 
-.dark .mat-mdc-dialog-container .mdc-dialog__surface {
+.dark .mat-mdc-dialog-container .mdc-dialog__surface,
+.dark .mat-mdc-dialog-container .mat-mdc-dialog-surface,
+.dark .mat-mdc-dialog-surface,
+.dark .cdk-dialog-container {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
 }
 
+/* Exit Zoom Out Animation */
+.mat-mdc-dialog-container.mdc-dialog--closing .mdc-dialog__surface,
+.mat-mdc-dialog-container.mdc-dialog--closing .mat-mdc-dialog-surface,
+.mat-mdc-dialog-container.mdc-dialog--closing,
 .mat-mdc-dialog-container.mat-mdc-dialog-container-exit .mdc-dialog__surface,
-.cdk-overlay-pane.mat-mdc-dialog-exit .mdc-dialog__surface {
-  animation: modalZoomOut 180ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
+.mat-mdc-dialog-container.mat-mdc-dialog-container-exit .mat-mdc-dialog-surface,
+.mat-mdc-dialog-container.mat-mdc-dialog-container-exit,
+.cdk-overlay-pane.mat-mdc-dialog-exit .mdc-dialog__surface,
+.cdk-overlay-pane.mat-mdc-dialog-exit .mat-mdc-dialog-surface,
+.cdk-overlay-pane.mat-mdc-dialog-exit,
+.cdk-overlay-pane:has(.mat-mdc-dialog-container-exit) .mdc-dialog__surface,
+.cdk-overlay-pane:has(.mdc-dialog--closing) .mdc-dialog__surface {
+  animation: modalZoomOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
 }
 
-dialog[open] {
-  animation: modalZoomIn 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Backdrop Fade Out on Close */
+.cdk-overlay-backdrop.cdk-overlay-backdrop-hiding {
+  opacity: 0 !important;
+  transition: opacity 220ms cubic-bezier(0.4, 0, 1, 1), backdrop-filter 220ms cubic-bezier(0.4, 0, 1, 1) !important;
 }
+
+
 

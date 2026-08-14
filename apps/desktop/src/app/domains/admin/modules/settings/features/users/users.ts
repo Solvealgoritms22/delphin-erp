@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, signal, inject, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, computed, signal, inject, TemplateRef, ViewChild, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -158,9 +160,13 @@ import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, Chevro
                     <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20 transition-colors">
                       <td class="py-4 px-6">
                         <div class="flex items-center gap-3">
-                          <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-sm shrink-0">
-                            {{ (account.name || account.email).charAt(0).toUpperCase() }}
-                          </div>
+                          @if (account.avatar) {
+                            <img class="w-10 h-10 rounded-full border border-neutral-200 dark:border-neutral-700 object-cover shrink-0" [src]="account.avatar" [alt]="account.name || account.email">
+                          } @else {
+                            <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-sm shrink-0">
+                              {{ (account.name || account.email).charAt(0).toUpperCase() }}
+                            </div>
+                          }
                           <div class="flex flex-col">
                             <span class="text-sm font-bold text-neutral-900 dark:text-white leading-none mb-1">{{ account.name || account.email.split('@')[0] }}</span>
                             <span class="text-xs text-neutral-500 dark:text-neutral-400 leading-none">{{ account.email }}</span>
@@ -208,6 +214,7 @@ export class UsersComponent implements OnInit {
   snackBar = inject(MatSnackBar);
   authState = inject(AuthState);
   transloco = inject(TranslocoService);
+  private destroyRef = inject(DestroyRef);
 
   roles = this.rolesService.roles;
   accounts = this.usersService.users;
@@ -243,11 +250,17 @@ export class UsersComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.rolesService.findAll().subscribe();
-    this.usersService.findAll().subscribe();
-    this.usersService.findAssignableCompanies().subscribe({
-      next: (companies) => this.companies.set(companies),
-    });
+    this.rolesService.findAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+    this.usersService.findAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+    this.usersService.findAssignableCompanies()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (companies) => this.companies.set(companies),
+      });
   }
 
   clearFilters() {
@@ -267,7 +280,7 @@ export class UsersComponent implements OnInit {
     return this.roles().find(r => r.id === roleId)?.nombre || 'Desconocido';
   }
 
-  openUserModal(user?: Account) {
+  async openUserModal(user?: Account) {
     const dialogRef = this.dialog.open(UserDialogComponent, {
       width: '100%',
       maxWidth: '28rem',
@@ -279,26 +292,34 @@ export class UsersComponent implements OnInit {
         } satisfies UserDialogData,
     });
 
-    dialogRef.afterClosed().subscribe((res) => {
-      if (!res) return;
-      if (user) {
-        this.usersService.update(user.id, res).subscribe({
-           next: () => {
-             this.usersService.findAll().subscribe();
-             this.snackBar.open('Usuario actualizado', 'Cerrar', { duration: 2000 });
-           },
+    // firstValueFrom avoids accumulating a new subscription on every modal open
+    const res = await firstValueFrom(dialogRef.afterClosed());
+    if (!res) return;
+    if (user) {
+      this.usersService.update(user.id, res)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.usersService.findAll()
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe();
+            this.snackBar.open('Usuario actualizado', 'Cerrar', { duration: 2000 });
+          },
           error: (err) => this.snackBar.open(err?.error?.message || 'Error al actualizar usuario', 'Cerrar', { duration: 4000 })
         });
-      } else {
-        this.usersService.create(res).subscribe({
-           next: () => {
-             this.usersService.findAll().subscribe();
-             this.snackBar.open('Usuario creado exitosamente', 'Cerrar', { duration: 2000 });
-           },
+    } else {
+      this.usersService.create(res)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.usersService.findAll()
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe();
+            this.snackBar.open('Usuario creado exitosamente', 'Cerrar', { duration: 2000 });
+          },
           error: (err) => this.snackBar.open(err?.error?.message || 'Error al crear usuario', 'Cerrar', { duration: 4000 })
         });
-      }
-    });
+    }
   }
 
   changeRole(userId: string, newRoleId: string) {
@@ -321,7 +342,7 @@ export class UsersComponent implements OnInit {
     });
   }
 
-  deleteUser(user: Account) {
+  async deleteUser(user: Account) {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Eliminar cuenta de usuario',
@@ -330,12 +351,14 @@ export class UsersComponent implements OnInit {
       } satisfies ConfirmDialogData,
     });
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      if (confirmed) {
-        this.usersService.remove(user.id).subscribe({
+    // firstValueFrom avoids accumulating a new subscription on every dialog open
+    const confirmed = await firstValueFrom(dialogRef.afterClosed());
+    if (confirmed) {
+      this.usersService.remove(user.id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
           next: () => this.snackBar.open('Usuario eliminado', 'Cerrar', { duration: 2000 })
         });
-      }
-    });
+    }
   }
 }

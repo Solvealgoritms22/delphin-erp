@@ -1,6 +1,7 @@
 import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
-import { Component, inject, signal, computed, ElementRef, viewChild } from '@angular/core';
+import { Component, inject, signal, computed, ElementRef, viewChild, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -12,6 +13,7 @@ import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-ico
 
 @Component({
   selector: 'assistant',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     CdkConnectedOverlay,
@@ -114,7 +116,7 @@ import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-ico
                 [class.dark:border-neutral-700]="message.role === 'assistant'"
                 [class.rounded-tl-xs]="message.role === 'assistant'"
               >
-                @if (message.streaming) {
+                @if (message.streaming && !message.content) {
                   <div class="flex items-center gap-2 py-1 text-xs text-neutral-500">
                     <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
                     <span>Consultando datos...</span>
@@ -122,7 +124,12 @@ import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-ico
                 } @else if (message.role === 'user') {
                   <span class="leading-relaxed whitespace-pre-wrap">{{ getMessageText(message.content) }}</span>
                 } @else {
-                  <markdown-renderer [content]="getMessageText(message.content)" />
+                  <div class="relative">
+                    <markdown-renderer [content]="getMessageText(message.content)" />
+                    @if (message.streaming) {
+                      <span class="ai-typing-cursor"></span>
+                    }
+                  </div>
                 }
               </div>
             </div>
@@ -195,6 +202,7 @@ import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-ico
 export class Assistant {
   private aiChatService = inject(AiChatService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   protected opened = signal(false);
   protected prompt = '';
@@ -251,9 +259,11 @@ export class Assistant {
     const active = this.aiChatService.currentConversation();
     const convId = active ? active.id : this.aiChatService.createConversation().id;
 
-    this.aiChatService.sendMessage(convId, text).subscribe({
-      next: () => this.scrollToBottom(),
-    });
+    this.aiChatService.sendMessage(convId, text)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.scrollToBottom(),
+      });
   }
 
   sendQuickText(text: string) {
@@ -261,9 +271,11 @@ export class Assistant {
     const active = this.aiChatService.currentConversation();
     const convId = active ? active.id : this.aiChatService.createConversation().id;
 
-    this.aiChatService.sendMessage(convId, text).subscribe({
-      next: () => this.scrollToBottom(),
-    });
+    this.aiChatService.sendMessage(convId, text)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.scrollToBottom(),
+      });
   }
 
   private scrollToBottom() {

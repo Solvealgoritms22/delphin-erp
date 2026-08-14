@@ -4,6 +4,14 @@ import { ChatRequestDto, ChatResponseDto, ChatMessageDto } from './ai-agent.dto'
 
 export type ChatMessage = ChatMessageDto;
 
+export interface StreamEvent {
+  type: 'token' | 'tools' | 'done' | 'error';
+  token?: string;
+  toolsUsed?: string[];
+  conversationId?: string;
+  error?: string;
+}
+
 @Injectable()
 export class AiAgentService {
   private readonly logger = new Logger(AiAgentService.name);
@@ -11,24 +19,15 @@ export class AiAgentService {
   constructor(private readonly tools: AiToolsService) {}
 
   /**
-   * Main entry point for the AI ERP Agent.
-   * Analyzes the query, fetches real database state via read-only tools,
-   * and generates a rich Markdown response via truly free LLMs or smart synthesizer.
+   * Helper to collect read-only DB context based on user intent
    */
-  async processChat(
+  private async collectContext(
     empresaId: string,
-    user: { id: string; name?: string; email: string },
-    dto: ChatRequestDto,
-  ): Promise<ChatResponseDto> {
-    const userQuery = (dto.message || '').trim();
-    const convId = dto.conversationId || `conv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const toolsUsed: string[] = [];
-
-    this.logger.log(`[AI-AGENT] Processing query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`);
-
-    // 1. Gather context from Read-Only Tools based on query intent
+    userQuery: string,
+    toolsUsed: string[],
+  ): Promise<any> {
     const lowerQuery = userQuery.toLowerCase();
-    let dbContext: any = {};
+    const dbContext: any = {};
 
     const needsOverview =
       lowerQuery.includes('resumen') ||
@@ -87,7 +86,6 @@ export class AiAgentService {
       lowerQuery.includes('branch') ||
       lowerQuery.includes('tienda');
 
-    // Execute read-only tools strictly isolated by empresaId
     try {
       if (needsOverview || (!needsProducts && !needsClients && !needsSuppliers && !needsLogs && !needsTeam && !needsBranches)) {
         toolsUsed.push('getCompanyOverview', 'getExecutiveMetrics');
@@ -128,10 +126,27 @@ export class AiAgentService {
       this.logger.error(`Error executing read-only tools: ${err.message}`);
     }
 
-    // 2. Cascade AI provider resolution (OpenRouter Free / Pollinations Free / Ollama / Gemini / Groq)
+    return dbContext;
+  }
+
+  /**
+   * Main entry point for non-streaming queries
+   */
+  async processChat(
+    empresaId: string,
+    user: { id: string; name?: string; email: string },
+    dto: ChatRequestDto,
+  ): Promise<ChatResponseDto> {
+    const userQuery = (dto.message || '').trim();
+    const convId = dto.conversationId || `conv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const toolsUsed: string[] = [];
+
+    this.logger.log(`[AI-AGENT] Processing query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`);
+
+    const dbContext = await this.collectContext(empresaId, userQuery, toolsUsed);
     let reply = '';
 
-    // Check Ollama local instance first if configured or available
+    // Check Ollama
     if (process.env.OLLAMA_BASE_URL || process.env.USE_OLLAMA === 'true') {
       try {
         reply = await this.callOllama(userQuery, dbContext, dto.history || []);
@@ -140,7 +155,7 @@ export class AiAgentService {
       }
     }
 
-    // Check configured API Keys (OpenRouter / Gemini / Groq)
+    // Check configured API Keys
     if (!reply) {
       const apiKey = process.env.OPENROUTER_API_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY;
       if (apiKey) {
@@ -152,7 +167,7 @@ export class AiAgentService {
       }
     }
 
-    // Free Public AI Gateway (Pollinations AI - 100% Free, No key, Never runs out)
+    // Free Public AI Gateway
     if (!reply) {
       try {
         reply = await this.callFreePollinationsAI(userQuery, dbContext, dto.history || []);
@@ -161,7 +176,7 @@ export class AiAgentService {
       }
     }
 
-    // 3. Fallback: Smart Heuristic ERP Agent Synthesizer (Zero network dependency, 100% reliable)
+    // Fallback: Smart Heuristic ERP Agent Synthesizer
     if (!reply) {
       reply = this.synthesizeSmartResponse(userQuery, dbContext, user.name || user.email);
     }
@@ -175,8 +190,236 @@ export class AiAgentService {
   }
 
   /**
+   * Real-time Token-by-Token Streaming entry point (SSE)
+   */
+  async processChatStream(
+    empresaId: string,
+    user: { id: string; name?: string; email: string },
+    dto: ChatRequestDto,
+    onChunk: (event: StreamEvent) => void,
+  ): Promise<void> {
+    const userQuery = (dto.message || '').trim();
+    const convId = dto.conversationId || `conv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const toolsUsed: string[] = [];
+
+    this.logger.log(`[AI-AGENT-STREAM] Processing stream query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`);
+
+    // 1. Collect read-only DB context
+    const dbContext = await this.collectContext(empresaId, userQuery, toolsUsed);
+    onChunk({ type: 'tools', toolsUsed, conversationId: convId });
+
+    let streamedSuccessfully = false;
+
+    // 2. Try Ollama streaming
+    if (!streamedSuccessfully && (process.env.OLLAMA_BASE_URL || process.env.USE_OLLAMA === 'true')) {
+      try {
+        await this.streamOllama(userQuery, dbContext, dto.history || [], (token) => {
+          onChunk({ type: 'token', token, conversationId: convId });
+        });
+        streamedSuccessfully = true;
+      } catch (err: any) {
+        this.logger.debug(`Ollama stream bypassed: ${err.message}`);
+      }
+    }
+
+    // 3. Try OpenRouter / Groq streaming
+    if (!streamedSuccessfully) {
+      const apiKey = process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY;
+      if (apiKey) {
+        try {
+          await this.streamOpenAICompatible(userQuery, dbContext, dto.history || [], apiKey, (token) => {
+            onChunk({ type: 'token', token, conversationId: convId });
+          });
+          streamedSuccessfully = true;
+        } catch (err: any) {
+          this.logger.warn(`External LLM streaming failed (${err.message}). Trying public stream fallback...`);
+        }
+      }
+    }
+
+    // 4. Try Pollinations AI or Heuristic Synthesizer with Token-by-Token Typewriter Stream
+    if (!streamedSuccessfully) {
+      let fullText = '';
+      try {
+        fullText = await this.callFreePollinationsAI(userQuery, dbContext, dto.history || []);
+      } catch {
+        fullText = this.synthesizeSmartResponse(userQuery, dbContext, user.name || user.email);
+      }
+
+      if (!fullText) {
+        fullText = this.synthesizeSmartResponse(userQuery, dbContext, user.name || user.email);
+      }
+
+      await this.typewriterStream(fullText, (token) => {
+        onChunk({ type: 'token', token, conversationId: convId });
+      });
+    }
+
+    onChunk({ type: 'done', conversationId: convId, toolsUsed });
+  }
+
+  /**
+   * Emits text chunk-by-chunk with typewriter cadence for smooth animation
+   */
+  private async typewriterStream(text: string, emit: (token: string) => void): Promise<void> {
+    const tokens = text.match(/(\s+|\S+)/g) || [text];
+    for (const token of tokens) {
+      emit(token);
+      await new Promise((r) => setTimeout(r, 12));
+    }
+  }
+
+  /**
+   * Real streaming for OpenRouter / Groq / OpenAI-compatible APIs
+   */
+  private async streamOpenAICompatible(
+    prompt: string,
+    dbContext: any,
+    history: ChatMessage[],
+    apiKey: string,
+    emit: (token: string) => void,
+  ): Promise<void> {
+    const isGroq = !!process.env.GROQ_API_KEY && !process.env.OPENROUTER_API_KEY;
+    const endpoint = isGroq
+      ? 'https://api.groq.com/openai/v1/chat/completions'
+      : 'https://openrouter.ai/api/v1/chat/completions';
+
+    const modelName = isGroq
+      ? (process.env.GROQ_MODEL || 'llama-3.3-70b-versatile')
+      : (process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free');
+
+    const systemPrompt = `Eres Dolphin ERP AI, el copiloto inteligente de gestión empresarial de Dolphin ERP.
+Tienes acceso directo y de solo lectura a la base de datos de la empresa activa del usuario.
+
+INSTRUCCIONES CLAVE:
+1. Responde de manera profesional, estructurada, precisa y enriquecida usando formato Markdown de GitHub.
+2. Utiliza tablas Markdown cuando enumeres registros (productos, clientes, proveedores, logs, etc.).
+3. Resalta importes monetarios, cantidades y estados con negrita o badges en código (\`ACTIVO\`, \`DOP\`, \`USD\`).
+4. Si los datos están vacíos, indícalo amablemente y sugiere cómo crearlos en el sistema.
+5. Mantén un tono ejecutivo, analítico y colaborativo.
+
+DATOS ACTUALES DE LA EMPRESA CONSULTADA:
+\`\`\`json
+${JSON.stringify(dbContext, null, 2)}
+\`\`\``;
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...history.slice(-6).map((h) => ({ role: h.role, content: h.content })),
+      { role: 'user', content: prompt },
+    ];
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://dolphin-erp.com',
+        'X-Title': 'Dolphin ERP AI Assistant',
+      },
+      body: JSON.stringify({
+        model: modelName,
+        messages,
+        temperature: 0.3,
+        max_tokens: 1500,
+        stream: true,
+      }),
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error(`Streaming API status ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith('data:')) continue;
+        const dataStr = trimmed.replace(/^data:\s*/, '');
+        if (dataStr === '[DONE]') return;
+
+        try {
+          const parsed = JSON.parse(dataStr);
+          const delta = parsed.choices?.[0]?.delta?.content;
+          if (delta) {
+            emit(delta);
+          }
+        } catch {
+          // ignore non-json SSE lines
+        }
+      }
+    }
+  }
+
+  /**
+   * Real streaming for Ollama local instances
+   */
+  private async streamOllama(
+    prompt: string,
+    dbContext: any,
+    history: ChatMessage[],
+    emit: (token: string) => void,
+  ): Promise<void> {
+    const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+    const model = process.env.OLLAMA_MODEL || 'llama3.2';
+
+    const systemPrompt = `Eres Dolphin ERP AI. Responde en Markdown enriquecido con tablas.\nDatos: ${JSON.stringify(dbContext)}`;
+
+    const response = await fetch(`${baseUrl}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...history.slice(-4).map((h) => ({ role: h.role, content: h.content })),
+          { role: 'user', content: prompt },
+        ],
+        stream: true,
+      }),
+    });
+
+    if (!response.ok || !response.body) throw new Error(`Ollama status ${response.status}`);
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (parsed.message?.content) {
+            emit(parsed.message.content);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }
+
+  /**
    * Free Public AI Gateway (Pollinations AI)
-   * 100% free, unlimited, requires no credit card, and never exhausts quota.
    */
   private async callFreePollinationsAI(
     prompt: string,
@@ -229,48 +472,6 @@ ${JSON.stringify(dbContext, null, 2)}
 
       const text = await response.text();
       return text.trim();
-    } catch (err) {
-      clearTimeout(timeout);
-      throw err;
-    }
-  }
-
-  /**
-   * Ollama Local Model Support (100% Local, Offline & Unlimited)
-   */
-  private async callOllama(
-    prompt: string,
-    dbContext: any,
-    history: ChatMessage[],
-  ): Promise<string> {
-    const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-    const model = process.env.OLLAMA_MODEL || 'llama3.2';
-
-    const systemPrompt = `Eres Dolphin ERP AI. Responde en Markdown enriquecido con tablas.\nDatos: ${JSON.stringify(dbContext)}`;
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
-    try {
-      const response = await fetch(`${baseUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...history.slice(-4).map((h) => ({ role: h.role, content: h.content })),
-            { role: 'user', content: prompt },
-          ],
-          stream: false,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-      if (!response.ok) throw new Error(`Ollama status ${response.status}`);
-      const data = await response.json();
-      return data.message?.content || '';
     } catch (err) {
       clearTimeout(timeout);
       throw err;
@@ -359,6 +560,48 @@ ${JSON.stringify(dbContext, null, 2)}
 
     const data = await response.json();
     return data.choices?.[0]?.message?.content || '';
+  }
+
+  /**
+   * Calls Ollama locally (non-streaming fallback)
+   */
+  private async callOllama(
+    prompt: string,
+    dbContext: any,
+    history: ChatMessage[],
+  ): Promise<string> {
+    const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+    const model = process.env.OLLAMA_MODEL || 'llama3.2';
+
+    const systemPrompt = `Eres Dolphin ERP AI. Responde en Markdown enriquecido con tablas.\nDatos: ${JSON.stringify(dbContext)}`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...history.slice(-4).map((h) => ({ role: h.role, content: h.content })),
+            { role: 'user', content: prompt },
+          ],
+          stream: false,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+      if (!response.ok) throw new Error(`Ollama status ${response.status}`);
+      const data = await response.json();
+      return data.message?.content || '';
+    } catch (err) {
+      clearTimeout(timeout);
+      throw err;
+    }
   }
 
   /**
