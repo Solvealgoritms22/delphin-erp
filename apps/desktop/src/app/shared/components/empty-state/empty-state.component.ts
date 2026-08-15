@@ -45,11 +45,15 @@ export class EmptyStateComponent {
   title = input.required<string>();
   description = input<string>('There is nothing to show here at the moment.');
   
+  icon = input<string>();
   actionLabel = input<string>();
   actionIcon = input<string>('plus');
   action = output<void>();
 
   getIcon(): string {
+    if (this.icon()) {
+      return this.icon()!;
+    }
     switch (this.type()) {
       case 'no-results':
         return 'search';

@@ -5,9 +5,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
+import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { InventoryService, TransferStockDto, AdjustStockDto } from '../../data/inventory.service';
 import { ProductsService } from '../../data/products.service';
-
 import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
@@ -20,6 +24,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
     MatButtonModule,
     MatDialogModule,
     MatSnackBarModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatMenuModule,
+    EmptyStateComponent,
     TranslocoPipe,
   ],
   template: `
@@ -86,13 +95,24 @@ import { TranslocoPipe } from '@jsverse/transloco';
                 </div>
               </div>
               
+              <!-- Warehouse Filter Menu Button -->
               <div class="flex items-center gap-3">
-                <select [(ngModel)]="selectedWarehouseFilter" (ngModelChange)="filterStocks()" class="bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-sm font-bold text-neutral-700 dark:text-neutral-300 outline-none">
-                  <option value="ALL">Todos los Almacenes</option>
+                <button [matMenuTriggerFor]="warehouseFilterMenu" type="button"
+                  class="flex items-center gap-2 h-10 px-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors text-sm font-bold text-neutral-700 dark:text-neutral-200 whitespace-nowrap shrink-0 cursor-pointer">
+                  <mat-icon svgIcon="store" class="icon-size-4 text-neutral-500"></mat-icon>
+                  <span>{{ getSelectedWarehouseFilterName() }}</span>
+                  <mat-icon svgIcon="chevron-down" class="icon-size-3.5 text-neutral-400"></mat-icon>
+                </button>
+                <mat-menu #warehouseFilterMenu="matMenu" class="!rounded-xl !p-1">
+                  <button mat-menu-item (click)="setWarehouseFilter('ALL')">
+                    <span>Todos los Almacenes</span>
+                  </button>
                   @for (w of inventoryService.warehouses(); track w.id) {
-                    <option [value]="w.id">{{ w.nombre }} ({{ w.sucursal?.nombre || 'Central' }})</option>
+                    <button mat-menu-item (click)="setWarehouseFilter(w.id)">
+                      <span>{{ w.nombre }} ({{ w.sucursal?.nombre || 'Central' }})</span>
+                    </button>
                   }
-                </select>
+                </mat-menu>
               </div>
             </div>
 
@@ -107,13 +127,14 @@ import { TranslocoPipe } from '@jsverse/transloco';
               </div>
 
               @if (inventoryService.stocks().length === 0) {
-                <div class="flex flex-col items-center justify-center py-16 text-center">
-                  <div class="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 mb-3">
-                    <mat-icon svgIcon="package-open" class="icon-size-6"></mat-icon>
-                  </div>
-                  <h4 class="text-base font-bold text-neutral-900 dark:text-white">Sin existencias registradas</h4>
-                  <p class="text-xs text-neutral-500 max-w-sm mt-1">Realiza un ajuste de stock inicial o transfiere productos para registrar existencias.</p>
-                </div>
+                <app-empty-state
+                  icon="package"
+                  title="Sin existencias registradas"
+                  description="Realiza un ajuste de stock inicial o transfiere productos para registrar existencias."
+                  actionLabel="Ajuste de Stock"
+                  actionIcon="sliders-horizontal"
+                  (action)="openAdjustmentModal()"
+                />
               } @else {
                 <div class="divide-y divide-neutral-100 dark:divide-neutral-800/60">
                   @for (item of inventoryService.stocks(); track item.id) {
@@ -197,13 +218,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
             </div>
 
             @if (inventoryService.kardex().length === 0) {
-              <div class="flex flex-col items-center justify-center py-16 text-center">
-                <div class="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 mb-3">
-                  <mat-icon svgIcon="history" class="icon-size-6"></mat-icon>
-                </div>
-                <h4 class="text-base font-bold text-neutral-900 dark:text-white">Sin movimientos en Kardex</h4>
-                <p class="text-xs text-neutral-500 max-w-sm mt-1">Todas las compras, ventas, traslados y ajustes quedarán registrados aquí de forma inmutable.</p>
-              </div>
+              <app-empty-state
+                icon="history"
+                title="Sin movimientos en Kardex"
+                description="Todas las compras, ventas, traslados y ajustes quedarán registrados aquí de forma inmutable."
+              />
             } @else {
               <div class="divide-y divide-neutral-100 dark:divide-neutral-800/60">
                 @for (m of inventoryService.kardex(); track m.id) {
@@ -258,52 +277,54 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </div>
 
           <div class="p-6 flex flex-col gap-4 overflow-y-auto">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-bold text-neutral-500">Producto a Transferir</label>
-              <select [(ngModel)]="transferData.productoId" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-                <option value="">Selecciona un producto...</option>
+            <!-- Producto -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Producto a Transferir</mat-label>
+              <mat-select [(ngModel)]="transferData.productoId" placeholder="Selecciona un producto">
                 @for (p of productsService.products(); track p.id) {
-                  <option [value]="p.id">{{ p.codigo }} - {{ p.nombre }}</option>
+                  <mat-option [value]="p.id">{{ p.codigo }} - {{ p.nombre }}</mat-option>
                 }
-              </select>
-            </div>
+              </mat-select>
+            </mat-form-field>
 
-            <div class="grid grid-cols-2 gap-4">
-              <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-bold text-neutral-500">Almacén Origen</label>
-                <select [(ngModel)]="transferData.almacenOrigenId" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-                  <option value="">Selecciona origen...</option>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Almacén Origen -->
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Almacén Origen</mat-label>
+                <mat-select [(ngModel)]="transferData.almacenOrigenId" placeholder="Selecciona origen">
                   @for (w of inventoryService.warehouses(); track w.id) {
-                    <option [value]="w.id">{{ w.nombre }}</option>
+                    <mat-option [value]="w.id">{{ w.nombre }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-bold text-neutral-500">Almacén Destino</label>
-                <select [(ngModel)]="transferData.almacenDestinoId" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-                  <option value="">Selecciona destino...</option>
+              <!-- Almacén Destino -->
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Almacén Destino</mat-label>
+                <mat-select [(ngModel)]="transferData.almacenDestinoId" placeholder="Selecciona destino">
                   @for (w of inventoryService.warehouses(); track w.id) {
-                    <option [value]="w.id">{{ w.nombre }}</option>
+                    <mat-option [value]="w.id">{{ w.nombre }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
             </div>
 
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-bold text-neutral-500">Cantidad a Transferir</label>
-              <input type="number" [(ngModel)]="transferData.cantidad" min="1" placeholder="Ej: 10" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-            </div>
+            <!-- Cantidad -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Cantidad a Transferir</mat-label>
+              <input matInput type="number" [(ngModel)]="transferData.cantidad" min="1" placeholder="10">
+            </mat-form-field>
 
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-bold text-neutral-500">Motivo / Documento de Referencia</label>
-              <input type="text" [(ngModel)]="transferData.motivo" placeholder="Ej: Reabastecimiento de tienda, Solicitud #TR-102" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white outline-none">
-            </div>
+            <!-- Motivo -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Motivo / Documento de Referencia</mat-label>
+              <input matInput type="text" [(ngModel)]="transferData.motivo" placeholder="Reabastecimiento de tienda, Solicitud #TR-102">
+            </mat-form-field>
           </div>
 
           <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900">
-            <button (click)="closeDialog()" class="px-5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs font-bold text-neutral-700 dark:text-neutral-300">Cancelar</button>
-            <button (click)="submitTransfer()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2 rounded-xl transition-colors shadow-sm">Ejecutar Transferencia</button>
+            <button mat-button (click)="closeDialog()" class="rounded-xl">Cancelar</button>
+            <button mat-flat-button color="primary" (click)="submitTransfer()" class="rounded-xl bg-blue-600 text-white">Ejecutar Transferencia</button>
           </div>
         </div>
       </ng-template>
@@ -322,50 +343,53 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </div>
 
           <div class="p-6 flex flex-col gap-4 overflow-y-auto">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-bold text-neutral-500">Producto</label>
-              <select [(ngModel)]="adjustData.productoId" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-                <option value="">Selecciona un producto...</option>
+            <!-- Producto -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Producto</mat-label>
+              <mat-select [(ngModel)]="adjustData.productoId" placeholder="Selecciona un producto">
                 @for (p of productsService.products(); track p.id) {
-                  <option [value]="p.id">{{ p.codigo }} - {{ p.nombre }}</option>
+                  <mat-option [value]="p.id">{{ p.codigo }} - {{ p.nombre }}</mat-option>
                 }
-              </select>
-            </div>
+              </mat-select>
+            </mat-form-field>
 
-            <div class="grid grid-cols-2 gap-4">
-              <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-bold text-neutral-500">Almacén</label>
-                <select [(ngModel)]="adjustData.almacenId" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-                  <option value="">Selecciona almacén...</option>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Almacén -->
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Almacén</mat-label>
+                <mat-select [(ngModel)]="adjustData.almacenId" placeholder="Selecciona almacén">
                   @for (w of inventoryService.warehouses(); track w.id) {
-                    <option [value]="w.id">{{ w.nombre }}</option>
+                    <mat-option [value]="w.id">{{ w.nombre }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-bold text-neutral-500">Tipo de Ajuste</label>
-                <select [(ngModel)]="adjustData.tipo" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-                  <option value="AJUSTE_POSITIVO">Ajuste Positivo (+ Entrada)</option>
-                  <option value="AJUSTE_NEGATIVO">Ajuste Negativo (- Salida / Merma)</option>
-                </select>
-              </div>
+              <!-- Tipo de Ajuste -->
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Tipo de Ajuste</mat-label>
+                <mat-select [(ngModel)]="adjustData.tipo">
+                  <mat-option value="AJUSTE_POSITIVO">Ajuste Positivo (+ Entrada)</mat-option>
+                  <mat-option value="AJUSTE_NEGATIVO">Ajuste Negativo (- Salida / Merma)</mat-option>
+                </mat-select>
+              </mat-form-field>
             </div>
 
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-bold text-neutral-500">Cantidad</label>
-              <input type="number" [(ngModel)]="adjustData.cantidad" min="1" placeholder="Ej: 5" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-            </div>
+            <!-- Cantidad -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Cantidad</mat-label>
+              <input matInput type="number" [(ngModel)]="adjustData.cantidad" min="1" placeholder="5">
+            </mat-form-field>
 
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-bold text-neutral-500">Motivo / Explicación del Ajuste</label>
-              <input type="text" [(ngModel)]="adjustData.motivo" placeholder="Ej: Conteo físico mensual, producto dañado, etc." class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white outline-none">
-            </div>
+            <!-- Motivo -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Motivo / Explicación del Ajuste</mat-label>
+              <input matInput type="text" [(ngModel)]="adjustData.motivo" placeholder="Conteo físico mensual, producto dañado, etc.">
+            </mat-form-field>
           </div>
 
           <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900">
-            <button (click)="closeDialog()" class="px-5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs font-bold text-neutral-700 dark:text-neutral-300">Cancelar</button>
-            <button (click)="submitAdjustment()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2 rounded-xl transition-colors shadow-sm">Aplicar Ajuste</button>
+            <button mat-button (click)="closeDialog()" class="rounded-xl">Cancelar</button>
+            <button mat-flat-button color="primary" (click)="submitAdjustment()" class="rounded-xl bg-blue-600 text-white">Aplicar Ajuste</button>
           </div>
         </div>
       </ng-template>
@@ -384,32 +408,35 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </div>
 
           <div class="p-6 flex flex-col gap-4 overflow-y-auto">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-bold text-neutral-500">Nombre del Almacén</label>
-              <input type="text" [(ngModel)]="warehouseData.nombre" placeholder="Ej: Bodega Central, Piso de Venta Piantini" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-            </div>
+            <!-- Nombre -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Nombre del Almacén</mat-label>
+              <input matInput type="text" [(ngModel)]="warehouseData.nombre" placeholder="Bodega Central, Piso de Venta Piantini">
+            </mat-form-field>
 
-            <div class="grid grid-cols-2 gap-4">
-              <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-bold text-neutral-500">Tipo</label>
-                <select [(ngModel)]="warehouseData.tipo" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-                  <option value="VENTA">Piso de Venta</option>
-                  <option value="CENTRAL">Centro de Distribución (CEDI)</option>
-                  <option value="MERMAS">Almacén de Mermas / Averías</option>
-                  <option value="TRANSITO">En Tránsito</option>
-                </select>
-              </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Tipo -->
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Tipo de Almacén</mat-label>
+                <mat-select [(ngModel)]="warehouseData.tipo">
+                  <mat-option value="VENTA">Piso de Venta</mat-option>
+                  <mat-option value="CENTRAL">Centro de Distribución (CEDI)</mat-option>
+                  <mat-option value="MERMAS">Almacén de Mermas / Averías</mat-option>
+                  <mat-option value="TRANSITO">En Tránsito</mat-option>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-bold text-neutral-500">Código</label>
-                <input type="text" [(ngModel)]="warehouseData.codigo" placeholder="Ej: ALM-01" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-bold text-neutral-900 dark:text-white outline-none">
-              </div>
+              <!-- Código -->
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Código</mat-label>
+                <input matInput type="text" [(ngModel)]="warehouseData.codigo" placeholder="ALM-01">
+              </mat-form-field>
             </div>
           </div>
 
           <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900">
-            <button (click)="closeDialog()" class="px-5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs font-bold text-neutral-700 dark:text-neutral-300">Cancelar</button>
-            <button (click)="submitWarehouse()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 py-2 rounded-xl transition-colors shadow-sm">Guardar Almacén</button>
+            <button mat-button (click)="closeDialog()" class="rounded-xl">Cancelar</button>
+            <button mat-flat-button color="primary" (click)="submitWarehouse()" class="rounded-xl bg-blue-600 text-white">Guardar Almacén</button>
           </div>
         </div>
       </ng-template>
@@ -462,6 +489,19 @@ export default class InventoryComponent implements OnInit {
     this.productsService.findAll().subscribe();
   }
 
+  getSelectedWarehouseFilterName(): string {
+    if (this.selectedWarehouseFilter === 'ALL') {
+      return 'Todos los Almacenes';
+    }
+    const found = this.inventoryService.warehouses().find(w => w.id === this.selectedWarehouseFilter);
+    return found ? `${found.nombre} (${found.sucursal?.nombre || 'Central'})` : 'Todos los Almacenes';
+  }
+
+  setWarehouseFilter(warehouseId: string) {
+    this.selectedWarehouseFilter = warehouseId;
+    this.filterStocks();
+  }
+
   filterStocks() {
     this.inventoryService.getStocks({
       search: this.stockSearch,
@@ -478,7 +518,7 @@ export default class InventoryComponent implements OnInit {
       motivo: '',
     };
     this.dialogRef = this.dialog.open(this.transferModalTemplate, {
-      width: '540px',
+      width: '560px',
       maxWidth: '95vw',
       panelClass: ['custom-dialog-container'],
     });
@@ -493,7 +533,7 @@ export default class InventoryComponent implements OnInit {
       motivo: '',
     };
     this.dialogRef = this.dialog.open(this.adjustmentModalTemplate, {
-      width: '540px',
+      width: '560px',
       maxWidth: '95vw',
       panelClass: ['custom-dialog-container'],
     });
@@ -507,7 +547,7 @@ export default class InventoryComponent implements OnInit {
       sucursalId: '',
     };
     this.dialogRef = this.dialog.open(this.warehouseModalTemplate, {
-      width: '500px',
+      width: '520px',
       maxWidth: '95vw',
       panelClass: ['custom-dialog-container'],
     });
@@ -565,6 +605,7 @@ export default class InventoryComponent implements OnInit {
       next: () => {
         this.snackBar.open('Almacén creado exitosamente', 'Cerrar', { duration: 3000 });
         this.closeDialog();
+        this.inventoryService.getWarehouses().subscribe();
       },
       error: (err) => {
         this.snackBar.open(err.error?.message || 'Error al crear almacén', 'Cerrar', { duration: 4000 });

@@ -31,6 +31,7 @@ export class AuthService {
           plan: response.user.plan || 'Starter',
           empresaId: response.user.empresaId,
           permissions: response.user.permissions || [],
+          sessionId: response.user.sessionId,
         };
         return {
           accessToken: response.access_token,
@@ -57,7 +58,8 @@ export class AuthService {
             avatar: response.user.avatar || currentUser.avatar,
             mustChangePassword: response.user.mustChangePassword === true,
             plan: response.user.plan || currentUser.plan,
-            permissions: response.user.permissions || currentUser.permissions || []
+            permissions: response.user.permissions || currentUser.permissions || [],
+            sessionId: response.user.sessionId || currentUser.sessionId,
           };
           this.state.setSession(updated, response.access_token, response.user.empresaId);
         }

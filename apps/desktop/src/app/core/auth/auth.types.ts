@@ -17,6 +17,7 @@ export interface User {
   empresaId?: string;
   empresas?: Empresa[];
   permissions?: string[];
+  sessionId?: string;
 }
 
 export interface AuthResponse {

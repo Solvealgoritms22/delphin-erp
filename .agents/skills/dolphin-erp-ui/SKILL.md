@@ -91,6 +91,43 @@ Un módulo no está terminado si falta cualquiera de los puntos aplicables. En l
 
 ---
 
+## 1.3 Estándar de Formularios, Selects y Controles de Entrada
+
+* **Prohibido usar `<select>` nativos sin estilizar**: Nunca uses etiquetas HTML `<select>` nativas del navegador en modales, formularios ni barras de herramientas.
+* **Uso Obligatorio de Angular Material (`MatSelectModule`, `MatFormFieldModule`)**:
+  - Utiliza siempre `<mat-form-field appearance="outline" class="w-full">` con `<mat-label>` y `<mat-select>` con `<mat-option>`.
+  - Para filtros en barras de herramientas, usa botones de filtro con `<button [matMenuTriggerFor]="filterMenu">` o `<mat-form-field>`.
+  ```html
+  <mat-form-field appearance="outline" class="w-full">
+    <mat-label>Producto</mat-label>
+    <mat-select [(ngModel)]="selectedId">
+      @for (item of items(); track item.id) {
+        <mat-option [value]="item.id">{{ item.nombre }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  ```
+
+---
+
+## 1.4 Estándar de Estados Vacíos (Empty States)
+
+* **Uso Obligatorio del componente compartido `<app-empty-state>`**:
+  - En tablas, listas o paneles sin datos, **nunca** uses íconos diminutos ni contenedores improvisados.
+  - Reutiliza `<app-empty-state>` (`src/app/shared/components/empty-state/empty-state.component.ts`), el cual incluye el contenedor circular proporcional (`size-24`), ícono destacado (`size-12`), título semántico, descripción y botón de acción opcional.
+  ```html
+  <app-empty-state
+    icon="package"
+    title="Sin existencias registradas"
+    description="Realiza un ajuste de stock inicial o transfiere productos para registrar existencias."
+    actionLabel="Nuevo Ajuste"
+    actionIcon="plus"
+    (action)="openModal()"
+  />
+  ```
+
+---
+
 ## 2. Componentes Reutilizables Disponibles
 
 Antes de crear código desde cero, **revisa y reutiliza los componentes existentes en `src/app/shared/components/`**:

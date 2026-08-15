@@ -16,7 +16,7 @@ import { CurrentSessionsService, SessionLog } from '../../data/current-sessions.
 import { ConfirmDialogComponent } from '../../../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AuthState } from '../../../../../../core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, MonitorCheckIcon } from 'ng-animated-icons';
+import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, MonitorCheckIcon, TrashIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'current-sessions',
@@ -41,6 +41,7 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
     ChevronLeftIcon,
     ChevronRightIcon,
     MonitorCheckIcon,
+    TrashIcon,
   ],
   template: `
     <div class="flex flex-col w-full h-full bg-white dark:bg-neutral-900 overflow-hidden relative border-t sm:border-t-0 sm:border-l border-neutral-200 dark:border-neutral-800">
@@ -107,6 +108,14 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
               </div>
 
               <div class="flex flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto justify-start lg:justify-end">
+                @if (selectedIds().size > 0) {
+                  <button mat-stroked-button type="button" (click)="revokeSelected()" [disabled]="loading()"
+                    class="!rounded-xl !border-red-300 !text-red-600 dark:!border-red-800 dark:!text-red-400 !whitespace-nowrap shrink-0 !h-10">
+                    <i-trash [size]="16" class="mr-1.5 text-red-500" />
+                    <span class="whitespace-nowrap">Cerrar seleccionadas ({{ selectedIds().size }})</span>
+                  </button>
+                }
+
                 <button mat-stroked-button type="button" (click)="revokeOthers()" [disabled]="loading()"
                   class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400 !whitespace-nowrap shrink-0 !h-10">
                   <i-log-out [size]="16" class="mr-1.5 text-red-500" />
@@ -155,48 +164,52 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
 
             </div>
 
-            <!-- Table content -->
-            <div class="flex-auto overflow-auto">
-              <table class="w-full text-left min-w-[800px] border-collapse">
+            <!-- Table -->
+            <div class="w-full overflow-x-auto">
+              <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
-                    <th class="w-14 px-4 py-3 text-center">
+                  <tr class="border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                    <th class="w-14 px-4 py-3.5 text-center">
                       <mat-checkbox [checked]="allSelected()" (change)="toggleAll()"></mat-checkbox>
                     </th>
                     @if (columns().person) {
-                      <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
-                        <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-                          Person <i-arrow-up [size]="12" class="text-neutral-400" />
+                      <th class="px-4 py-3.5">
+                        <div class="flex items-center gap-1 cursor-pointer">
+                          <span>Person</span>
+                          <i-arrow-up [size]="14" class="text-neutral-400" />
                         </div>
                       </th>
                     }
                     @if (columns().browser) {
-                      <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
-                        <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-                          Browser <i-chevron-down [size]="12" class="text-neutral-400" />
+                      <th class="px-4 py-3.5">
+                        <div class="flex items-center gap-1 cursor-pointer">
+                          <span>Browser</span>
+                          <i-chevron-down [size]="14" class="text-neutral-400" />
                         </div>
                       </th>
                     }
                     @if (columns().ipAddress) {
-                      <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
-                        <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-                          IP Address <i-chevron-down [size]="12" class="text-neutral-400" />
+                      <th class="px-4 py-3.5">
+                        <div class="flex items-center gap-1 cursor-pointer">
+                          <span>IP Address</span>
+                          <i-chevron-down [size]="14" class="text-neutral-400" />
                         </div>
                       </th>
                     }
                     @if (columns().location) {
-                      <th class="py-3 px-4 text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider">
-                        <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
-                          Location <i-chevron-down [size]="12" class="text-neutral-400" />
+                      <th class="px-4 py-3.5">
+                        <div class="flex items-center gap-1 cursor-pointer">
+                          <span>Location</span>
+                          <i-chevron-down [size]="14" class="text-neutral-400" />
                         </div>
                       </th>
                     }
-                    <th class="w-14 px-4 py-3"></th>
+                    <th class="w-16 px-4 py-3.5 text-right"></th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700 bg-white dark:bg-neutral-900">
+                <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
                   @for (session of filteredSessions(); track session.id) {
-                    <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group">
+                    <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50 transition-colors" [class.opacity-60]="!session.isActive">
                       <td class="w-14 px-4 py-4 text-center">
                         <mat-checkbox [checked]="isSelected(session.id)" (change)="toggleSelection(session.id)"></mat-checkbox>
                       </td>
@@ -210,7 +223,21 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
                                 {{ initials(session.personName) }}
                               </div>
                             }
-                            <span class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{{ session.personName }}</span>
+                            <div class="flex flex-col">
+                              <div class="flex items-center gap-2">
+                                <span class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{{ session.personName }}</span>
+                                @if (isCurrentSession(session)) {
+                                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                    Esta sesión
+                                  </span>
+                                }
+                                @if (!session.isActive) {
+                                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                                    Revocada
+                                  </span>
+                                }
+                              </div>
+                            </div>
                           </div>
                         </td>
                       }
@@ -238,9 +265,15 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
                         </td>
                       }
                       <td class="px-4 py-4 text-right">
-                         <button mat-icon-button type="button" [matTooltip]="session.isCurrent ? 'Revoke current session (sign out)' : 'Revoke session'" (click)="revokeSession(session)" [disabled]="!session.isActive" class="!w-8 !h-8 text-neutral-400">
+                         <button mat-icon-button type="button" [matMenuTriggerFor]="rowMenu" class="!w-8 !h-8 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
                             <mat-icon svgIcon="ellipsis-vertical" class="!w-5 !h-5"></mat-icon>
                          </button>
+                         <mat-menu #rowMenu="matMenu" class="!rounded-xl !p-1">
+                           <button mat-menu-item (click)="revokeSession(session)" [disabled]="!session.isActive" class="!text-red-600 dark:!text-red-400">
+                             <mat-icon svgIcon="log-out" class="!w-4 !h-4 mr-2 text-red-500"></mat-icon>
+                             <span>{{ isCurrentSession(session) ? ('sessions.revokeCurrent' | transloco) : ('sessions.revoke' | transloco) }}</span>
+                           </button>
+                         </mat-menu>
                       </td>
                     </tr>
                   } @empty {
@@ -258,14 +291,14 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
               </table>
             </div>
             
-            <!-- Pagination (simulated) -->
+            <!-- Pagination -->
             <div class="flex items-center justify-between px-6 py-4 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
               <span class="text-sm text-neutral-500">
-                Showing
+                {{ 'sessions.showing' | transloco }}
                 <span class="font-medium text-neutral-900 dark:text-white">
                   {{ filteredSessions().length > 0 ? 1 : 0 }} - {{ filteredSessions().length }}
                 </span>
-                of
+                {{ 'sessions.of' | transloco }}
                 <span class="font-medium text-neutral-900 dark:text-white">
                   {{ sessions().length }}
                 </span>
@@ -291,7 +324,7 @@ export default class CurrentSessionsComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
-  private readonly authState = inject(AuthState);
+  readonly authState = inject(AuthState);
   private readonly transloco = inject(TranslocoService);
 
   sessions = this._sessionsService.sessions;
@@ -343,8 +376,13 @@ export default class CurrentSessionsComponent implements OnInit {
     });
   }
 
+  isCurrentSession(session: SessionLog): boolean {
+    const currentSessionId = this.authState.user()?.sessionId;
+    return session.isCurrent || (!!currentSessionId && session.id === currentSessionId) || (this.sessions().length === 1 && session.isActive);
+  }
+
   revokeSession(session: SessionLog): void {
-    const isCurrent = session.isCurrent;
+    const isCurrent = this.isCurrentSession(session);
     this.dialog.open(ConfirmDialogComponent, {
       width: 'min(460px, calc(100vw - 32px))',
       data: {
@@ -366,12 +404,60 @@ export default class CurrentSessionsComponent implements OnInit {
             this.router.navigate(['/auth/sign-in']);
           } else {
             this.snackBar.open(this.transloco.translate('sessions.revoked'), this.transloco.translate('common.close'), { duration: 3000 });
+            this.loadSessions();
           }
         },
         error: () => {
           this.loading.set(false);
           this.snackBar.open(this.transloco.translate('sessions.revokeError'), this.transloco.translate('common.close'), { duration: 4000 });
         },
+      });
+    });
+  }
+
+  revokeSelected(): void {
+    const ids = Array.from(this.selectedIds());
+    if (ids.length === 0) return;
+
+    this.dialog.open(ConfirmDialogComponent, {
+      width: 'min(460px, calc(100vw - 32px))',
+      data: {
+        title: 'Cerrar sesiones seleccionadas',
+        message: `¿Estás seguro de que deseas revocar <strong>${ids.length}</strong> sesiones seleccionadas?`,
+        confirmLabel: 'Cerrar sesiones',
+        destructive: true,
+      },
+    }).afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+      this.loading.set(true);
+      const currentSessionId = this.authState.user()?.sessionId;
+      const includesCurrent = ids.some(id => id === currentSessionId);
+
+      let completed = 0;
+      ids.forEach(id => {
+        this._sessionsService.revoke(id).subscribe({
+          next: () => {
+            completed++;
+            if (completed === ids.length) {
+              this.loading.set(false);
+              this.selectedIds.set(new Set());
+              if (includesCurrent) {
+                this.authState.clearSession();
+                this.router.navigate(['/auth/sign-in']);
+              } else {
+                this.snackBar.open('Sesiones revocadas exitosamente', this.transloco.translate('common.close'), { duration: 3000 });
+                this.loadSessions();
+              }
+            }
+          },
+          error: () => {
+            completed++;
+            if (completed === ids.length) {
+              this.loading.set(false);
+              this.loadSessions();
+            }
+          }
+        });
       });
     });
   }
@@ -392,6 +478,7 @@ export default class CurrentSessionsComponent implements OnInit {
         next: () => {
           this.loading.set(false);
           this.snackBar.open(this.transloco.translate('sessions.othersClosed'), this.transloco.translate('common.close'), { duration: 3000 });
+          this.loadSessions();
         },
         error: () => {
           this.loading.set(false);

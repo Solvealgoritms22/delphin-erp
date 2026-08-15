@@ -9,11 +9,10 @@ export class SessionService {
     const sessions = await this.prisma.userSession.findMany({
       where: {
         usuarioId: userId,
-        revokedAt: null,
-        OR: [{ expiraEn: null }, { expiraEn: { gt: new Date() } }],
       },
       include: { usuario: { select: { nombre: true, email: true, avatar: true } } },
       orderBy: { ultimoAcceso: 'desc' },
+      take: 50,
     });
     const now = Date.now();
 

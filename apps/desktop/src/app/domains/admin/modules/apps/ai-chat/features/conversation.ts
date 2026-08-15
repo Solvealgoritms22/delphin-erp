@@ -206,7 +206,7 @@ import { MarkdownRendererComponent } from '@/app/shared/components/markdown-rend
               [(ngModel)]="prompt"
               (keydown.enter)="onKeyDown($event)"
               class="flex-1 resize-none border-0 bg-transparent px-2 py-1 outline-none text-sm text-neutral-900 dark:text-white placeholder-neutral-400"
-              placeholder="Escribe tu consulta sobre el ERP (ej: ¿Cuáles son nuestros productos más caros?)..."
+              placeholder="¿Cuáles son nuestros productos más caros?"
               cdkTextareaAutosize
               [cdkAutosizeMinRows]="1"
               cdkAutosizeMaxRows="6"
