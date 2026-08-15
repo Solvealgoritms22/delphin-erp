@@ -32,6 +32,18 @@ model Empresa {
   propietarioId String?    @map("propietario_id")
   propietario  Usuario?    @relation("EmpresasPropiedad", fields: [propietarioId], references: [id], onDelete: SetNull)
 
+  // Integración FiscalBridge (e-CF República Dominicana - Ley 32-23)
+  fiscalbridgeUrl          String?   @map("fiscalbridge_url")
+  fiscalbridgeAuthMethod   String?   @default("TOKEN") @map("fiscalbridge_auth_method") // TOKEN | EMAIL | OAUTH2
+  fiscalbridgeToken        String?   @map("fiscalbridge_token")
+  fiscalbridgeEmail        String?   @map("fiscalbridge_email")
+  fiscalbridgePassword     String?   @map("fiscalbridge_password")
+  fiscalbridgeClientId     String?   @map("fiscalbridge_client_id")
+  fiscalbridgeClientSecret String?   @map("fiscalbridge_client_secret")
+  fiscalbridgeEnv          String?   @default("TEST") @map("fiscalbridge_env") // TEST | CERT | PROD
+  fiscalbridgeEnabled      Boolean   @default(false) @map("fiscalbridge_enabled")
+  fiscalbridgeWebhookSecret String?  @map("fiscalbridge_webhook_secret")
+
   suscripcion  Suscripcion?
   sucursales     Sucursal[]
   almacenes      Almacen[]
@@ -46,6 +58,8 @@ model Empresa {
   clientes       Cliente[]
   proveedores    Proveedor[]
   notificaciones Notification[]
+  secuenciasNcf  SecuenciaNCF[]
+  facturasVenta  FacturaVenta[]
 
   @@map("empresas")
 }
@@ -64,6 +78,7 @@ model Sucursal {
 
   empresa      Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   almacenes    Almacen[]
+  facturasVenta FacturaVenta[]
 
   @@unique([empresaId, nombre])
   @@map("sucursales")
@@ -93,6 +108,7 @@ model Usuario {
   preferenciasNotificacion NotificationPreference[]
   pushSubscriptions PushSubscription[]
   empresasPropiedad Empresa[] @relation("EmpresasPropiedad")
+  facturasVenta  FacturaVenta[]
 
   @@map("usuarios")
 }
@@ -307,6 +323,7 @@ model Producto {
   unidadMedida     UnidadMedida? @relation(fields: [unidadMedidaId], references: [id], onDelete: SetNull)
   stocks           InventarioStock[]
   movimientosInventario MovimientoInventario[]
+  facturasDetalle  FacturaVentaDetalle[]
 
   @@unique([empresaId, codigo])
   @@map("productos")
@@ -326,6 +343,7 @@ model Almacen {
   empresa     Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   sucursal    Sucursal? @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
   stocks      InventarioStock[]
+  facturasVenta FacturaVenta[]
 
   @@unique([empresaId, nombre])
   @@map("almacenes")
@@ -388,6 +406,7 @@ model Cliente {
   actualizadoEn     DateTime  @updatedAt @map("actualizado_en")
 
   empresa           Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  facturasVenta     FacturaVenta[]
 
   @@unique([empresaId, numeroDocumento])
   @@map("clientes")
@@ -512,4 +531,103 @@ model ActivityLog {
   @@index([empresaId, usuarioId])
   @@index([creadoEn(sort: Desc)])
   @@map("activity_logs")
+}
+
+// ------------------------------------------------------
+// Fase 5 - Facturación Fiscal Dominicana (NCF & e-CF FiscalBridge)
+// ------------------------------------------------------
+
+model SecuenciaNCF {
+  id               String    @id @default(uuid())
+  empresaId        String    @map("empresa_id")
+  nombre           String
+  tipo             String    // E31, E32, E34, E44, E45, B01, B02, B04, B14, B15
+  prefijo          String    // E31, B01, etc.
+  numeroActual     Int       @default(1) @map("numero_actual")
+  numeroHasta      Int       @default(99999999) @map("numero_hasta")
+  fechaVencimiento DateTime? @map("fecha_vencimiento")
+  activa           Boolean   @default(true)
+  ambiente         String    @default("TEST") // TEST | CERT | PROD
+  creadoEn         DateTime  @default(now()) @map("creado_en")
+  actualizadoEn    DateTime  @updatedAt @map("actualizado_en")
+
+  empresa          Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, prefijo, ambiente])
+  @@index([empresaId, activa])
+  @@map("secuencias_ncf")
+}
+
+model FacturaVenta {
+  id                       String       @id @default(uuid())
+  empresaId                String       @map("empresa_id")
+  sucursalId               String?      @map("sucursal_id")
+  almacenId                String?      @map("almacen_id")
+  clienteId                String?      @map("cliente_id")
+  usuarioId                String?      @map("usuario_id")
+  
+  numeroFactura            String       @map("numero_factura") // ej: FAC-0001
+  ncf                      String?      // ej: E3100000001 o B0100000001
+  tipoNcf                  String?      @map("tipo_ncf") // E31, E32, B01, B02, etc.
+  fecha                    DateTime     @default(now())
+  fechaVencimiento         DateTime?    @map("fecha_vencimiento")
+  estado                   String       @default("EMITIDA") // EMITIDA, PAGADA, ANULADA
+  tipoPago                 String       @default("CONTADO") @map("tipo_pago") // CONTADO, CREDITO
+  metodoPago               String       @default("EFECTIVO") @map("metodo_pago") // EFECTIVO, TARJETA, TRANSFERENCIA, CHEQUE
+  
+  subtotal                 Decimal      @db.Decimal(12, 2)
+  descuento                Decimal      @default(0) @db.Decimal(12, 2)
+  itbis                    Decimal      @db.Decimal(12, 2)
+  total                    Decimal      @db.Decimal(12, 2)
+  montoPagado              Decimal      @default(0) @map("monto_pagado") @db.Decimal(12, 2)
+  balancePendiente         Decimal      @default(0) @map("balance_pendiente") @db.Decimal(12, 2)
+
+  // Integración e-CF con FiscalBridge
+  fiscalbridgeStatus       String?      @default("NOT_TRANSMITTED") @map("fiscalbridge_status") // NOT_TRANSMITTED, PENDING, SENT, FAILED, ACCEPTED, REJECTED
+  fiscalbridgeDocId        String?      @map("fiscalbridge_doc_id") // UUID de FiscalBridge
+  fiscalbridgeTrackId      String?      @map("fiscalbridge_track_id")
+  fiscalbridgeError        String?      @map("fiscalbridge_error")
+  fiscalbridgeQrUrl        String?      @map("fiscalbridge_qr_url")
+  fiscalbridgeSecurityCode String?      @map("fiscalbridge_security_code")
+  fiscalbridgeSignDate     DateTime?    @map("fiscalbridge_sign_date")
+
+  // NCF Modificado (para Notas de Crédito E34 / B04)
+  ncfModificado            String?      @map("ncf_modificado")
+  motivoModificacion       String?      @map("motivo_modificacion")
+
+  notas                    String?
+  creadoEn                 DateTime     @default(now()) @map("creado_en")
+  actualizadoEn            DateTime     @updatedAt @map("actualizado_en")
+
+  empresa                  Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  sucursal                 Sucursal?    @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
+  almacen                  Almacen?     @relation(fields: [almacenId], references: [id], onDelete: SetNull)
+  cliente                  Cliente?     @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  usuario                  Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  detalles                 FacturaVentaDetalle[]
+
+  @@unique([empresaId, numeroFactura])
+  @@index([empresaId, ncf])
+  @@index([empresaId, fecha(sort: Desc)])
+  @@index([empresaId, estado])
+  @@map("facturas_venta")
+}
+
+model FacturaVentaDetalle {
+  id             String       @id @default(uuid())
+  facturaId      String       @map("factura_id")
+  productoId     String       @map("producto_id")
+  cantidad       Decimal      @db.Decimal(12, 2)
+  precioUnitario Decimal      @map("precio_unitario") @db.Decimal(12, 2)
+  tasaItbis      Decimal      @default(18) @map("tasa_itbis") @db.Decimal(5, 2)
+  itbis          Decimal      @db.Decimal(12, 2)
+  subtotal       Decimal      @db.Decimal(12, 2)
+  total          Decimal      @db.Decimal(12, 2)
+  creadoEn       DateTime     @default(now()) @map("creado_en")
+
+  factura        FacturaVenta @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  producto       Producto     @relation(fields: [productoId], references: [id], onDelete: Restrict)
+
+  @@index([facturaId])
+  @@map("facturas_venta_detalles")
 }

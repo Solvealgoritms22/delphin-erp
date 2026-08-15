@@ -24,6 +24,9 @@ export const MODULE_PERMISSION_NAMESPACES: Record<string, string> = {
   'current-sessions': 'sessions',
   activity: 'activity',
   inventory: 'inventory',
+  invoices: 'invoices',
+  sequences: 'sequences',
+  sales: 'invoices',
   about: 'about',
   legal: 'legal',
 };

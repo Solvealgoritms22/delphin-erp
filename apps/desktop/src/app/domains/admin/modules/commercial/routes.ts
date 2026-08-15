@@ -2,6 +2,14 @@ import { Routes } from '@angular/router';
 
 export default [
   {
+    path: 'invoices',
+    loadComponent: () => import('./features/invoices/invoices.component').then((c) => c.InvoicesComponent),
+  },
+  {
+    path: 'sequences',
+    loadComponent: () => import('./features/sequences/sequences.component').then((c) => c.SequencesComponent),
+  },
+  {
     path: 'clients',
     loadComponent: () => import('./features/clients/clients').then((c) => c.Clients),
   },

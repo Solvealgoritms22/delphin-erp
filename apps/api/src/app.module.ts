@@ -21,6 +21,8 @@ import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
+import { SequencesModule } from './modules/sequences/sequences.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
 
 @Module({
   imports: [
@@ -85,6 +87,8 @@ import { InventoryModule } from './modules/inventory/inventory.module';
     NotificationsModule,
     AiAgentModule,
     InventoryModule,
+    SequencesModule,
+    InvoicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

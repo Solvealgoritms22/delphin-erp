@@ -5,7 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
@@ -21,6 +24,8 @@ import { BriefcaseIcon, UploadIcon, TrashIcon, RefreshCwIcon } from 'ng-animated
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
+    MatSlideToggleModule,
     MatIconModule,
     TranslocoPipe,
     BriefcaseIcon,
@@ -36,7 +41,7 @@ import { BriefcaseIcon, UploadIcon, TrashIcon, RefreshCwIcon } from 'ng-animated
        <span class="text-xl font-bold">{{ (data ? 'companies.edit' : 'companies.new') | transloco }}</span>
     </h2>
 
-    <mat-dialog-content>
+    <mat-dialog-content class="!max-h-[75vh]">
       <form [formGroup]="form" class="flex flex-col gap-4 mt-4">
 
         <!-- Company logo -->
@@ -73,7 +78,7 @@ import { BriefcaseIcon, UploadIcon, TrashIcon, RefreshCwIcon } from 'ng-animated
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <mat-form-field appearance="outline" class="w-full">
-             <mat-label>{{ 'companies.taxId' | transloco }}</mat-label>
+             <mat-label>{{ 'companies.taxId' | transloco }} (RNC / Cédula)</mat-label>
             <input matInput formControlName="rnc" placeholder="130204394">
           </mat-form-field>
 
@@ -91,10 +96,64 @@ import { BriefcaseIcon, UploadIcon, TrashIcon, RefreshCwIcon } from 'ng-animated
           </mat-error>
         </mat-form-field>
 
+        <!-- FiscalBridge e-CF Section -->
+        <div class="mt-4 p-5 rounded-2xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-sm font-bold text-blue-950 dark:text-blue-200">Facturación Electrónica FiscalBridge (e-CF DGII)</span>
+              <span class="text-xs text-neutral-500">Transmisión automática de facturas a la DGII conforme a la Ley 32-23</span>
+            </div>
+            <mat-slide-toggle formControlName="fiscalbridgeEnabled" color="primary"></mat-slide-toggle>
+          </div>
+
+          <div *ngIf="form.get('fiscalbridgeEnabled')?.value" class="flex flex-col gap-4 pt-2">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>URL de API FiscalBridge</mat-label>
+              <input matInput formControlName="fiscalbridgeUrl" placeholder="https://api.fiscalbridge.com/v1">
+            </mat-form-field>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Método de Autenticación</mat-label>
+                <mat-select formControlName="fiscalbridgeAuthMethod">
+                  <mat-option value="TOKEN">API Token (Recomendado 365 días)</mat-option>
+                  <mat-option value="EMAIL">Correo y Contraseña</mat-option>
+                  <mat-option value="OAUTH2">OAuth 2.0</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Entorno DGII</mat-label>
+                <mat-select formControlName="fiscalbridgeEnv">
+                  <mat-option value="TEST">TEST (Sandbox / Pruebas)</mat-option>
+                  <mat-option value="CERT">CERT (Certificación DGII)</mat-option>
+                  <mat-option value="PROD">PROD (Producción en Vivo)</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="w-full" *ngIf="form.get('fiscalbridgeAuthMethod')?.value === 'TOKEN'">
+              <mat-label>API Token de FiscalBridge</mat-label>
+              <input matInput type="password" formControlName="fiscalbridgeToken" placeholder="fb_token_live_...">
+            </mat-form-field>
+
+            <div *ngIf="form.get('fiscalbridgeAuthMethod')?.value === 'EMAIL'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Correo FiscalBridge</mat-label>
+                <input matInput type="email" formControlName="fiscalbridgeEmail">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Contraseña</mat-label>
+                <input matInput type="password" formControlName="fiscalbridgePassword">
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
       </form>
     </mat-dialog-content>
 
-    <mat-dialog-actions align="end" class="p-6">
+    <mat-dialog-actions align="end" class="p-6 border-t border-neutral-100 dark:border-neutral-800">
        <button mat-button mat-dialog-close>{{ 'common.cancel' | transloco }}</button>
       <button mat-flat-button class="bg-blue-600 hover:bg-blue-700 text-white ml-2 rounded-full px-6" (click)="save()" [disabled]="form.invalid || isSaving">
          <span *ngIf="!isSaving">{{ (data ? 'common.saveChanges' : 'companies.create') | transloco }}</span>
@@ -111,6 +170,7 @@ export class EmpresaDialogComponent implements OnInit {
   public data = inject(MAT_DIALOG_DATA, { optional: true });
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
+  private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
   form: FormGroup;
@@ -122,7 +182,14 @@ export class EmpresaDialogComponent implements OnInit {
       rnc: [''],
       telefono: [''],
       email: ['', Validators.email],
-      logo: ['']
+      logo: [''],
+      fiscalbridgeEnabled: [false],
+      fiscalbridgeUrl: ['https://api.fiscalbridge.com/v1'],
+      fiscalbridgeAuthMethod: ['TOKEN'],
+      fiscalbridgeToken: [''],
+      fiscalbridgeEmail: [''],
+      fiscalbridgePassword: [''],
+      fiscalbridgeEnv: ['TEST'],
     });
   }
 
@@ -138,47 +205,57 @@ export class EmpresaDialogComponent implements OnInit {
 
   onLogoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
+    if (!input.files || input.files.length === 0) return;
 
+    const file = input.files[0];
     this.logoError.set('');
+
     if (file.size > 2 * 1024 * 1024) {
-       this.logoError.set(this.transloco.translate('companies.logoTooLarge'));
-      input.value = '';
+      this.logoError.set('La imagen debe ser menor a 2MB');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
-      const logo = reader.result as string;
-      this.logoPreview.set(logo);
-      this.form.patchValue({ logo });
+      const base64 = reader.result as string;
+      this.logoPreview.set(base64);
+      this.form.patchValue({ logo: base64 });
     };
     reader.readAsDataURL(file);
   }
 
   removeLogo(): void {
     this.logoPreview.set('');
-    this.form.patchValue({ logo: null });
+    this.form.patchValue({ logo: '' });
   }
 
   save() {
     if (this.form.invalid) return;
-
     this.isSaving = true;
+    const value = this.form.value;
 
-    const request = this.data
-      ? this.http.patch(`${environment.apiUrl}/empresas/${this.data.id}`, this.form.value)
-      : this.http.post(`${environment.apiUrl}/empresas`, this.form.value);
-
-    request.subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.dialogRef.close(true);
-      },
-      error: () => {
-        this.isSaving = false;
-      }
-    });
+    if (this.data && this.data.id) {
+      this.http.patch(`${environment.apiUrl}/v1/empresas/${this.data.id}`, value).subscribe({
+        next: (res) => {
+          this.isSaving = false;
+          this.dialogRef.close(res);
+        },
+        error: (err) => {
+          this.isSaving = false;
+          this.snackBar.open(err.error?.message || 'Error al actualizar empresa', 'Cerrar', { duration: 3000 });
+        }
+      });
+    } else {
+      this.http.post(`${environment.apiUrl}/v1/empresas`, value).subscribe({
+        next: (res) => {
+          this.isSaving = false;
+          this.dialogRef.close(res);
+        },
+        error: (err) => {
+          this.isSaving = false;
+          this.snackBar.open(err.error?.message || 'Error al crear empresa', 'Cerrar', { duration: 3000 });
+        }
+      });
+    }
   }
 }

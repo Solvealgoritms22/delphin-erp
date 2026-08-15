@@ -84,6 +84,20 @@ export const NAVIGATION: NavigationItem[] = [
     description: 'nav.commercialDescription',
     children: [
       {
+        id: 'commercial/invoices',
+        label: 'nav.invoices',
+        icon: 'file-text',
+        route: '/admin/commercial/invoices',
+        activeOptions: { exact: false }
+      },
+      {
+        id: 'commercial/sequences',
+        label: 'nav.sequences',
+        icon: 'hash',
+        route: '/admin/commercial/sequences',
+        activeOptions: { exact: false }
+      },
+      {
         id: 'commercial/clients',
         label: 'nav.clients',
         icon: 'users',

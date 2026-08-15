@@ -513,6 +513,20 @@ export class RolesComponent implements OnInit {
       icon: 'boxes'
     },
     {
+      id: 'mod-invoices',
+      name: 'Facturación y Ventas',
+      slug: 'invoices',
+      description: 'Emisión de facturas, cotizaciones, notas de crédito e integración e-CF FiscalBridge',
+      icon: 'file-text'
+    },
+    {
+      id: 'mod-sequences',
+      name: 'Comprobantes Fiscales (NCF)',
+      slug: 'sequences',
+      description: 'Administración de secuencias NCF tradicionales y e-CF autorizadas por la DGII',
+      icon: 'hash'
+    },
+    {
       id: 'mod-billing',
       name: 'Plan y Facturación',
       slug: 'billing',
