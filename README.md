@@ -1,7 +1,5 @@
 <div align="center">
 
-  <img src="apps/desktop/public/images/logo/logo_dolphin_light.png" alt="Dolphin ERP Logo" width="120" />
-
   # 🐬 Dolphin ERP
 
   ### Sistema Integral de Gestión Empresarial & Facturación Fiscal Multi-Tenant
