@@ -3,11 +3,13 @@ import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { createHash, randomBytes } from 'crypto';
+import { TenantMailerService } from '../../common/tenant-mailer.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
+    private readonly tenantMailer: TenantMailerService,
     @Optional() private readonly mailer?: MailerService,
   ) {}
 
@@ -167,22 +169,30 @@ export class UsersService {
     );
 
     if (invitationToken) {
+      // Fetch owner for SMTP config
+      const owner = await this.prisma.usuario.findUnique({ where: { id: actorUserId! } }) as any;
+      if (!owner) throw new NotFoundException('Propietario no encontrado');
+      this.tenantMailer.assertSmtpConfigured(owner);
+
       const companies = await this.findAssignableCompanies(actorUserId!);
       const assignedCompanies = companies
         .filter((company) => companyIds.includes(company.id))
         .map((company) => company.razonSocial)
         .join(', ');
-      await this.sendInvitation(user.email, user.nombre || user.email, invitationToken, assignedCompanies);
+      await this.sendInvitation(owner, user.email, user.nombre || user.email, invitationToken, assignedCompanies);
     }
 
     return memberships[0];
   }
 
   async resendInvitation(empresaId: string, userId: string, actorUserId: string) {
-    const empresa = await this.prisma.empresa.findUnique({ where: { id: empresaId } });
-    if (!empresa || empresa.propietarioId !== actorUserId) {
+    const owner = await this.prisma.usuario.findUnique({ where: { id: actorUserId } }) as any;
+    if (!owner) {
       throw new ForbiddenException('Solo el propietario puede reenviar invitaciones');
     }
+    // Validar SMTP antes de reenviar
+    this.tenantMailer.assertSmtpConfigured(owner);
+
     const membership = await this.prisma.membresia.findUnique({
       where: { usuarioId_empresaId: { usuarioId: userId, empresaId } },
       include: { usuario: true },
@@ -200,11 +210,12 @@ export class UsersService {
         invitacionExpiraEn: new Date(Date.now() + 48 * 60 * 60 * 1000),
       },
     });
-    await this.sendInvitation(membership.usuario.email, membership.usuario.nombre || membership.usuario.email, token, empresa.razonSocial);
+    const empresaForContext = await this.prisma.empresa.findUnique({ where: { id: empresaId } });
+    await this.sendInvitation(owner, membership.usuario.email, membership.usuario.nombre || membership.usuario.email, token, empresaForContext?.razonSocial || 'Empresa');
     return { success: true };
   }
 
-  private async sendInvitation(to: string, name: string, token: string, companies: string) {
+  private async sendInvitation(config: any, to: string, name: string, token: string, companies: string) {
     const frontendUrl = process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
     const invitationUrl = `${frontendUrl}/auth/accept-invitation?token=${encodeURIComponent(token)}`;
     const subject = 'Invitación para acceder a Dolphin ERP';
@@ -254,34 +265,14 @@ export class UsersService {
       invitationUrl,
       '',
       'El enlace expira en 48 horas.',
-    ].join('\n');
+    ];
 
-    try {
-      if (process.env.EMAIL_PROVIDER === 'resend' && process.env.RESEND_API_KEY) {
-        const { Resend } = await import('resend');
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-          from: process.env.RESEND_FROM || process.env.SMTP_FROM || 'admin@fiscalbridge.app',
-          to,
-          subject,
-          html,
-          text,
-        });
-        return;
-      }
-
-      if (this.mailer) {
-        await this.mailer.sendMail({
-          to,
-          from: `"Dolphin ERP" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-          subject,
-          html,
-          text,
-        });
-      }
-    } catch (err: any) {
-      console.error('[UsersService] Error sending invitation email:', err?.message || err);
-    }
+    await this.tenantMailer.sendMail(config, {
+      to,
+      subject,
+      html,
+      text: text.join('\n'),
+    });
   }
 
   async update(empresaId: string, id: string, data: any, actorUserId?: string) {

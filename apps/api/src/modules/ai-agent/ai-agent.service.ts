@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 import { AiToolsService } from './ai-tools.service';
 import { ChatRequestDto, ChatResponseDto, ChatMessageDto } from './ai-agent.dto';
 
@@ -16,7 +17,10 @@ export interface StreamEvent {
 export class AiAgentService {
   private readonly logger = new Logger(AiAgentService.name);
 
-  constructor(private readonly tools: AiToolsService) {}
+  constructor(
+    private readonly tools: AiToolsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   /**
    * Helper to collect read-only DB context based on user intent
@@ -138,10 +142,14 @@ export class AiAgentService {
     dto: ChatRequestDto,
   ): Promise<ChatResponseDto> {
     const userQuery = (dto.message || '').trim();
-    const convId = dto.conversationId || `conv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const toolsUsed: string[] = [];
 
     this.logger.log(`[AI-AGENT] Processing query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`);
+
+    // Ensure conversation exists in DB and persist user message
+    const conv = await this.ensureConversation(empresaId, user.id, dto.conversationId, userQuery);
+    const convId = conv.id;
+    await this.saveMessage(convId, 'user', userQuery);
 
     const dbContext = await this.collectContext(empresaId, userQuery, toolsUsed);
     let reply = '';
@@ -181,6 +189,11 @@ export class AiAgentService {
       reply = this.synthesizeSmartResponse(userQuery, dbContext, user.name || user.email);
     }
 
+    // Persist assistant message
+    if (reply) {
+      await this.saveMessage(convId, 'assistant', reply, toolsUsed);
+    }
+
     return {
       reply,
       conversationId: convId,
@@ -199,23 +212,31 @@ export class AiAgentService {
     onChunk: (event: StreamEvent) => void,
   ): Promise<void> {
     const userQuery = (dto.message || '').trim();
-    const convId = dto.conversationId || `conv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const toolsUsed: string[] = [];
 
     this.logger.log(`[AI-AGENT-STREAM] Processing stream query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`);
+
+    // Ensure conversation exists in DB and persist user message
+    const conv = await this.ensureConversation(empresaId, user.id, dto.conversationId, userQuery);
+    const convId = conv.id;
+    await this.saveMessage(convId, 'user', userQuery);
 
     // 1. Collect read-only DB context
     const dbContext = await this.collectContext(empresaId, userQuery, toolsUsed);
     onChunk({ type: 'tools', toolsUsed, conversationId: convId });
 
     let streamedSuccessfully = false;
+    let accumulatedReply = '';
+
+    const handleToken = (token: string) => {
+      accumulatedReply += token;
+      onChunk({ type: 'token', token, conversationId: convId });
+    };
 
     // 2. Try Ollama streaming
     if (!streamedSuccessfully && (process.env.OLLAMA_BASE_URL || process.env.USE_OLLAMA === 'true')) {
       try {
-        await this.streamOllama(userQuery, dbContext, dto.history || [], (token) => {
-          onChunk({ type: 'token', token, conversationId: convId });
-        });
+        await this.streamOllama(userQuery, dbContext, dto.history || [], handleToken);
         streamedSuccessfully = true;
       } catch (err: any) {
         this.logger.debug(`Ollama stream bypassed: ${err.message}`);
@@ -227,9 +248,7 @@ export class AiAgentService {
       const apiKey = process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY;
       if (apiKey) {
         try {
-          await this.streamOpenAICompatible(userQuery, dbContext, dto.history || [], apiKey, (token) => {
-            onChunk({ type: 'token', token, conversationId: convId });
-          });
+          await this.streamOpenAICompatible(userQuery, dbContext, dto.history || [], apiKey, handleToken);
           streamedSuccessfully = true;
         } catch (err: any) {
           this.logger.warn(`External LLM streaming failed (${err.message}). Trying public stream fallback...`);
@@ -250,9 +269,12 @@ export class AiAgentService {
         fullText = this.synthesizeSmartResponse(userQuery, dbContext, user.name || user.email);
       }
 
-      await this.typewriterStream(fullText, (token) => {
-        onChunk({ type: 'token', token, conversationId: convId });
-      });
+      await this.typewriterStream(fullText, handleToken);
+    }
+
+    // Persist assistant message in DB
+    if (accumulatedReply) {
+      await this.saveMessage(convId, 'assistant', accumulatedReply, toolsUsed);
     }
 
     onChunk({ type: 'done', conversationId: convId, toolsUsed });
@@ -371,7 +393,7 @@ ${JSON.stringify(dbContext, null, 2)}
     emit: (token: string) => void,
   ): Promise<void> {
     const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-    const model = process.env.OLLAMA_MODEL || 'llama3.2';
+    const model = process.env.OLLAMA_MODEL || 'qwen2.5:3b';
 
     const systemPrompt = `Eres Dolphin ERP AI. Responde en Markdown enriquecido con tablas.\nDatos: ${JSON.stringify(dbContext)}`;
 
@@ -571,7 +593,7 @@ ${JSON.stringify(dbContext, null, 2)}
     history: ChatMessage[],
   ): Promise<string> {
     const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-    const model = process.env.OLLAMA_MODEL || 'llama3.2';
+    const model = process.env.OLLAMA_MODEL || 'qwen2.5:3b';
 
     const systemPrompt = `Eres Dolphin ERP AI. Responde en Markdown enriquecido con tablas.\nDatos: ${JSON.stringify(dbContext)}`;
 
@@ -733,5 +755,127 @@ ${JSON.stringify(dbContext, null, 2)}
     overview += `> [!TIP]\n> Puedes preguntarme sobre detalles específicos como: *"Muéstrame la lista de productos"*, *"¿Qué clientes tenemos registrados?"* o *"Ver últimos movimientos de auditoría"*.\n`;
 
     return overview;
+  }
+
+  /**
+   * AI Conversations & Messages DB Operations (Multi-Tenant)
+   */
+  async getConversations(empresaId: string, usuarioId: string) {
+    const convs = await (this.prisma as any).aiConversation.findMany({
+      where: { empresaId, usuarioId },
+      include: {
+        mensajes: {
+          orderBy: { creadoEn: 'asc' },
+        },
+      },
+      orderBy: { actualizadoEn: 'desc' },
+    });
+
+    return convs.map((c: any) => ({
+      id: c.id,
+      title: c.titulo,
+      createdAt: c.creadoEn.toISOString(),
+      updatedAt: c.actualizadoEn.toISOString(),
+      messages: c.mensajes.map((m: any) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        toolsUsed: m.toolsUsed || [],
+        createdAt: m.creadoEn.toISOString(),
+      })),
+    }));
+  }
+
+  async getConversation(empresaId: string, usuarioId: string, conversationId: string) {
+    const conv = await (this.prisma as any).aiConversation.findFirst({
+      where: { id: conversationId, empresaId, usuarioId },
+      include: {
+        mensajes: {
+          orderBy: { creadoEn: 'asc' },
+        },
+      },
+    });
+
+    if (!conv) return null;
+
+    return {
+      id: conv.id,
+      title: conv.titulo,
+      createdAt: conv.creadoEn.toISOString(),
+      updatedAt: conv.actualizadoEn.toISOString(),
+      messages: conv.mensajes.map((m: any) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        toolsUsed: m.toolsUsed || [],
+        createdAt: m.creadoEn.toISOString(),
+      })),
+    };
+  }
+
+  async createConversation(empresaId: string, usuarioId: string, title?: string) {
+    const conv = await (this.prisma as any).aiConversation.create({
+      data: {
+        titulo: title || 'Nueva conversación',
+        empresaId,
+        usuarioId,
+      },
+    });
+
+    return {
+      id: conv.id,
+      title: conv.titulo,
+      createdAt: conv.creadoEn.toISOString(),
+      updatedAt: conv.actualizadoEn.toISOString(),
+      messages: [],
+    };
+  }
+
+  async deleteConversation(empresaId: string, usuarioId: string, conversationId: string) {
+    return (this.prisma as any).aiConversation.deleteMany({
+      where: { id: conversationId, empresaId, usuarioId },
+    });
+  }
+
+  async ensureConversation(empresaId: string, usuarioId: string, conversationId?: string, initialTitle?: string) {
+    if (conversationId) {
+      const existing = await (this.prisma as any).aiConversation.findFirst({
+        where: { id: conversationId, empresaId, usuarioId },
+      });
+      if (existing) {
+        if (initialTitle && (existing.titulo === 'Nueva conversación' || existing.titulo === 'Nueva Conversación')) {
+          const truncated = initialTitle.length > 45 ? initialTitle.substring(0, 42) + '...' : initialTitle;
+          await (this.prisma as any).aiConversation.update({
+            where: { id: existing.id },
+            data: { titulo: truncated },
+          });
+        }
+        return existing;
+      }
+    }
+
+    const truncatedTitle = initialTitle
+      ? (initialTitle.length > 45 ? initialTitle.substring(0, 42) + '...' : initialTitle)
+      : 'Nueva conversación';
+
+    return (this.prisma as any).aiConversation.create({
+      data: {
+        ...(conversationId ? { id: conversationId } : {}),
+        titulo: truncatedTitle,
+        empresaId,
+        usuarioId,
+      },
+    });
+  }
+
+  async saveMessage(conversacionId: string, role: string, content: string, toolsUsed: string[] = []) {
+    return (this.prisma as any).aiMessage.create({
+      data: {
+        conversacionId,
+        role,
+        content,
+        toolsUsed,
+      },
+    });
   }
 }

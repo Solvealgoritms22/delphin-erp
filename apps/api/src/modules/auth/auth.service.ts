@@ -13,6 +13,7 @@ import { normalizePermissions } from '../../common/permissions.util';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomUUID } from 'crypto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TenantMailerService } from '../../common/tenant-mailer.service';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,7 @@ export class AuthService {
     private jwtService: JwtService,
     private mailerService: MailerService,
     private prisma: PrismaService,
+    private tenantMailer: TenantMailerService,
     @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
@@ -35,37 +37,59 @@ export class AuthService {
     pass: string,
     accessMode?: 'owner' | 'member',
   ): Promise<any> {
+    const normalizedEmail = email?.trim().toLowerCase();
     const user = await this.prisma.usuario.findFirst({
-      where: { email },
+      where: {
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive',
+        },
+      },
       include: {
         membresias: { include: { role: true } },
         empresasPropiedad: true,
       },
     });
-    if (user && (await bcrypt.compare(pass, user.passwordHash))) {
-      // Check if user is company owner or has an ACTIVE membership
-      const isOwner =
-        user.empresasPropiedad && user.empresasPropiedad.length > 0;
-      const activeMembership = user.membresias?.find(
-        (m) => m.estado === 'ACTIVO',
-      );
 
-      if (!isOwner && !activeMembership) {
-        return null;
-      }
-
-      if (accessMode === 'owner' && !isOwner) {
-        return null;
-      }
-
-      if (accessMode === 'member' && isOwner) {
-        return null;
-      }
-
-      const { passwordHash, ...result } = user;
-      return result;
+    if (!user) {
+      return null;
     }
-    return null;
+
+    const passwordMatches = await bcrypt.compare(pass, user.passwordHash);
+    if (!passwordMatches) {
+      return null;
+    }
+
+    // Prioritize checking if the account is verified before any role or tenant checks
+    if (!user.isVerified) {
+      throw new UnauthorizedException({
+        message: 'Cuenta no verificada. Por favor, verifica tu correo electrónico.',
+        needsVerification: true,
+        email: user.email,
+      });
+    }
+
+    // Check if user is company owner or has an ACTIVE membership
+    const isOwner =
+      user.empresasPropiedad && user.empresasPropiedad.length > 0;
+    const activeMembership = user.membresias?.find(
+      (m) => m.estado === 'ACTIVO',
+    );
+
+    if (!isOwner && !activeMembership) {
+      return null;
+    }
+
+    if (accessMode === 'owner' && !isOwner) {
+      return null;
+    }
+
+    if (accessMode === 'member' && isOwner) {
+      return null;
+    }
+
+    const { passwordHash, ...result } = user;
+    return result;
   }
 
   async login(user: any, request?: any) {
@@ -258,10 +282,25 @@ export class AuthService {
     if (data.confirmPassword !== undefined && data.password !== data.confirmPassword) {
       throw new BadRequestException('Las contraseñas no coinciden');
     }
+
+    const email = data.email?.trim().toLowerCase();
+    const existingUser = await this.prisma.usuario.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('El correo electrónico ya está registrado');
+    }
+
     const passwordHash = await bcrypt.hash(data.password, 10);
     const user = await this.prisma.usuario.create({
       data: {
-        email: data.email,
+        email: email,
         passwordHash,
         nombre: data.name || data.nombre || null,
       },
@@ -270,10 +309,11 @@ export class AuthService {
     // The main account owns the company and registers its membership
     const empresa = await this.prisma.empresa.create({
       data: {
-        razonSocial: data.empresa || 'Nueva Empresa',
-        rnc: data.rnc || null,
+        razonSocial: data.company || data.empresa || 'Nueva Empresa',
+        rnc: data.documentNumber || data.rnc || null,
         pais: data.country || 'DO',
         telefono: data.phone || null,
+        email: data.companyEmail || data.email || null,
         propietarioId: user.id,
         membresias: {
           create: {
@@ -284,17 +324,108 @@ export class AuthService {
       },
     });
 
-    const empresaId = empresa.id;
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      empresaId,
-      plan: 'Free',
-    };
+    // Send verification email
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await this.prisma.usuario.update({
+      where: { id: user.id },
+      data: { otpCode: otp, otpExpiresAt: expiresAt },
+    });
+
+    const subject = 'Verifica tu cuenta - Dolphin ERP';
+    const html = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #fff; color: #1e293b;">
+        <div style="text-align:center;margin-bottom:24px;font-size:20px;font-weight:800;color:#2563eb;letter-spacing:0.1em;">DOLPHIN <span style="color:#0f172a;">ERP</span></div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:28px;text-align:center;">
+          <p style="font-size:15px;color:#334155;margin-bottom:20px;">Tu código de verificación es:</p>
+          <div style="font-size:40px;font-weight:900;letter-spacing:0.2em;color:#2563eb;margin:16px 0;">${otp}</div>
+          <p style="font-size:13px;color:#64748b;">Este código expira en <strong>15 minutos</strong>.<br>Si no solicitaste este código, ignora este correo.</p>
+        </div>
+      </div>`;
+    const text = `Tu código de verificación de Dolphin ERP es: ${otp}. Expira en 15 minutos.`;
+
+    await this.mailerService.sendMail({ to: user.email, subject, html, text });
+
     return {
-      access_token: this.jwtService.sign(payload),
-      user: payload,
+      success: true,
+      needsVerification: true,
+      email: user.email,
     };
+  }
+
+  async verifyAccount(email: string, otp: string) {
+    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedOtp = otp?.trim();
+    const user = await this.prisma.usuario.findFirst({
+      where: {
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive',
+        },
+      },
+    });
+    if (
+      !user ||
+      user.otpCode !== normalizedOtp ||
+      (user.otpExpiresAt && user.otpExpiresAt < new Date())
+    ) {
+      throw new BadRequestException('Código OTP inválido o expirado');
+    }
+
+    await this.prisma.usuario.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        otpCode: null,
+        otpExpiresAt: null,
+      },
+    });
+
+    return { success: true };
+  }
+
+  async resendVerification(email: string) {
+    const normalizedEmail = email?.trim().toLowerCase();
+    const user = await this.prisma.usuario.findFirst({
+      where: {
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive',
+        },
+      },
+    });
+    if (!user) {
+      return { success: true }; // Prevent user enumeration
+    }
+
+    if (user.isVerified) {
+      throw new BadRequestException('La cuenta ya está verificada');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await this.prisma.usuario.update({
+      where: { id: user.id },
+      data: { otpCode: otp, otpExpiresAt: expiresAt },
+    });
+
+    const subject = 'Verifica tu cuenta - Dolphin ERP';
+    const html = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #fff; color: #1e293b;">
+        <div style="text-align:center;margin-bottom:24px;font-size:20px;font-weight:800;color:#2563eb;letter-spacing:0.1em;">DOLPHIN <span style="color:#0f172a;">ERP</span></div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:28px;text-align:center;">
+          <p style="font-size:15px;color:#334155;margin-bottom:20px;">Tu nuevo código de verificación es:</p>
+          <div style="font-size:40px;font-weight:900;letter-spacing:0.2em;color:#2563eb;margin:16px 0;">${otp}</div>
+          <p style="font-size:13px;color:#64748b;">Este código expira en <strong>15 minutos</strong>.<br>Si no solicitaste este código, ignora este correo.</p>
+        </div>
+      </div>`;
+    const text = `Tu nuevo código de verificación de Dolphin ERP es: ${otp}. Expira en 15 minutos.`;
+
+    await this.mailerService.sendMail({ to: user.email, subject, html, text });
+
+    return { success: true };
   }
 
   async switchTenant(userId: string, targetEmpresaId: string) {
@@ -347,25 +478,58 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    const user = await this.usersService.findOne(email);
+    const user = await this.prisma.usuario.findFirst({
+      where: { email },
+      include: {
+        empresasPropiedad: { select: { id: true } },
+        membresias: {
+          where: { estado: 'ACTIVO' },
+          include: { empresa: true },
+          take: 1,
+        },
+      },
+    }) as any;
+
     if (!user) {
-      // Don't leak if user exists, just return true
+      // No revelar si el usuario existe
       return { success: true };
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await this.prisma.usuario.update({
       where: { id: user.id },
       data: { otpCode: otp, otpExpiresAt: expiresAt },
     });
 
-    await this.mailerService.sendMail({
-      to: user.email,
-      subject: 'Código de Verificación - Dolphin ERP',
-      text: `Tu código de verificación es: ${otp}. Expirará en 15 minutos.`,
-    });
+    const subject = 'Código de Verificación - Dolphin ERP';
+    const html = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #fff; color: #1e293b;">
+        <div style="text-align:center;margin-bottom:24px;font-size:20px;font-weight:800;color:#2563eb;letter-spacing:0.1em;">DOLPHIN <span style="color:#0f172a;">ERP</span></div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:28px;text-align:center;">
+          <p style="font-size:15px;color:#334155;margin-bottom:20px;">Tu código de verificación es:</p>
+          <div style="font-size:40px;font-weight:900;letter-spacing:0.2em;color:#2563eb;margin:16px 0;">${otp}</div>
+          <p style="font-size:13px;color:#64748b;">Este código expira en <strong>15 minutos</strong>.<br>Si no solicitaste este código, ignora este correo.</p>
+        </div>
+      </div>`;
+    const text = `Tu código de verificación de Dolphin ERP es: ${otp}. Expira en 15 minutos.`;
+
+    const isOwner = user.empresasPropiedad && user.empresasPropiedad.length > 0;
+
+    if (isOwner) {
+      // Propietario → SMTP del sistema
+      await this.mailerService.sendMail({ to: user.email, subject, html, text });
+    } else {
+      // Colaborador → SMTP del tenant (owner de su membresia)
+      const tenantEmpresa = user.membresias?.[0]?.empresa;
+      if (!tenantEmpresa || !tenantEmpresa.propietarioId) {
+        return { success: true };
+      }
+      const owner = await this.prisma.usuario.findUnique({ where: { id: tenantEmpresa.propietarioId } }) as any;
+      if (!owner) return { success: true };
+      await this.tenantMailer.sendMail(owner, { to: user.email, subject, html, text });
+    }
 
     return { success: true };
   }
@@ -406,10 +570,29 @@ export class AuthService {
     if (data.name !== undefined) updateData.nombre = data.name;
     if (data.avatar !== undefined) updateData.avatar = data.avatar;
 
+    // SMTP settings
+    if (data.smtpEnabled !== undefined) updateData.smtpEnabled = data.smtpEnabled;
+    if (data.smtpHost !== undefined) updateData.smtpHost = data.smtpHost || null;
+    if (data.smtpPort !== undefined) updateData.smtpPort = data.smtpPort ? Number(data.smtpPort) : null;
+    if (data.smtpUser !== undefined) updateData.smtpUser = data.smtpUser || null;
+    if (data.smtpPass !== undefined) updateData.smtpPass = data.smtpPass || null;
+    if (data.smtpFrom !== undefined) updateData.smtpFrom = data.smtpFrom || null;
+    if (data.smtpSecure !== undefined) updateData.smtpSecure = Boolean(data.smtpSecure);
+
     return this.prisma.usuario.update({
       where: { id: userId },
       data: updateData,
     });
+  }
+
+  async testSmtpConnection(userId: string) {
+    const user = await this.prisma.usuario.findUnique({ where: { id: userId } }) as any;
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    if (!user.smtpHost) throw new BadRequestException('Configura el host SMTP antes de probar la conexión.');
+    return this.tenantMailer.testTcpConnection(
+      user.smtpHost,
+      user.smtpPort ?? 587,
+    );
   }
 
   async changePassword(userId: string, currentPassword: string, newPassword: string) {

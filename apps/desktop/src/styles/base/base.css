@@ -20,7 +20,7 @@
     overflow: hidden;
   }
 
-  /* Ensure routed component always fills the remaining vertical space and scrolls properly */
+  /* Ensure routed component always fills the remaining vertical space and delegates scrolling to views */
   router-outlet + * {
     display: flex;
     flex-direction: column;
@@ -28,8 +28,7 @@
     height: 100%;
     min-height: 0;
     width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
   }
 
   /* Default border color */

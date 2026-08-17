@@ -83,17 +83,51 @@ import { BriefcaseIcon, UploadIcon, TrashIcon, RefreshCwIcon } from 'ng-animated
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-full">
-             <mat-label>{{ 'companies.phone' | transloco }}</mat-label>
-            <input matInput formControlName="telefono" placeholder="+1 809 555 5555">
+             <mat-label>País</mat-label>
+            <mat-select formControlName="pais">
+              @for (c of countries; track c.code) {
+                <mat-option [value]="c.code" [disabled]="c.disabled">
+                  <span class="inline-flex items-center gap-2">
+                    <img [src]="c.flag" [alt]="c.label" class="h-3.5 w-5 object-cover rounded-xs">
+                    <span>{{ c.label }}</span>
+                    @if (c.disabled) {
+                      <span class="text-xs text-neutral-400 dark:text-neutral-500">(próximamente)</span>
+                    }
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
           </mat-form-field>
         </div>
 
         <mat-form-field appearance="outline" class="w-full">
-           <mat-label>{{ 'companies.email' | transloco }}</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="contacto@empresa.com">
-          <mat-error *ngIf="form.get('email')?.hasError('email')">
-             {{ 'companies.emailInvalid' | transloco }}
-          </mat-error>
+           <mat-label>Dirección</mat-label>
+          <input matInput formControlName="direccion" placeholder="Av. Principal #123, Ensanche Naco, Santo Domingo">
+        </mat-form-field>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+             <mat-label>{{ 'companies.phone' | transloco }}</mat-label>
+            <input matInput formControlName="telefono" placeholder="+1 809 555 5555">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+             <mat-label>{{ 'companies.email' | transloco }}</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="contacto@empresa.com">
+            <mat-error *ngIf="form.get('email')?.hasError('email')">
+               {{ 'companies.emailInvalid' | transloco }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full">
+           <mat-label>Página Web</mat-label>
+          <input matInput formControlName="paginaWeb" placeholder="https://www.empresa.com">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+           <mat-label>Descripción</mat-label>
+          <textarea matInput formControlName="descripcion" rows="2" placeholder="Breve descripción del negocio o actividad económica..."></textarea>
         </mat-form-field>
 
         <!-- FiscalBridge e-CF Section -->
@@ -137,18 +171,48 @@ import { BriefcaseIcon, UploadIcon, TrashIcon, RefreshCwIcon } from 'ng-animated
               <input matInput type="password" formControlName="fiscalbridgeToken" placeholder="fb_token_live_...">
             </mat-form-field>
 
-            <div *ngIf="form.get('fiscalbridgeAuthMethod')?.value === 'EMAIL'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- EMAIL: correo + contraseña + client ID (entorno/tenant) -->
+            <div *ngIf="form.get('fiscalbridgeAuthMethod')?.value === 'EMAIL'" class="flex flex-col gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Correo FiscalBridge</mat-label>
+                  <input matInput type="email" formControlName="fiscalbridgeEmail" placeholder="usuario@empresa.com">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Contraseña</mat-label>
+                  <input matInput type="password" formControlName="fiscalbridgePassword" placeholder="••••••••">
+                </mat-form-field>
+              </div>
               <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Correo FiscalBridge</mat-label>
-                <input matInput type="email" formControlName="fiscalbridgeEmail">
+                <mat-label>Client ID</mat-label>
+                <input matInput formControlName="fiscalbridgeClientId" placeholder="client_xxxxxxxx">
+                <mat-hint>Identifica el entorno/tenant de tu cuenta en FiscalBridge.</mat-hint>
               </mat-form-field>
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Contraseña</mat-label>
-                <input matInput type="password" formControlName="fiscalbridgePassword">
-              </mat-form-field>
+            </div>
+
+            <!-- OAUTH2: clientId + clientSecret -->
+            <div *ngIf="form.get('fiscalbridgeAuthMethod')?.value === 'OAUTH2'" class="flex flex-col gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Client ID</mat-label>
+                  <input matInput formControlName="fiscalbridgeClientId" placeholder="client_xxxxxxxx">
+                  <mat-error *ngIf="form.get('fiscalbridgeClientId')?.hasError('required')">El Client ID es requerido para OAuth 2.0</mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Client Secret</mat-label>
+                  <input matInput type="password" formControlName="fiscalbridgeClientSecret" placeholder="secret_xxxxxxxx">
+                  <mat-error *ngIf="form.get('fiscalbridgeClientSecret')?.hasError('required')">El Client Secret es requerido para OAuth 2.0</mat-error>
+                </mat-form-field>
+              </div>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                <mat-icon svgIcon="info" class="icon-size-3.5 align-text-bottom mr-1 text-blue-500"></mat-icon>
+                FiscalBridge utiliza estos datos para obtener un <strong>access_token</strong> vía <code class="text-blue-600">/auth/token</code> (OAuth 2.0 Client Credentials).
+              </p>
             </div>
           </div>
         </div>
+
+
 
       </form>
     </mat-dialog-content>
@@ -176,12 +240,30 @@ export class EmpresaDialogComponent implements OnInit {
   form: FormGroup;
   isSaving = false;
 
+  countries = [
+    { code: 'DO', label: 'República Dominicana', flag: 'flags/dominican-republic.svg', disabled: false },
+    { code: 'US', label: 'Estados Unidos', flag: 'flags/united-states.svg', disabled: true },
+    { code: 'ES', label: 'España', flag: 'flags/spain.svg', disabled: true },
+    { code: 'MX', label: 'México', flag: 'flags/mexico.svg', disabled: true },
+    { code: 'CO', label: 'Colombia', flag: 'flags/colombia.svg', disabled: true },
+    { code: 'PA', label: 'Panamá', flag: 'flags/panama.svg', disabled: true },
+    { code: 'CR', label: 'Costa Rica', flag: 'flags/costa-rica.svg', disabled: true },
+    { code: 'GT', label: 'Guatemala', flag: 'flags/guatemala.svg', disabled: true },
+    { code: 'PE', label: 'Perú', flag: 'flags/peru.svg', disabled: true },
+    { code: 'CL', label: 'Chile', flag: 'flags/chile.svg', disabled: true },
+    { code: 'AR', label: 'Argentina', flag: 'flags/argentina.svg', disabled: true },
+  ];
+
   constructor() {
     this.form = this.fb.group({
       razonSocial: ['', Validators.required],
       rnc: [''],
+      pais: ['DO'],
+      direccion: [''],
       telefono: [''],
       email: ['', Validators.email],
+      paginaWeb: [''],
+      descripcion: [''],
       logo: [''],
       fiscalbridgeEnabled: [false],
       fiscalbridgeUrl: ['https://api.fiscalbridge.com/v1'],
@@ -189,7 +271,9 @@ export class EmpresaDialogComponent implements OnInit {
       fiscalbridgeToken: [''],
       fiscalbridgeEmail: [''],
       fiscalbridgePassword: [''],
-      fiscalbridgeEnv: ['TEST'],
+      fiscalbridgeClientId: [''],
+      fiscalbridgeClientSecret: [''],
+      fiscalbridgeEnv: [this.data?.fiscalbridgeEnv || 'TEST'],
     });
   }
 

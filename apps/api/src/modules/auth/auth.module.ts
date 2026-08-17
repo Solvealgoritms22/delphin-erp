@@ -9,6 +9,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { SessionService } from './session.service';
 import { SessionController } from './session.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { TenantMailerService } from '../../common/tenant-mailer.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     }),
   ],
   controllers: [AuthController, SessionController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, SessionService],
+  providers: [AuthService, LocalStrategy, JwtStrategy, SessionService, TenantMailerService],
   exports: [AuthService],
 })
 export class AuthModule {}

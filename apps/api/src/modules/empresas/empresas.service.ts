@@ -97,7 +97,7 @@ export class EmpresasService {
   }
 
   async create(userId: string, data: any) {
-    const { razonSocial, rnc, telefono, email, paginaWeb, descripcion, logo } = data;
+    const { razonSocial, rnc, pais, direccion, telefono, email, paginaWeb, descripcion, logo } = data;
 
     // Verificar límite de empresas según el plan del usuario
     const userOwnedCount = await this.prisma.empresa.count({
@@ -136,6 +136,8 @@ export class EmpresasService {
       data: {
         razonSocial: razonSocial || 'Nueva Empresa',
         rnc: rnc || null,
+        pais: pais || 'DO',
+        direccion: direccion || null,
         telefono: telefono || null,
         email: email || null,
         paginaWeb: paginaWeb || null,
@@ -157,7 +159,7 @@ export class EmpresasService {
             fechaRenovacion: trialExpiry,
           },
         },
-      },
+      } as any,
     });
   }
 
@@ -172,15 +174,26 @@ export class EmpresasService {
     }
 
     const updateData: any = {};
-    if (data.razonSocial !== undefined)
-      updateData.razonSocial = data.razonSocial;
+    if (data.razonSocial !== undefined) updateData.razonSocial = data.razonSocial;
     if (data.rnc !== undefined) updateData.rnc = data.rnc;
+    if (data.pais !== undefined) updateData.pais = data.pais;
+    if (data.direccion !== undefined) updateData.direccion = data.direccion;
     if (data.telefono !== undefined) updateData.telefono = data.telefono;
     if (data.email !== undefined) updateData.email = data.email;
     if (data.paginaWeb !== undefined) updateData.paginaWeb = data.paginaWeb;
-    if (data.descripcion !== undefined)
-      updateData.descripcion = data.descripcion;
+    if (data.descripcion !== undefined) updateData.descripcion = data.descripcion;
     if (data.logo !== undefined) updateData.logo = data.logo;
+    // FiscalBridge
+    if (data.fiscalbridgeEnabled !== undefined) updateData.fiscalbridgeEnabled = data.fiscalbridgeEnabled;
+    if (data.fiscalbridgeUrl !== undefined) updateData.fiscalbridgeUrl = data.fiscalbridgeUrl;
+    if (data.fiscalbridgeAuthMethod !== undefined) updateData.fiscalbridgeAuthMethod = data.fiscalbridgeAuthMethod;
+    if (data.fiscalbridgeToken !== undefined) updateData.fiscalbridgeToken = data.fiscalbridgeToken;
+    if (data.fiscalbridgeEmail !== undefined) updateData.fiscalbridgeEmail = data.fiscalbridgeEmail;
+    if (data.fiscalbridgePassword !== undefined) updateData.fiscalbridgePassword = data.fiscalbridgePassword;
+    if (data.fiscalbridgeClientId !== undefined) updateData.fiscalbridgeClientId = data.fiscalbridgeClientId;
+    if (data.fiscalbridgeClientSecret !== undefined) updateData.fiscalbridgeClientSecret = data.fiscalbridgeClientSecret;
+    if (data.fiscalbridgeEnv !== undefined) updateData.fiscalbridgeEnv = data.fiscalbridgeEnv;
+    // SMTP fields were moved to User profile
 
     return this.prisma.empresa.update({
       where: { id: empresaId },
@@ -213,24 +226,10 @@ export class EmpresasService {
     ]);
 
     const map = new Map<string, any>();
-    owned.forEach((e) =>
-      map.set(e.id, {
-        id: e.id,
-        razonSocial: e.razonSocial,
-        rnc: e.rnc,
-        logo: e.logo,
-        estado: e.estado,
-      }),
-    );
+    owned.forEach((e) => map.set(e.id, e));
     membresias.forEach((m) => {
       if (!map.has(m.empresa.id)) {
-        map.set(m.empresa.id, {
-          id: m.empresa.id,
-          razonSocial: m.empresa.razonSocial,
-          rnc: m.empresa.rnc,
-          logo: m.empresa.logo,
-          estado: m.estado,
-        });
+        map.set(m.empresa.id, m.empresa);
       }
     });
     return Array.from(map.values());

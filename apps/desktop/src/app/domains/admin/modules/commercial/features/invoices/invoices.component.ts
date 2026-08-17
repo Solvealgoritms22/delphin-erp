@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { InvoicesService, FacturaVenta, CreateInvoiceDto, InvoiceItemDto } from '../../data/invoices.service';
 import { SequencesService } from '../../data/sequences.service';
 import { ProductsService } from '../../../catalogs/data/products.service';
@@ -19,6 +20,9 @@ import { ClientsService } from '../../data/clients';
 @Component({
   selector: 'app-invoices',
   standalone: true,
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
   imports: [
     CommonModule,
     FormsModule,
@@ -33,7 +37,7 @@ import { ClientsService } from '../../data/clients';
     EmptyStateComponent,
   ],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
       
       <!-- Header -->
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
@@ -55,11 +59,11 @@ import { ClientsService } from '../../data/clients';
         </div>
       </div>
 
-      <!-- Filters & Toolbar -->
-      <div class="p-6 md:p-8 flex flex-col gap-6 flex-1 overflow-y-auto">
+      <!-- Main Scrollable Content -->
+      <div class="flex flex-col flex-auto min-h-0 overflow-y-auto">
         
-        <!-- Filters Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-neutral-900 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
+        <!-- Filters Toolbar (Inside scroll body or sticky) -->
+        <div class="p-6 md:px-8 pb-4 flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shrink-0">
           <div class="flex items-center gap-3 flex-1 min-w-[260px]">
             <div class="relative w-full max-w-md">
               <mat-icon svgIcon="search" class="icon-size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400"></mat-icon>
@@ -86,9 +90,10 @@ import { ClientsService } from '../../data/clients';
           </div>
         </div>
 
-        <!-- Invoices Table -->
-        <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
-          <div class="grid grid-cols-12 gap-4 py-3.5 px-6 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-bold text-neutral-500 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-800/40">
+        <!-- Invoices Table Grid -->
+        <div class="grid">
+          <!-- Sticky Table Header -->
+          <div class="z-10 sticky top-0 grid grid-cols-12 gap-4 py-4 px-6 md:px-8 shadow-xs text-[11px] font-bold text-neutral-500 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
             <div class="col-span-2">Factura / Fecha</div>
             <div class="col-span-2">Comprobante NCF</div>
             <div class="col-span-3">Cliente / RNC</div>
@@ -98,97 +103,97 @@ import { ClientsService } from '../../data/clients';
           </div>
 
           @if (invoicesService.invoices().length === 0) {
-            <app-empty-state
-              icon="file-text"
-              title="Sin facturas emitidas"
-              description="Empieza emitiendo tu primera factura con comprobante fiscal o e-CF."
-              actionLabel="Nueva Factura"
-              actionIcon="plus"
-              (action)="openCreateModal()"
-            />
-          } @else {
-            <div class="divide-y divide-neutral-100 dark:divide-neutral-800/60">
-              @for (inv of invoicesService.invoices(); track inv.id) {
-                <div class="grid grid-cols-12 gap-4 py-4 px-6 items-center text-sm hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                  
-                  <!-- Factura / Fecha -->
-                  <div class="col-span-2 flex flex-col">
-                    <span class="font-bold text-neutral-900 dark:text-white">{{ inv.numeroFactura }}</span>
-                    <span class="text-xs text-neutral-400">{{ inv.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
-                  </div>
-
-                  <!-- Comprobante NCF -->
-                  <div class="col-span-2 flex flex-col">
-                    <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ inv.ncf || 'Sin NCF' }}</span>
-                    <span class="text-[11px] text-neutral-400">{{ getNcfDescription(inv.tipoNcf) }}</span>
-                  </div>
-
-                  <!-- Cliente / RNC -->
-                  <div class="col-span-3 flex flex-col">
-                    <span class="font-bold text-neutral-900 dark:text-white truncate">{{ inv.cliente?.nombreRazonSocial || 'Cliente Contado' }}</span>
-                    <span class="text-xs text-neutral-400 font-mono">{{ inv.cliente?.numeroDocumento || 'Consumidor Final' }}</span>
-                  </div>
-
-                  <!-- Total Facturado -->
-                  <div class="col-span-2 text-right flex flex-col">
-                    <span class="font-mono font-bold text-neutral-900 dark:text-white">RD$ {{ inv.total | number:'1.2-2' }}</span>
-                    <span class="text-[11px] text-neutral-400">ITBIS: RD$ {{ inv.itbis | number:'1.2-2' }}</span>
-                  </div>
-
-                  <!-- Estado Fiscal DGII -->
-                  <div class="col-span-2 flex flex-col items-center justify-center">
-                    @if (inv.fiscalbridgeDocId) {
-                      <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center gap-1">
-                        <mat-icon svgIcon="check-circle" class="icon-size-3.5"></mat-icon>
-                        e-CF Validado DGII
-                      </span>
-                    } @else if (inv.tipoNcf.startsWith('E') && inv.fiscalbridgeStatus === 'FAILED') {
-                      <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 flex items-center gap-1">
-                        <mat-icon svgIcon="alert-triangle" class="icon-size-3.5"></mat-icon>
-                        Fallo Transmisión
-                      </span>
-                    } @else if (inv.tipoNcf.startsWith('E')) {
-                      <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
-                        e-CF Pendiente
-                      </span>
-                    } @else {
-                      <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-                        NCF Tradicional
-                      </span>
-                    }
-                  </div>
-
-                  <!-- Acciones -->
-                  <div class="col-span-1 flex justify-center">
-                    <button [matMenuTriggerFor]="actionMenu" class="w-8 h-8 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center text-neutral-500 cursor-pointer">
-                      <mat-icon svgIcon="ellipsis-vertical" class="icon-size-4"></mat-icon>
-                    </button>
-                    <mat-menu #actionMenu="matMenu" class="!rounded-xl !p-1">
-                      @if (inv.fiscalbridgeDocId) {
-                        <button mat-menu-item (click)="invoicesService.downloadPdf(inv.id, inv.numeroFactura + '.pdf')">
-                          <mat-icon svgIcon="file-text" class="icon-size-4 text-blue-600"></mat-icon>
-                          <span>Descargar PDF Oficial (RI)</span>
-                        </button>
-                        <button mat-menu-item (click)="invoicesService.downloadXml(inv.id, inv.ncf + '.xml')">
-                          <mat-icon svgIcon="code" class="icon-size-4 text-emerald-600"></mat-icon>
-                          <span>Descargar XML Firmado DGII</span>
-                        </button>
-                      } @else if (inv.tipoNcf.startsWith('E')) {
-                        <button mat-menu-item (click)="sendFiscalBridge(inv.id)">
-                          <mat-icon svgIcon="send" class="icon-size-4 text-blue-600"></mat-icon>
-                          <span>Transmitir a FiscalBridge</span>
-                        </button>
-                      }
-                      <button mat-menu-item (click)="cancelInvoice(inv.id)" class="!text-red-600">
-                        <mat-icon svgIcon="x-circle" class="icon-size-4 !text-red-600"></mat-icon>
-                        <span>Anular Factura</span>
-                      </button>
-                    </mat-menu>
-                  </div>
-
-                </div>
-              }
+            <div class="flex flex-auto justify-center p-6 sm:p-10">
+              <app-empty-state
+                icon="file-text"
+                title="Sin facturas emitidas"
+                description="Empieza emitiendo tu primera factura con comprobante fiscal o e-CF."
+                actionLabel="Nueva Factura"
+                actionIcon="plus"
+                (action)="openCreateModal()"
+              />
             </div>
+          } @else {
+            @for (inv of invoicesService.invoices(); track inv.id) {
+              <div class="grid grid-cols-12 gap-4 py-4 px-6 md:px-8 items-center text-sm border-b border-neutral-100 dark:border-neutral-800/80 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                
+                <!-- Factura / Fecha -->
+                <div class="col-span-2 flex flex-col">
+                  <span class="font-bold text-neutral-900 dark:text-white">{{ inv.numeroFactura }}</span>
+                  <span class="text-xs text-neutral-400">{{ inv.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+
+                <!-- Comprobante NCF -->
+                <div class="col-span-2 flex flex-col">
+                  <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ inv.ncf || 'Sin NCF' }}</span>
+                  <span class="text-[11px] text-neutral-400">{{ getNcfDescription(inv.tipoNcf) }}</span>
+                </div>
+
+                <!-- Cliente / RNC -->
+                <div class="col-span-3 flex flex-col">
+                  <span class="font-bold text-neutral-900 dark:text-white truncate">{{ inv.cliente?.nombreRazonSocial || 'Cliente Contado' }}</span>
+                  <span class="text-xs text-neutral-400 font-mono">{{ inv.cliente?.numeroDocumento || 'Consumidor Final' }}</span>
+                </div>
+
+                <!-- Total Facturado -->
+                <div class="col-span-2 text-right flex flex-col">
+                  <span class="font-mono font-bold text-neutral-900 dark:text-white">RD$ {{ inv.total | number:'1.2-2' }}</span>
+                  <span class="text-[11px] text-neutral-400">ITBIS: RD$ {{ inv.itbis | number:'1.2-2' }}</span>
+                </div>
+
+                <!-- Estado Fiscal DGII -->
+                <div class="col-span-2 flex flex-col items-center justify-center">
+                  @if (inv.fiscalbridgeDocId) {
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center gap-1">
+                      <mat-icon svgIcon="check-circle" class="icon-size-3.5"></mat-icon>
+                      e-CF Validado DGII
+                    </span>
+                  } @else if (inv.tipoNcf.startsWith('E') && inv.fiscalbridgeStatus === 'FAILED') {
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 flex items-center gap-1">
+                      <mat-icon svgIcon="alert-triangle" class="icon-size-3.5"></mat-icon>
+                      Fallo Transmisión
+                    </span>
+                  } @else if (inv.tipoNcf.startsWith('E')) {
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
+                      e-CF Pendiente
+                    </span>
+                  } @else {
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                      NCF Tradicional
+                    </span>
+                  }
+                </div>
+
+                <!-- Acciones -->
+                <div class="col-span-1 flex justify-center">
+                  <button [matMenuTriggerFor]="actionMenu" class="w-8 h-8 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center text-neutral-500 cursor-pointer">
+                    <mat-icon svgIcon="ellipsis-vertical" class="icon-size-4"></mat-icon>
+                  </button>
+                  <mat-menu #actionMenu="matMenu" class="!rounded-xl !p-1">
+                    @if (inv.fiscalbridgeDocId) {
+                      <button mat-menu-item (click)="invoicesService.downloadPdf(inv.id, inv.numeroFactura + '.pdf')">
+                        <mat-icon svgIcon="file-text" class="icon-size-4 text-blue-600"></mat-icon>
+                        <span>Descargar PDF Oficial (RI)</span>
+                      </button>
+                      <button mat-menu-item (click)="invoicesService.downloadXml(inv.id, inv.ncf + '.xml')">
+                        <mat-icon svgIcon="code" class="icon-size-4 text-emerald-600"></mat-icon>
+                        <span>Descargar XML Firmado DGII</span>
+                      </button>
+                    } @else if (inv.tipoNcf.startsWith('E')) {
+                      <button mat-menu-item (click)="sendFiscalBridge(inv.id)">
+                        <mat-icon svgIcon="send" class="icon-size-4 text-blue-600"></mat-icon>
+                        <span>Transmitir a FiscalBridge</span>
+                      </button>
+                    }
+                    <button mat-menu-item (click)="cancelInvoice(inv)" class="!text-red-600">
+                      <mat-icon svgIcon="x-circle" class="icon-size-4 !text-red-600"></mat-icon>
+                      <span>Anular Factura</span>
+                    </button>
+                  </mat-menu>
+                </div>
+
+              </div>
+            }
           }
         </div>
 
@@ -520,17 +525,29 @@ export class InvoicesComponent implements OnInit {
     });
   }
 
-  cancelInvoice(id: string) {
-    if (!confirm('¿Estás seguro de que deseas anular esta factura? El inventario será restaurado.')) {
-      return;
-    }
+  cancelInvoice(inv: any) {
+    const ncf = inv?.ncf ? ` (NCF: ${inv.ncf})` : '';
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Anular Factura',
+        message: `¿Estás seguro de que deseas anular esta factura${ncf}? El inventario será restaurado.`,
+        confirmLabel: 'Anular Factura',
+        cancelLabel: 'Cancelar',
+        destructive: true,
+      } satisfies ConfirmDialogData,
+      autoFocus: false,
+    });
 
-    this.invoicesService.cancel(id).subscribe({
-      next: () => {
-        this.snackBar.open('Factura anulada y stock devuelto al almacén', 'Cerrar', { duration: 3000 });
-      },
-      error: (err) => {
-        this.snackBar.open(err.error?.message || 'No se pudo anular la factura', 'Cerrar', { duration: 4000 });
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.invoicesService.cancel(inv.id || inv).subscribe({
+          next: () => {
+            this.snackBar.open('Factura anulada y stock devuelto al almacén', 'Cerrar', { duration: 3000 });
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'No se pudo anular la factura', 'Cerrar', { duration: 4000 });
+          }
+        });
       }
     });
   }

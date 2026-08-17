@@ -11,9 +11,12 @@ import { TranslocoPipe } from '@jsverse/transloco';
 @Component({
   selector: 'app-products',
   standalone: true,
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
    imports: [MatButtonModule, MatIconModule, CurrencyPipe, EmptyStateComponent, TableSkeletonComponent, TranslocoPipe],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 overflow-hidden">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
       
       <!-- Header -->
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">

@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
+  Param,
   Body,
   Res,
   UseGuards,
@@ -22,6 +24,50 @@ import { ChatRequestDto, ChatResponseDto } from './ai-agent.dto';
 @Controller('v1/ai')
 export class AiAgentController {
   constructor(private readonly aiAgentService: AiAgentService) {}
+
+  @Get('conversations')
+  @ApiOperation({ summary: 'Get all AI conversations for current user and company' })
+  async getConversations(@CurrentUser() user: any) {
+    const empresaId = user?.empresaId;
+    if (!empresaId) {
+      throw new UnauthorizedException('No active company selected.');
+    }
+    const userId = user.id || user.sub;
+    return this.aiAgentService.getConversations(empresaId, userId);
+  }
+
+  @Get('conversations/:id')
+  @ApiOperation({ summary: 'Get a specific conversation with all messages' })
+  async getConversation(@CurrentUser() user: any, @Param('id') id: string) {
+    const empresaId = user?.empresaId;
+    if (!empresaId) {
+      throw new UnauthorizedException('No active company selected.');
+    }
+    const userId = user.id || user.sub;
+    return this.aiAgentService.getConversation(empresaId, userId, id);
+  }
+
+  @Post('conversations')
+  @ApiOperation({ summary: 'Create a new AI conversation thread' })
+  async createConversation(@CurrentUser() user: any, @Body() body: { title?: string }) {
+    const empresaId = user?.empresaId;
+    if (!empresaId) {
+      throw new UnauthorizedException('No active company selected.');
+    }
+    const userId = user.id || user.sub;
+    return this.aiAgentService.createConversation(empresaId, userId, body?.title);
+  }
+
+  @Delete('conversations/:id')
+  @ApiOperation({ summary: 'Delete an AI conversation thread' })
+  async deleteConversation(@CurrentUser() user: any, @Param('id') id: string) {
+    const empresaId = user?.empresaId;
+    if (!empresaId) {
+      throw new UnauthorizedException('No active company selected.');
+    }
+    const userId = user.id || user.sub;
+    return this.aiAgentService.deleteConversation(empresaId, userId, id);
+  }
 
   @Post('chat')
   @HttpCode(HttpStatus.OK)
@@ -97,8 +143,8 @@ export class AiAgentController {
 
     return {
       status: 'active',
-      provider: hasExternalKey ? 'OpenRouter / LLM' : 'Smart ERP Heuristic Engine',
-      model: process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free',
+      provider: hasExternalKey ? 'OpenRouter / LLM' : 'Ollama (Local) / Heuristic Engine',
+      model: process.env.OLLAMA_MODEL || process.env.OPENROUTER_MODEL || 'qwen2.5:3b',
       companyId: user?.empresaId,
       capabilities: [
         'Read-Only Database Queries',
@@ -107,6 +153,7 @@ export class AiAgentController {
         'Audit & Security Logs',
         'Executive Financial & Operational Summary',
         'Rich Markdown & Tables',
+        'PostgreSQL Persistent Multi-Tenant Chats',
       ],
     };
   }

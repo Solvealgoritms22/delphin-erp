@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
 import { AuthState } from '@/app/core/auth/auth.state';
@@ -20,6 +21,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
+    MatSlideToggleModule,
     TranslocoPipe,
   ],
   template: `
@@ -95,6 +97,76 @@ import { TranslocoPipe } from '@jsverse/transloco';
             <input matInput formControlName="email" type="email" [readonly]="true" class="opacity-75" />
             <mat-icon matSuffix svgIcon="lock" class="!w-4 !h-4 !text-[16px] text-neutral-400"></mat-icon>
           </mat-form-field>
+
+          <!-- SMTP Global para Propietarios -->
+          @if (isOwner()) {
+            <div class="mt-2 p-5 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20 flex flex-col gap-4">
+              <div class="flex items-center justify-between">
+                <div class="flex flex-col">
+                  <span class="text-sm font-bold text-emerald-950 dark:text-emerald-200">Servidor de Correo (SMTP)</span>
+                  <span class="text-xs text-neutral-500">Usado globalmente para enviar correos desde tus empresas</span>
+                </div>
+                <mat-slide-toggle formControlName="smtpEnabled" color="primary"></mat-slide-toggle>
+              </div>
+
+              @if (form.get('smtpEnabled')?.value) {
+                <div class="flex flex-col gap-4 pt-2">
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <mat-form-field appearance="outline" class="sm:col-span-2 w-full">
+                      <mat-label>Host SMTP</mat-label>
+                      <input matInput formControlName="smtpHost" placeholder="smtp.gmail.com">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="w-full">
+                      <mat-label>Puerto</mat-label>
+                      <input matInput type="number" formControlName="smtpPort" placeholder="587">
+                    </mat-form-field>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <mat-form-field appearance="outline" class="w-full">
+                      <mat-label>Usuario SMTP</mat-label>
+                      <input matInput formControlName="smtpUser" placeholder="usuario@empresa.com">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="w-full">
+                      <mat-label>Contraseña SMTP</mat-label>
+                      <input matInput type="password" formControlName="smtpPass" placeholder="••••••••">
+                    </mat-form-field>
+                  </div>
+                  <div class="grid grid-cols-1 gap-4 items-center">
+                    <mat-form-field appearance="outline" class="w-full">
+                      <mat-label>Dirección "De" (From)</mat-label>
+                      <input matInput formControlName="smtpFrom" placeholder="Dolphin ERP &lt;no-reply@empresa.com&gt;">
+                      <mat-hint>Si se omite, se usa el usuario SMTP</mat-hint>
+                    </mat-form-field>
+                    <div class="flex items-center gap-3 mt-1">
+                      <mat-slide-toggle formControlName="smtpSecure" color="primary"></mat-slide-toggle>
+                      <span class="text-sm text-neutral-600 dark:text-neutral-400">Conexión TLS/SSL</span>
+                    </div>
+                  </div>
+
+                  <!-- Resultado del test TCP -->
+                  @if (smtpTestResult()) {
+                    <div [class]="'flex items-start gap-2 rounded-xl px-4 py-3 text-sm font-medium ' + (smtpTestResult()!.success ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-500/30')">
+                      <mat-icon [svgIcon]="smtpTestResult()!.success ? 'check-circle' : 'alert-triangle'" class="icon-size-4 shrink-0 mt-0.5"></mat-icon>
+                      <div class="flex flex-col">
+                        <span>{{ smtpTestResult()!.message }}</span>
+                        @if (smtpTestResult()!.latencyMs) {
+                          <span class="text-xs opacity-70">Latencia: {{ smtpTestResult()!.latencyMs }}ms</span>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <button type="button" (click)="testSmtp()" [disabled]="testingSmtp()" 
+                    class="self-start flex items-center gap-2 h-9 px-4 rounded-xl border border-emerald-300 dark:border-emerald-700 text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                    <mat-icon [svgIcon]="testingSmtp() ? 'loader' : 'wifi'" class="icon-size-4" [class.animate-spin]="testingSmtp()"></mat-icon>
+                    {{ testingSmtp() ? 'Probando...' : 'Probar conexión TCP' }}
+                  </button>
+                  <p class="text-xs text-neutral-400">Guarda tu perfil primero si has hecho cambios antes de probar la conexión.</p>
+                </div>
+              }
+            </div>
+          }
+
         </form>
 
       </div>
@@ -130,7 +202,18 @@ export class AccountDialogComponent implements OnInit {
   form = this.fb.group({
     name: [this.user()?.name || '', [Validators.required]],
     email: [{ value: this.user()?.email || '', disabled: true }],
+    
+    smtpEnabled: [false],
+    smtpHost: [''],
+    smtpPort: [587],
+    smtpUser: [''],
+    smtpPass: [''],
+    smtpFrom: [''],
+    smtpSecure: [true],
   });
+
+  testingSmtp = signal(false);
+  smtpTestResult = signal<{ success: boolean; message: string; latencyMs?: number } | null>(null);
 
   displayName = computed(() => {
     const u = this.user();
@@ -150,6 +233,22 @@ export class AccountDialogComponent implements OnInit {
   });
 
   ngOnInit() {
+    this.http.get<any>(`${environment.apiUrl}/auth/me`).subscribe({
+      next: (userData) => {
+        if (userData) {
+          this.form.patchValue({
+            smtpEnabled: userData.smtpEnabled || false,
+            smtpHost: userData.smtpHost || '',
+            smtpPort: userData.smtpPort || 587,
+            smtpUser: userData.smtpUser || '',
+            smtpPass: userData.smtpPass || '',
+            smtpFrom: userData.smtpFrom || '',
+            smtpSecure: userData.smtpSecure ?? true,
+          });
+        }
+      }
+    });
+
     this.http.get<any>(`${environment.apiUrl}/empresas/current`).subscribe({
       next: (data) => {
         const u = this.user();
@@ -175,11 +274,21 @@ export class AccountDialogComponent implements OnInit {
   save() {
     if (this.form.invalid) return;
     this.isSaving.set(true);
-    const updatedData = {
+    const updatedData: any = {
       name: this.form.value.name,
       avatar: this.avatarUrl(),
     };
     
+    if (this.isOwner()) {
+      updatedData.smtpEnabled = this.form.value.smtpEnabled;
+      updatedData.smtpHost = this.form.value.smtpHost;
+      updatedData.smtpPort = this.form.value.smtpPort;
+      updatedData.smtpUser = this.form.value.smtpUser;
+      updatedData.smtpPass = this.form.value.smtpPass;
+      updatedData.smtpFrom = this.form.value.smtpFrom;
+      updatedData.smtpSecure = this.form.value.smtpSecure;
+    }
+
     this.http.patch(`${environment.apiUrl}/auth/profile`, updatedData).subscribe({
       next: () => {
         // Update local state and close
@@ -196,8 +305,23 @@ export class AccountDialogComponent implements OnInit {
       },
       error: () => {
         this.isSaving.set(false);
-        // Handle error if needed
       }
+    });
+  }
+
+  testSmtp(): void {
+    if (this.form.dirty) {
+      this.smtpTestResult.set({ success: false, message: 'Guarda los cambios antes de probar la conexión.' });
+      return;
+    }
+    
+    this.testingSmtp.set(true);
+    this.smtpTestResult.set(null);
+    this.http.post<{ success: boolean; message: string; latencyMs?: number }>(
+      `${environment.apiUrl}/auth/profile/test-smtp`, {}
+    ).subscribe({
+      next: (res) => { this.testingSmtp.set(false); this.smtpTestResult.set(res); },
+      error: (err) => { this.testingSmtp.set(false); this.smtpTestResult.set({ success: false, message: err.error?.message || 'Error al probar conexión' }); },
     });
   }
 }

@@ -207,7 +207,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
         </div>
 
         <!-- View Container -->
-        <div class="relative flex-1 min-h-0 w-full overflow-hidden" [@routeAnimations]="outlet.isActivated ? outlet.activatedRoute : ''">
+        <div class="relative flex flex-col flex-1 min-h-0 w-full overflow-hidden" [@routeAnimations]="outlet.isActivated ? outlet.activatedRoute : ''">
           <router-outlet #outlet="outlet" />
         </div>
       </mat-sidenav-content>

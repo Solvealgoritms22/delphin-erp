@@ -77,6 +77,25 @@ export default class AuthSignIn {
         },
         error: (err: any) => {
           this.isLoading.set(false);
+          
+          const rawMessage = typeof err?.error?.message === 'string' ? err.error.message : (typeof err?.message === 'string' ? err.message : '');
+          const isUnverified = err?.error?.needsVerification === true ||
+            rawMessage.toLowerCase().includes('verific') ||
+            rawMessage.toLowerCase().includes('cuenta no verificada');
+
+          if (isUnverified) {
+            const message = err?.error?.message || 'Cuenta no verificada. Por favor, verifica tu correo electrónico.';
+            this.snackBar.open(message, this.transloco.translate('common.close'), {
+              duration: 5000,
+              panelClass: ['snack-error'],
+              horizontalPosition: 'center',
+              verticalPosition: 'bottom',
+            });
+            const targetEmail = err?.error?.email || this.signInFormModel().email;
+            this.router.navigate(['/auth/verify-account'], { queryParams: { email: targetEmail } });
+            return;
+          }
+
           const message = this.transloco.translate('auth.errors.invalidCredentials');
           this.snackBar.open(message, this.transloco.translate('common.close'), {
             duration: 5000,

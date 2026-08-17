@@ -1,0 +1,95 @@
+<div class="flex flex-auto items-center justify-center p-4 sm:p-12">
+  <mat-card class="flex w-full max-w-sm flex-col p-8 sm:p-12">
+    <!-- Logo -->
+    <div class="flex items-center gap-x-2.5">
+      <img
+        src="/images/logo/logo_dolphin_light.png"
+        class="h-10 w-auto max-w-[200px] object-contain object-left dark:hidden"
+        alt="Dolphin logo"
+      />
+      <img
+        src="/images/logo/logo_dolphin_dark.png"
+        class="h-12 w-auto max-w-[200px] object-contain object-left hidden dark:block"
+        alt="Dolphin logo"
+      />
+    </div>
+
+    <!-- Title -->
+    <div class="leading-tight mt-8 text-4xl font-extrabold tracking-tight">
+      Verificar Cuenta
+    </div>
+    <div class="mt-0.5 font-medium">Hemos enviado un código a tu correo electrónico. Por favor, ingrésalo a continuación para continuar.</div>
+
+    <!-- Verify account form -->
+    <form class="mt-8" (submit)="verifyAccount($event)">
+      <div class="flex flex-col gap-y-4">
+        <!-- Email field -->
+        <mat-form-field class="w-full">
+          <mat-label>Correo electrónico</mat-label>
+          <input
+            id="email"
+            type="email"
+            matInput
+            [formField]="verifyForm.email"
+            placeholder="correo@empresa.com"
+          />
+          <mat-error>
+            @if (verifyForm.email().touched() && verifyForm.email().invalid()) {
+              @for (error of verifyForm.email().errors(); track error) {
+                {{ error.message }}
+              }
+            }
+          </mat-error>
+        </mat-form-field>
+
+        <!-- OTP field -->
+        <mat-form-field class="w-full">
+          <mat-label>Código OTP</mat-label>
+          <input
+            id="otp"
+            matInput
+            [formField]="verifyForm.otp"
+            placeholder="123456"
+          />
+          <mat-error>
+            @if (verifyForm.otp().touched() && verifyForm.otp().invalid()) {
+              @for (error of verifyForm.otp().errors(); track error) {
+                {{ error.message }}
+              }
+            }
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Submit button -->
+        <button
+          class="mt-2 w-full"
+          mat-flat-button
+          color="primary"
+          [disabled]="verifyForm().invalid() || isLoading()"
+        >
+          @if (!isLoading()) {
+            Verificar Cuenta
+          } @else {
+            Verificando...
+          }
+        </button>
+      </div>
+
+      <div class="mt-4 flex items-center justify-center">
+        <a class="text-primary-500 hover:underline cursor-pointer" (click)="resendCode($event)">
+          @if (isResending()) {
+            Reenviando...
+          } @else {
+            Reenviar código
+          }
+        </a>
+      </div>
+
+      <div class="mt-4 flex items-center justify-center">
+        <a class="text-primary-500 hover:underline" routerLink="/auth/sign-in">
+          Volver a Inicio de Sesión
+        </a>
+      </div>
+    </form>
+  </mat-card>
+</div>

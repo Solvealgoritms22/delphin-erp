@@ -2,18 +2,23 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SuppliersService } from '../../data/suppliers';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-suppliers',
   standalone: true,
-  imports: [RouterLink, MatButtonModule, MatIconModule, EmptyStateComponent, TableSkeletonComponent, TranslocoPipe, PlusIcon, PencilIcon, TrashIcon],
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatDialogModule, EmptyStateComponent, TableSkeletonComponent, TranslocoPipe, PlusIcon, PencilIcon, TrashIcon],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 overflow-hidden">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
       
       <!-- Header -->
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
@@ -80,7 +85,7 @@ import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
                     <button mat-icon-button [routerLink]="[supplier.id]" class="text-neutral-500 hover:text-neutral-700">
                        <i-pencil [size]="18" />
                     </button>
-                    <button mat-icon-button class="text-red-500 hover:text-red-700" (click)="deleteSupplier(supplier.id)">
+                    <button mat-icon-button class="text-red-500 hover:text-red-700" (click)="deleteSupplier(supplier)">
                       <i-trash [size]="18" />
                     </button>
                   </div>
@@ -104,6 +109,7 @@ import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
 })
 export class Suppliers implements OnInit {
   suppliersService = inject(SuppliersService);
+  dialog = inject(MatDialog);
   router = inject(Router);
   transloco = inject(TranslocoService);
 
@@ -113,9 +119,27 @@ export class Suppliers implements OnInit {
     this.suppliersService.findAll().subscribe();
   }
 
-  deleteSupplier(id: string) {
-    if (confirm(String(this.transloco.translate('commercial.suppliers.deleteConfirm')))) {
-      this.suppliersService.remove(id).subscribe();
-    }
+  deleteSupplier(supplier: any) {
+    const name = supplier?.nombreRazonSocial || '';
+    const message = name
+      ? `¿Estás seguro de que deseas eliminar al proveedor <strong>${name}</strong>?`
+      : String(this.transloco.translate('commercial.suppliers.deleteConfirm'));
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: this.transloco.translate('commercial.suppliers.deleteTitle') || 'Eliminar proveedor',
+        message,
+        confirmLabel: this.transloco.translate('common.delete'),
+        cancelLabel: this.transloco.translate('common.cancel'),
+        destructive: true,
+      } satisfies ConfirmDialogData,
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.suppliersService.remove(supplier.id || supplier).subscribe();
+      }
+    });
   }
 }

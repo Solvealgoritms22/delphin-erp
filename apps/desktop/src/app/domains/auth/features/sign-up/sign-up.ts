@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@/app/core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -39,8 +40,10 @@ export default class AuthSignUp {
   private router = inject(Router);
   private authService = inject(AuthService);
   private transloco = inject(TranslocoService);
+  private snackBar = inject(MatSnackBar);
 
   // State
+  protected isLoading = signal(false);
   protected signUpFormModel = signal({
     name: '',
     email: '',
@@ -120,12 +123,26 @@ export default class AuthSignUp {
     event.preventDefault();
 
     submit(this.signUpForm, async () => {
+      this.isLoading.set(true);
       this.authService.signUp(this.signUpFormModel()).subscribe({
-        next: () => {
-           this.router.navigateByUrl('/auth/sign-in');
+        next: (res) => {
+          this.isLoading.set(false);
+           if (res && res.needsVerification) {
+             this.router.navigate(['/auth/verify-account'], { queryParams: { email: res.email } });
+           } else {
+             this.router.navigateByUrl('/auth/sign-in');
+           }
         },
         error: (err) => {
+          this.isLoading.set(false);
           console.error(err);
+          const message = err?.error?.message || 'Ocurrió un error al intentar registrarte.';
+          this.snackBar.open(message, this.transloco.translate('common.close'), {
+            duration: 5000,
+            panelClass: ['snack-error'],
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+          });
         }
       });
     });

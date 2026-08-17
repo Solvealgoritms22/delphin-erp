@@ -20,6 +20,7 @@ model Empresa {
   razonSocial  String      @map("razon_social")
   rnc          String?     @unique
   pais         String      @default("DO")
+  direccion    String?
   telefono     String?
   email        String?
   paginaWeb    String?     @map("pagina_web")
@@ -60,6 +61,7 @@ model Empresa {
   notificaciones Notification[]
   secuenciasNcf  SecuenciaNCF[]
   facturasVenta  FacturaVenta[]
+  aiConversaciones AiConversation[]
 
   @@map("empresas")
 }
@@ -109,6 +111,16 @@ model Usuario {
   pushSubscriptions PushSubscription[]
   empresasPropiedad Empresa[] @relation("EmpresasPropiedad")
   facturasVenta  FacturaVenta[]
+  aiConversaciones AiConversation[]
+
+  // SMTP del Propietario (para emails enviados desde sus empresas: invitaciones, recuperación de contraseña, etc.)
+  smtpHost      String?   @map("smtp_host")
+  smtpPort      Int?      @default(587) @map("smtp_port")
+  smtpUser      String?   @map("smtp_user")
+  smtpPass      String?   @map("smtp_pass")
+  smtpFrom      String?   @map("smtp_from")
+  smtpSecure    Boolean   @default(true) @map("smtp_secure")
+  smtpEnabled   Boolean   @default(false) @map("smtp_enabled")
 
   @@map("usuarios")
 }
@@ -630,4 +642,33 @@ model FacturaVentaDetalle {
 
   @@index([facturaId])
   @@map("facturas_venta_detalles")
+}
+
+// Fase AI Agent & Chat Multi-Tenant
+model AiConversation {
+  id            String      @id @default(uuid())
+  titulo        String      @default("Nueva conversación")
+  empresaId     String      @map("empresa_id")
+  empresa       Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  usuarioId     String      @map("usuario_id")
+  usuario       Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  mensajes      AiMessage[]
+  creadoEn      DateTime    @default(now()) @map("creado_en")
+  actualizadoEn DateTime    @updatedAt @map("actualizado_en")
+
+  @@index([empresaId, usuarioId])
+  @@map("ai_conversaciones")
+}
+
+model AiMessage {
+  id             String         @id @default(uuid())
+  conversacionId String         @map("conversacion_id")
+  conversacion   AiConversation @relation(fields: [conversacionId], references: [id], onDelete: Cascade)
+  role           String         // "user" | "assistant" | "system"
+  content        String         @db.Text
+  toolsUsed      String[]       @default([]) @map("tools_used")
+  creadoEn       DateTime       @default(now()) @map("creado_en")
+
+  @@index([conversacionId])
+  @@map("ai_mensajes")
 }

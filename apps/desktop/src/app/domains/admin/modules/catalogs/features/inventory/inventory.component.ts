@@ -17,6 +17,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 @Component({
   selector: 'app-inventory',
   standalone: true,
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
   imports: [
     CommonModule,
     FormsModule,
@@ -32,7 +35,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     TranslocoPipe,
   ],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
       
       <!-- Header -->
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
@@ -79,8 +82,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
         </button>
       </div>
 
-      <!-- Content Area -->
-      <div class="flex-1 overflow-y-auto p-6 md:p-8">
+      <!-- Content Area (Scrollable) -->
+      <div class="flex flex-col flex-auto min-h-0 overflow-y-auto p-6 md:p-8">
         
         <!-- ================= TAB 1: STOCKS ================= -->
         @if (activeTab === 'stocks') {

@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, tap, catchError } from 'rxjs';
 import { Conversation, Message } from './model';
 import { environment } from '@/environments/environment';
 import { AuthState } from '@/app/core/auth/auth.state';
@@ -21,6 +21,7 @@ export class AiChatService {
   readonly conversations = signal<Conversation[]>([]);
   readonly activeConversationId = signal<string>('');
   readonly isGenerating = signal<boolean>(false);
+  readonly isLoading = signal<boolean>(false);
 
   readonly currentConversation = computed(() => {
     const list = this.conversations();
@@ -30,10 +31,38 @@ export class AiChatService {
 
   constructor() {
     this.loadFromStorage();
+    this.loadFromApi();
   }
 
   /**
-   * Load conversations from localStorage or initialize with a welcome conversation
+   * Load conversations from PostgreSQL via API
+   */
+  loadFromApi(): void {
+    if (!this.isBrowser) return;
+    this.isLoading.set(true);
+    this.http.get<Conversation[]>(`${this.apiUrl}/conversations`).pipe(
+      tap((remoteConvs) => {
+        this.isLoading.set(false);
+        if (Array.isArray(remoteConvs) && remoteConvs.length > 0) {
+          this.conversations.set(remoteConvs);
+          const currentActive = this.activeConversationId();
+          if (!currentActive || !remoteConvs.some((c) => c.id === currentActive)) {
+            this.activeConversationId.set(remoteConvs[0].id);
+          }
+          this.saveToStorage();
+        } else if (this.conversations().length === 0) {
+          this.initWelcomeConversation();
+        }
+      }),
+      catchError(() => {
+        this.isLoading.set(false);
+        return of([]);
+      })
+    ).subscribe();
+  }
+
+  /**
+   * Load conversations from localStorage fallback
    */
   private loadFromStorage(): void {
     if (!this.isBrowser) return;
@@ -51,6 +80,10 @@ export class AiChatService {
       // ignore
     }
 
+    this.initWelcomeConversation();
+  }
+
+  private initWelcomeConversation(): void {
     // Default welcome conversation
     const defaultConv: Conversation = {
       id: 'welcome-chat',
@@ -75,9 +108,11 @@ export class AiChatService {
       ],
     };
 
-    this.conversations.set([defaultConv]);
-    this.activeConversationId.set(defaultConv.id);
-    this.saveToStorage();
+    if (this.conversations().length === 0) {
+      this.conversations.set([defaultConv]);
+      this.activeConversationId.set(defaultConv.id);
+      this.saveToStorage();
+    }
   }
 
   private saveToStorage(): void {
@@ -111,6 +146,23 @@ export class AiChatService {
     this.conversations.update((prev) => [newConv, ...prev]);
     this.activeConversationId.set(id);
     this.saveToStorage();
+
+    // Call API to persist new thread
+    this.http.post<any>(`${this.apiUrl}/conversations`, { title: newConv.title }).pipe(
+      tap((res) => {
+        if (res?.id) {
+          this.conversations.update((list) =>
+            list.map((c) => (c.id === id ? { ...c, id: res.id } : c))
+          );
+          if (this.activeConversationId() === id) {
+            this.activeConversationId.set(res.id);
+          }
+          this.saveToStorage();
+        }
+      }),
+      catchError(() => of(null))
+    ).subscribe();
+
     return newConv;
   }
 
@@ -143,6 +195,11 @@ export class AiChatService {
       this.activeConversationId.set(remaining[0].id);
     }
     this.saveToStorage();
+
+    // Delete from API / DB
+    this.http.delete(`${this.apiUrl}/conversations/${id}`).pipe(
+      catchError(() => of(null))
+    ).subscribe();
   }
 
   /**

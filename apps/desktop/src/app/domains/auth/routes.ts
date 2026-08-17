@@ -45,6 +45,10 @@ const routes: Routes = [
         path: 'sign-up',
         loadComponent: () => import('./features/sign-up/sign-up'),
       },
+      {
+        path: 'verify-account',
+        loadComponent: () => import('./features/verify-account/verify-account'),
+      },
     ],
   },
 ];

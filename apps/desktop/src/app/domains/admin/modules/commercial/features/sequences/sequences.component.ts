@@ -9,11 +9,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/sequences.service';
 
 @Component({
   selector: 'app-sequences',
   standalone: true,
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
   imports: [
     CommonModule,
     FormsModule,
@@ -27,7 +31,7 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
     EmptyStateComponent,
   ],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
       
       <!-- Header -->
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
@@ -49,12 +53,13 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
         </div>
       </div>
 
-      <!-- Content Area -->
-      <div class="p-6 md:p-8 flex flex-col gap-6 flex-1 overflow-y-auto">
+      <!-- Main Scrollable Content -->
+      <div class="flex flex-col flex-auto min-h-0 overflow-y-auto">
         
-        <!-- Table -->
-        <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
-          <div class="grid grid-cols-12 gap-4 py-3.5 px-6 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-bold text-neutral-500 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-800/40">
+        <!-- Table Grid -->
+        <div class="grid">
+          <!-- Sticky Table Header -->
+          <div class="z-10 sticky top-0 grid grid-cols-12 gap-4 py-4 px-6 md:px-8 shadow-xs text-[11px] font-bold text-neutral-500 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
             <div class="col-span-3">Tipo / Nombre</div>
             <div class="col-span-2">Prefijo / Tipo</div>
             <div class="col-span-2 text-center">Ambiente</div>
@@ -64,67 +69,67 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
           </div>
 
           @if (sequencesService.sequences().length === 0) {
-            <app-empty-state
-              icon="hash"
-              title="Sin secuencias NCF registradas"
-              description="Configura las secuencias autorizadas por la DGII para emitir comprobantes fiscales."
-              actionLabel="Nueva Secuencia"
-              actionIcon="plus"
-              (action)="openModal()"
-            />
-          } @else {
-            <div class="divide-y divide-neutral-100 dark:divide-neutral-800/60">
-              @for (seq of sequencesService.sequences(); track seq.id) {
-                <div class="grid grid-cols-12 gap-4 py-4 px-6 items-center text-sm hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                  
-                  <!-- Tipo / Nombre -->
-                  <div class="col-span-3 flex flex-col">
-                    <span class="font-bold text-neutral-900 dark:text-white">{{ seq.nombre }}</span>
-                    <span class="text-xs text-neutral-400">Rango: 1 - {{ seq.numeroHasta | number }}</span>
-                  </div>
-
-                  <!-- Prefijo -->
-                  <div class="col-span-2 flex items-center gap-2">
-                    <span class="px-2.5 py-1 rounded-lg font-mono font-extrabold text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                      {{ seq.prefijo }}
-                    </span>
-                    <span class="text-xs text-neutral-500">{{ seq.prefijo.startsWith('E') ? 'Electrónico' : 'Tradicional' }}</span>
-                  </div>
-
-                  <!-- Ambiente -->
-                  <div class="col-span-2 flex justify-center">
-                    @if (seq.ambiente === 'PROD') {
-                      <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">PRODUCCIÓN</span>
-                    } @else if (seq.ambiente === 'CERT') {
-                      <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">CERTIFICACIÓN</span>
-                    } @else {
-                      <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400">PRUEBAS (TEST)</span>
-                    }
-                  </div>
-
-                  <!-- Próximo a Emitir -->
-                  <div class="col-span-2 text-right flex flex-col">
-                    <span class="font-mono font-bold text-neutral-900 dark:text-white">
-                      {{ formatNcfPreview(seq) }}
-                    </span>
-                    <span class="text-[11px] text-neutral-400">Número: {{ seq.numeroActual }}</span>
-                  </div>
-
-                  <!-- Vencimiento -->
-                  <div class="col-span-2 text-center text-xs text-neutral-500">
-                    {{ seq.fechaVencimiento ? (seq.fechaVencimiento | date:'dd/MM/yyyy') : 'Sin Vencimiento' }}
-                  </div>
-
-                  <!-- Acción -->
-                  <div class="col-span-1 flex justify-center">
-                    <button (click)="deleteSequence(seq.id)" class="w-8 h-8 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center cursor-pointer">
-                      <mat-icon svgIcon="trash" class="icon-size-4"></mat-icon>
-                    </button>
-                  </div>
-
-                </div>
-              }
+            <div class="flex flex-auto justify-center p-6 sm:p-10">
+              <app-empty-state
+                icon="hash"
+                title="Sin secuencias NCF registradas"
+                description="Configura las secuencias autorizadas por la DGII para emitir comprobantes fiscales."
+                actionLabel="Nueva Secuencia"
+                actionIcon="plus"
+                (action)="openModal()"
+              />
             </div>
+          } @else {
+            @for (seq of sequencesService.sequences(); track seq.id) {
+              <div class="grid grid-cols-12 gap-4 py-4 px-6 md:px-8 items-center text-sm border-b border-neutral-100 dark:border-neutral-800/80 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                
+                <!-- Tipo / Nombre -->
+                <div class="col-span-3 flex flex-col">
+                  <span class="font-bold text-neutral-900 dark:text-white">{{ seq.nombre }}</span>
+                  <span class="text-xs text-neutral-400">Rango: 1 - {{ seq.numeroHasta | number }}</span>
+                </div>
+
+                <!-- Prefijo -->
+                <div class="col-span-2 flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-lg font-mono font-extrabold text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                    {{ seq.prefijo }}
+                  </span>
+                  <span class="text-xs text-neutral-500">{{ seq.prefijo.startsWith('E') ? 'Electrónico' : 'Tradicional' }}</span>
+                </div>
+
+                <!-- Ambiente -->
+                <div class="col-span-2 flex justify-center">
+                  @if (seq.ambiente === 'PROD') {
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">PRODUCCIÓN</span>
+                  } @else if (seq.ambiente === 'CERT') {
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">CERTIFICACIÓN</span>
+                  } @else {
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400">PRUEBAS (TEST)</span>
+                  }
+                </div>
+
+                <!-- Próximo a Emitir -->
+                <div class="col-span-2 text-right flex flex-col">
+                  <span class="font-mono font-bold text-neutral-900 dark:text-white">
+                    {{ formatNcfPreview(seq) }}
+                  </span>
+                  <span class="text-[11px] text-neutral-400">Número: {{ seq.numeroActual }}</span>
+                </div>
+
+                <!-- Vencimiento -->
+                <div class="col-span-2 text-center text-xs text-neutral-500">
+                  {{ seq.fechaVencimiento ? (seq.fechaVencimiento | date:'dd/MM/yyyy') : 'Sin Vencimiento' }}
+                </div>
+
+                <!-- Acción -->
+                <div class="col-span-1 flex justify-center">
+                  <button (click)="deleteSequence(seq)" class="w-8 h-8 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center cursor-pointer">
+                    <mat-icon svgIcon="trash" class="icon-size-4"></mat-icon>
+                  </button>
+                </div>
+
+              </div>
+            }
           }
         </div>
 
@@ -288,14 +293,29 @@ export class SequencesComponent implements OnInit {
     });
   }
 
-  deleteSequence(id: string) {
-    if (!confirm('¿Estás seguro de eliminar esta secuencia NCF?')) return;
-    this.sequencesService.delete(id).subscribe({
-      next: () => {
-        this.snackBar.open('Secuencia eliminada', 'Cerrar', { duration: 2500 });
-      },
-      error: (err) => {
-        this.snackBar.open(err.error?.message || 'Error al eliminar secuencia', 'Cerrar', { duration: 3000 });
+  deleteSequence(seq: any) {
+    const name = seq?.nombre || seq?.prefijo || 'esta secuencia NCF';
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Eliminar secuencia NCF',
+        message: `¿Estás seguro de que deseas eliminar la secuencia <strong>${name}</strong>?`,
+        confirmLabel: 'Eliminar',
+        cancelLabel: 'Cancelar',
+        destructive: true,
+      } satisfies ConfirmDialogData,
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.sequencesService.delete(seq.id || seq).subscribe({
+          next: () => {
+            this.snackBar.open('Secuencia eliminada', 'Cerrar', { duration: 2500 });
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Error al eliminar secuencia', 'Cerrar', { duration: 3000 });
+          }
+        });
       }
     });
   }

@@ -28,6 +28,9 @@ export interface Empresa {
 @Component({
   selector: 'app-empresas',
   standalone: true,
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
   imports: [
     CommonModule, 
     FormsModule, 
@@ -44,7 +47,7 @@ export interface Empresa {
     ArrowRightLeftIcon
   ],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
+    <div class="flex flex-col flex-auto min-w-0 h-full bg-white dark:bg-neutral-900 overflow-hidden">
       
       <!-- Header -->
       <div class="shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-neutral-50/50 dark:bg-transparent">
@@ -79,7 +82,7 @@ export interface Empresa {
             illustration="18.svg"
             [title]="'companies.emptyTitle' | transloco"
             [description]="'companies.emptyDescription' | transloco"
-            [actionLabel]="'companies.emptyAction' | transloco"
+            [actionLabel]="'companies.create' | transloco"
             (action)="openCreateDialog()">
           </app-empty-state>
 

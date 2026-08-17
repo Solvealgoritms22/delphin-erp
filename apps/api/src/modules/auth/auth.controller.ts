@@ -83,10 +83,30 @@ export class AuthController {
   })
   @ApiResponse({
     status: 201,
-    description: 'Cuenta creada. Devuelve access_token y user.',
+    description: 'Cuenta creada. Retorna email y needsVerification.',
   })
   async register(@Body() body: any) {
     return this.authService.register(body);
+  }
+
+  @Post('verify-account')
+  @ApiOperation({ summary: 'Verificar correo electrónico de cuenta nueva' })
+  @ApiResponse({
+    status: 200,
+    description: 'Cuenta verificada exitosamente.',
+  })
+  async verifyAccount(@Body() body: { email: string; otp: string }) {
+    return this.authService.verifyAccount(body.email, body.otp);
+  }
+
+  @Post('resend-verification')
+  @ApiOperation({ summary: 'Reenviar código de verificación de correo' })
+  @ApiResponse({
+    status: 200,
+    description: 'Código reenviado.',
+  })
+  async resendVerification(@Body() body: { email: string }) {
+    return this.authService.resendVerification(body.email);
   }
 
   @Post('forgot-password')
@@ -147,9 +167,17 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Patch('profile')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Actualizar perfil (nombre/avatar)' })
+  @ApiOperation({ summary: 'Actualizar perfil y configuración' })
   async updateProfile(@CurrentUser() user: any, @Body() body: any) {
     return this.authService.updateProfile(user.id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('profile/test-smtp')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Probar configuración SMTP del perfil' })
+  async testSmtpConnection(@CurrentUser() user: any) {
+    return this.authService.testSmtpConnection(user.id);
   }
 
   @Post('invitations/accept')

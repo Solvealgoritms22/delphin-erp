@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, signal, inject, TemplateRef, ViewChild, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '@/environments/environment';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,11 +18,14 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/componen
 import { UserDialogComponent, UserDialogData } from './user-dialog.component';
 import { AuthState } from '@/app/core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
+import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleAlertIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-users',
   standalone: true,
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
   imports: [
     CommonModule,
     FormsModule,
@@ -40,10 +45,22 @@ import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, Chevro
     ChevronDownIcon,
     PencilIcon,
     TrashIcon,
+    TriangleAlertIcon,
   ],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
+    <div class="flex flex-col flex-auto min-w-0 h-full bg-white dark:bg-neutral-900 overflow-hidden">
       
+      <!-- SMTP Warning Banner -->
+      @if (currentEmpresa() && !currentEmpresa()?.smtpEnabled) {
+        <div class="bg-amber-50 dark:bg-amber-500/10 border-b border-amber-200 dark:border-amber-500/20 px-6 py-3 flex items-start gap-3">
+          <i-triangle-alert [size]="20" class="text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-amber-800 dark:text-amber-400">Servidor SMTP no configurado</span>
+            <span class="text-xs text-amber-700 dark:text-amber-500 mt-0.5">Las invitaciones y correos del sistema no se enviarán hasta que configures el SMTP en la configuración de la empresa.</span>
+          </div>
+        </div>
+      }
+
       <!-- Header -->
       <div class="shrink-0 flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full mb-6 gap-4">
@@ -215,10 +232,12 @@ export class UsersComponent implements OnInit {
   authState = inject(AuthState);
   transloco = inject(TranslocoService);
   private destroyRef = inject(DestroyRef);
+  private http = inject(HttpClient);
 
   roles = this.rolesService.roles;
   accounts = this.usersService.users;
   companies = signal<Array<{ id: string; razonSocial: string; rnc?: string | null }>>([]);
+  currentEmpresa = signal<any>(null);
 
   searchQuery = signal('');
   statusFilter = signal<string>('All');
@@ -260,6 +279,13 @@ export class UsersComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (companies) => this.companies.set(companies),
+      });
+
+    this.http.get<any>(`${environment.apiUrl}/v1/empresas/current`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (empresa) => this.currentEmpresa.set(empresa),
+        error: (err) => console.error('Error fetching current empresa for SMTP check', err)
       });
   }
 

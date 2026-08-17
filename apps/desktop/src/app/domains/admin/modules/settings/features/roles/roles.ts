@@ -28,6 +28,9 @@ export interface RolePermissions {
 @Component({
   selector: 'app-roles',
   standalone: true,
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
   imports: [
     CommonModule,
     FormsModule,
@@ -49,7 +52,7 @@ export interface RolePermissions {
     XIcon,
   ],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
+    <div class="flex flex-col flex-auto min-w-0 h-full bg-white dark:bg-neutral-900 overflow-hidden">
       
       <!-- Header & Tabs -->
       <div class="shrink-0 flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">

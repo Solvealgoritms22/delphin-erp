@@ -8,14 +8,18 @@ import { SucursalesService } from '../../data/sucursales.service';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
 import { SucursalDialogComponent } from './sucursal-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-sucursales',
   standalone: true,
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
   imports: [MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule, TranslocoPipe, EmptyStateComponent, TableSkeletonComponent, PlusIcon, PencilIcon, TrashIcon],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 overflow-hidden">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
       <!-- Header -->
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
          <div>
@@ -138,8 +142,21 @@ export default class SucursalesComponent implements OnInit {
   }
 
   deleteSucursal(sucursal: any) {
-    if (confirm(this.transloco.translate('branches.deleteConfirm', { name: sucursal.nombre }))) {
-      this.sucursalesService.remove(sucursal.id).subscribe();
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: this.transloco.translate('branches.deleteTitle') || 'Eliminar sucursal',
+        message: this.transloco.translate('branches.deleteConfirm', { name: sucursal.nombre }),
+        confirmLabel: this.transloco.translate('common.delete'),
+        cancelLabel: this.transloco.translate('common.cancel'),
+        destructive: true,
+      } satisfies ConfirmDialogData,
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.sucursalesService.remove(sucursal.id).subscribe();
+      }
+    });
   }
 }

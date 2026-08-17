@@ -147,6 +147,9 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
 @Component({
   selector: 'app-plans',
   standalone: true,
+  host: {
+    class: 'flex h-full w-full flex-col min-h-0 overflow-hidden',
+  },
   imports: [CommonModule, MatButtonModule, MatIconModule, MatDialogModule, TranslocoPipe],
   template: `
     <div class="flex h-full w-full flex-col min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
