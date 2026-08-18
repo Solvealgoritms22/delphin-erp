@@ -17,7 +17,7 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/componen
 import { UserDialogComponent, UserDialogData } from './user-dialog.component';
 import { AuthState } from '@/app/core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleAlertIcon } from 'ng-animated-icons';
+import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleAlertIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'app-users',
@@ -37,9 +37,6 @@ import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, Chevro
     EmptyStateComponent,
     TranslocoPipe,
     PlusIcon,
-    UserRoundIcon,
-    UserCheckIcon,
-    UserCogIcon,
     SearchIcon,
     ChevronDownIcon,
     PencilIcon,
