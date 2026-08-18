@@ -14,6 +14,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Media } from '@/app/core/media';
 import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-chat';
 import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/thinking-orb.component';
 
 @Component({
   selector: 'ai-chat',
@@ -29,6 +30,7 @@ import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/c
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
+    ThinkingOrbComponent,
   ],
   host: {
     class: 'lg:h-full block h-full',
@@ -54,7 +56,7 @@ import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/c
             <!-- Panel header -->
             <div class="flex items-center gap-x-2 py-4 pr-3 pl-4">
               <div class="flex items-center gap-2 flex-auto text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
-                <mat-icon svgIcon="sparkles" class="text-blue-600 dark:text-blue-400 size-5" />
+                <thinking-orb [size]="22" state="composing" />
                 <span>AI ERP Agent</span>
               </div>
               <button
@@ -163,11 +165,8 @@ import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/c
             >
               <div class="w-full max-w-3xl">
                 <div class="flex flex-col items-center text-center">
-                  <div class="size-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2">
-                    <mat-icon
-                      class="size-6"
-                      svgIcon="sparkles"
-                    />
+                  <div class="size-16 rounded-3xl bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700/80 flex items-center justify-center mb-2 overflow-hidden shadow-xs">
+                    <thinking-orb [size]="52" state="composing" />
                   </div>
                   <div
                     class="mt-2 text-2xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-3xl"

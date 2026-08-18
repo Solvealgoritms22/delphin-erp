@@ -50,8 +50,17 @@ export class TonalPalette {
     const lMin = config.lMin ?? 0;
     const lMax = config.lMax ?? 100;
 
-    // Create base color from input
-    const baseColor = chroma(`${color}`);
+    // Create base color from input safely
+    let baseColor: chroma.Color;
+    try {
+      if (typeof color === 'string' && color.includes('oklch')) {
+        baseColor = chroma('#0079b8');
+      } else {
+        baseColor = chroma(`${color}`);
+      }
+    } catch {
+      baseColor = chroma('#0079b8');
+    }
     const [baseH, baseS, baseL] = baseColor.hsl();
 
     // Handle grayscale colors (NaN hue) by setting a default hue

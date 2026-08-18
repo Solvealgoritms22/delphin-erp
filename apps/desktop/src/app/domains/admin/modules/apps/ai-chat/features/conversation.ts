@@ -22,6 +22,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-chat';
 import AiChat from '@/app/domains/admin/modules/apps/ai-chat/features/ai-chat';
 import { MarkdownRendererComponent } from '@/app/shared/components/markdown-renderer/markdown-renderer.component';
+import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/thinking-orb.component';
 
 @Component({
   selector: 'conversation',
@@ -36,6 +37,7 @@ import { MarkdownRendererComponent } from '@/app/shared/components/markdown-rend
     MatMenuItem,
     MatMenuTrigger,
     MatTooltip,
+    ThinkingOrbComponent,
     MarkdownRendererComponent,
   ],
   host: {
@@ -103,63 +105,156 @@ import { MarkdownRendererComponent } from '@/app/shared/components/markdown-rend
       </div>
 
       <!-- Messages Feed -->
-      <div #scrollContainer class="flex-auto overflow-y-auto px-4 py-6 lg:px-8 space-y-6">
-        <div class="mx-auto flex w-full max-w-4xl flex-col gap-y-6">
-          @for (message of conv.messages; track message.id) {
-            @if (message.role === 'user') {
-              <!-- User Message -->
-              <div class="flex justify-end">
-                <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-xs bg-blue-600 text-white px-4 py-3 shadow-xs">
-                  <div class="text-sm whitespace-pre-wrap leading-relaxed">
-                    {{ getMessageText(message.content) }}
+      <div #scrollContainer class="flex-auto overflow-y-auto px-4 py-6 lg:px-8 space-y-6 flex flex-col">
+        @if (conv.messages.length === 0) {
+          <!-- Empty State Center Illustration -->
+          <div class="my-auto flex flex-col items-center justify-center py-6 text-center max-w-xl mx-auto w-full animate-in fade-in zoom-in-95 duration-300">
+            <!-- Center Sphere Illustration with ambient aura glow -->
+            <div class="relative mb-5">
+              <div class="absolute -inset-4 rounded-full bg-blue-500/15 dark:bg-blue-500/20 blur-xl"></div>
+              
+              <div class="relative size-20 sm:size-24 rounded-3xl bg-neutral-100/90 dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700/80 flex items-center justify-center shadow-lg backdrop-blur-sm overflow-hidden">
+                <thinking-orb [size]="64" state="composing" />
+              </div>
+            </div>
+
+            <!-- Title & Description -->
+            <h2 class="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">
+              ¿En qué puedo ayudarte hoy?
+            </h2>
+            <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 max-w-md leading-relaxed">
+              Consulta en tiempo real productos, clientes, existencias o balances de tu empresa.
+            </p>
+
+            <!-- Suggested Cards Grid -->
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full text-left">
+              <button
+                type="button"
+                (click)="sendQuickQuery('Dame un resumen ejecutivo general de la empresa')"
+                class="flex items-start gap-3 p-3.5 rounded-xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-800/60 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all shadow-xs group cursor-pointer"
+              >
+                <div class="size-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                  <mat-icon svgIcon="chart-bar" class="size-4" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    Resumen Empresa
+                  </div>
+                  <div class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                    Ventas, sucursales y métricas clave
                   </div>
                 </div>
-              </div>
-            } @else {
-              <!-- Assistant Message -->
-              <div class="flex items-start gap-3 w-full">
-                <!-- AI Avatar -->
-                <div class="size-8 rounded-xl bg-blue-50 dark:bg-blue-900/40 border border-blue-100 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 mt-0.5 shadow-xs">
-                  <mat-icon svgIcon="sparkles" class="size-4" />
+              </button>
+
+              <button
+                type="button"
+                (click)="sendQuickQuery('¿Cuáles son los productos con bajo stock o stock crítico?')"
+                class="flex items-start gap-3 p-3.5 rounded-xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-800/60 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all shadow-xs group cursor-pointer"
+              >
+                <div class="size-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                  <mat-icon svgIcon="package" class="size-4" />
                 </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Control de Stock
+                  </div>
+                  <div class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                    Productos críticos y reposición
+                  </div>
+                </div>
+              </button>
 
-                <div class="flex-1 min-w-0 bg-neutral-50/80 dark:bg-neutral-800/50 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs p-4 sm:p-5 shadow-xs">
-                  <!-- Tools used badge if present -->
-                  @if (message.toolsUsed && message.toolsUsed.length > 0) {
-                    <div class="flex flex-wrap items-center gap-1.5 mb-3 pb-2.5 border-b border-neutral-200/60 dark:border-neutral-700/60 text-[11px] text-neutral-500 dark:text-neutral-400">
-                      <mat-icon svgIcon="database" class="size-3.5 text-blue-500" />
-                      <span class="font-medium">Herramientas consultadas:</span>
-                      @for (tool of message.toolsUsed; track tool) {
-                        <span class="px-1.5 py-0.5 rounded bg-blue-100/70 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-mono text-[10px]">
-                          {{ tool }}
-                        </span>
-                      }
+              <button
+                type="button"
+                (click)="sendQuickQuery('Muestra la lista de clientes registrados con su RNC o documento')"
+                class="flex items-start gap-3 p-3.5 rounded-xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-800/60 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all shadow-xs group cursor-pointer"
+              >
+                <div class="size-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                  <mat-icon svgIcon="users" class="size-4" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    Clientes Registrados
+                  </div>
+                  <div class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                    Directorio, RNCs y balances
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                (click)="sendQuickQuery('¿Cuáles son los últimos registros de auditoría y actividades?')"
+                class="flex items-start gap-3 p-3.5 rounded-xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-800/60 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all shadow-xs group cursor-pointer"
+              >
+                <div class="size-8 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                  <mat-icon svgIcon="shield-alert" class="size-4" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    Auditoría & Logs
+                  </div>
+                  <div class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                    Actividades recientes e inicios de sesión
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="mx-auto flex w-full max-w-4xl flex-col gap-y-6">
+            @for (message of conv.messages; track message.id) {
+              @if (message.role === 'user') {
+                <!-- User Message -->
+                <div class="flex justify-end">
+                  <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-xs bg-blue-600 text-white px-4 py-3 shadow-xs">
+                    <div class="text-sm whitespace-pre-wrap leading-relaxed">
+                      {{ getMessageText(message.content) }}
                     </div>
-                  }
+                  </div>
+                </div>
+              } @else {
+                <!-- Assistant Message -->
+                <div class="flex items-start gap-3 w-full">
+                  <!-- AI Avatar -->
+                  <div class="size-8 rounded-xl bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700/80 flex items-center justify-center shrink-0 mt-0.5 shadow-xs overflow-hidden">
+                    <thinking-orb [size]="24" state="composing" />
+                  </div>
 
-                  <!-- Content / Streaming -->
-                  @if (message.streaming && !message.content) {
-                    <div class="flex items-center gap-2 py-2 text-neutral-500 dark:text-neutral-400 text-xs">
-                      <div class="flex gap-1">
-                        <span class="size-2 rounded-full bg-blue-500 animate-bounce"></span>
-                        <span class="size-2 rounded-full bg-blue-500 animate-bounce [animation-delay:0.2s]"></span>
-                        <span class="size-2 rounded-full bg-blue-500 animate-bounce [animation-delay:0.4s]"></span>
+                  <div class="flex-1 min-w-0 bg-neutral-50/80 dark:bg-neutral-800/50 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs p-4 sm:p-5 shadow-xs">
+                    <!-- Tools used badge if present -->
+                    @if (message.toolsUsed && message.toolsUsed.length > 0) {
+                      <div class="flex flex-wrap items-center gap-1.5 mb-3 pb-2.5 border-b border-neutral-200/60 dark:border-neutral-700/60 text-[11px] text-neutral-500 dark:text-neutral-400">
+                        <mat-icon svgIcon="database" class="size-3.5 text-blue-500" />
+                        <span class="font-medium">Herramientas consultadas:</span>
+                        @for (tool of message.toolsUsed; track tool) {
+                          <span class="px-1.5 py-0.5 rounded bg-blue-100/70 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-mono text-[10px]">
+                            {{ tool }}
+                          </span>
+                        }
                       </div>
-                      <span class="font-medium text-neutral-600 dark:text-neutral-300">Consultando base de datos y procesando respuesta...</span>
-                    </div>
-                  } @else {
-                    <div class="relative">
-                      <markdown-renderer [content]="getMessageText(message.content)" />
-                      @if (message.streaming) {
-                        <span class="ai-typing-cursor"></span>
-                      }
-                    </div>
-                  }
+                    }
+
+                    <!-- Content / Streaming -->
+                    @if (message.streaming && !message.content) {
+                      <div class="flex items-center gap-2.5 py-2 text-neutral-500 dark:text-neutral-400 text-xs">
+                        <thinking-orb [size]="20" state="composing" />
+                        <span class="font-medium text-neutral-600 dark:text-neutral-300">Consultando base de datos y procesando respuesta...</span>
+                      </div>
+                    } @else {
+                      <div class="relative">
+                        <markdown-renderer [content]="getMessageText(message.content)" />
+                        @if (message.streaming) {
+                          <span class="ai-typing-cursor"></span>
+                        }
+                      </div>
+                    }
+                  </div>
                 </div>
-              </div>
+              }
             }
-          }
-        </div>
+          </div>
+        }
       </div>
 
       <!-- Quick Chips & Composer Bar -->

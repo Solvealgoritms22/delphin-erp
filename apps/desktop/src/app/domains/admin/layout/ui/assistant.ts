@@ -8,8 +8,9 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { AiChatService } from '@/app/domains/admin/modules/apps/ai-chat/data/ai-chat';
 import { MarkdownRendererComponent } from '@/app/shared/components/markdown-renderer/markdown-renderer.component';
+import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/thinking-orb.component';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-icons';
+import { ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'assistant',
@@ -22,7 +23,7 @@ import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-ico
     MatIconButton,
     MatTooltip,
     TranslocoPipe,
-    SparklesIcon,
+    ThinkingOrbComponent,
     ArrowUpRightIcon,
     XIcon,
     SendIcon,
@@ -34,10 +35,10 @@ import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-ico
       cdkOverlayOrigin
       [matTooltip]="'layout.assistant.title' | transloco"
       (click)="toggle()"
-      class="text-primary!"
+      class="hover:opacity-90 transition-opacity flex items-center justify-center"
       #origin="cdkOverlayOrigin"
     >
-      <i-sparkles [size]="20" />
+      <thinking-orb [size]="24" state="composing" />
     </button>
 
     <ng-template
@@ -55,8 +56,8 @@ import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-ico
         <!-- Header -->
         <div class="flex shrink-0 items-center justify-between p-4 px-6 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
           <div class="flex items-center gap-x-2.5">
-            <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <i-sparkles [size]="18" />
+            <div class="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800/80 flex items-center justify-center overflow-hidden shrink-0">
+              <thinking-orb [size]="26" state="composing" />
             </div>
             <div>
               <div class="font-bold text-base text-neutral-900 dark:text-white leading-tight">
@@ -93,46 +94,63 @@ import { SparklesIcon, ArrowUpRightIcon, XIcon, SendIcon } from 'ng-animated-ico
 
         <!-- Messages list -->
         <div #scrollBox class="flex flex-auto flex-col overflow-y-auto p-4 sm:p-6 gap-4 bg-neutral-50/30 dark:bg-neutral-950/20">
-          @for (message of currentMessages(); track message.id) {
-            <div
-              class="flex flex-col"
-              [class.items-end]="message.role === 'user'"
-              [class.items-start]="message.role === 'assistant'"
-            >
-              <div class="text-[11px] font-semibold text-neutral-400 mb-1 px-1">
-                {{ message.role === 'user' ? 'Tú' : 'Dolphin AI' }}
+          @if (currentMessages().length === 0) {
+            <div class="my-auto flex flex-col items-center justify-center py-6 text-center max-w-sm mx-auto animate-in fade-in duration-300">
+              <div class="relative mb-4">
+                <div class="absolute -inset-3 rounded-full bg-blue-500/15 dark:bg-blue-500/20 blur-lg"></div>
+                <div class="relative size-16 rounded-2xl bg-neutral-100/90 dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700/80 flex items-center justify-center shadow-md backdrop-blur-sm overflow-hidden">
+                  <thinking-orb [size]="48" state="composing" />
+                </div>
               </div>
-              <div
-                class="flex max-w-[90%] flex-col rounded-2xl p-3.5 text-sm shadow-xs"
-                [class.bg-blue-600]="message.role === 'user'"
-                [class.text-white]="message.role === 'user'"
-                [class.rounded-tr-xs]="message.role === 'user'"
-                [class.bg-white]="message.role === 'assistant'"
-                [class.dark:bg-neutral-800]="message.role === 'assistant'"
-                [class.text-neutral-800]="message.role === 'assistant'"
-                [class.dark:text-neutral-200]="message.role === 'assistant'"
-                [class.border]="message.role === 'assistant'"
-                [class.border-neutral-200]="message.role === 'assistant'"
-                [class.dark:border-neutral-700]="message.role === 'assistant'"
-                [class.rounded-tl-xs]="message.role === 'assistant'"
-              >
-                @if (message.streaming && !message.content) {
-                  <div class="flex items-center gap-2 py-1 text-xs text-neutral-500">
-                    <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
-                    <span>Consultando datos...</span>
-                  </div>
-                } @else if (message.role === 'user') {
-                  <span class="leading-relaxed whitespace-pre-wrap">{{ getMessageText(message.content) }}</span>
-                } @else {
-                  <div class="relative">
-                    <markdown-renderer [content]="getMessageText(message.content)" />
-                    @if (message.streaming) {
-                      <span class="ai-typing-cursor"></span>
-                    }
-                  </div>
-                }
+              <div class="font-bold text-base text-neutral-900 dark:text-white">
+                ¿En qué puedo ayudarte?
               </div>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 max-w-xs leading-relaxed">
+                Pregúntame sobre ventas, clientes, inventario o métricas de tu empresa.
+              </p>
             </div>
+          } @else {
+            @for (message of currentMessages(); track message.id) {
+              <div
+                class="flex flex-col"
+                [class.items-end]="message.role === 'user'"
+                [class.items-start]="message.role === 'assistant'"
+              >
+                <div class="text-[11px] font-semibold text-neutral-400 mb-1 px-1">
+                  {{ message.role === 'user' ? 'Tú' : 'Dolphin AI' }}
+                </div>
+                <div
+                  class="flex max-w-[90%] flex-col rounded-2xl p-3.5 text-sm shadow-xs"
+                  [class.bg-blue-600]="message.role === 'user'"
+                  [class.text-white]="message.role === 'user'"
+                  [class.rounded-tr-xs]="message.role === 'user'"
+                  [class.bg-white]="message.role === 'assistant'"
+                  [class.dark:bg-neutral-800]="message.role === 'assistant'"
+                  [class.text-neutral-800]="message.role === 'assistant'"
+                  [class.dark:text-neutral-200]="message.role === 'assistant'"
+                  [class.border]="message.role === 'assistant'"
+                  [class.border-neutral-200]="message.role === 'assistant'"
+                  [class.dark:border-neutral-700]="message.role === 'assistant'"
+                  [class.rounded-tl-xs]="message.role === 'assistant'"
+                >
+                  @if (message.streaming && !message.content) {
+                    <div class="flex items-center gap-2.5 py-1 text-xs text-neutral-500">
+                      <thinking-orb [size]="20" state="composing" />
+                      <span>Consultando datos...</span>
+                    </div>
+                  } @else if (message.role === 'user') {
+                    <span class="leading-relaxed whitespace-pre-wrap">{{ getMessageText(message.content) }}</span>
+                  } @else {
+                    <div class="relative">
+                      <markdown-renderer [content]="getMessageText(message.content)" />
+                      @if (message.streaming) {
+                        <span class="ai-typing-cursor"></span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
           }
         </div>
 
