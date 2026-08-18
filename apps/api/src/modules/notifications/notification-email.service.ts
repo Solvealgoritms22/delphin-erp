@@ -10,10 +10,17 @@ export class NotificationEmailService {
 
   constructor(private readonly mailer: MailerService) {}
 
-  async send(to: string, title: string, message: string): Promise<string | undefined> {
+  async send(
+    to: string,
+    title: string,
+    message: string,
+  ): Promise<string | undefined> {
     if (process.env.EMAIL_PROVIDER === 'resend' && this.resend) {
       const result = await this.resend.emails.send({
-        from: process.env.RESEND_FROM || process.env.SMTP_FROM || 'no-reply@dolphin-erp.com',
+        from:
+          process.env.RESEND_FROM ||
+          process.env.SMTP_FROM ||
+          'no-reply@dolphin-erp.com',
         to,
         subject: title,
         text: message,

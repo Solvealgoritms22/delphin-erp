@@ -131,6 +131,13 @@ export const NAVIGATION: NavigationItem[] = [
         icon: 'briefcase', 
         route: '/admin/settings/empresas',
         activeOptions: { exact: false }
+      },
+      {
+        id: 'settings/backups',
+        label: 'nav.backups',
+        icon: 'archive',
+        route: '/admin/settings/backups',
+        activeOptions: { exact: false }
       }
     ]
   },

@@ -80,7 +80,7 @@ describe('EmpresasController', () => {
 
   it('updateCurrent usa la empresa activa', () => {
     controller.updateCurrent(user, { telefono: '555' });
-    expect(empresasService.updateCurrent).toHaveBeenCalledWith('e1', {
+    expect(empresasService.updateCurrent).toHaveBeenCalledWith('u1', 'e1', {
       telefono: '555',
     });
   });

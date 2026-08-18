@@ -51,7 +51,7 @@ export class ThinkingOrbComponent implements OnInit, OnDestroy, OnChanges {
   readonly canvasRef = viewChild<ElementRef<HTMLCanvasElement>>('orbCanvas');
 
   @Input() state: OrbState = 'composing';
-  @Input() size: number = 24;
+  @Input() size = 24;
   @Input() theme: 'auto' | 'dark' | 'light' = 'auto';
 
   private animFrameId: number | null = null;
@@ -62,9 +62,7 @@ export class ThinkingOrbComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   // Always use the full-detail 64 preset so the 3D sphere is complete and identical everywhere
-  get targetPresetSize(): OrbSize {
-    return 64;
-  }
+  readonly targetPresetSize: OrbSize = 64;
 
   ngOnInit(): void {
     this.startAnimation();

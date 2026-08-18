@@ -16,7 +16,9 @@ export class AiToolsService {
    * Get basic overview of the company, subscription, and branch count
    */
   async getCompanyOverview(empresaId: string) {
-    this.logger.debug(`[AI-TOOL] getCompanyOverview for empresaId: ${empresaId}`);
+    this.logger.debug(
+      `[AI-TOOL] getCompanyOverview for empresaId: ${empresaId}`,
+    );
     const empresa = await this.prisma.empresa.findUnique({
       where: { id: empresaId },
       include: {
@@ -75,7 +77,9 @@ export class AiToolsService {
    * Get executive KPIs and distribution metrics
    */
   async getExecutiveMetrics(empresaId: string) {
-    this.logger.debug(`[AI-TOOL] getExecutiveMetrics for empresaId: ${empresaId}`);
+    this.logger.debug(
+      `[AI-TOOL] getExecutiveMetrics for empresaId: ${empresaId}`,
+    );
     const [
       totalProductos,
       totalClientes,
@@ -132,7 +136,9 @@ export class AiToolsService {
     params?: { search?: string; categoria?: string; limit?: number },
   ) {
     const limit = Math.min(params?.limit || 20, 50);
-    this.logger.debug(`[AI-TOOL] queryProducts for empresaId: ${empresaId}, limit: ${limit}`);
+    this.logger.debug(
+      `[AI-TOOL] queryProducts for empresaId: ${empresaId}, limit: ${limit}`,
+    );
 
     const where: any = { empresaId };
     if (params?.search) {
@@ -187,7 +193,10 @@ export class AiToolsService {
   /**
    * Query commercial clients
    */
-  async queryClients(empresaId: string, params?: { search?: string; limit?: number }) {
+  async queryClients(
+    empresaId: string,
+    params?: { search?: string; limit?: number },
+  ) {
     const limit = Math.min(params?.limit || 20, 50);
     this.logger.debug(`[AI-TOOL] queryClients for empresaId: ${empresaId}`);
 
@@ -235,7 +244,10 @@ export class AiToolsService {
   /**
    * Query commercial suppliers
    */
-  async querySuppliers(empresaId: string, params?: { search?: string; limit?: number }) {
+  async querySuppliers(
+    empresaId: string,
+    params?: { search?: string; limit?: number },
+  ) {
     const limit = Math.min(params?.limit || 20, 50);
     this.logger.debug(`[AI-TOOL] querySuppliers for empresaId: ${empresaId}`);
 
@@ -311,7 +323,9 @@ export class AiToolsService {
     params?: { limit?: number; module?: string; action?: string },
   ) {
     const limit = Math.min(params?.limit || 15, 30);
-    this.logger.debug(`[AI-TOOL] queryActivityLogs for empresaId: ${empresaId}`);
+    this.logger.debug(
+      `[AI-TOOL] queryActivityLogs for empresaId: ${empresaId}`,
+    );
 
     const where: any = { empresaId };
     if (params?.module) {

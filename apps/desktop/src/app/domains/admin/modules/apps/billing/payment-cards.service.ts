@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '@/environments/environment';
 
 export interface PaymentCard {
   id: string;
@@ -16,7 +17,7 @@ export class PaymentCardsService {
   readonly cards = signal<PaymentCard[]>([]);
 
   load(): void {
-    this.http.get<any>('/api/v1/payments/azul/payment-method').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/payments/azul/payment-method`).subscribe({
       next: (res) => {
         if (res.hasPaymentMethod) {
           this.cards.set([{
@@ -41,7 +42,7 @@ export class PaymentCardsService {
   }
 
   remove(id: string): void {
-    this.http.delete('/api/v1/payments/azul/payment-method').subscribe({
+    this.http.delete(`${environment.apiUrl}/payments/azul/payment-method`).subscribe({
       next: () => this.cards.set([]),
       error: (err) => console.error('Failed to remove card', err)
     });

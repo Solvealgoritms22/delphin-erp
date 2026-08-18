@@ -7,6 +7,12 @@ export default [
     children: [
       { path: '', redirectTo: 'empresas', pathMatch: 'full' },
       {
+        path: 'backups',
+        canActivate: [permissionGuard],
+        data: { permissions: ['backups:read'] },
+        loadComponent: () => import('./features/backups/backups').then(c => c.BackupsComponent)
+      },
+      {
         path: 'empresas',
         loadComponent: () => import('./features/empresas/empresas').then(c => c.EmpresasComponent)
       },
@@ -35,5 +41,4 @@ export default [
     ]
   }
 ] as Routes;
-
 

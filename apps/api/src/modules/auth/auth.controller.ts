@@ -40,17 +40,30 @@ export class AuthController {
     @Res() response: Response,
   ) {
     try {
-      response.redirect(await this.authService.handleGoogleCallback(code, state));
+      response.redirect(
+        await this.authService.handleGoogleCallback(code, state),
+      );
     } catch (error: any) {
-      const frontendUrl = process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
-      response.redirect(`${frontendUrl}/auth/sign-in?googleError=${encodeURIComponent(error.message || 'oauth_error')}`);
+      const frontendUrl =
+        process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
+      response.redirect(
+        `${frontendUrl}/auth/sign-in?googleError=${encodeURIComponent(error.message || 'oauth_error')}`,
+      );
     }
   }
 
   @Post('google/complete')
-  @ApiOperation({ summary: 'Aceptar políticas y completar la configuración de Google' })
+  @ApiOperation({
+    summary: 'Aceptar políticas y completar la configuración de Google',
+  })
   completeGoogle(
-    @Body() body: { code: string; acceptedPolicies: boolean; companyName?: string; rnc?: string },
+    @Body()
+    body: {
+      code: string;
+      acceptedPolicies: boolean;
+      companyName?: string;
+      rnc?: string;
+    },
     @Request() request,
   ) {
     return this.authService.completeGoogleSetup(
@@ -183,7 +196,13 @@ export class AuthController {
   @Post('invitations/accept')
   @ApiOperation({ summary: 'Activar cuenta mediante invitación' })
   acceptInvitation(
-    @Body() body: { token: string; newPassword: string; confirmPassword: string; acceptedPolicies: boolean },
+    @Body()
+    body: {
+      token: string;
+      newPassword: string;
+      confirmPassword: string;
+      acceptedPolicies: boolean;
+    },
   ) {
     return this.authService.acceptInvitation(
       body.token,

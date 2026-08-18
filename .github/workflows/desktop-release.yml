@@ -47,7 +47,10 @@ jobs:
 
       - name: Lint desktop
         run: npm run lint
-        continue-on-error: true
+        working-directory: apps/desktop
+
+      - name: Test desktop
+        run: npm run test -- --watch=false
         working-directory: apps/desktop
 
       - name: Typecheck desktop

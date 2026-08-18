@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, protocol, net } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol, net, shell } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
@@ -33,6 +33,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
       preload: path.join(__dirname, 'preload.js'),
     },
     // Remove native titlebar — the Angular app renders its own controls
@@ -47,6 +48,10 @@ function createWindow() {
 
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     log.error(`Failed to load ${validatedURL}: [${errorCode}] ${errorDescription}`);
+  });
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!url.startsWith('app://') && !url.startsWith('http://localhost:3873')) event.preventDefault();
   });
 
   if (isDev) {
@@ -138,6 +143,14 @@ function setupAutoUpdater() {
     }
   });
   ipcMain.on('dolphin:window-close', () => mainWindow?.close());
+  ipcMain.on('dolphin:open-external', (_event, url) => {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'https:') shell.openExternal(parsed.toString());
+    } catch {
+      log.warn('Rejected invalid external URL');
+    }
+  });
 
   // Notify renderer when maximize state changes
   mainWindow?.on('maximize',   () => mainWindow?.webContents.send('dolphin:window-maximized', true));
@@ -154,9 +167,18 @@ app.on('ready', () => {
     // Strip the scheme + hostname to get just the file path
     const urlPath = request.url.replace(/^app:\/\/localhost\/?/, '');
     // Decode URI components (spaces, special chars)
-    const decoded = decodeURIComponent(urlPath);
+    let decoded;
+    try {
+      decoded = decodeURIComponent(urlPath);
+    } catch {
+      return new Response('Invalid resource path', { status: 400 });
+    }
     // Resolve to an absolute file path inside the build output
-    const filePath = path.join(appRoot, decoded);
+    const filePath = path.resolve(appRoot, decoded);
+    const root = path.resolve(appRoot);
+    if (filePath !== root && !filePath.startsWith(`${root}${path.sep}`)) {
+      return new Response('Forbidden', { status: 403 });
+    }
 
     log.info(`[app://] ${request.url} → ${filePath}`);
     return net.fetch('file://' + filePath);

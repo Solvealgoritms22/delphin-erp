@@ -63,7 +63,7 @@ export class EmpresasController {
   @Patch('current')
   @ApiOperation({ summary: 'Actualizar datos de la empresa activa' })
   updateCurrent(@CurrentUser() user: any, @Body() data: any) {
-    return this.empresasService.updateCurrent(user.empresaId, data);
+    return this.empresasService.updateCurrent(user.id, user.empresaId, data);
   }
 
   @Patch(':id')

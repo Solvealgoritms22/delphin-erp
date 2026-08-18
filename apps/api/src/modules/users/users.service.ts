@@ -1,4 +1,10 @@
-import { ForbiddenException, Injectable, BadRequestException, NotFoundException, Optional } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  Optional,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -9,7 +15,7 @@ import { TenantMailerService } from '../../common/tenant-mailer.service';
 export class UsersService {
   constructor(
     private prisma: PrismaService,
-    private readonly tenantMailer: TenantMailerService,
+    @Optional() private readonly tenantMailer?: TenantMailerService,
     @Optional() private readonly mailer?: MailerService,
   ) {}
 
@@ -26,7 +32,11 @@ export class UsersService {
     const membresias = await this.prisma.membresia.findMany({
       where: { empresaId },
       include: {
-        usuario: { include: { membresias: { select: { empresaId: true, estado: true } } } },
+        usuario: {
+          include: {
+            membresias: { select: { empresaId: true, estado: true } },
+          },
+        },
         role: true,
       },
     });
@@ -57,7 +67,10 @@ export class UsersService {
         mfaHabilitado: m.usuario.mfaHabilitado,
         roleId: m.roleId,
         empresaIds: (m.usuario.membresias || [])
-          .filter((membership) => membership.empresaId && membership.estado === 'ACTIVO')
+          .filter(
+            (membership) =>
+              membership.empresaId && membership.estado === 'ACTIVO',
+          )
           .map((membership) => membership.empresaId),
         isOwner: empresa?.propietarioId === m.usuario.id,
         lastOnlineDate,
@@ -75,8 +88,13 @@ export class UsersService {
   }
 
   async create(empresaId: string, data: any, actorUserId?: string) {
-    const usingInvitation = Boolean(actorUserId || data.empresaIds !== undefined);
-    const passwordHash = await bcrypt.hash(data.password || randomBytes(32).toString('hex'), 10);
+    const usingInvitation = Boolean(
+      actorUserId || data.empresaIds !== undefined,
+    );
+    const passwordHash = await bcrypt.hash(
+      data.password || randomBytes(32).toString('hex'),
+      10,
+    );
     let invitationToken: string | undefined;
 
     // Check if user already exists
@@ -85,7 +103,9 @@ export class UsersService {
     });
 
     if (!user) {
-      invitationToken = usingInvitation ? randomBytes(32).toString('hex') : undefined;
+      invitationToken = usingInvitation
+        ? randomBytes(32).toString('hex')
+        : undefined;
       user = await this.prisma.usuario.create({
         data: {
           email: data.email,
@@ -95,7 +115,9 @@ export class UsersService {
           ...(usingInvitation
             ? {
                 isVerified: false,
-                invitacionTokenHash: createHash('sha256').update(invitationToken!).digest('hex'),
+                invitacionTokenHash: createHash('sha256')
+                  .update(invitationToken!)
+                  .digest('hex'),
                 invitacionExpiraEn: new Date(Date.now() + 48 * 60 * 60 * 1000),
               }
             : { debeCambiarPassword: true }),
@@ -105,7 +127,8 @@ export class UsersService {
       // Update avatar or name if provided
       const updatePayload: any = {};
       if (data.avatar !== undefined) updatePayload.avatar = data.avatar;
-      if (data.name || data.nombre) updatePayload.nombre = data.name || data.nombre;
+      if (data.name || data.nombre)
+        updatePayload.nombre = data.name || data.nombre;
       if (Object.keys(updatePayload).length > 0) {
         user = await this.prisma.usuario.update({
           where: { id: user.id },
@@ -118,14 +141,18 @@ export class UsersService {
         user = await this.prisma.usuario.update({
           where: { id: user.id },
           data: {
-            invitacionTokenHash: createHash('sha256').update(invitationToken).digest('hex'),
+            invitacionTokenHash: createHash('sha256')
+              .update(invitationToken)
+              .digest('hex'),
             invitacionExpiraEn: new Date(Date.now() + 48 * 60 * 60 * 1000),
           },
         });
       }
     }
 
-    const initialStatus = invitationToken ? 'PENDIENTE' : data.estado || 'ACTIVO';
+    const initialStatus = invitationToken
+      ? 'PENDIENTE'
+      : data.estado || 'ACTIVO';
     if (!actorUserId && data.empresaIds === undefined) {
       return this.prisma.membresia.create({
         data: {
@@ -136,7 +163,10 @@ export class UsersService {
         },
       });
     }
-    const requestedCompanyIds = this.normalizeCompanyIds(data.empresaIds, empresaId);
+    const requestedCompanyIds = this.normalizeCompanyIds(
+      data.empresaIds,
+      empresaId,
+    );
     const companyIds = await this.validateAssignableCompanies(
       actorUserId,
       requestedCompanyIds,
@@ -170,28 +200,44 @@ export class UsersService {
 
     if (invitationToken) {
       // Fetch owner for SMTP config
-      const owner = await this.prisma.usuario.findUnique({ where: { id: actorUserId! } }) as any;
+      const owner = (await this.prisma.usuario.findUnique({
+        where: { id: actorUserId! },
+      })) as any;
       if (!owner) throw new NotFoundException('Propietario no encontrado');
-      this.tenantMailer.assertSmtpConfigured(owner);
+      this.tenantMailer?.assertSmtpConfigured(owner);
 
       const companies = await this.findAssignableCompanies(actorUserId!);
       const assignedCompanies = companies
         .filter((company) => companyIds.includes(company.id))
         .map((company) => company.razonSocial)
         .join(', ');
-      await this.sendInvitation(owner, user.email, user.nombre || user.email, invitationToken, assignedCompanies);
+      await this.sendInvitation(
+        owner,
+        user.email,
+        user.nombre || user.email,
+        invitationToken,
+        assignedCompanies,
+      );
     }
 
     return memberships[0];
   }
 
-  async resendInvitation(empresaId: string, userId: string, actorUserId: string) {
-    const owner = await this.prisma.usuario.findUnique({ where: { id: actorUserId } }) as any;
+  async resendInvitation(
+    empresaId: string,
+    userId: string,
+    actorUserId: string,
+  ) {
+    const owner = (await this.prisma.usuario.findUnique({
+      where: { id: actorUserId },
+    })) as any;
     if (!owner) {
-      throw new ForbiddenException('Solo el propietario puede reenviar invitaciones');
+      throw new ForbiddenException(
+        'Solo el propietario puede reenviar invitaciones',
+      );
     }
     // Validar SMTP antes de reenviar
-    this.tenantMailer.assertSmtpConfigured(owner);
+    this.tenantMailer?.assertSmtpConfigured(owner);
 
     const membership = await this.prisma.membresia.findUnique({
       where: { usuarioId_empresaId: { usuarioId: userId, empresaId } },
@@ -210,13 +256,28 @@ export class UsersService {
         invitacionExpiraEn: new Date(Date.now() + 48 * 60 * 60 * 1000),
       },
     });
-    const empresaForContext = await this.prisma.empresa.findUnique({ where: { id: empresaId } });
-    await this.sendInvitation(owner, membership.usuario.email, membership.usuario.nombre || membership.usuario.email, token, empresaForContext?.razonSocial || 'Empresa');
+    const empresaForContext = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+    });
+    await this.sendInvitation(
+      owner,
+      membership.usuario.email,
+      membership.usuario.nombre || membership.usuario.email,
+      token,
+      empresaForContext?.razonSocial || 'Empresa',
+    );
     return { success: true };
   }
 
-  private async sendInvitation(config: any, to: string, name: string, token: string, companies: string) {
-    const frontendUrl = process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
+  private async sendInvitation(
+    config: any,
+    to: string,
+    name: string,
+    token: string,
+    companies: string,
+  ) {
+    const frontendUrl =
+      process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
     const invitationUrl = `${frontendUrl}/auth/accept-invitation?token=${encodeURIComponent(token)}`;
     const subject = 'Invitación para acceder a Dolphin ERP';
 
@@ -267,7 +328,7 @@ export class UsersService {
       'El enlace expira en 48 horas.',
     ];
 
-    await this.tenantMailer.sendMail(config, {
+    await this.tenantMailer?.sendMail(config, {
       to,
       subject,
       html,
@@ -310,14 +371,19 @@ export class UsersService {
     }
 
     if (data.empresaIds !== undefined) {
-      const requestedCompanyIds = this.normalizeCompanyIds(data.empresaIds, empresaId);
+      const requestedCompanyIds = this.normalizeCompanyIds(
+        data.empresaIds,
+        empresaId,
+      );
       const companyIds = await this.validateAssignableCompanies(
         actorUserId,
         requestedCompanyIds,
         empresaId,
       );
       const managedCompanyIds = actorUserId
-        ? (await this.findAssignableCompanies(actorUserId)).map((company) => company.id)
+        ? (await this.findAssignableCompanies(actorUserId)).map(
+            (company) => company.id,
+          )
         : [empresaId];
 
       await this.prisma.$transaction(async (tx) => {
@@ -365,8 +431,15 @@ export class UsersService {
     });
   }
 
-  private normalizeCompanyIds(value: unknown, fallbackEmpresaId: string): string[] {
-    const ids = Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string' && id.length > 0) : [];
+  private normalizeCompanyIds(
+    value: unknown,
+    fallbackEmpresaId: string,
+  ): string[] {
+    const ids = Array.isArray(value)
+      ? value.filter(
+          (id): id is string => typeof id === 'string' && id.length > 0,
+        )
+      : [];
     return [...new Set(ids.length ? ids : [fallbackEmpresaId])];
   }
 
@@ -378,8 +451,13 @@ export class UsersService {
     if (!actorUserId) return companyIds;
     const ownedCompanies = await this.findAssignableCompanies(actorUserId);
     const ownedIds = new Set(ownedCompanies.map((company) => company.id));
-    if (!ownedIds.has(fallbackEmpresaId) || companyIds.some((id) => !ownedIds.has(id))) {
-      throw new BadRequestException('Solo puedes asignar empresas de las que eres propietario.');
+    if (
+      !ownedIds.has(fallbackEmpresaId) ||
+      companyIds.some((id) => !ownedIds.has(id))
+    ) {
+      throw new BadRequestException(
+        'Solo puedes asignar empresas de las que eres propietario.',
+      );
     }
     return companyIds;
   }

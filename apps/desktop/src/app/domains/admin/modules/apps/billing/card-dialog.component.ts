@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { environment } from '@/environments/environment';
 
 function luhnValid(numero: string): boolean {
   const digits = numero.replace(/\s/g, '');
@@ -260,7 +261,7 @@ export class CardDialogComponent implements OnInit {
 
     try {
       // Real API integration with Azul Data Vault
-      const response = await firstValueFrom(this.http.post<any>('/api/v1/payments/azul/payment-method', {
+      const response = await firstValueFrom(this.http.post<any>(`${environment.apiUrl}/payments/azul/payment-method`, {
         cardNumber: numero,
         expiration: exp,
         cvc: cvc,

@@ -145,7 +145,9 @@ describe('AuthService', () => {
 
       await service.login(baseUser, {
         ip: '10.0.0.5',
-        headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120' },
+        headers: {
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120',
+        },
       });
 
       expect(prisma.userSession.create).toHaveBeenCalledWith({
@@ -173,7 +175,9 @@ describe('AuthService', () => {
 
       const result = await service.login(baseUser, {
         ip: '10.0.0.5',
-        headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120' },
+        headers: {
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120',
+        },
       });
 
       expect(prisma.userSession.create).not.toHaveBeenCalled();
@@ -198,13 +202,15 @@ describe('AuthService', () => {
       expect(helpers.detectOperatingSystem('Android')).toBe('Android');
       expect(helpers.detectOperatingSystem('iPhone')).toBe('iOS');
       expect(helpers.detectOperatingSystem('Linux')).toBe('Linux');
-      expect(helpers.detectOperatingSystem('Unknown')).toBe('Sistema desconocido');
+      expect(helpers.detectOperatingSystem('Unknown')).toBe(
+        'Sistema desconocido',
+      );
       expect(helpers.detectOperatingSystem()).toBe('Sistema desconocido');
     });
   });
 
   describe('register', () => {
-    it('crea usuario, empresa y membresía, y devuelve token', async () => {
+    it('crea usuario, empresa y membresía, y solicita verificación', async () => {
       prisma.usuario.create.mockResolvedValue({ id: 'u1', email: 'x@y.com' });
       prisma.empresa.create.mockResolvedValue({ id: 'e1' });
 
@@ -214,8 +220,8 @@ describe('AuthService', () => {
       });
 
       expect(prisma.empresa.create).toHaveBeenCalled();
-      expect(result.access_token).toBe('token');
-      expect(result.user.empresaId).toBe('e1');
+      expect(result.needsVerification).toBe(true);
+      expect(result.email).toBe('x@y.com');
     });
   });
 
@@ -296,7 +302,7 @@ describe('AuthService', () => {
       expect(prisma.usuario.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            otpCode: expect.stringMatching(/^\d{6}$/),
+            otpCode: expect.stringMatching(/^[a-f0-9]{64}$/),
           }),
         }),
       );
@@ -352,10 +358,12 @@ describe('AuthService', () => {
       prisma.usuario.update.mockResolvedValue({});
       await service.updateProfile('u1', { name: 'Ana', avatar: 'x.png' });
 
-      expect(prisma.usuario.update).toHaveBeenCalledWith({
-        where: { id: 'u1' },
-        data: { nombre: 'Ana', avatar: 'x.png' },
-      });
+      expect(prisma.usuario.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'u1' },
+          data: { nombre: 'Ana', avatar: 'x.png' },
+        }),
+      );
     });
   });
 

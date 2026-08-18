@@ -14,27 +14,34 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequireEntitlement } from '../../common/decorators/require-entitlement.decorator';
 import { EntitlementGuard } from '../../common/guards/entitlement.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 
 @ApiTags('Usuarios')
 @ApiBearerAuth()
 @Controller('v1/usuarios')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @RequirePermissions('users:read')
   @ApiOperation({ summary: 'Listar usuarios de la empresa activa' })
   findAll(@CurrentUser() user: any) {
     return this.usersService.findAllByEmpresa(user.empresaId);
   }
 
   @Get('available-companies')
-  @ApiOperation({ summary: 'Listar empresas que el administrador puede asignar' })
+  @RequirePermissions('users:read')
+  @ApiOperation({
+    summary: 'Listar empresas que el administrador puede asignar',
+  })
   findAvailableCompanies(@CurrentUser() user: any) {
     return this.usersService.findAssignableCompanies(user.id);
   }
 
   @Post()
+  @RequirePermissions('users:write')
   @ApiOperation({ summary: 'Crear usuario y vincularlo a la empresa' })
   @RequireEntitlement('maxUsuarios')
   @UseGuards(EntitlementGuard)
@@ -45,6 +52,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @RequirePermissions('users:write')
   @ApiOperation({ summary: 'Actualizar rol/estado de un usuario' })
   update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: any) {
     return data.empresaIds !== undefined
@@ -53,12 +61,14 @@ export class UsersController {
   }
 
   @Post(':id/resend-invitation')
+  @RequirePermissions('users:write')
   @ApiOperation({ summary: 'Reenviar invitación de activación' })
   resendInvitation(@CurrentUser() user: any, @Param('id') id: string) {
     return this.usersService.resendInvitation(user.empresaId, id, user.id);
   }
 
   @Delete(':id')
+  @RequirePermissions('users:delete')
   @ApiOperation({ summary: 'Eliminar membresía de un usuario' })
   remove(@CurrentUser() user: any, @Param('id') id: string) {
     return this.usersService.remove(user.empresaId, id);

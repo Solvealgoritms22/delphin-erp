@@ -1,4 +1,12 @@
-import { Controller, Delete, ForbiddenException, Get, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ActivityLogService } from './activity-log.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -50,5 +58,4 @@ export class ActivityLogController {
     }
     return this.activityLogService.clear(request.user.empresaId);
   }
-
 }

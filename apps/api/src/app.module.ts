@@ -1,4 +1,6 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MaintenanceMiddleware } from './maintenance.middleware';
@@ -23,6 +25,7 @@ import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { SequencesModule } from './modules/sequences/sequences.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
+import { BackupsModule } from './modules/backups/backups.module';
 
 @Module({
   imports: [
@@ -59,6 +62,7 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
       },
     }),
     ScheduleModule.forRoot(),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -89,9 +93,10 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
     InventoryModule,
     SequencesModule,
     InvoicesModule,
+    BackupsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -44,12 +44,20 @@ export class InvoicesController {
   }
 
   @Get(':id/pdf')
-  getPdf(@CurrentUser() user: any, @Param('id') id: string, @Res() res: Response) {
+  getPdf(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
     return this.invoicesService.proxyPdf(user.empresaId, id, res);
   }
 
   @Get(':id/xml')
-  getXml(@CurrentUser() user: any, @Param('id') id: string, @Res() res: Response) {
+  getXml(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
     return this.invoicesService.proxyXml(user.empresaId, id, res);
   }
 

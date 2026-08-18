@@ -44,8 +44,8 @@ export default class AuthSignIn {
 
   // State
   protected signInFormModel = signal({
-    email: 'admin@dolphin.com',
-    password: 'admin123',
+    email: '',
+    password: '',
   });
   protected signInForm = form(this.signInFormModel, (form) => {
     required(form.email, { message: this.transloco.translate('auth.validation.emailRequired') });

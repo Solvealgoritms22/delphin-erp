@@ -29,6 +29,8 @@ export const MODULE_PERMISSION_NAMESPACES: Record<string, string> = {
   sales: 'invoices',
   about: 'about',
   legal: 'legal',
+  backups: 'backups',
+  settings_backups: 'backups',
 };
 
 /**
@@ -51,7 +53,9 @@ export function normalizePermissions(
   }
 
   if (Array.isArray(parsed)) {
-    return [...new Set(parsed.filter((p): p is string => typeof p === 'string'))];
+    return [
+      ...new Set(parsed.filter((p): p is string => typeof p === 'string')),
+    ];
   }
 
   if (typeof parsed === 'object' && parsed !== null) {

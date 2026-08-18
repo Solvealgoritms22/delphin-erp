@@ -52,8 +52,13 @@ export class PaymentsController {
   async usage(@CurrentUser() user: any) {
     if (!user.empresaId) throw new BadRequestException('No tenant selected');
     const [subscription, members, branches, products] = await Promise.all([
-      this.prisma.suscripcion.findUnique({ where: { empresaId: user.empresaId }, include: { plan: true } }),
-      this.prisma.membresia.count({ where: { empresaId: user.empresaId, estado: 'ACTIVO' } }),
+      this.prisma.suscripcion.findUnique({
+        where: { empresaId: user.empresaId },
+        include: { plan: true },
+      }),
+      this.prisma.membresia.count({
+        where: { empresaId: user.empresaId, estado: 'ACTIVO' },
+      }),
       this.prisma.sucursal.count({ where: { empresaId: user.empresaId } }),
       this.prisma.producto.count({ where: { empresaId: user.empresaId } }),
     ]);
@@ -232,7 +237,7 @@ export class PaymentsController {
         dataVaultToken: suscripcion.azulDataVaultToken,
         dataVaultExpiration: suscripcion.azulDataVaultExpiration || '202812',
         amountCents: Math.round(numAmount * 100),
-        itbisCents: Math.round(numAmount * 18),
+        itbisCents: Math.round(numAmount * 0.18 * 100),
         orderNumber,
       });
       if (!this.azulService.isApproved(azulResponse)) {

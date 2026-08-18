@@ -1,4 +1,20 @@
 {
+  "backups": {
+    "title": "Copias de seguridad",
+    "description": "Protege los datos de tu empresa con copias cifradas locales o en Google Drive.",
+    "connectDrive": "Conectar Google Drive",
+    "createLocal": "Crear backup local",
+    "download": "Descargar",
+    "delete": "Eliminar backup",
+    "emptyTitle": "Aún no hay backups",
+    "emptyDescription": "Crea una copia cifrada para proteger la información de esta empresa.",
+    "confirmDelete": "¿Eliminar esta copia de seguridad?",
+    "loadError": "No se pudieron cargar los backups.",
+    "createError": "No se pudo crear el backup.",
+    "driveError": "No se pudo iniciar la conexión con Google Drive.",
+    "deleteError": "No se pudo eliminar el backup.",
+    "downloadError": "No se pudo descargar el backup."
+  },
   "dashboard": {
     "project": {
       "title": "Resumen del Proyecto Alpha",
@@ -62,6 +78,7 @@
     "settingsDescription": "Ajustes del sistema",
     "branches": "Sucursales",
     "companies": "Mis empresas",
+    "backups": "Copias de seguridad",
     "security": "Seguridad",
     "securityDescription": "Gestión de accesos",
     "roles": "Roles y permisos",

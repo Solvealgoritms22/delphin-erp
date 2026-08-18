@@ -9,7 +9,10 @@ export interface NotificationRealtimeEvent {
 
 @Injectable()
 export class NotificationsRealtimeService implements OnModuleDestroy {
-  private readonly streams = new Map<string, Subject<NotificationRealtimeEvent>>();
+  private readonly streams = new Map<
+    string,
+    Subject<NotificationRealtimeEvent>
+  >();
   private readonly publisher?: Redis;
   private readonly subscriber?: Redis;
 
@@ -21,7 +24,10 @@ export class NotificationsRealtimeService implements OnModuleDestroy {
       this.publisher.on('error', () => undefined);
       this.subscriber.on('error', () => undefined);
       void this.publisher.connect().catch(() => undefined);
-      void this.subscriber.connect().then(() => this.subscriber?.subscribe('notifications')).catch(() => undefined);
+      void this.subscriber
+        .connect()
+        .then(() => this.subscriber?.subscribe('notifications'))
+        .catch(() => undefined);
       this.subscriber.on('message', (_channel, message) => {
         const event = JSON.parse(message) as NotificationRealtimeEvent;
         this.localStream(event.userId).next(event);
@@ -36,7 +42,9 @@ export class NotificationsRealtimeService implements OnModuleDestroy {
   publish(userId: string, notification: unknown): void {
     const event = { userId, notification };
     this.localStream(userId).next(event);
-    void this.publisher?.publish('notifications', JSON.stringify(event)).catch(() => undefined);
+    void this.publisher
+      ?.publish('notifications', JSON.stringify(event))
+      .catch(() => undefined);
   }
 
   private localStream(userId: string): Subject<NotificationRealtimeEvent> {

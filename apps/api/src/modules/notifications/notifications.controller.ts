@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, MessageEvent, Param, Patch, Post, Query, Sse, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  MessageEvent,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Sse,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { map, Observable } from 'rxjs';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -14,8 +26,19 @@ export class NotificationsController {
 
   @Get()
   @ApiOperation({ summary: 'Listar notificaciones del usuario y su empresa' })
-  list(@CurrentUser() user: any, @Query('page') page?: string, @Query('limit') limit?: string, @Query('unread') unread?: string, @Query('tipo') tipo?: string) {
-    return this.notifications.list(user.id, { page: page ? Number(page) : 1, limit: limit ? Number(limit) : 25, unread: unread === 'true', tipo });
+  list(
+    @CurrentUser() user: any,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('unread') unread?: string,
+    @Query('tipo') tipo?: string,
+  ) {
+    return this.notifications.list(user.id, {
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 25,
+      unread: unread === 'true',
+      tipo,
+    });
   }
 
   @Get('unread-count')
@@ -51,17 +74,35 @@ export class NotificationsController {
   }
 
   @Patch('preferences')
-  savePreference(@CurrentUser() user: any, @Body() body: { tipo: string; canal: string; habilitado: boolean }) {
-    return this.notifications.savePreference(user.id, body.tipo, body.canal, body.habilitado);
+  savePreference(
+    @CurrentUser() user: any,
+    @Body() body: { tipo: string; canal: string; habilitado: boolean },
+  ) {
+    return this.notifications.savePreference(
+      user.id,
+      body.tipo,
+      body.canal,
+      body.habilitado,
+    );
   }
 
   @Post('push-subscriptions')
-  savePushSubscription(@CurrentUser() user: any, @Body() body: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string }) {
+  savePushSubscription(
+    @CurrentUser() user: any,
+    @Body()
+    body: {
+      endpoint: string;
+      keys: { p256dh: string; auth: string };
+      userAgent?: string;
+    },
+  ) {
     return this.notifications.savePushSubscription(user.id, body);
   }
 
   @Sse('stream')
   stream(@CurrentUser() user: any): Observable<MessageEvent> {
-    return this.notifications.stream(user.id).pipe(map((event) => ({ data: event.notification as object })));
+    return this.notifications
+      .stream(user.id)
+      .pipe(map((event) => ({ data: event.notification as object })));
   }
 }

@@ -2,7 +2,9 @@ import { JwtStrategy } from './jwt.strategy';
 
 describe('JwtStrategy', () => {
   it('mapea el payload del token en validate', () => {
-    const strategy = new JwtStrategy({ userSession: { findFirst: jest.fn(), update: jest.fn() } } as any);
+    const strategy = new JwtStrategy({
+      userSession: { findFirst: jest.fn(), update: jest.fn() },
+    } as any);
 
     const result = strategy.validate({
       sub: 'u1',
@@ -29,7 +31,9 @@ describe('JwtStrategy', () => {
   });
 
   it('rechaza una sesión revocada', async () => {
-    const prisma = { userSession: { findFirst: jest.fn().mockResolvedValue(null) } };
+    const prisma = {
+      userSession: { findFirst: jest.fn().mockResolvedValue(null) },
+    };
     const strategy = new JwtStrategy(prisma as any);
 
     await expect(
@@ -46,7 +50,9 @@ describe('JwtStrategy', () => {
     };
     const strategy = new JwtStrategy(prisma as any);
 
-    await expect(strategy.validate({ sub: 'u1', sessionId: 's1' })).resolves.toMatchObject({
+    await expect(
+      strategy.validate({ sub: 'u1', sessionId: 's1' }),
+    ).resolves.toMatchObject({
       id: 'u1',
       empresaId: undefined,
     });

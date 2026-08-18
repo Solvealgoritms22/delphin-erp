@@ -281,7 +281,7 @@ export class UsersComponent implements OnInit {
         next: (companies) => this.companies.set(companies),
       });
 
-    this.http.get<any>(`${environment.apiUrl}/v1/empresas/current`)
+    this.http.get<any>(`${environment.apiUrl}/empresas/current`)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (empresa) => this.currentEmpresa.set(empresa),

@@ -1,6 +1,11 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateSequenceDto, UpdateSequenceDto } from './dto/sequence.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class SequencesService {
@@ -31,7 +36,9 @@ export class SequencesService {
         prefijo: dto.prefijo.toUpperCase(),
         numeroActual: dto.numeroActual || 1,
         numeroHasta: dto.numeroHasta || 99999999,
-        fechaVencimiento: dto.fechaVencimiento ? new Date(dto.fechaVencimiento) : null,
+        fechaVencimiento: dto.fechaVencimiento
+          ? new Date(dto.fechaVencimiento)
+          : null,
         activa: dto.activa ?? true,
         ambiente: dto.ambiente || 'TEST',
       },
@@ -62,10 +69,14 @@ export class SequencesService {
       where: { id },
       data: {
         ...(dto.nombre && { nombre: dto.nombre }),
-        ...(dto.numeroActual !== undefined && { numeroActual: dto.numeroActual }),
+        ...(dto.numeroActual !== undefined && {
+          numeroActual: dto.numeroActual,
+        }),
         ...(dto.numeroHasta !== undefined && { numeroHasta: dto.numeroHasta }),
         ...(dto.fechaVencimiento !== undefined && {
-          fechaVencimiento: dto.fechaVencimiento ? new Date(dto.fechaVencimiento) : null,
+          fechaVencimiento: dto.fechaVencimiento
+            ? new Date(dto.fechaVencimiento)
+            : null,
         }),
         ...(dto.activa !== undefined && { activa: dto.activa }),
         ...(dto.ambiente && { ambiente: dto.ambiente }),
@@ -81,63 +92,77 @@ export class SequencesService {
   /**
    * Obtiene y reserva atómicamente el siguiente NCF / e-NCF para una empresa y tipo de comprobante.
    */
-  async getNextNCF(empresaId: string, tipoNcf: string, ambiente: string = 'TEST'): Promise<{ ncf: string; secuenciaId: string }> {
+  async getNextNCF(
+    empresaId: string,
+    tipoNcf: string,
+    ambiente: string = 'TEST',
+  ): Promise<{ ncf: string; secuenciaId: string }> {
     const prefijo = tipoNcf.toUpperCase();
     const env = ambiente.toUpperCase();
 
-    return this.prisma.$transaction(async (tx) => {
-      const sequence = await tx.secuenciaNCF.findUnique({
-        where: {
-          empresaId_prefijo_ambiente: {
-            empresaId,
-            prefijo,
-            ambiente: env,
+    return this.prisma.$transaction(
+      async (tx) => {
+        const sequence = await tx.secuenciaNCF.findUnique({
+          where: {
+            empresaId_prefijo_ambiente: {
+              empresaId,
+              prefijo,
+              ambiente: env,
+            },
           },
-        },
-      });
+        });
 
-      if (!sequence || !sequence.activa) {
-        throw new BadRequestException(
-          `No hay una secuencia NCF activa configurada para el tipo ${prefijo} en ambiente ${env}. Configúrela en Ajustes > Comprobantes Fiscales.`,
-        );
-      }
+        if (!sequence || !sequence.activa) {
+          throw new BadRequestException(
+            `No hay una secuencia NCF activa configurada para el tipo ${prefijo} en ambiente ${env}. Configúrela en Ajustes > Comprobantes Fiscales.`,
+          );
+        }
 
-      if (sequence.fechaVencimiento && sequence.fechaVencimiento < new Date()) {
-        throw new BadRequestException(
-          `La secuencia NCF ${prefijo} ha vencido el ${sequence.fechaVencimiento.toISOString().split('T')[0]}. Solicite una nueva autorización en la DGII.`,
-        );
-      }
+        if (
+          sequence.fechaVencimiento &&
+          sequence.fechaVencimiento < new Date()
+        ) {
+          throw new BadRequestException(
+            `La secuencia NCF ${prefijo} ha vencido el ${sequence.fechaVencimiento.toISOString().split('T')[0]}. Solicite una nueva autorización en la DGII.`,
+          );
+        }
 
-      if (sequence.numeroActual > sequence.numeroHasta) {
-        throw new BadRequestException(
-          `La secuencia NCF ${prefijo} se encuentra agotada (Límite: ${sequence.numeroHasta}). Registre un nuevo rango autorizado por la DGII.`,
-        );
-      }
+        if (sequence.numeroActual > sequence.numeroHasta) {
+          throw new BadRequestException(
+            `La secuencia NCF ${prefijo} se encuentra agotada (Límite: ${sequence.numeroHasta}). Registre un nuevo rango autorizado por la DGII.`,
+          );
+        }
 
-      const currentNum = sequence.numeroActual;
+        const currentNum = sequence.numeroActual;
 
-      // Formato NCF / e-CF DGII:
-      // e-CF (E31, E32, E34, etc.): E + 2 dígitos tipo + 10 dígitos correlativo = 13 caracteres (ej: E310000000001)
-      // NCF Tradicional (B01, B02, B04, etc.): B + 2 dígitos tipo + 8 dígitos correlativo = 11 caracteres (ej: B0100000001)
-      let formattedNcf = '';
-      if (prefijo.startsWith('E')) {
-        const paddingLength = 10;
-        formattedNcf = `${prefijo}${currentNum.toString().padStart(paddingLength, '0')}`;
-      } else {
-        const paddingLength = 8;
-        formattedNcf = `${prefijo}${currentNum.toString().padStart(paddingLength, '0')}`;
-      }
+        // Formato NCF / e-CF DGII:
+        // e-CF (E31, E32, E34, etc.): E + 2 dígitos tipo + 10 dígitos correlativo = 13 caracteres (ej: E310000000001)
+        // NCF Tradicional (B01, B02, B04, etc.): B + 2 dígitos tipo + 8 dígitos correlativo = 11 caracteres (ej: B0100000001)
+        let formattedNcf = '';
+        if (prefijo.startsWith('E')) {
+          const paddingLength = 10;
+          formattedNcf = `${prefijo}${currentNum.toString().padStart(paddingLength, '0')}`;
+        } else {
+          const paddingLength = 8;
+          formattedNcf = `${prefijo}${currentNum.toString().padStart(paddingLength, '0')}`;
+        }
 
-      // Incrementar secuencia
-      await tx.secuenciaNCF.update({
-        where: { id: sequence.id },
-        data: { numeroActual: currentNum + 1 },
-      });
+        // Incrementar secuencia
+        const updated = await tx.secuenciaNCF.updateMany({
+          where: { id: sequence.id, activa: true, numeroActual: currentNum },
+          data: { numeroActual: { increment: 1 } },
+        });
+        if (updated.count !== 1)
+          throw new BadRequestException(
+            'La secuencia NCF tuvo concurrencia; reintente la operación.',
+          );
 
-      return {
-        ncf: formattedNcf,
-        secuenciaId: sequence.id,
-      };
-    });
+        return {
+          ncf: formattedNcf,
+          secuenciaId: sequence.id,
+        };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
   }
 }

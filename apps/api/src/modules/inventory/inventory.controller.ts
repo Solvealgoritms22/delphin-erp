@@ -1,8 +1,21 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { InventoryService, TransferStockDto, AdjustStockDto } from './inventory.service';
+import {
+  InventoryService,
+  TransferStockDto,
+  AdjustStockDto,
+} from './inventory.service';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 
@@ -55,11 +68,17 @@ export class InventoryController {
     @Query('productoId') productoId?: string,
     @Query('search') search?: string,
   ) {
-    return this.inventoryService.getStocks(user.empresaId, { almacenId, productoId, search });
+    return this.inventoryService.getStocks(user.empresaId, {
+      almacenId,
+      productoId,
+      search,
+    });
   }
 
   @Get('products/:id/breakdown')
-  @ApiOperation({ summary: 'Desglose de existencias de un producto en todos los almacenes' })
+  @ApiOperation({
+    summary: 'Desglose de existencias de un producto en todos los almacenes',
+  })
   getProductStockBreakdown(@CurrentUser() user: any, @Param('id') id: string) {
     return this.inventoryService.getProductStockBreakdown(user.empresaId, id);
   }
@@ -79,7 +98,9 @@ export class InventoryController {
   @Post('adjustments')
   @UseGuards(PermissionsGuard)
   @RequirePermissions('inventory:write')
-  @ApiOperation({ summary: 'Realizar ajuste de inventario (conteo, merma, entrada/salida)' })
+  @ApiOperation({
+    summary: 'Realizar ajuste de inventario (conteo, merma, entrada/salida)',
+  })
   createAdjustment(@CurrentUser() user: any, @Body() dto: AdjustStockDto) {
     return this.inventoryService.createAdjustment(user.empresaId, user.id, dto);
   }

@@ -46,7 +46,12 @@ describe('ActivityLogService security logs', () => {
     const service = new ActivityLogService(prisma);
     prisma.activityLog.count.mockResolvedValue(1);
     prisma.activityLog.findMany.mockResolvedValue([
-      { id: 'l1', creadoEn: new Date(), accion: 'ACCESS_BLOCKED', metadata: null },
+      {
+        id: 'l1',
+        creadoEn: new Date(),
+        accion: 'ACCESS_BLOCKED',
+        metadata: null,
+      },
     ]);
 
     const result = await service.findSecurityLogs({ empresaId: 'e1' });

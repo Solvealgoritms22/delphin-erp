@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
@@ -43,12 +47,22 @@ export class InventoryService {
     });
   }
 
-  async createWarehouse(empresaId: string, data: { nombre: string; sucursalId?: string; tipo?: string; codigo?: string }) {
+  async createWarehouse(
+    empresaId: string,
+    data: {
+      nombre: string;
+      sucursalId?: string;
+      tipo?: string;
+      codigo?: string;
+    },
+  ) {
     const existing = await this.prisma.almacen.findFirst({
       where: { empresaId, nombre: data.nombre },
     });
     if (existing) {
-      throw new BadRequestException(`Ya existe un almacén con el nombre '${data.nombre}'`);
+      throw new BadRequestException(
+        `Ya existe un almacén con el nombre '${data.nombre}'`,
+      );
     }
 
     const count = await this.prisma.almacen.count({ where: { empresaId } });
@@ -78,7 +92,10 @@ export class InventoryService {
         nombre: data.nombre ?? warehouse.nombre,
         tipo: data.tipo ?? warehouse.tipo,
         codigo: data.codigo !== undefined ? data.codigo : warehouse.codigo,
-        sucursalId: data.sucursalId !== undefined ? data.sucursalId : warehouse.sucursalId,
+        sucursalId:
+          data.sucursalId !== undefined
+            ? data.sucursalId
+            : warehouse.sucursalId,
         estado: data.estado ?? warehouse.estado,
       },
       include: { sucursal: { select: { id: true, nombre: true } } },
@@ -110,7 +127,10 @@ export class InventoryService {
   // Stock / Existencias
   // ----------------------------------------------------
 
-  async getStocks(empresaId: string, query?: { almacenId?: string; productoId?: string; search?: string }) {
+  async getStocks(
+    empresaId: string,
+    query?: { almacenId?: string; productoId?: string; search?: string },
+  ) {
     const where: Prisma.InventarioStockWhereInput = { empresaId };
 
     if (query?.almacenId) {
@@ -153,7 +173,10 @@ export class InventoryService {
           },
         },
       },
-      orderBy: [{ producto: { nombre: 'asc' } }, { almacen: { nombre: 'asc' } }],
+      orderBy: [
+        { producto: { nombre: 'asc' } },
+        { almacen: { nombre: 'asc' } },
+      ],
     });
 
     return stocks.map((s) => ({
@@ -169,7 +192,11 @@ export class InventoryService {
       cantidad: Number(s.cantidad),
       stockMinimo: Number(s.stockMinimo),
       stockMaximo: s.stockMaximo ? Number(s.stockMaximo) : null,
-      costoPromedio: s.costoPromedio ? Number(s.costoPromedio) : (s.producto.costo ? Number(s.producto.costo) : null),
+      costoPromedio: s.costoPromedio
+        ? Number(s.costoPromedio)
+        : s.producto.costo
+          ? Number(s.producto.costo)
+          : null,
       actualizadoEn: s.actualizadoEn,
     }));
   }
@@ -180,7 +207,9 @@ export class InventoryService {
       where: { empresaId, productoId },
     });
 
-    const stockMap = new Map(existingStocks.map((s) => [s.almacenId, Number(s.cantidad)]));
+    const stockMap = new Map(
+      existingStocks.map((s) => [s.almacenId, Number(s.cantidad)]),
+    );
 
     return warehouses.map((w) => ({
       almacenId: w.id,
@@ -195,12 +224,20 @@ export class InventoryService {
   // Transferencias de Stock (Multi-Almacén)
   // ----------------------------------------------------
 
-  async createTransfer(empresaId: string, usuarioId: string, dto: TransferStockDto) {
+  async createTransfer(
+    empresaId: string,
+    usuarioId: string,
+    dto: TransferStockDto,
+  ) {
     if (dto.almacenOrigenId === dto.almacenDestinoId) {
-      throw new BadRequestException('El almacén de origen y destino no pueden ser el mismo');
+      throw new BadRequestException(
+        'El almacén de origen y destino no pueden ser el mismo',
+      );
     }
     if (dto.cantidad <= 0) {
-      throw new BadRequestException('La cantidad a transferir debe ser mayor a 0');
+      throw new BadRequestException(
+        'La cantidad a transferir debe ser mayor a 0',
+      );
     }
 
     const producto = await this.prisma.producto.findFirst({
@@ -209,35 +246,59 @@ export class InventoryService {
     if (!producto) throw new NotFoundException('Producto no encontrado');
 
     const [almacenOrigen, almacenDestino] = await Promise.all([
-      this.prisma.almacen.findFirst({ where: { id: dto.almacenOrigenId, empresaId } }),
-      this.prisma.almacen.findFirst({ where: { id: dto.almacenDestinoId, empresaId } }),
+      this.prisma.almacen.findFirst({
+        where: { id: dto.almacenOrigenId, empresaId },
+      }),
+      this.prisma.almacen.findFirst({
+        where: { id: dto.almacenDestinoId, empresaId },
+      }),
     ]);
 
-    if (!almacenOrigen) throw new NotFoundException('Almacén de origen no encontrado');
-    if (!almacenDestino) throw new NotFoundException('Almacén de destino no encontrado');
+    if (!almacenOrigen)
+      throw new NotFoundException('Almacén de origen no encontrado');
+    if (!almacenDestino)
+      throw new NotFoundException('Almacén de destino no encontrado');
 
     return this.prisma.$transaction(async (tx) => {
       // 1. Obtener o crear stock en origen
       const stockOrigen = await tx.inventarioStock.findUnique({
-        where: { productoId_almacenId: { productoId: dto.productoId, almacenId: dto.almacenOrigenId } },
+        where: {
+          productoId_almacenId: {
+            productoId: dto.productoId,
+            almacenId: dto.almacenOrigenId,
+          },
+        },
       });
 
       const currentQtyOrigen = stockOrigen ? Number(stockOrigen.cantidad) : 0;
-      if (currentQtyOrigen < dto.cantidad) {
+      if (!stockOrigen || currentQtyOrigen < dto.cantidad) {
         throw new BadRequestException(
-          `Stock insuficiente en ${almacenOrigen.nombre}. Disponible: ${currentQtyOrigen}, Solicitado: ${dto.cantidad}`
+          `Stock insuficiente en ${almacenOrigen.nombre}. Disponible: ${currentQtyOrigen}, Solicitado: ${dto.cantidad}`,
         );
       }
 
       // 2. Descontar en origen
-      await tx.inventarioStock.update({
-        where: { id: stockOrigen!.id },
+      const changed = await tx.inventarioStock.updateMany({
+        where: {
+          id: stockOrigen.id,
+          empresaId,
+          cantidad: { gte: dto.cantidad },
+        },
         data: { cantidad: { decrement: dto.cantidad } },
       });
+      if (changed.count !== 1)
+        throw new BadRequestException(
+          'El stock cambió durante la transferencia; reintente.',
+        );
 
       // 3. Incrementar en destino (upsert)
       await tx.inventarioStock.upsert({
-        where: { productoId_almacenId: { productoId: dto.productoId, almacenId: dto.almacenDestinoId } },
+        where: {
+          productoId_almacenId: {
+            productoId: dto.productoId,
+            almacenId: dto.almacenDestinoId,
+          },
+        },
         create: {
           empresaId,
           productoId: dto.productoId,
@@ -260,8 +321,11 @@ export class InventoryService {
           tipo: 'TRANSFERENCIA',
           cantidad: dto.cantidad,
           costoUnitario: producto.costo,
-          referenciaDoc: dto.referenciaDoc || `TR-${Date.now().toString().slice(-6)}`,
-          motivo: dto.motivo || `Transferencia de ${almacenOrigen.nombre} hacia ${almacenDestino.nombre}`,
+          referenciaDoc:
+            dto.referenciaDoc || `TR-${Date.now().toString().slice(-6)}`,
+          motivo:
+            dto.motivo ||
+            `Transferencia de ${almacenOrigen.nombre} hacia ${almacenDestino.nombre}`,
         },
       });
 
@@ -279,7 +343,11 @@ export class InventoryService {
   // Ajustes de Inventario y Movimientos
   // ----------------------------------------------------
 
-  async createAdjustment(empresaId: string, usuarioId: string, dto: AdjustStockDto) {
+  async createAdjustment(
+    empresaId: string,
+    usuarioId: string,
+    dto: AdjustStockDto,
+  ) {
     if (dto.cantidad <= 0) {
       throw new BadRequestException('La cantidad debe ser mayor a 0');
     }
@@ -295,20 +363,52 @@ export class InventoryService {
     if (!almacen) throw new NotFoundException('Almacén no encontrado');
 
     return this.prisma.$transaction(async (tx) => {
-      const isPositive = dto.tipo === 'AJUSTE_POSITIVO' || dto.tipo === 'COMPRA';
+      const isPositive =
+        dto.tipo === 'AJUSTE_POSITIVO' || dto.tipo === 'COMPRA';
 
-      const stock = await tx.inventarioStock.upsert({
-        where: { productoId_almacenId: { productoId: dto.productoId, almacenId: dto.almacenId } },
-        create: {
-          empresaId,
-          productoId: dto.productoId,
-          almacenId: dto.almacenId,
-          cantidad: isPositive ? dto.cantidad : 0,
-        },
-        update: {
-          cantidad: isPositive ? { increment: dto.cantidad } : { decrement: dto.cantidad },
-        },
-      });
+      if (!isPositive) {
+        const changed = await tx.inventarioStock.updateMany({
+          where: {
+            empresaId,
+            productoId: dto.productoId,
+            almacenId: dto.almacenId,
+            cantidad: { gte: dto.cantidad },
+          },
+          data: { cantidad: { decrement: dto.cantidad } },
+        });
+        if (changed.count !== 1)
+          throw new BadRequestException(
+            'El ajuste dejaría el inventario negativo.',
+          );
+      }
+      const stock = isPositive
+        ? await tx.inventarioStock.upsert({
+            where: {
+              productoId_almacenId: {
+                productoId: dto.productoId,
+                almacenId: dto.almacenId,
+              },
+            },
+            create: {
+              empresaId,
+              productoId: dto.productoId,
+              almacenId: dto.almacenId,
+              cantidad: isPositive ? dto.cantidad : 0,
+            },
+            update: {
+              cantidad: isPositive
+                ? { increment: dto.cantidad }
+                : { decrement: dto.cantidad },
+            },
+          })
+        : await tx.inventarioStock.findUnique({
+            where: {
+              productoId_almacenId: {
+                productoId: dto.productoId,
+                almacenId: dto.almacenId,
+              },
+            },
+          });
 
       const movimiento = await tx.movimientoInventario.create({
         data: {
@@ -319,8 +419,12 @@ export class InventoryService {
           usuarioId,
           tipo: dto.tipo,
           cantidad: dto.cantidad,
-          costoUnitario: dto.costoUnitario !== undefined ? dto.costoUnitario : producto.costo,
-          referenciaDoc: dto.referenciaDoc || `AJ-${Date.now().toString().slice(-6)}`,
+          costoUnitario:
+            dto.costoUnitario !== undefined
+              ? dto.costoUnitario
+              : producto.costo,
+          referenciaDoc:
+            dto.referenciaDoc || `AJ-${Date.now().toString().slice(-6)}`,
           motivo: dto.motivo || `Ajuste de inventario en ${almacen.nombre}`,
         },
       });
@@ -328,7 +432,7 @@ export class InventoryService {
       return {
         success: true,
         movimientoId: movimiento.id,
-        nuevoStock: Number(stock.cantidad),
+        nuevoStock: Number(stock?.cantidad ?? 0),
       };
     });
   }
@@ -337,7 +441,12 @@ export class InventoryService {
   // Kardex Histórico
   // ----------------------------------------------------
 
-  async getKardex(empresaId: string, productoId?: string, page = 1, limit = 50) {
+  async getKardex(
+    empresaId: string,
+    productoId?: string,
+    page = 1,
+    limit = 50,
+  ) {
     const where: Prisma.MovimientoInventarioWhereInput = { empresaId };
     if (productoId) where.productoId = productoId;
 
@@ -380,8 +489,12 @@ export class InventoryService {
         tipo: m.tipo,
         cantidad: Number(m.cantidad),
         costoUnitario: m.costoUnitario ? Number(m.costoUnitario) : null,
-        almacenOrigen: m.almacenOrigenId ? warehouseMap.get(m.almacenOrigenId) || 'Origen' : null,
-        almacenDestino: m.almacenDestinoId ? warehouseMap.get(m.almacenDestinoId) || 'Destino' : null,
+        almacenOrigen: m.almacenOrigenId
+          ? warehouseMap.get(m.almacenOrigenId) || 'Origen'
+          : null,
+        almacenDestino: m.almacenDestinoId
+          ? warehouseMap.get(m.almacenDestinoId) || 'Destino'
+          : null,
         referenciaDoc: m.referenciaDoc,
         motivo: m.motivo,
         creadoEn: m.creadoEn,

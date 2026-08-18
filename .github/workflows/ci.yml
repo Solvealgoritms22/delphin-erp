@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: dolphin
+          POSTGRES_PASSWORD: dolphin_ci_password
+          POSTGRES_DB: dolphin_erp
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U dolphin -d dolphin_erp"
+          --health-interval=5s --health-timeout=5s --health-retries=10
+    env:
+      DATABASE_URL: postgresql://dolphin:dolphin_ci_password@localhost:5432/dolphin_erp?schema=public
+      JWT_SECRET: ci-only-secret-change-me
+      NODE_ENV: test
+      AZUL_ENV: MOCK
+      CORS_ORIGINS: http://localhost:4200
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm ci
+        working-directory: apps/desktop
+      - run: npm run db:generate --workspace=apps/api
+      - run: npm run db:deploy --workspace=apps/api
+      - run: npm run lint --workspace=apps/api -- --no-fix
+      - run: npm run build:api
+      - run: npm run test:cov --workspace=apps/api -- --runInBand
+      - run: npm run test:e2e --workspace=apps/api -- --runInBand
+      - run: npm run lint --workspace=apps/desktop
+      - run: npm run test --workspace=apps/desktop -- --watch=false
+      - run: npm run build:desktop
+      - run: npm audit --audit-level=high

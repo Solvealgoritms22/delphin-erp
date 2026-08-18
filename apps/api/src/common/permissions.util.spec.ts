@@ -35,11 +35,7 @@ describe('normalizePermissions', () => {
 
   it('deduplica permisos repetidos', () => {
     expect(
-      normalizePermissions([
-        'roles:read',
-        'roles:read',
-        'roles:write',
-      ]),
+      normalizePermissions(['roles:read', 'roles:read', 'roles:write']),
     ).toEqual(['roles:read', 'roles:write']);
   });
 });

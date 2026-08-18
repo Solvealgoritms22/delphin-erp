@@ -104,7 +104,7 @@ export interface FilterInvoiceDto {
 })
 export class InvoicesService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/v1/invoices`;
+  private apiUrl = `${environment.apiUrl}/invoices`;
 
   invoices = signal<FacturaVenta[]>([]);
   loading = signal<boolean>(false);

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -70,7 +75,7 @@ export class EmpresasService {
     },
   ];
 
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   getPlans() {
     return EmpresasService.PLANS;
@@ -89,15 +94,64 @@ export class EmpresasService {
     return empresa;
   }
 
-  async updateCurrent(empresaId: string, data: any) {
+  async updateCurrent(userId: string, empresaId: string, data: any) {
+    if (!empresaId) throw new BadRequestException('Empresa activa requerida');
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+      select: { propietarioId: true },
+    });
+    if (!empresa) throw new NotFoundException('Empresa no encontrada');
+    if (empresa.propietarioId !== userId)
+      throw new ForbiddenException(
+        'Solo el propietario puede actualizar la empresa',
+      );
+    const updateData: any = {};
+    for (const field of [
+      'razonSocial',
+      'rnc',
+      'pais',
+      'direccion',
+      'telefono',
+      'email',
+      'paginaWeb',
+      'descripcion',
+      'logo',
+    ]) {
+      if (data[field] !== undefined) updateData[field] = data[field];
+    }
     return this.prisma.empresa.update({
       where: { id: empresaId },
-      data,
+      data: updateData,
+      select: {
+        id: true,
+        razonSocial: true,
+        rnc: true,
+        pais: true,
+        direccion: true,
+        telefono: true,
+        email: true,
+        paginaWeb: true,
+        descripcion: true,
+        logo: true,
+        estado: true,
+        propietarioId: true,
+        creadoEn: true,
+      },
     });
   }
 
   async create(userId: string, data: any) {
-    const { razonSocial, rnc, pais, direccion, telefono, email, paginaWeb, descripcion, logo } = data;
+    const {
+      razonSocial,
+      rnc,
+      pais,
+      direccion,
+      telefono,
+      email,
+      paginaWeb,
+      descripcion,
+      logo,
+    } = data;
 
     // Verificar límite de empresas según el plan del usuario
     const userOwnedCount = await this.prisma.empresa.count({
@@ -170,29 +224,42 @@ export class EmpresasService {
     });
     if (!empresa) throw new NotFoundException('Empresa no encontrada');
     if (empresa.propietarioId !== userId) {
-      throw new Error('No tienes permisos para editar esta empresa');
+      throw new ForbiddenException(
+        'No tienes permisos para editar esta empresa',
+      );
     }
 
     const updateData: any = {};
-    if (data.razonSocial !== undefined) updateData.razonSocial = data.razonSocial;
+    if (data.razonSocial !== undefined)
+      updateData.razonSocial = data.razonSocial;
     if (data.rnc !== undefined) updateData.rnc = data.rnc;
     if (data.pais !== undefined) updateData.pais = data.pais;
     if (data.direccion !== undefined) updateData.direccion = data.direccion;
     if (data.telefono !== undefined) updateData.telefono = data.telefono;
     if (data.email !== undefined) updateData.email = data.email;
     if (data.paginaWeb !== undefined) updateData.paginaWeb = data.paginaWeb;
-    if (data.descripcion !== undefined) updateData.descripcion = data.descripcion;
+    if (data.descripcion !== undefined)
+      updateData.descripcion = data.descripcion;
     if (data.logo !== undefined) updateData.logo = data.logo;
     // FiscalBridge
-    if (data.fiscalbridgeEnabled !== undefined) updateData.fiscalbridgeEnabled = data.fiscalbridgeEnabled;
-    if (data.fiscalbridgeUrl !== undefined) updateData.fiscalbridgeUrl = data.fiscalbridgeUrl;
-    if (data.fiscalbridgeAuthMethod !== undefined) updateData.fiscalbridgeAuthMethod = data.fiscalbridgeAuthMethod;
-    if (data.fiscalbridgeToken !== undefined) updateData.fiscalbridgeToken = data.fiscalbridgeToken;
-    if (data.fiscalbridgeEmail !== undefined) updateData.fiscalbridgeEmail = data.fiscalbridgeEmail;
-    if (data.fiscalbridgePassword !== undefined) updateData.fiscalbridgePassword = data.fiscalbridgePassword;
-    if (data.fiscalbridgeClientId !== undefined) updateData.fiscalbridgeClientId = data.fiscalbridgeClientId;
-    if (data.fiscalbridgeClientSecret !== undefined) updateData.fiscalbridgeClientSecret = data.fiscalbridgeClientSecret;
-    if (data.fiscalbridgeEnv !== undefined) updateData.fiscalbridgeEnv = data.fiscalbridgeEnv;
+    if (data.fiscalbridgeEnabled !== undefined)
+      updateData.fiscalbridgeEnabled = data.fiscalbridgeEnabled;
+    if (data.fiscalbridgeUrl !== undefined)
+      updateData.fiscalbridgeUrl = data.fiscalbridgeUrl;
+    if (data.fiscalbridgeAuthMethod !== undefined)
+      updateData.fiscalbridgeAuthMethod = data.fiscalbridgeAuthMethod;
+    if (data.fiscalbridgeToken !== undefined)
+      updateData.fiscalbridgeToken = data.fiscalbridgeToken;
+    if (data.fiscalbridgeEmail !== undefined)
+      updateData.fiscalbridgeEmail = data.fiscalbridgeEmail;
+    if (data.fiscalbridgePassword !== undefined)
+      updateData.fiscalbridgePassword = data.fiscalbridgePassword;
+    if (data.fiscalbridgeClientId !== undefined)
+      updateData.fiscalbridgeClientId = data.fiscalbridgeClientId;
+    if (data.fiscalbridgeClientSecret !== undefined)
+      updateData.fiscalbridgeClientSecret = data.fiscalbridgeClientSecret;
+    if (data.fiscalbridgeEnv !== undefined)
+      updateData.fiscalbridgeEnv = data.fiscalbridgeEnv;
     // SMTP fields were moved to User profile
 
     return this.prisma.empresa.update({
@@ -207,7 +274,9 @@ export class EmpresasService {
     });
     if (!empresa) throw new NotFoundException('Empresa no encontrada');
     if (empresa.propietarioId !== userId) {
-      throw new Error('No tienes permisos para eliminar esta empresa');
+      throw new ForbiddenException(
+        'No tienes permisos para eliminar esta empresa',
+      );
     }
 
     return this.prisma.empresa.delete({

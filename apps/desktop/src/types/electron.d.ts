@@ -27,5 +27,6 @@ export interface DownloadProgress {
 declare global {
   interface Window {
     dolphinUpdater: DolphinUpdater;
+    dolphinWindow: { openExternal: (url: string) => void };
   }
 }

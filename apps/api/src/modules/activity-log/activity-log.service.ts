@@ -142,7 +142,8 @@ export class ActivityLogService {
     const items = result.items
       .map((item: any) => {
         const metadata = item.metadata || {};
-        const severity = metadata.severity || this.securitySeverity(item.accion);
+        const severity =
+          metadata.severity || this.securitySeverity(item.accion);
         return {
           id: item.id,
           timestamp: item.creadoEn,
@@ -157,7 +158,12 @@ export class ActivityLogService {
       .filter((item: any) => {
         if (params.severity && item.severity !== params.severity) return false;
         if (!search) return true;
-        return [item.eventType, item.actionTaken, item.sourceIp, item.destinationIp]
+        return [
+          item.eventType,
+          item.actionTaken,
+          item.sourceIp,
+          item.destinationIp,
+        ]
           .join(' ')
           .toLowerCase()
           .includes(search);
@@ -166,9 +172,12 @@ export class ActivityLogService {
     return { ...result, items };
   }
 
-  private securitySeverity(action: string): 'Low' | 'Medium' | 'High' | 'Critical' {
+  private securitySeverity(
+    action: string,
+  ): 'Low' | 'Medium' | 'High' | 'Critical' {
     if (action.includes('FAILED') || action.includes('BLOCKED')) return 'High';
-    if (action.includes('REVOKED') || action.includes('DELETED')) return 'Medium';
+    if (action.includes('REVOKED') || action.includes('DELETED'))
+      return 'Medium';
     return 'Low';
   }
 }

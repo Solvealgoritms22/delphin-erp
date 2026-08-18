@@ -25,8 +25,8 @@ contextBridge.exposeInMainWorld('dolphinUpdater', {
   getAppVersion: () => {
     return ipcRenderer.invoke('dolphin:get-app-version');
   },
-  removeAllListeners: (channel) => {
-    ipcRenderer.removeAllListeners(channel);
+  removeAllListeners: () => {
+    ['dolphin:update-available', 'dolphin:update-not-available', 'dolphin:download-progress', 'dolphin:update-downloaded', 'dolphin:update-error'].forEach((channel) => ipcRenderer.removeAllListeners(channel));
   }
 });
 
@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld('dolphinWindow', {
   minimize: () => ipcRenderer.send('dolphin:window-minimize'),
   maximize: () => ipcRenderer.send('dolphin:window-maximize'),
   close:    () => ipcRenderer.send('dolphin:window-close'),
+  openExternal: (url) => ipcRenderer.send('dolphin:open-external', url),
   onMaximizeChange: (callback) => {
     ipcRenderer.on('dolphin:window-maximized', (_e, isMaximized) => callback(isMaximized));
   },

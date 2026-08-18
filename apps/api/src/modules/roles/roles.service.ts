@@ -51,9 +51,7 @@ export class RolesService {
     const roleDesc =
       data.descripcion !== undefined ? data.descripcion : data.description;
     const rolePerms = normalizePermissions(
-      data.permissions !== undefined
-        ? data.permissions
-        : role.permissions,
+      data.permissions !== undefined ? data.permissions : role.permissions,
     );
 
     // Si cambian el nombre, verificar unicidad

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 @Injectable()
@@ -10,7 +14,9 @@ export class ProductsService {
     return this.prisma.producto.create({
       data: {
         ...productData,
-        ...(imagenes !== undefined ? { imagenes: this.normalizeImages(imagenes) } : {}),
+        ...(imagenes !== undefined
+          ? { imagenes: this.normalizeImages(imagenes) }
+          : {}),
         empresaId,
       },
     });
@@ -47,7 +53,9 @@ export class ProductsService {
       where: { id },
       data: {
         ...productData,
-        ...(imagenes !== undefined ? { imagenes: this.normalizeImages(imagenes) } : {}),
+        ...(imagenes !== undefined
+          ? { imagenes: this.normalizeImages(imagenes) }
+          : {}),
       },
     });
   }
@@ -69,8 +77,14 @@ export class ProductsService {
         images = [value];
       }
     }
-    if (!Array.isArray(images)) throw new BadRequestException('Las imágenes deben enviarse como una lista');
-    if (images.length > 5) throw new BadRequestException('Un producto puede tener como máximo 5 imágenes');
+    if (!Array.isArray(images))
+      throw new BadRequestException(
+        'Las imágenes deben enviarse como una lista',
+      );
+    if (images.length > 5)
+      throw new BadRequestException(
+        'Un producto puede tener como máximo 5 imágenes',
+      );
     if (images.some((image) => typeof image !== 'string')) {
       throw new BadRequestException('El formato de las imágenes no es válido');
     }

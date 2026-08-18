@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AiToolsService } from './ai-tools.service';
-import { ChatRequestDto, ChatResponseDto, ChatMessageDto } from './ai-agent.dto';
+import {
+  ChatRequestDto,
+  ChatResponseDto,
+  ChatMessageDto,
+} from './ai-agent.dto';
 
 export type ChatMessage = ChatMessageDto;
 
@@ -91,7 +95,15 @@ export class AiAgentService {
       lowerQuery.includes('tienda');
 
     try {
-      if (needsOverview || (!needsProducts && !needsClients && !needsSuppliers && !needsLogs && !needsTeam && !needsBranches)) {
+      if (
+        needsOverview ||
+        (!needsProducts &&
+          !needsClients &&
+          !needsSuppliers &&
+          !needsLogs &&
+          !needsTeam &&
+          !needsBranches)
+      ) {
         toolsUsed.push('getCompanyOverview', 'getExecutiveMetrics');
         dbContext.empresa = await this.tools.getCompanyOverview(empresaId);
         dbContext.metricas = await this.tools.getExecutiveMetrics(empresaId);
@@ -99,22 +111,30 @@ export class AiAgentService {
 
       if (needsProducts) {
         toolsUsed.push('queryProducts');
-        dbContext.productos = await this.tools.queryProducts(empresaId, { limit: 20 });
+        dbContext.productos = await this.tools.queryProducts(empresaId, {
+          limit: 20,
+        });
       }
 
       if (needsClients) {
         toolsUsed.push('queryClients');
-        dbContext.clientes = await this.tools.queryClients(empresaId, { limit: 20 });
+        dbContext.clientes = await this.tools.queryClients(empresaId, {
+          limit: 20,
+        });
       }
 
       if (needsSuppliers) {
         toolsUsed.push('querySuppliers');
-        dbContext.proveedores = await this.tools.querySuppliers(empresaId, { limit: 20 });
+        dbContext.proveedores = await this.tools.querySuppliers(empresaId, {
+          limit: 20,
+        });
       }
 
       if (needsLogs) {
         toolsUsed.push('queryActivityLogs');
-        dbContext.actividades = await this.tools.queryActivityLogs(empresaId, { limit: 15 });
+        dbContext.actividades = await this.tools.queryActivityLogs(empresaId, {
+          limit: 15,
+        });
       }
 
       if (needsTeam) {
@@ -144,14 +164,25 @@ export class AiAgentService {
     const userQuery = (dto.message || '').trim();
     const toolsUsed: string[] = [];
 
-    this.logger.log(`[AI-AGENT] Processing query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`);
+    this.logger.log(
+      `[AI-AGENT] Processing query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`,
+    );
 
     // Ensure conversation exists in DB and persist user message
-    const conv = await this.ensureConversation(empresaId, user.id, dto.conversationId, userQuery);
+    const conv = await this.ensureConversation(
+      empresaId,
+      user.id,
+      dto.conversationId,
+      userQuery,
+    );
     const convId = conv.id;
     await this.saveMessage(convId, 'user', userQuery);
 
-    const dbContext = await this.collectContext(empresaId, userQuery, toolsUsed);
+    const dbContext = await this.collectContext(
+      empresaId,
+      userQuery,
+      toolsUsed,
+    );
     let reply = '';
 
     // Check Ollama
@@ -165,12 +196,22 @@ export class AiAgentService {
 
     // Check configured API Keys
     if (!reply) {
-      const apiKey = process.env.OPENROUTER_API_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY;
+      const apiKey =
+        process.env.OPENROUTER_API_KEY ||
+        process.env.GEMINI_API_KEY ||
+        process.env.GROQ_API_KEY;
       if (apiKey) {
         try {
-          reply = await this.callExternalLLM(userQuery, dbContext, dto.history || [], apiKey);
+          reply = await this.callExternalLLM(
+            userQuery,
+            dbContext,
+            dto.history || [],
+            apiKey,
+          );
         } catch (err: any) {
-          this.logger.warn(`External API call failed (${err.message}). Trying Free Public AI Gateway...`);
+          this.logger.warn(
+            `External API call failed (${err.message}). Trying Free Public AI Gateway...`,
+          );
         }
       }
     }
@@ -178,7 +219,11 @@ export class AiAgentService {
     // Free Public AI Gateway
     if (!reply) {
       try {
-        reply = await this.callFreePollinationsAI(userQuery, dbContext, dto.history || []);
+        reply = await this.callFreePollinationsAI(
+          userQuery,
+          dbContext,
+          dto.history || [],
+        );
       } catch (err: any) {
         this.logger.warn(`Free Pollinations AI call failed: ${err.message}`);
       }
@@ -186,7 +231,11 @@ export class AiAgentService {
 
     // Fallback: Smart Heuristic ERP Agent Synthesizer
     if (!reply) {
-      reply = this.synthesizeSmartResponse(userQuery, dbContext, user.name || user.email);
+      reply = this.synthesizeSmartResponse(
+        userQuery,
+        dbContext,
+        user.name || user.email,
+      );
     }
 
     // Persist assistant message
@@ -214,15 +263,26 @@ export class AiAgentService {
     const userQuery = (dto.message || '').trim();
     const toolsUsed: string[] = [];
 
-    this.logger.log(`[AI-AGENT-STREAM] Processing stream query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`);
+    this.logger.log(
+      `[AI-AGENT-STREAM] Processing stream query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`,
+    );
 
     // Ensure conversation exists in DB and persist user message
-    const conv = await this.ensureConversation(empresaId, user.id, dto.conversationId, userQuery);
+    const conv = await this.ensureConversation(
+      empresaId,
+      user.id,
+      dto.conversationId,
+      userQuery,
+    );
     const convId = conv.id;
     await this.saveMessage(convId, 'user', userQuery);
 
     // 1. Collect read-only DB context
-    const dbContext = await this.collectContext(empresaId, userQuery, toolsUsed);
+    const dbContext = await this.collectContext(
+      empresaId,
+      userQuery,
+      toolsUsed,
+    );
     onChunk({ type: 'tools', toolsUsed, conversationId: convId });
 
     let streamedSuccessfully = false;
@@ -234,9 +294,17 @@ export class AiAgentService {
     };
 
     // 2. Try Ollama streaming
-    if (!streamedSuccessfully && (process.env.OLLAMA_BASE_URL || process.env.USE_OLLAMA === 'true')) {
+    if (
+      !streamedSuccessfully &&
+      (process.env.OLLAMA_BASE_URL || process.env.USE_OLLAMA === 'true')
+    ) {
       try {
-        await this.streamOllama(userQuery, dbContext, dto.history || [], handleToken);
+        await this.streamOllama(
+          userQuery,
+          dbContext,
+          dto.history || [],
+          handleToken,
+        );
         streamedSuccessfully = true;
       } catch (err: any) {
         this.logger.debug(`Ollama stream bypassed: ${err.message}`);
@@ -248,10 +316,18 @@ export class AiAgentService {
       const apiKey = process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY;
       if (apiKey) {
         try {
-          await this.streamOpenAICompatible(userQuery, dbContext, dto.history || [], apiKey, handleToken);
+          await this.streamOpenAICompatible(
+            userQuery,
+            dbContext,
+            dto.history || [],
+            apiKey,
+            handleToken,
+          );
           streamedSuccessfully = true;
         } catch (err: any) {
-          this.logger.warn(`External LLM streaming failed (${err.message}). Trying public stream fallback...`);
+          this.logger.warn(
+            `External LLM streaming failed (${err.message}). Trying public stream fallback...`,
+          );
         }
       }
     }
@@ -260,13 +336,25 @@ export class AiAgentService {
     if (!streamedSuccessfully) {
       let fullText = '';
       try {
-        fullText = await this.callFreePollinationsAI(userQuery, dbContext, dto.history || []);
+        fullText = await this.callFreePollinationsAI(
+          userQuery,
+          dbContext,
+          dto.history || [],
+        );
       } catch {
-        fullText = this.synthesizeSmartResponse(userQuery, dbContext, user.name || user.email);
+        fullText = this.synthesizeSmartResponse(
+          userQuery,
+          dbContext,
+          user.name || user.email,
+        );
       }
 
       if (!fullText) {
-        fullText = this.synthesizeSmartResponse(userQuery, dbContext, user.name || user.email);
+        fullText = this.synthesizeSmartResponse(
+          userQuery,
+          dbContext,
+          user.name || user.email,
+        );
       }
 
       await this.typewriterStream(fullText, handleToken);
@@ -283,7 +371,10 @@ export class AiAgentService {
   /**
    * Emits text chunk-by-chunk with typewriter cadence for smooth animation
    */
-  private async typewriterStream(text: string, emit: (token: string) => void): Promise<void> {
+  private async typewriterStream(
+    text: string,
+    emit: (token: string) => void,
+  ): Promise<void> {
     const tokens = text.match(/(\s+|\S+)/g) || [text];
     for (const token of tokens) {
       emit(token);
@@ -301,14 +392,15 @@ export class AiAgentService {
     apiKey: string,
     emit: (token: string) => void,
   ): Promise<void> {
-    const isGroq = !!process.env.GROQ_API_KEY && !process.env.OPENROUTER_API_KEY;
+    const isGroq =
+      !!process.env.GROQ_API_KEY && !process.env.OPENROUTER_API_KEY;
     const endpoint = isGroq
       ? 'https://api.groq.com/openai/v1/chat/completions'
       : 'https://openrouter.ai/api/v1/chat/completions';
 
     const modelName = isGroq
-      ? (process.env.GROQ_MODEL || 'llama-3.3-70b-versatile')
-      : (process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free');
+      ? process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
+      : process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
 
     const systemPrompt = `Eres Dolphin ERP AI, el copiloto inteligente de gestión empresarial de Dolphin ERP.
 Tienes acceso directo y de solo lectura a la base de datos de la empresa activa del usuario.
@@ -404,14 +496,17 @@ ${JSON.stringify(dbContext, null, 2)}
         model,
         messages: [
           { role: 'system', content: systemPrompt },
-          ...history.slice(-4).map((h) => ({ role: h.role, content: h.content })),
+          ...history
+            .slice(-4)
+            .map((h) => ({ role: h.role, content: h.content })),
           { role: 'user', content: prompt },
         ],
         stream: true,
       }),
     });
 
-    if (!response.ok || !response.body) throw new Error(`Ollama status ${response.status}`);
+    if (!response.ok || !response.body)
+      throw new Error(`Ollama status ${response.status}`);
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
@@ -509,8 +604,10 @@ ${JSON.stringify(dbContext, null, 2)}
     history: ChatMessage[],
     apiKey: string,
   ): Promise<string> {
-    const isGemini = !!process.env.GEMINI_API_KEY && !process.env.OPENROUTER_API_KEY;
-    const isGroq = !!process.env.GROQ_API_KEY && !process.env.OPENROUTER_API_KEY;
+    const isGemini =
+      !!process.env.GEMINI_API_KEY && !process.env.OPENROUTER_API_KEY;
+    const isGroq =
+      !!process.env.GROQ_API_KEY && !process.env.OPENROUTER_API_KEY;
 
     const systemPrompt = `Eres Dolphin ERP AI, el copiloto inteligente de gestión empresarial de Dolphin ERP.
 Tienes acceso directo y de solo lectura a la base de datos de la empresa activa del usuario.
@@ -534,7 +631,12 @@ ${JSON.stringify(dbContext, null, 2)}
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [
-            { role: 'user', parts: [{ text: `${systemPrompt}\n\nPregunta del usuario: ${prompt}` }] },
+            {
+              role: 'user',
+              parts: [
+                { text: `${systemPrompt}\n\nPregunta del usuario: ${prompt}` },
+              ],
+            },
           ],
         }),
       });
@@ -551,8 +653,8 @@ ${JSON.stringify(dbContext, null, 2)}
       : 'https://openrouter.ai/api/v1/chat/completions';
 
     const modelName = isGroq
-      ? (process.env.GROQ_MODEL || 'llama-3.3-70b-versatile')
-      : (process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free');
+      ? process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
+      : process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -608,7 +710,9 @@ ${JSON.stringify(dbContext, null, 2)}
           model,
           messages: [
             { role: 'system', content: systemPrompt },
-            ...history.slice(-4).map((h) => ({ role: h.role, content: h.content })),
+            ...history
+              .slice(-4)
+              .map((h) => ({ role: h.role, content: h.content })),
             { role: 'user', content: prompt },
           ],
           stream: false,
@@ -629,7 +733,11 @@ ${JSON.stringify(dbContext, null, 2)}
   /**
    * Smart Built-in Synthesizer that formats real database results into rich Markdown
    */
-  private synthesizeSmartResponse(query: string, data: any, userName: string): string {
+  private synthesizeSmartResponse(
+    query: string,
+    data: any,
+    userName: string,
+  ): string {
     const q = query.toLowerCase();
 
     // 1. Productos
@@ -786,7 +894,11 @@ ${JSON.stringify(dbContext, null, 2)}
     }));
   }
 
-  async getConversation(empresaId: string, usuarioId: string, conversationId: string) {
+  async getConversation(
+    empresaId: string,
+    usuarioId: string,
+    conversationId: string,
+  ) {
     const conv = await (this.prisma as any).aiConversation.findFirst({
       where: { id: conversationId, empresaId, usuarioId },
       include: {
@@ -813,7 +925,11 @@ ${JSON.stringify(dbContext, null, 2)}
     };
   }
 
-  async createConversation(empresaId: string, usuarioId: string, title?: string) {
+  async createConversation(
+    empresaId: string,
+    usuarioId: string,
+    title?: string,
+  ) {
     const conv = await (this.prisma as any).aiConversation.create({
       data: {
         titulo: title || 'Nueva conversación',
@@ -831,20 +947,36 @@ ${JSON.stringify(dbContext, null, 2)}
     };
   }
 
-  async deleteConversation(empresaId: string, usuarioId: string, conversationId: string) {
+  async deleteConversation(
+    empresaId: string,
+    usuarioId: string,
+    conversationId: string,
+  ) {
     return (this.prisma as any).aiConversation.deleteMany({
       where: { id: conversationId, empresaId, usuarioId },
     });
   }
 
-  async ensureConversation(empresaId: string, usuarioId: string, conversationId?: string, initialTitle?: string) {
+  async ensureConversation(
+    empresaId: string,
+    usuarioId: string,
+    conversationId?: string,
+    initialTitle?: string,
+  ) {
     if (conversationId) {
       const existing = await (this.prisma as any).aiConversation.findFirst({
         where: { id: conversationId, empresaId, usuarioId },
       });
       if (existing) {
-        if (initialTitle && (existing.titulo === 'Nueva conversación' || existing.titulo === 'Nueva Conversación')) {
-          const truncated = initialTitle.length > 45 ? initialTitle.substring(0, 42) + '...' : initialTitle;
+        if (
+          initialTitle &&
+          (existing.titulo === 'Nueva conversación' ||
+            existing.titulo === 'Nueva Conversación')
+        ) {
+          const truncated =
+            initialTitle.length > 45
+              ? initialTitle.substring(0, 42) + '...'
+              : initialTitle;
           await (this.prisma as any).aiConversation.update({
             where: { id: existing.id },
             data: { titulo: truncated },
@@ -855,7 +987,9 @@ ${JSON.stringify(dbContext, null, 2)}
     }
 
     const truncatedTitle = initialTitle
-      ? (initialTitle.length > 45 ? initialTitle.substring(0, 42) + '...' : initialTitle)
+      ? initialTitle.length > 45
+        ? initialTitle.substring(0, 42) + '...'
+        : initialTitle
       : 'Nueva conversación';
 
     return (this.prisma as any).aiConversation.create({
@@ -868,7 +1002,12 @@ ${JSON.stringify(dbContext, null, 2)}
     });
   }
 
-  async saveMessage(conversacionId: string, role: string, content: string, toolsUsed: string[] = []) {
+  async saveMessage(
+    conversacionId: string,
+    role: string,
+    content: string,
+    toolsUsed: string[] = [],
+  ) {
     return (this.prisma as any).aiMessage.create({
       data: {
         conversacionId,

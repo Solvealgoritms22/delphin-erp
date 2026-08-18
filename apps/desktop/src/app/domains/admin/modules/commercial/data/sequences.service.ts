@@ -43,7 +43,7 @@ export interface UpdateSequenceDto {
 })
 export class SequencesService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/v1/sequences`;
+  private apiUrl = `${environment.apiUrl}/sequences`;
 
   sequences = signal<SecuenciaNCF[]>([]);
   loading = signal<boolean>(false);

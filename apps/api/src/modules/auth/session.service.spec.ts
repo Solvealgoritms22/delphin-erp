@@ -37,13 +37,12 @@ describe('SessionService', () => {
     const result = await service.findForUser('u1', 's1');
 
     expect(prisma.userSession.findMany).toHaveBeenCalledWith({
-      where: {
-        usuarioId: 'u1',
-        revokedAt: null,
-        OR: [{ expiraEn: null }, { expiraEn: { gt: expect.any(Date) } }],
+      where: { usuarioId: 'u1' },
+      include: {
+        usuario: { select: { nombre: true, email: true, avatar: true } },
       },
-      include: { usuario: { select: { nombre: true, email: true, avatar: true } } },
       orderBy: { ultimoAcceso: 'desc' },
+      take: 50,
     });
     expect(result).toHaveLength(2);
     expect(result[0]).toMatchObject({
@@ -60,7 +59,9 @@ describe('SessionService', () => {
     const service = new SessionService(prisma);
     prisma.userSession.findFirst.mockResolvedValue({ id: 's1' });
 
-    await expect(service.revoke('u1', 's1')).resolves.toEqual({ success: true });
+    await expect(service.revoke('u1', 's1')).resolves.toEqual({
+      success: true,
+    });
     expect(prisma.userSession.update).toHaveBeenCalledWith({
       where: { id: 's1' },
       data: { revokedAt: expect.any(Date) },
@@ -79,7 +80,9 @@ describe('SessionService', () => {
     const { prisma } = createPrismaMock();
     const service = new SessionService(prisma);
 
-    await expect(service.revokeOthers('u1', 's1')).resolves.toEqual({ success: true });
+    await expect(service.revokeOthers('u1', 's1')).resolves.toEqual({
+      success: true,
+    });
     expect(prisma.userSession.updateMany).toHaveBeenCalledWith({
       where: { usuarioId: 'u1', id: { not: 's1' }, revokedAt: null },
       data: { revokedAt: expect.any(Date) },

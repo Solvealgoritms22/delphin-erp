@@ -60,7 +60,9 @@ export class TenantMailerService {
       text: options.text,
     });
 
-    this.logger.log(`[TenantMailer] Email enviado a ${options.to} (host: ${config.smtpHost})`);
+    this.logger.log(
+      `[TenantMailer] Email enviado a ${options.to} (host: ${config.smtpHost})`,
+    );
   }
 
   /**

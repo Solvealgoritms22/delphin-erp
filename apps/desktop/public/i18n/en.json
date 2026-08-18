@@ -1,4 +1,20 @@
 {
+  "backups": {
+    "title": "Backups",
+    "description": "Protect your company data with encrypted local or Google Drive backups.",
+    "connectDrive": "Connect Google Drive",
+    "createLocal": "Create local backup",
+    "download": "Download",
+    "delete": "Delete backup",
+    "emptyTitle": "No backups yet",
+    "emptyDescription": "Create an encrypted copy to protect this company's information.",
+    "confirmDelete": "Delete this backup?",
+    "loadError": "Backups could not be loaded.",
+    "createError": "The backup could not be created.",
+    "driveError": "Google Drive connection could not be started.",
+    "deleteError": "The backup could not be deleted.",
+    "downloadError": "The backup could not be downloaded."
+  },
   "dashboard": {
     "project": {
       "title": "Overview of Project Alpha",
@@ -62,6 +78,7 @@
     "settingsDescription": "System settings",
     "branches": "Branches",
     "companies": "My companies",
+    "backups": "Backups",
     "security": "Security",
     "securityDescription": "Access management",
     "roles": "Roles and permissions",

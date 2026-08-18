@@ -22,14 +22,7 @@ describe('ActivityLogController', () => {
   });
 
   it('findMany pasa filtros y paginación globales', () => {
-    controller.findMany(
-      'products',
-      'CREATE',
-      'u1',
-      '2026',
-      '2',
-      '10',
-    );
+    controller.findMany('products', 'CREATE', 'u1', '2026', '2', '10');
 
     expect(service.findMany).toHaveBeenCalledWith({
       modulo: 'products',

@@ -319,7 +319,7 @@ export class EmpresaDialogComponent implements OnInit {
     const value = this.form.value;
 
     if (this.data && this.data.id) {
-      this.http.patch(`${environment.apiUrl}/v1/empresas/${this.data.id}`, value).subscribe({
+      this.http.patch(`${environment.apiUrl}/empresas/${this.data.id}`, value).subscribe({
         next: (res) => {
           this.isSaving = false;
           this.dialogRef.close(res);
@@ -330,7 +330,7 @@ export class EmpresaDialogComponent implements OnInit {
         }
       });
     } else {
-      this.http.post(`${environment.apiUrl}/v1/empresas`, value).subscribe({
+      this.http.post(`${environment.apiUrl}/empresas`, value).subscribe({
         next: (res) => {
           this.isSaving = false;
           this.dialogRef.close(res);

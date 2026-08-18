@@ -22,7 +22,10 @@ export class NotificationPushService {
     return this.enabled;
   }
 
-  send(subscription: { endpoint: string; p256dh: string; auth: string }, payload: unknown) {
+  send(
+    subscription: { endpoint: string; p256dh: string; auth: string },
+    payload: unknown,
+  ) {
     if (!this.enabled) return Promise.resolve();
     return webpush.sendNotification(
       {

@@ -16,12 +16,17 @@ export class ChatRequestDto {
   @IsString()
   message: string;
 
-  @ApiPropertyOptional({ description: 'Optional conversation ID to maintain multi-turn chat history' })
+  @ApiPropertyOptional({
+    description: 'Optional conversation ID to maintain multi-turn chat history',
+  })
   @IsOptional()
   @IsString()
   conversationId?: string;
 
-  @ApiPropertyOptional({ type: [ChatMessageDto], description: 'Previous message history' })
+  @ApiPropertyOptional({
+    type: [ChatMessageDto],
+    description: 'Previous message history',
+  })
   @IsOptional()
   @IsArray()
   history?: ChatMessageDto[];

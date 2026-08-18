@@ -28,7 +28,6 @@ export interface CommandItem {
           placeholder="Search commands..."
           [(ngModel)]="searchQuery"
           (ngModelChange)="filterCommands()"
-          autofocus
         />
         <div class="text-xs font-semibold text-neutral-400 border border-neutral-200 dark:border-neutral-700 rounded px-1.5 py-0.5">
           ESC

@@ -30,24 +30,33 @@ export class NotificationsService {
       ? [{ id: input.usuarioId }]
       : await this.prisma.usuario.findMany({
           where: {
-            membresias: { some: { empresaId: input.empresaId, estado: 'ACTIVO' } },
+            membresias: {
+              some: { empresaId: input.empresaId, estado: 'ACTIVO' },
+            },
           },
           select: { id: true },
         });
 
     const notifications: any[] = [];
-      for (const recipient of recipients) {
+    for (const recipient of recipients) {
       const requestedChannels = input.canales || ['IN_APP'];
-      const preferences = (await this.prisma.notificationPreference.findMany({
-        where: {
-          usuarioId: recipient.id,
-          canal: { in: requestedChannels },
-          tipo: { in: [input.tipo, 'ALL'] },
-        },
-      })) || [];
+      const preferences =
+        (await this.prisma.notificationPreference.findMany({
+          where: {
+            usuarioId: recipient.id,
+            canal: { in: requestedChannels },
+            tipo: { in: [input.tipo, 'ALL'] },
+          },
+        })) || [];
       const enabledChannels = requestedChannels.filter((canal) => {
-        const specific = preferences.find((preference: any) => preference.tipo === input.tipo && preference.canal === canal);
-        const global = preferences.find((preference: any) => preference.tipo === 'ALL' && preference.canal === canal);
+        const specific = preferences.find(
+          (preference: any) =>
+            preference.tipo === input.tipo && preference.canal === canal,
+        );
+        const global = preferences.find(
+          (preference: any) =>
+            preference.tipo === 'ALL' && preference.canal === canal,
+        );
         return (specific || global)?.habilitado !== false;
       });
       if (enabledChannels.length === 0) continue;
@@ -81,31 +90,57 @@ export class NotificationsService {
     return notifications;
   }
 
-  async list(userId: string, query: { page?: number; limit?: number; unread?: boolean; tipo?: string }) {
+  async list(
+    userId: string,
+    query: { page?: number; limit?: number; unread?: boolean; tipo?: string },
+  ) {
     const page = query.page || 1;
     const limit = Math.min(query.limit || 25, 100);
     const where = {
-      OR: [{ usuarioId: userId }, { empresa: { membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } } } }],
+      OR: [
+        { usuarioId: userId },
+        {
+          empresa: {
+            membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
+          },
+        },
+      ],
       ...(query.unread ? { leidaEn: null } : {}),
       ...(query.tipo ? { tipo: query.tipo } : {}),
     } as any;
     const [items, total] = await Promise.all([
-      this.prisma.notification.findMany({ where, orderBy: { creadaEn: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.prisma.notification.findMany({
+        where,
+        orderBy: { creadaEn: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
       this.prisma.notification.count({ where }),
     ]);
-    return { items: items.map((item: any) => this.serialize(item)), total, page, limit };
+    return {
+      items: items.map((item: any) => this.serialize(item)),
+      total,
+      page,
+      limit,
+    };
   }
 
   unreadCount(userId: string) {
-    return this.prisma.notification.count({
-      where: {
-        leidaEn: null,
-        OR: [
-          { usuarioId: userId },
-          { empresa: { membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } } } },
-        ],
-      },
-    }).then((count) => ({ count }));
+    return this.prisma.notification
+      .count({
+        where: {
+          leidaEn: null,
+          OR: [
+            { usuarioId: userId },
+            {
+              empresa: {
+                membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
+              },
+            },
+          ],
+        },
+      })
+      .then((count) => ({ count }));
   }
 
   async markRead(userId: string, id: string) {
@@ -114,12 +149,17 @@ export class NotificationsService {
         id,
         OR: [
           { usuarioId: userId },
-          { empresa: { membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } } } },
+          {
+            empresa: {
+              membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
+            },
+          },
         ],
       },
       data: { leidaEn: new Date() },
     });
-    if (!result.count) throw new NotFoundException('Notificación no encontrada');
+    if (!result.count)
+      throw new NotFoundException('Notificación no encontrada');
     return { success: true };
   }
 
@@ -129,7 +169,11 @@ export class NotificationsService {
         leidaEn: null,
         OR: [
           { usuarioId: userId },
-          { empresa: { membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } } } },
+          {
+            empresa: {
+              membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
+            },
+          },
         ],
       },
       data: { leidaEn: new Date() },
@@ -143,11 +187,16 @@ export class NotificationsService {
         id,
         OR: [
           { usuarioId: userId },
-          { empresa: { membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } } } },
+          {
+            empresa: {
+              membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
+            },
+          },
         ],
       },
     });
-    if (!result.count) throw new NotFoundException('Notificación no encontrada');
+    if (!result.count)
+      throw new NotFoundException('Notificación no encontrada');
     return { success: true };
   }
 
@@ -156,7 +205,11 @@ export class NotificationsService {
       where: {
         OR: [
           { usuarioId: userId },
-          { empresa: { membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } } } },
+          {
+            empresa: {
+              membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
+            },
+          },
         ],
       },
     });
@@ -164,10 +217,18 @@ export class NotificationsService {
   }
 
   preferences(userId: string) {
-    return this.prisma.notificationPreference.findMany({ where: { usuarioId: userId }, orderBy: [{ tipo: 'asc' }, { canal: 'asc' }] });
+    return this.prisma.notificationPreference.findMany({
+      where: { usuarioId: userId },
+      orderBy: [{ tipo: 'asc' }, { canal: 'asc' }],
+    });
   }
 
-  savePreference(userId: string, tipo: string, canal: string, habilitado: boolean) {
+  savePreference(
+    userId: string,
+    tipo: string,
+    canal: string,
+    habilitado: boolean,
+  ) {
     return this.prisma.notificationPreference.upsert({
       where: { usuarioId_tipo_canal: { usuarioId: userId, tipo, canal } },
       update: { habilitado },
@@ -175,11 +236,30 @@ export class NotificationsService {
     });
   }
 
-  savePushSubscription(userId: string, data: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string }) {
+  savePushSubscription(
+    userId: string,
+    data: {
+      endpoint: string;
+      keys: { p256dh: string; auth: string };
+      userAgent?: string;
+    },
+  ) {
     return this.prisma.pushSubscription.upsert({
       where: { endpoint: data.endpoint },
-      update: { usuarioId: userId, p256dh: data.keys.p256dh, auth: data.keys.auth, userAgent: data.userAgent, ultimoUsoEn: new Date() },
-      create: { usuarioId: userId, endpoint: data.endpoint, p256dh: data.keys.p256dh, auth: data.keys.auth, userAgent: data.userAgent },
+      update: {
+        usuarioId: userId,
+        p256dh: data.keys.p256dh,
+        auth: data.keys.auth,
+        userAgent: data.userAgent,
+        ultimoUsoEn: new Date(),
+      },
+      create: {
+        usuarioId: userId,
+        endpoint: data.endpoint,
+        p256dh: data.keys.p256dh,
+        auth: data.keys.auth,
+        userAgent: data.userAgent,
+      },
     });
   }
 
@@ -188,21 +268,45 @@ export class NotificationsService {
   }
 
   async deliver(notificationId: string) {
-    const notification: any = await this.prisma.notification.findUnique({ where: { id: notificationId }, include: { usuario: true, deliveries: true } });
+    const notification: any = await this.prisma.notification.findUnique({
+      where: { id: notificationId },
+      include: { usuario: true, deliveries: true },
+    });
     if (!notification) return;
     for (const delivery of notification.deliveries) {
       try {
         let providerMessageId: string | undefined;
         if (delivery.canal === 'EMAIL' && notification.usuario?.email) {
-          providerMessageId = await this.email.send(notification.usuario.email, notification.titulo, notification.mensaje);
+          providerMessageId = await this.email.send(
+            notification.usuario.email,
+            notification.titulo,
+            notification.mensaje,
+          );
         }
         if (delivery.canal === 'PUSH') {
-          const subscriptions = await this.prisma.pushSubscription.findMany({ where: { usuarioId: notification.usuarioId } });
-          await Promise.all(subscriptions.map((subscription: any) => this.push.send(subscription, this.serialize(notification))));
+          const subscriptions = await this.prisma.pushSubscription.findMany({
+            where: { usuarioId: notification.usuarioId },
+          });
+          await Promise.all(
+            subscriptions.map((subscription: any) =>
+              this.push.send(subscription, this.serialize(notification)),
+            ),
+          );
         }
-        await this.prisma.notificationDelivery.update({ where: { id: delivery.id }, data: { estado: 'SENT', providerMessageId, enviadaEn: new Date() } });
+        await this.prisma.notificationDelivery.update({
+          where: { id: delivery.id },
+          data: { estado: 'SENT', providerMessageId, enviadaEn: new Date() },
+        });
       } catch (error) {
-        await this.prisma.notificationDelivery.update({ where: { id: delivery.id }, data: { estado: 'RETRYING', intentos: { increment: 1 }, ultimoError: String(error), proximoIntentoEn: new Date(Date.now() + 60000) } });
+        await this.prisma.notificationDelivery.update({
+          where: { id: delivery.id },
+          data: {
+            estado: 'RETRYING',
+            intentos: { increment: 1 },
+            ultimoError: String(error),
+            proximoIntentoEn: new Date(Date.now() + 60000),
+          },
+        });
       }
     }
   }

@@ -12,7 +12,6 @@ datasource db {
 
 // ------------------------------------------------------
 // Fase 0 y Fase 1 - Modelo Central de Multi-Tenancy
-// (Versión SQLite temporal por falta de Docker/Virtualización)
 // ------------------------------------------------------
 
 model Empresa {
@@ -62,6 +61,7 @@ model Empresa {
   secuenciasNcf  SecuenciaNCF[]
   facturasVenta  FacturaVenta[]
   aiConversaciones AiConversation[]
+  backups        Backup[]
 
   @@map("empresas")
 }
@@ -112,6 +112,8 @@ model Usuario {
   empresasPropiedad Empresa[] @relation("EmpresasPropiedad")
   facturasVenta  FacturaVenta[]
   aiConversaciones AiConversation[]
+  backups              Backup[]             @relation("BackupsPropietario")
+  googleDriveConnection GoogleDriveConnection?
 
   // SMTP del Propietario (para emails enviados desde sus empresas: invitaciones, recuperación de contraseña, etc.)
   smtpHost      String?   @map("smtp_host")
@@ -123,6 +125,48 @@ model Usuario {
   smtpEnabled   Boolean   @default(false) @map("smtp_enabled")
 
   @@map("usuarios")
+}
+
+model Backup {
+  id             String   @id @default(uuid())
+  propietarioId  String   @map("propietario_id")
+  empresaId      String   @map("empresa_id")
+  proveedor      String   @default("LOCAL") // LOCAL | GOOGLE_DRIVE
+  estado         String   @default("PENDING") // PENDING | COMPLETED | FAILED | DELETED
+  formato        String   @default("DOLPHIN_JSON_GZIP_AES256")
+  nombreArchivo  String   @map("nombre_archivo")
+  storageKey     String?  @map("storage_key")
+  externalFileId String?  @map("external_file_id")
+  tamanoBytes    BigInt?  @map("tamano_bytes")
+  sha256         String?
+  error          String?
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  iniciadoEn     DateTime? @map("iniciado_en")
+  completadoEn   DateTime? @map("completado_en")
+
+  propietario Usuario @relation("BackupsPropietario", fields: [propietarioId], references: [id], onDelete: Cascade)
+  empresa     Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([propietarioId, creadoEn(sort: Desc)])
+  @@index([empresaId, creadoEn(sort: Desc)])
+  @@index([estado])
+  @@map("backups")
+}
+
+model GoogleDriveConnection {
+  id             String   @id @default(uuid())
+  propietarioId  String   @unique @map("propietario_id")
+  googleEmail    String?  @map("google_email")
+  refreshToken   String   @map("refresh_token")
+  folderId       String?  @map("folder_id")
+  estado         String   @default("ACTIVE")
+  ultimoError    String?  @map("ultimo_error")
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  actualizadoEn  DateTime @updatedAt @map("actualizado_en")
+
+  propietario Usuario @relation(fields: [propietarioId], references: [id], onDelete: Cascade)
+
+  @@map("google_drive_connections")
 }
 
 model Membresia {
@@ -377,6 +421,7 @@ model InventarioStock {
   almacen       Almacen  @relation(fields: [almacenId], references: [id], onDelete: Cascade)
 
   @@unique([productoId, almacenId])
+  @@unique([empresaId, productoId, almacenId])
   @@index([empresaId, almacenId])
   @@map("inventario_stocks")
 }

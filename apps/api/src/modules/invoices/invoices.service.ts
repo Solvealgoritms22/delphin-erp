@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SequencesService } from '../sequences/sequences.service';
 import { FiscalBridgeService } from './fiscalbridge.service';
@@ -28,7 +33,9 @@ export class InvoicesService {
 
   async create(empresaId: string, usuarioId: string, dto: CreateInvoiceDto) {
     if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException('La factura debe tener al menos un producto.');
+      throw new BadRequestException(
+        'La factura debe tener al menos un producto.',
+      );
     }
 
     const empresa = await this.prisma.empresa.findUnique({
@@ -46,18 +53,45 @@ export class InvoicesService {
         orderBy: { esPrincipal: 'desc' },
       });
       if (!defaultAlmacen) {
-        throw new BadRequestException('No hay almacenes configurados en la empresa para despachar el producto.');
+        throw new BadRequestException(
+          'No hay almacenes configurados en la empresa para despachar el producto.',
+        );
       }
       almacenId = defaultAlmacen.id;
     }
 
+    const almacen = await this.prisma.almacen.findFirst({
+      where: { id: almacenId, empresaId, estado: 'ACTIVO' },
+    });
+    if (!almacen)
+      throw new BadRequestException(
+        'El almacén no pertenece a la empresa o no está activo.',
+      );
+    if (
+      dto.sucursalId &&
+      !(await this.prisma.sucursal.findFirst({
+        where: { id: dto.sucursalId, empresaId },
+      }))
+    )
+      throw new BadRequestException('La sucursal no pertenece a la empresa.');
+    if (
+      dto.clienteId &&
+      !(await this.prisma.cliente.findFirst({
+        where: { id: dto.clienteId, empresaId },
+      }))
+    )
+      throw new BadRequestException('El cliente no pertenece a la empresa.');
+
     // Reservar NCF
     const ambiente = empresa.fiscalbridgeEnv || 'TEST';
-    const { ncf } = await this.sequencesService.getNextNCF(empresaId, dto.tipoNcf, ambiente);
+    const { ncf } = await this.sequencesService.getNextNCF(
+      empresaId,
+      dto.tipoNcf,
+      ambiente,
+    );
 
     // Calcular secuencial interno de factura
-    const count = await this.prisma.facturaVenta.count({ where: { empresaId } });
-    const numeroFactura = `FAC-${(count + 1).toString().padStart(6, '0')}`;
+    const numeroFactura = `FAC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
     // Calcular Subtotal, ITBIS y Total
     let subtotalAcc = new Prisma.Decimal(0);
@@ -71,12 +105,16 @@ export class InvoicesService {
         where: { id: item.productoId, empresaId },
       });
       if (!producto) {
-        throw new NotFoundException(`Producto con ID ${item.productoId} no existe en esta empresa.`);
+        throw new NotFoundException(
+          `Producto con ID ${item.productoId} no existe en esta empresa.`,
+        );
       }
 
       const cantidad = new Prisma.Decimal(item.cantidad);
       const precio = new Prisma.Decimal(item.precioUnitario);
-      const tasaItbis = new Prisma.Decimal(item.tasaItbis ?? producto.taxRate ?? 18);
+      const tasaItbis = new Prisma.Decimal(
+        item.tasaItbis ?? producto.taxRate ?? 18,
+      );
 
       const itemSubtotal = cantidad.mul(precio);
       const itemItbis = itemSubtotal.mul(tasaItbis).div(100);
@@ -105,27 +143,28 @@ export class InvoicesService {
           where: {
             productoId_almacenId: {
               productoId: item.productoId,
-              almacenId: almacenId!,
+              almacenId: almacenId,
             },
           },
         });
 
         if (stock) {
-          await tx.inventarioStock.update({
-            where: { id: stock.id },
-            data: {
-              cantidad: { decrement: item.cantidad },
-            },
-          });
-        } else {
-          await tx.inventarioStock.create({
-            data: {
+          const changed = await tx.inventarioStock.updateMany({
+            where: {
+              id: stock.id,
               empresaId,
-              productoId: item.productoId,
-              almacenId: almacenId!,
-              cantidad: new Prisma.Decimal(0).sub(item.cantidad),
+              cantidad: { gte: item.cantidad },
             },
+            data: { cantidad: { decrement: item.cantidad } },
           });
+          if (changed.count !== 1)
+            throw new BadRequestException(
+              `Stock insuficiente para el producto ${item.productoId}.`,
+            );
+        } else {
+          throw new BadRequestException(
+            `No existe inventario para el producto ${item.productoId}.`,
+          );
         }
 
         // Registrar en Kardex
@@ -160,8 +199,10 @@ export class InvoicesService {
           subtotal: subtotalAcc,
           itbis: itbisAcc,
           total: totalAcc,
-          montoPagado: dto.tipoPago === 'CONTADO' ? totalAcc : new Prisma.Decimal(0),
-          balancePendiente: dto.tipoPago === 'CONTADO' ? new Prisma.Decimal(0) : totalAcc,
+          montoPagado:
+            dto.tipoPago === 'CONTADO' ? totalAcc : new Prisma.Decimal(0),
+          balancePendiente:
+            dto.tipoPago === 'CONTADO' ? new Prisma.Decimal(0) : totalAcc,
           ncfModificado: dto.ncfModificado,
           motivoModificacion: dto.motivoModificacion,
           notas: dto.notas,
@@ -187,9 +228,15 @@ export class InvoicesService {
     });
 
     // Transmitir a FiscalBridge si está habilitado y es comprobante electrónico
-    if (empresa.fiscalbridgeEnabled && dto.tipoNcf.toUpperCase().startsWith('E')) {
+    if (
+      empresa.fiscalbridgeEnabled &&
+      dto.tipoNcf.toUpperCase().startsWith('E')
+    ) {
       try {
-        const fbResult = await this.fiscalBridgeService.transmitInvoice(invoice, empresa);
+        const fbResult = await this.fiscalBridgeService.transmitInvoice(
+          invoice,
+          empresa,
+        );
         const updated = await this.prisma.facturaVenta.update({
           where: { id: invoice.id },
           data: {
@@ -230,14 +277,22 @@ export class InvoicesService {
       where.OR = [
         { numeroFactura: { contains: filterDto.search, mode: 'insensitive' } },
         { ncf: { contains: filterDto.search, mode: 'insensitive' } },
-        { cliente: { nombreRazonSocial: { contains: filterDto.search, mode: 'insensitive' } } },
+        {
+          cliente: {
+            nombreRazonSocial: {
+              contains: filterDto.search,
+              mode: 'insensitive',
+            },
+          },
+        },
       ];
     }
 
     if (filterDto?.clienteId) where.clienteId = filterDto.clienteId;
     if (filterDto?.estado) where.estado = filterDto.estado;
     if (filterDto?.tipoNcf) where.tipoNcf = filterDto.tipoNcf;
-    if (filterDto?.fiscalbridgeStatus) where.fiscalbridgeStatus = filterDto.fiscalbridgeStatus;
+    if (filterDto?.fiscalbridgeStatus)
+      where.fiscalbridgeStatus = filterDto.fiscalbridgeStatus;
 
     if (filterDto?.desde || filterDto?.hasta) {
       where.fecha = {};
@@ -277,17 +332,31 @@ export class InvoicesService {
 
   async sendToFiscalBridge(empresaId: string, id: string) {
     const invoice = await this.findOne(empresaId, id);
-    const empresa = await this.prisma.empresa.findUnique({ where: { id: empresaId } });
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+    });
 
     if (!empresa) throw new NotFoundException('Empresa no encontrada.');
     if (!invoice.tipoNcf?.toUpperCase().startsWith('E')) {
-      throw new BadRequestException('Esta factura tiene NCF tradicional y no es un e-CF electrónico.');
+      throw new BadRequestException(
+        'Esta factura tiene NCF tradicional y no es un e-CF electrónico.',
+      );
     }
 
-    const fbResult = await this.fiscalBridgeService.transmitInvoice(invoice, empresa);
+    if (
+      invoice.fiscalbridgeStatus === 'SENT' ||
+      invoice.fiscalbridgeStatus === 'ACCEPTED'
+    )
+      throw new BadRequestException(
+        'La factura ya fue transmitida a FiscalBridge.',
+      );
+    const fbResult = await this.fiscalBridgeService.transmitInvoice(
+      invoice,
+      empresa,
+    );
 
     return this.prisma.facturaVenta.update({
-      where: { id },
+      where: { id, empresaId },
       data: {
         fiscalbridgeStatus: fbResult.status || 'SENT',
         fiscalbridgeDocId: fbResult.documentUuid,
@@ -308,31 +377,51 @@ export class InvoicesService {
 
   async proxyPdf(empresaId: string, id: string, res: Response) {
     const invoice = await this.findOne(empresaId, id);
-    const empresa = await this.prisma.empresa.findUnique({ where: { id: empresaId } });
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+    });
 
     if (!invoice.fiscalbridgeDocId) {
-      throw new BadRequestException('La factura no tiene un documento emitido en FiscalBridge para descargar PDF.');
+      throw new BadRequestException(
+        'La factura no tiene un documento emitido en FiscalBridge para descargar PDF.',
+      );
     }
 
-    const pdfBuffer = await this.fiscalBridgeService.getPdfBuffer(invoice.fiscalbridgeDocId, empresa);
+    const pdfBuffer = await this.fiscalBridgeService.getPdfBuffer(
+      invoice.fiscalbridgeDocId,
+      empresa,
+    );
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${invoice.ncf || invoice.numeroFactura}.pdf"`);
+    res.setHeader(
+      'Content-Disposition',
+      `inline; filename="${invoice.ncf || invoice.numeroFactura}.pdf"`,
+    );
     res.end(pdfBuffer);
   }
 
   async proxyXml(empresaId: string, id: string, res: Response) {
     const invoice = await this.findOne(empresaId, id);
-    const empresa = await this.prisma.empresa.findUnique({ where: { id: empresaId } });
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+    });
 
     if (!invoice.fiscalbridgeDocId) {
-      throw new BadRequestException('La factura no tiene un documento emitido en FiscalBridge para descargar XML.');
+      throw new BadRequestException(
+        'La factura no tiene un documento emitido en FiscalBridge para descargar XML.',
+      );
     }
 
-    const xmlBuffer = await this.fiscalBridgeService.getXmlBuffer(invoice.fiscalbridgeDocId, empresa);
+    const xmlBuffer = await this.fiscalBridgeService.getXmlBuffer(
+      invoice.fiscalbridgeDocId,
+      empresa,
+    );
 
     res.setHeader('Content-Type', 'application/xml');
-    res.setHeader('Content-Disposition', `attachment; filename="${invoice.ncf || invoice.numeroFactura}.xml"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${invoice.ncf || invoice.numeroFactura}.xml"`,
+    );
     res.end(xmlBuffer);
   }
 
@@ -350,6 +439,14 @@ export class InvoicesService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.facturaVenta.updateMany({
+        where: { id, empresaId, estado: { not: 'ANULADA' } },
+        data: { estado: 'ANULADA', balancePendiente: new Prisma.Decimal(0) },
+      });
+      if (claimed.count !== 1)
+        throw new BadRequestException(
+          'La factura ya ha sido anulada o no pertenece a la empresa.',
+        );
       // Restaurar stock
       for (const det of invoice.detalles) {
         if (invoice.almacenId) {
@@ -385,10 +482,7 @@ export class InvoicesService {
         }
       }
 
-      return tx.facturaVenta.update({
-        where: { id },
-        data: { estado: 'ANULADA', balancePendiente: new Prisma.Decimal(0) },
-      });
+      return tx.facturaVenta.findUnique({ where: { id } });
     });
   }
 }

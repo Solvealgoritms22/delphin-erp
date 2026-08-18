@@ -13,7 +13,12 @@ describe('NotificationsService', () => {
       realtime,
       email,
       push,
-      service: new NotificationsService(prisma, realtime as any, email as any, push as any),
+      service: new NotificationsService(
+        prisma,
+        realtime as any,
+        email as any,
+        push as any,
+      ),
     };
   };
 
@@ -56,14 +61,20 @@ describe('NotificationsService', () => {
 
   it('lista, cuenta y marca notificaciones como leídas', async () => {
     const { prisma, service } = dependencies();
-    prisma.notification.findMany.mockResolvedValue([{ id: 'n1', payload: null }]);
+    prisma.notification.findMany.mockResolvedValue([
+      { id: 'n1', payload: null },
+    ]);
     prisma.notification.count.mockResolvedValue(1);
 
-    await expect(service.list('u1', { unread: true })).resolves.toMatchObject({ total: 1 });
+    await expect(service.list('u1', { unread: true })).resolves.toMatchObject({
+      total: 1,
+    });
     await expect(service.unreadCount('u1')).resolves.toEqual({ count: 1 });
 
     prisma.notification.updateMany.mockResolvedValue({ count: 1 });
-    await expect(service.markRead('u1', 'n1')).resolves.toEqual({ success: true });
+    await expect(service.markRead('u1', 'n1')).resolves.toEqual({
+      success: true,
+    });
     await expect(service.markAllRead('u1')).resolves.toEqual({ success: true });
   });
 
@@ -71,20 +82,28 @@ describe('NotificationsService', () => {
     const { prisma, service } = dependencies();
     prisma.notification.updateMany.mockResolvedValue({ count: 0 });
 
-    await expect(service.markRead('u1', 'n9')).rejects.toThrow(NotFoundException);
+    await expect(service.markRead('u1', 'n9')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('administra preferencias y suscripciones push', async () => {
     const { prisma, service } = dependencies();
     prisma.notificationPreference.findMany.mockResolvedValue([]);
-    prisma.notificationPreference.upsert.mockResolvedValue({ habilitado: true });
+    prisma.notificationPreference.upsert.mockResolvedValue({
+      habilitado: true,
+    });
     prisma.pushSubscription.upsert.mockResolvedValue({ id: 'p1' });
 
     await expect(service.preferences('u1')).resolves.toEqual([]);
-    await expect(service.savePreference('u1', 'SECURITY', 'WEB_PUSH', true)).resolves.toEqual({ habilitado: true });
-    await expect(service.savePushSubscription('u1', {
-      endpoint: 'https://push.example/subscription',
-      keys: { p256dh: 'key', auth: 'auth' },
-    })).resolves.toEqual({ id: 'p1' });
+    await expect(
+      service.savePreference('u1', 'SECURITY', 'WEB_PUSH', true),
+    ).resolves.toEqual({ habilitado: true });
+    await expect(
+      service.savePushSubscription('u1', {
+        endpoint: 'https://push.example/subscription',
+        keys: { p256dh: 'key', auth: 'auth' },
+      }),
+    ).resolves.toEqual({ id: 'p1' });
   });
 });

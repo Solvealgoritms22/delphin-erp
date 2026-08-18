@@ -8,7 +8,9 @@ export class FiscalBridgeService {
    * Normaliza el entorno a PROD | CERT | TEST
    */
   normalizeFbEnv(env: string | null | undefined): string {
-    const v = String(env || '').trim().toUpperCase();
+    const v = String(env || '')
+      .trim()
+      .toUpperCase();
     if (v === 'PROD' || v === 'PRODUCTION' || v === 'ECF') return 'PROD';
     if (v === 'CERT' || v === 'CERTECF' || v === 'CERTIFICATION') return 'CERT';
     return 'TEST';
@@ -17,9 +19,13 @@ export class FiscalBridgeService {
   /**
    * Obtiene los headers HTTP de autenticación según el método configurado en la empresa
    */
-  async getAuthHeaders(empresa: any): Promise<{ headers: Record<string, string>; baseUrl: string }> {
+  async getAuthHeaders(
+    empresa: any,
+  ): Promise<{ headers: Record<string, string>; baseUrl: string }> {
     if (!empresa.fiscalbridgeUrl) {
-      throw new BadRequestException('FiscalBridge no está configurado en esta empresa.');
+      throw new BadRequestException(
+        'FiscalBridge no está configurado en esta empresa.',
+      );
     }
 
     const headers: Record<string, string> = {
@@ -28,14 +34,20 @@ export class FiscalBridgeService {
 
     let baseUrl = empresa.fiscalbridgeUrl.trim();
     if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
-    const cleanedBaseUrl = baseUrl.endsWith('/v1') ? baseUrl.slice(0, -3) : baseUrl;
+    const cleanedBaseUrl = baseUrl.endsWith('/v1')
+      ? baseUrl.slice(0, -3)
+      : baseUrl;
 
-    const authMethod = (empresa.fiscalbridgeAuthMethod || 'TOKEN').toUpperCase();
+    const authMethod = (
+      empresa.fiscalbridgeAuthMethod || 'TOKEN'
+    ).toUpperCase();
 
     if (authMethod === 'TOKEN') {
       const token = empresa.fiscalbridgeToken;
       if (!token) {
-        throw new BadRequestException('No hay un API Token de FiscalBridge configurado en la empresa.');
+        throw new BadRequestException(
+          'No hay un API Token de FiscalBridge configurado en la empresa.',
+        );
       }
       headers['Authorization'] = `Bearer ${token}`;
     } else if (authMethod === 'EMAIL') {
@@ -44,7 +56,9 @@ export class FiscalBridgeService {
       const clientId = empresa.fiscalbridgeClientId;
 
       if (!email || !password) {
-        throw new BadRequestException('Credenciales de correo y contraseña incompletas para FiscalBridge.');
+        throw new BadRequestException(
+          'Credenciales de correo y contraseña incompletas para FiscalBridge.',
+        );
       }
 
       const loginRes = await fetch(`${cleanedBaseUrl}/auth/login`, {
@@ -55,13 +69,17 @@ export class FiscalBridgeService {
 
       if (!loginRes.ok) {
         const err = await loginRes.json().catch(() => ({}));
-        throw new BadRequestException(`Error de autenticación FiscalBridge: ${err.message || loginRes.statusText}`);
+        throw new BadRequestException(
+          `Error de autenticación FiscalBridge: ${err.message || loginRes.statusText}`,
+        );
       }
 
       const loginData = await loginRes.json();
       const token = loginData.access_token || loginData.token;
       if (!token) {
-        throw new BadRequestException('FiscalBridge no devolvió un token de acceso válido.');
+        throw new BadRequestException(
+          'FiscalBridge no devolvió un token de acceso válido.',
+        );
       }
 
       headers['Authorization'] = `Bearer ${token}`;
@@ -71,7 +89,9 @@ export class FiscalBridgeService {
       const clientSecret = empresa.fiscalbridgeClientSecret;
 
       if (!clientId || !clientSecret) {
-        throw new BadRequestException('Client ID o Client Secret incompletos para OAuth2 de FiscalBridge.');
+        throw new BadRequestException(
+          'Client ID o Client Secret incompletos para OAuth2 de FiscalBridge.',
+        );
       }
 
       const tokenRes = await fetch(`${cleanedBaseUrl}/auth/token`, {
@@ -86,7 +106,9 @@ export class FiscalBridgeService {
 
       if (!tokenRes.ok) {
         const err = await tokenRes.json().catch(() => ({}));
-        throw new BadRequestException(`Error OAuth2 FiscalBridge: ${err.message || tokenRes.statusText}`);
+        throw new BadRequestException(
+          `Error OAuth2 FiscalBridge: ${err.message || tokenRes.statusText}`,
+        );
       }
 
       const tokenData = await tokenRes.json();
@@ -100,7 +122,9 @@ export class FiscalBridgeService {
   /**
    * Prueba la conectividad y credenciales con la API de FiscalBridge
    */
-  async testConnection(empresa: any): Promise<{ success: boolean; message: string; data?: any }> {
+  async testConnection(
+    empresa: any,
+  ): Promise<{ success: boolean; message: string; data?: any }> {
     try {
       const { headers, baseUrl } = await this.getAuthHeaders(empresa);
       const res = await fetch(`${baseUrl}/documents?limit=1`, { headers });
@@ -127,10 +151,15 @@ export class FiscalBridgeService {
    * Construye el JSON estándar ECF según la norma de la DGII de República Dominicana
    */
   buildEcfPayload(invoice: any, empresa: any): any {
-    const fechaEmision = invoice.fecha ? new Date(invoice.fecha).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+    const fechaEmision = invoice.fecha
+      ? new Date(invoice.fecha).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0];
     const ncf = invoice.ncf || '';
-    const tipoEcf = invoice.tipoNcf || (ncf.startsWith('E') ? ncf.substring(0, 3) : 'E32');
-    const docTypeCode = tipoEcf.startsWith('E') ? tipoEcf.replace('E', '') : '32';
+    const tipoEcf =
+      invoice.tipoNcf || (ncf.startsWith('E') ? ncf.substring(0, 3) : 'E32');
+    const docTypeCode = tipoEcf.startsWith('E')
+      ? tipoEcf.replace('E', '')
+      : '32';
 
     // Comprador
     let comprador: any = {
@@ -139,11 +168,18 @@ export class FiscalBridgeService {
 
     if (invoice.cliente) {
       comprador = {
-        RNCComprador: invoice.cliente.numeroDocumento?.replace(/[^0-9]/g, '') || undefined,
+        RNCComprador:
+          invoice.cliente.numeroDocumento?.replace(/[^0-9]/g, '') || undefined,
         RazonSocialComprador: invoice.cliente.nombreRazonSocial || 'CLIENTE',
-        ...(invoice.cliente.direccion ? { DireccionComprador: invoice.cliente.direccion } : {}),
-        ...(invoice.cliente.telefono ? { TelefonoComprador: invoice.cliente.telefono } : {}),
-        ...(invoice.cliente.email ? { CorreoComprador: invoice.cliente.email } : {}),
+        ...(invoice.cliente.direccion
+          ? { DireccionComprador: invoice.cliente.direccion }
+          : {}),
+        ...(invoice.cliente.telefono
+          ? { TelefonoComprador: invoice.cliente.telefono }
+          : {}),
+        ...(invoice.cliente.email
+          ? { CorreoComprador: invoice.cliente.email }
+          : {}),
       };
     }
 
@@ -196,7 +232,10 @@ export class FiscalBridgeService {
     };
 
     // Referencia si es Nota de Crédito / Débito (E34 / E33)
-    if ((docTypeCode === '33' || docTypeCode === '34') && invoice.ncfModificado) {
+    if (
+      (docTypeCode === '33' || docTypeCode === '34') &&
+      invoice.ncfModificado
+    ) {
       payload.fiscal_json.ECF.InformacionReferencia = {
         NCFModificado: invoice.ncfModificado,
         FechaNCFModificado: fechaEmision,
@@ -214,7 +253,9 @@ export class FiscalBridgeService {
     const { headers, baseUrl } = await this.getAuthHeaders(empresa);
     const payload = this.buildEcfPayload(invoice, empresa);
 
-    this.logger.log(`Transmitiendo factura ${invoice.numeroFactura} (${invoice.ncf}) a FiscalBridge...`);
+    this.logger.log(
+      `Transmitiendo factura ${invoice.numeroFactura} (${invoice.ncf}) a FiscalBridge...`,
+    );
 
     const res = await fetch(`${baseUrl}/documents`, {
       method: 'POST',
@@ -223,13 +264,18 @@ export class FiscalBridgeService {
     });
 
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({ message: 'Error desconocido de FiscalBridge' }));
-      throw new BadRequestException(`FiscalBridge rechazó la factura: ${errData.message || res.statusText}`);
+      const errData = await res
+        .json()
+        .catch(() => ({ message: 'Error desconocido de FiscalBridge' }));
+      throw new BadRequestException(
+        `FiscalBridge rechazó la factura: ${errData.message || res.statusText}`,
+      );
     }
 
     const data = await res.json();
     return {
-      documentUuid: data.documentUuid || data.document_uuid || data.uuid || data.id,
+      documentUuid:
+        data.documentUuid || data.document_uuid || data.uuid || data.id,
       status: data.status || 'SENT',
       trackId: data.trackId || data.track_id || null,
       securityCode: data.securityCode || data.security_code || null,
@@ -242,10 +288,14 @@ export class FiscalBridgeService {
    */
   async getPdfBuffer(documentUuid: string, empresa: any): Promise<Buffer> {
     const { headers, baseUrl } = await this.getAuthHeaders(empresa);
-    const res = await fetch(`${baseUrl}/documents/${documentUuid}/pdf`, { headers });
+    const res = await fetch(`${baseUrl}/documents/${documentUuid}/pdf`, {
+      headers,
+    });
     if (!res.ok) {
       const msg = await res.text().catch(() => res.statusText);
-      throw new BadRequestException(`No se pudo obtener el PDF de FiscalBridge: ${msg}`);
+      throw new BadRequestException(
+        `No se pudo obtener el PDF de FiscalBridge: ${msg}`,
+      );
     }
     const arrayBuffer = await res.arrayBuffer();
     return Buffer.from(arrayBuffer);
@@ -256,10 +306,14 @@ export class FiscalBridgeService {
    */
   async getXmlBuffer(documentUuid: string, empresa: any): Promise<Buffer> {
     const { headers, baseUrl } = await this.getAuthHeaders(empresa);
-    const res = await fetch(`${baseUrl}/documents/${documentUuid}/xml`, { headers });
+    const res = await fetch(`${baseUrl}/documents/${documentUuid}/xml`, {
+      headers,
+    });
     if (!res.ok) {
       const msg = await res.text().catch(() => res.statusText);
-      throw new BadRequestException(`No se pudo obtener el XML de FiscalBridge: ${msg}`);
+      throw new BadRequestException(
+        `No se pudo obtener el XML de FiscalBridge: ${msg}`,
+      );
     }
     const arrayBuffer = await res.arrayBuffer();
     return Buffer.from(arrayBuffer);
@@ -270,7 +324,9 @@ export class FiscalBridgeService {
    */
   async getDocumentStatus(documentUuid: string, empresa: any): Promise<any> {
     const { headers, baseUrl } = await this.getAuthHeaders(empresa);
-    const res = await fetch(`${baseUrl}/documents/${documentUuid}/status`, { headers });
+    const res = await fetch(`${baseUrl}/documents/${documentUuid}/status`, {
+      headers,
+    });
     if (!res.ok) {
       return { status: 'UNKNOWN' };
     }

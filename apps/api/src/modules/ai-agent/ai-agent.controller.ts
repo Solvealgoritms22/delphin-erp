@@ -26,7 +26,9 @@ export class AiAgentController {
   constructor(private readonly aiAgentService: AiAgentService) {}
 
   @Get('conversations')
-  @ApiOperation({ summary: 'Get all AI conversations for current user and company' })
+  @ApiOperation({
+    summary: 'Get all AI conversations for current user and company',
+  })
   async getConversations(@CurrentUser() user: any) {
     const empresaId = user?.empresaId;
     if (!empresaId) {
@@ -49,13 +51,20 @@ export class AiAgentController {
 
   @Post('conversations')
   @ApiOperation({ summary: 'Create a new AI conversation thread' })
-  async createConversation(@CurrentUser() user: any, @Body() body: { title?: string }) {
+  async createConversation(
+    @CurrentUser() user: any,
+    @Body() body: { title?: string },
+  ) {
     const empresaId = user?.empresaId;
     if (!empresaId) {
       throw new UnauthorizedException('No active company selected.');
     }
     const userId = user.id || user.sub;
-    return this.aiAgentService.createConversation(empresaId, userId, body?.title);
+    return this.aiAgentService.createConversation(
+      empresaId,
+      userId,
+      body?.title,
+    );
   }
 
   @Delete('conversations/:id')
@@ -71,14 +80,18 @@ export class AiAgentController {
 
   @Post('chat')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Interact with ERP AI Assistant with read-only database tools' })
+  @ApiOperation({
+    summary: 'Interact with ERP AI Assistant with read-only database tools',
+  })
   async chat(
     @CurrentUser() user: any,
     @Body() dto: ChatRequestDto,
   ): Promise<ChatResponseDto> {
     const empresaId = user?.empresaId;
     if (!empresaId) {
-      throw new UnauthorizedException('No active company selected for this session.');
+      throw new UnauthorizedException(
+        'No active company selected for this session.',
+      );
     }
 
     return this.aiAgentService.processChat(
@@ -94,7 +107,9 @@ export class AiAgentController {
 
   @Post('chat/stream')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Stream AI assistant tokens in real-time (SSE / Token by token)' })
+  @ApiOperation({
+    summary: 'Stream AI assistant tokens in real-time (SSE / Token by token)',
+  })
   async chatStream(
     @CurrentUser() user: any,
     @Body() dto: ChatRequestDto,
@@ -102,7 +117,9 @@ export class AiAgentController {
   ): Promise<void> {
     const empresaId = user?.empresaId;
     if (!empresaId) {
-      throw new UnauthorizedException('No active company selected for this session.');
+      throw new UnauthorizedException(
+        'No active company selected for this session.',
+      );
     }
 
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -143,8 +160,13 @@ export class AiAgentController {
 
     return {
       status: 'active',
-      provider: hasExternalKey ? 'OpenRouter / LLM' : 'Ollama (Local) / Heuristic Engine',
-      model: process.env.OLLAMA_MODEL || process.env.OPENROUTER_MODEL || 'qwen2.5:3b',
+      provider: hasExternalKey
+        ? 'OpenRouter / LLM'
+        : 'Ollama (Local) / Heuristic Engine',
+      model:
+        process.env.OLLAMA_MODEL ||
+        process.env.OPENROUTER_MODEL ||
+        'qwen2.5:3b',
       companyId: user?.empresaId,
       capabilities: [
         'Read-Only Database Queries',

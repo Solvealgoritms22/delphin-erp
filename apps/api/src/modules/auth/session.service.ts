@@ -10,7 +10,9 @@ export class SessionService {
       where: {
         usuarioId: userId,
       },
-      include: { usuario: { select: { nombre: true, email: true, avatar: true } } },
+      include: {
+        usuario: { select: { nombre: true, email: true, avatar: true } },
+      },
       orderBy: { ultimoAcceso: 'desc' },
       take: 50,
     });
@@ -18,7 +20,8 @@ export class SessionService {
 
     return sessions.map((session: any) => ({
       id: session.id,
-      personName: session.usuario?.nombre || session.usuario?.email || 'Usuario',
+      personName:
+        session.usuario?.nombre || session.usuario?.email || 'Usuario',
       personAvatar: session.usuario?.avatar || null,
       browserName: session.browserName || 'Navegador desconocido',
       osName: session.osName || 'Sistema desconocido',

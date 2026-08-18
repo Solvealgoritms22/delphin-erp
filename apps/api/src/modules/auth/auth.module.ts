@@ -18,11 +18,17 @@ import { TenantMailerService } from '../../common/tenant-mailer.service';
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '12h' },
+      signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN || '12h') as any },
     }),
   ],
   controllers: [AuthController, SessionController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, SessionService, TenantMailerService],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    SessionService,
+    TenantMailerService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

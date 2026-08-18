@@ -229,7 +229,7 @@ cp .env.example .env
 Aplica el esquema y genera el cliente Prisma:
 
 ```bash
-npx prisma db push
+npx prisma migrate deploy
 npx prisma db seed
 cd ../..
 ```
@@ -333,6 +333,7 @@ El instalador se generará en la carpeta `apps/desktop/dist/electron/`.
 * **Protección XSS & Injection:** `contextIsolation: true` y `nodeIntegration: false` activados en Electron con comunicación segura vía `contextBridge`.
 * **Registro de Auditoría:** Registro automático de IPs, navegadores, inicios de sesión y acciones críticas en la tabla `ActivityLog`.
 * **Manejo de Contraseñas:** Encriptación con Argon2 y Bcrypt con rondas de coste seguras.
+* **Backups por empresa:** Exportaciones cifradas con AES-256-GCM, almacenamiento local privado y conector opcional de Google Drive para propietarios. Ver `docs/backups.md`.
 
 ---
 

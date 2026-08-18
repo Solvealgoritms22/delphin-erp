@@ -26,6 +26,8 @@ yarn-error.log*
 # Local databases
 apps/api/prisma/dev.db*
 apps/api/prisma/dev.db-journal
+var/backups/
+apps/api/var/backups/
 
 
 # IDEs and editors

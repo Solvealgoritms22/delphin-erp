@@ -24,7 +24,7 @@ export class AuthState {
   setSession(user: User, token: string, empresaId?: string | null): void {
     this._user.set(user);
     this._accessToken.set(token);
-    const activeEmpresa = empresaId !== undefined ? empresaId : (user.empresaId || (this.isBrowser ? localStorage.getItem('active_empresa_id') : null));
+    const activeEmpresa = empresaId !== undefined ? empresaId : (user.empresaId || null);
     this._empresaId.set(activeEmpresa);
     this.saveToStorage(user, token, activeEmpresa);
   }
@@ -71,32 +71,25 @@ export class AuthState {
   private loadFromStorage(): void {
     if (!this.isBrowser) return;
     try {
-      const token = localStorage.getItem('auth_token');
-      const user = localStorage.getItem('auth_user');
-      const savedEmpresaId = localStorage.getItem('active_empresa_id');
+        const user = localStorage.getItem('auth_user');
 
-      if (token && user) {
-        // Prevent an old oversized JWT from breaking every API request.
-        if (token.length > 8192) {
-          this.clearSession();
-          return;
-        }
-        this._accessToken.set(token);
+      // Access tokens are intentionally memory-only. A renderer compromise must not
+      // be able to recover a long-lived credential from persistent storage.
+      if (user) {
         const parsed: User | null = JSON.parse(user);
         this._user.set(parsed);
-        const empresaId = savedEmpresaId || parsed?.empresaId || null;
+        const empresaId = parsed?.empresaId || null;
         if (empresaId) {
           this._empresaId.set(empresaId);
         }
       }
-    } catch (e) {
+    } catch {
       this.clearSession();
     }
   }
 
   private saveToStorage(user: User, token: string, empresaId?: string | null): void {
     if (this.isBrowser) {
-      localStorage.setItem('auth_token', token);
       localStorage.setItem('auth_user', JSON.stringify(user));
       const targetEmpresa = empresaId ?? user.empresaId;
       if (targetEmpresa) {

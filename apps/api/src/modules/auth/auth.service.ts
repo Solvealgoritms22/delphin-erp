@@ -11,7 +11,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { PrismaService } from '../../prisma/prisma.service';
 import { normalizePermissions } from '../../common/permissions.util';
 import * as bcrypt from 'bcrypt';
-import { createHash, randomUUID } from 'crypto';
+import { createHash, randomInt, randomUUID } from 'crypto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { TenantMailerService } from '../../common/tenant-mailer.service';
 
@@ -28,7 +28,7 @@ export class AuthService {
     private jwtService: JwtService,
     private mailerService: MailerService,
     private prisma: PrismaService,
-    private tenantMailer: TenantMailerService,
+    @Optional() private tenantMailer?: TenantMailerService,
     @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
@@ -61,17 +61,17 @@ export class AuthService {
     }
 
     // Prioritize checking if the account is verified before any role or tenant checks
-    if (!user.isVerified) {
+    if (user.isVerified === false) {
       throw new UnauthorizedException({
-        message: 'Cuenta no verificada. Por favor, verifica tu correo electrónico.',
+        message:
+          'Cuenta no verificada. Por favor, verifica tu correo electrónico.',
         needsVerification: true,
         email: user.email,
       });
     }
 
     // Check if user is company owner or has an ACTIVE membership
-    const isOwner =
-      user.empresasPropiedad && user.empresasPropiedad.length > 0;
+    const isOwner = user.empresasPropiedad && user.empresasPropiedad.length > 0;
     const activeMembership = user.membresias?.find(
       (m) => m.estado === 'ACTIVO',
     );
@@ -126,7 +126,9 @@ export class AuthService {
     const ipAddress = request?.ip as string | undefined;
     const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000);
 
-    const deviceKey = [browserName, osName, ipAddress].filter(Boolean).join('|');
+    const deviceKey = [browserName, osName, ipAddress]
+      .filter(Boolean)
+      .join('|');
     let matchingSessions: any[] = [];
     if (deviceKey) {
       const activeSessions =
@@ -259,7 +261,12 @@ export class AuthService {
     if (hay.includes('postman')) return 'Postman';
     if (hay.includes('curl')) return 'curl';
     if (hay.includes('wget')) return 'wget';
-    if (hay.includes('axios') || hay.includes('node-fetch') || hay.includes('node.js')) return 'Node.js';
+    if (
+      hay.includes('axios') ||
+      hay.includes('node-fetch') ||
+      hay.includes('node.js')
+    )
+      return 'Node.js';
     if (hay.includes('python')) return 'Python';
 
     return 'Navegador desconocido';
@@ -279,7 +286,10 @@ export class AuthService {
   }
 
   async register(data: any) {
-    if (data.confirmPassword !== undefined && data.password !== data.confirmPassword) {
+    if (
+      data.confirmPassword !== undefined &&
+      data.password !== data.confirmPassword
+    ) {
       throw new BadRequestException('Las contraseñas no coinciden');
     }
 
@@ -307,7 +317,7 @@ export class AuthService {
     });
 
     // The main account owns the company and registers its membership
-    const empresa = await this.prisma.empresa.create({
+    await this.prisma.empresa.create({
       data: {
         razonSocial: data.company || data.empresa || 'Nueva Empresa',
         rnc: data.documentNumber || data.rnc || null,
@@ -325,12 +335,12 @@ export class AuthService {
     });
 
     // Send verification email
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = this.generateOtp();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await this.prisma.usuario.update({
       where: { id: user.id },
-      data: { otpCode: otp, otpExpiresAt: expiresAt },
+      data: { otpCode: this.hashOtp(otp), otpExpiresAt: expiresAt },
     });
 
     const subject = 'Verifica tu cuenta - Dolphin ERP';
@@ -367,7 +377,8 @@ export class AuthService {
     });
     if (
       !user ||
-      user.otpCode !== normalizedOtp ||
+      (user.otpCode !== this.hashOtp(normalizedOtp) &&
+        user.otpCode !== normalizedOtp) ||
       (user.otpExpiresAt && user.otpExpiresAt < new Date())
     ) {
       throw new BadRequestException('Código OTP inválido o expirado');
@@ -403,12 +414,12 @@ export class AuthService {
       throw new BadRequestException('La cuenta ya está verificada');
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = this.generateOtp();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await this.prisma.usuario.update({
       where: { id: user.id },
-      data: { otpCode: otp, otpExpiresAt: expiresAt },
+      data: { otpCode: this.hashOtp(otp), otpExpiresAt: expiresAt },
     });
 
     const subject = 'Verifica tu cuenta - Dolphin ERP';
@@ -443,7 +454,7 @@ export class AuthService {
       (e) => e.id === targetEmpresaId,
     );
     const membership = user.membresias.find(
-      (m) => m.empresaId === targetEmpresaId,
+      (m) => m.empresaId === targetEmpresaId && m.estado === 'ACTIVO',
     );
     if (!isOwner && !membership)
       throw new BadRequestException('User does not belong to this tenant');
@@ -466,19 +477,29 @@ export class AuthService {
       email: user.email,
       sub: user.id,
       empresaId: targetEmpresaId,
+      sessionId: randomUUID(),
       name: user.nombre,
       mustChangePassword: user.debeCambiarPassword,
       permissions,
       plan,
     };
+    const accessToken = this.jwtService.sign(payload);
+    await this.prisma.userSession.create({
+      data: {
+        id: payload.sessionId,
+        usuarioId: user.id,
+        tokenHash: createHash('sha256').update(accessToken).digest('hex'),
+        expiraEn: new Date(Date.now() + 12 * 60 * 60 * 1000),
+      },
+    });
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: accessToken,
       user: { ...payload, avatar: user.avatar },
     };
   }
 
   async forgotPassword(email: string) {
-    const user = await this.prisma.usuario.findFirst({
+    const user = (await this.prisma.usuario.findFirst({
       where: { email },
       include: {
         empresasPropiedad: { select: { id: true } },
@@ -488,19 +509,19 @@ export class AuthService {
           take: 1,
         },
       },
-    }) as any;
+    })) as any;
 
     if (!user) {
       // No revelar si el usuario existe
       return { success: true };
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = this.generateOtp();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await this.prisma.usuario.update({
       where: { id: user.id },
-      data: { otpCode: otp, otpExpiresAt: expiresAt },
+      data: { otpCode: this.hashOtp(otp), otpExpiresAt: expiresAt },
     });
 
     const subject = 'Código de Verificación - Dolphin ERP';
@@ -519,16 +540,28 @@ export class AuthService {
 
     if (isOwner) {
       // Propietario → SMTP del sistema
-      await this.mailerService.sendMail({ to: user.email, subject, html, text });
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject,
+        html,
+        text,
+      });
     } else {
       // Colaborador → SMTP del tenant (owner de su membresia)
       const tenantEmpresa = user.membresias?.[0]?.empresa;
       if (!tenantEmpresa || !tenantEmpresa.propietarioId) {
         return { success: true };
       }
-      const owner = await this.prisma.usuario.findUnique({ where: { id: tenantEmpresa.propietarioId } }) as any;
+      const owner = (await this.prisma.usuario.findUnique({
+        where: { id: tenantEmpresa.propietarioId },
+      })) as any;
       if (!owner) return { success: true };
-      await this.tenantMailer.sendMail(owner, { to: user.email, subject, html, text });
+      await this.tenantMailer?.sendMail(owner, {
+        to: user.email,
+        subject,
+        html,
+        text,
+      });
     }
 
     return { success: true };
@@ -538,7 +571,7 @@ export class AuthService {
     const user = await this.usersService.findOne(email);
     if (
       !user ||
-      user.otpCode !== otp ||
+      (user.otpCode !== this.hashOtp(otp) && user.otpCode !== otp) ||
       (user.otpExpiresAt && user.otpExpiresAt < new Date())
     ) {
       throw new BadRequestException('Código OTP inválido o expirado');
@@ -550,7 +583,7 @@ export class AuthService {
     const user = await this.usersService.findOne(email);
     if (
       !user ||
-      user.otpCode !== otp ||
+      (user.otpCode !== this.hashOtp(otp) && user.otpCode !== otp) ||
       (user.otpExpiresAt && user.otpExpiresAt < new Date())
     ) {
       throw new BadRequestException('Código OTP inválido o expirado');
@@ -571,36 +604,71 @@ export class AuthService {
     if (data.avatar !== undefined) updateData.avatar = data.avatar;
 
     // SMTP settings
-    if (data.smtpEnabled !== undefined) updateData.smtpEnabled = data.smtpEnabled;
-    if (data.smtpHost !== undefined) updateData.smtpHost = data.smtpHost || null;
-    if (data.smtpPort !== undefined) updateData.smtpPort = data.smtpPort ? Number(data.smtpPort) : null;
-    if (data.smtpUser !== undefined) updateData.smtpUser = data.smtpUser || null;
-    if (data.smtpPass !== undefined) updateData.smtpPass = data.smtpPass || null;
-    if (data.smtpFrom !== undefined) updateData.smtpFrom = data.smtpFrom || null;
-    if (data.smtpSecure !== undefined) updateData.smtpSecure = Boolean(data.smtpSecure);
+    if (data.smtpEnabled !== undefined)
+      updateData.smtpEnabled = data.smtpEnabled;
+    if (data.smtpHost !== undefined)
+      updateData.smtpHost = data.smtpHost || null;
+    if (data.smtpPort !== undefined)
+      updateData.smtpPort = data.smtpPort ? Number(data.smtpPort) : null;
+    if (data.smtpUser !== undefined)
+      updateData.smtpUser = data.smtpUser || null;
+    if (data.smtpPass !== undefined)
+      updateData.smtpPass = data.smtpPass || null;
+    if (data.smtpFrom !== undefined)
+      updateData.smtpFrom = data.smtpFrom || null;
+    if (data.smtpSecure !== undefined)
+      updateData.smtpSecure = Boolean(data.smtpSecure);
 
-    return this.prisma.usuario.update({
+    const updated = await this.prisma.usuario.update({
       where: { id: userId },
       data: updateData,
+      select: {
+        id: true,
+        email: true,
+        nombre: true,
+        avatar: true,
+        smtpEnabled: true,
+        smtpHost: true,
+        smtpPort: true,
+        smtpUser: true,
+        smtpFrom: true,
+        smtpSecure: true,
+      },
     });
+    return updated;
   }
 
   async testSmtpConnection(userId: string) {
-    const user = await this.prisma.usuario.findUnique({ where: { id: userId } }) as any;
+    if (!this.tenantMailer)
+      throw new BadRequestException('Servicio SMTP no disponible');
+    const user = (await this.prisma.usuario.findUnique({
+      where: { id: userId },
+    })) as any;
     if (!user) throw new NotFoundException('Usuario no encontrado');
-    if (!user.smtpHost) throw new BadRequestException('Configura el host SMTP antes de probar la conexión.');
+    if (!user.smtpHost)
+      throw new BadRequestException(
+        'Configura el host SMTP antes de probar la conexión.',
+      );
     return this.tenantMailer.testTcpConnection(
       user.smtpHost,
       user.smtpPort ?? 587,
     );
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
     if (!newPassword || newPassword.length < 6) {
-      throw new BadRequestException('La nueva contraseña debe tener al menos 6 caracteres');
+      throw new BadRequestException(
+        'La nueva contraseña debe tener al menos 6 caracteres',
+      );
     }
 
-    const user = await this.prisma.usuario.findUnique({ where: { id: userId } });
+    const user = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+    });
     if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
       throw new UnauthorizedException('La contraseña actual no es válida');
     }
@@ -610,8 +678,22 @@ export class AuthService {
       where: { id: userId },
       data: { passwordHash, debeCambiarPassword: false },
     });
+    await this.prisma.userSession.updateMany({
+      where: { usuarioId: userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
 
     return { success: true };
+  }
+
+  private generateOtp() {
+    return randomInt(100000, 1000000).toString();
+  }
+
+  private hashOtp(otp: string) {
+    return createHash('sha256')
+      .update(otp || '')
+      .digest('hex');
   }
 
   async acceptInvitation(
@@ -620,20 +702,31 @@ export class AuthService {
     confirmPassword: string,
     acceptedPolicies: boolean,
   ) {
-    if (!acceptedPolicies) throw new BadRequestException('Debes aceptar las políticas para activar la cuenta');
+    if (!acceptedPolicies)
+      throw new BadRequestException(
+        'Debes aceptar las políticas para activar la cuenta',
+      );
     if (!newPassword || newPassword.length < 8) {
-      throw new BadRequestException('La contraseña debe tener al menos 8 caracteres');
+      throw new BadRequestException(
+        'La contraseña debe tener al menos 8 caracteres',
+      );
     }
     if (newPassword !== confirmPassword) {
       throw new BadRequestException('Las contraseñas no coinciden');
     }
 
-    const tokenHash = createHash('sha256').update(token || '').digest('hex');
+    const tokenHash = createHash('sha256')
+      .update(token || '')
+      .digest('hex');
     const user = await this.prisma.usuario.findUnique({
       where: { invitacionTokenHash: tokenHash },
       include: { membresias: true },
     });
-    if (!user || !user.invitacionExpiraEn || user.invitacionExpiraEn < new Date()) {
+    if (
+      !user ||
+      !user.invitacionExpiraEn ||
+      user.invitacionExpiraEn < new Date()
+    ) {
       throw new BadRequestException('La invitación no existe o expiró');
     }
 
@@ -689,7 +782,8 @@ export class AuthService {
     const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
     const redirectUri = process.env.GOOGLE_REDIRECT_URI?.trim();
-    const frontendUrl = process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
+    const frontendUrl =
+      process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
     if (!clientId || !clientSecret || !redirectUri) {
       throw new BadRequestException('Google OAuth no está configurado');
     }
@@ -705,16 +799,22 @@ export class AuthService {
         grant_type: 'authorization_code',
       }),
     });
-    if (!tokenResponse.ok) throw new UnauthorizedException('No se pudo validar la cuenta de Google');
+    if (!tokenResponse.ok)
+      throw new UnauthorizedException('No se pudo validar la cuenta de Google');
 
-    const tokens = await tokenResponse.json() as { access_token?: string };
-    if (!tokens.access_token) throw new UnauthorizedException('Google no devolvió un token válido');
-    const profileResponse = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
-    });
-    if (!profileResponse.ok) throw new UnauthorizedException('No se pudo obtener el perfil de Google');
+    const tokens = (await tokenResponse.json()) as { access_token?: string };
+    if (!tokens.access_token)
+      throw new UnauthorizedException('Google no devolvió un token válido');
+    const profileResponse = await fetch(
+      'https://openidconnect.googleapis.com/v1/userinfo',
+      {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      },
+    );
+    if (!profileResponse.ok)
+      throw new UnauthorizedException('No se pudo obtener el perfil de Google');
 
-    const profile = await profileResponse.json() as {
+    const profile = (await profileResponse.json()) as {
       sub?: string;
       email?: string;
       name?: string;
@@ -726,17 +826,25 @@ export class AuthService {
 
     let user = await this.prisma.usuario.findUnique({
       where: { googleSub: profile.sub },
-      include: { membresias: { include: { role: true } }, empresasPropiedad: true },
+      include: {
+        membresias: { include: { role: true } },
+        empresasPropiedad: true,
+      },
     });
     if (!user) {
       user = await this.prisma.usuario.findUnique({
         where: { email: profile.email },
-        include: { membresias: { include: { role: true } }, empresasPropiedad: true },
+        include: {
+          membresias: { include: { role: true } },
+          empresasPropiedad: true,
+        },
       });
     }
 
     if (user && user.empresasPropiedad.length === 0 && !user.googleSub) {
-      throw new UnauthorizedException('Google OAuth está disponible únicamente para propietarios');
+      throw new UnauthorizedException(
+        'Google OAuth está disponible únicamente para propietarios',
+      );
     }
 
     if (!user) {
@@ -748,13 +856,19 @@ export class AuthService {
           isVerified: true,
           passwordHash: await bcrypt.hash(randomUUID(), 10),
         },
-        include: { membresias: { include: { role: true } }, empresasPropiedad: true },
+        include: {
+          membresias: { include: { role: true } },
+          empresasPropiedad: true,
+        },
       });
     } else if (!user.googleSub) {
       user = await this.prisma.usuario.update({
         where: { id: user.id },
         data: { googleSub: profile.sub, isVerified: true },
-        include: { membresias: { include: { role: true } }, empresasPropiedad: true },
+        include: {
+          membresias: { include: { role: true } },
+          empresasPropiedad: true,
+        },
       });
     }
 
@@ -780,9 +894,14 @@ export class AuthService {
     if (!pending || pending.expiresAt < Date.now()) {
       throw new UnauthorizedException('El enlace de Google expiró');
     }
-    if (!acceptedPolicies) throw new BadRequestException('Debes aceptar las políticas para continuar');
+    if (!acceptedPolicies)
+      throw new BadRequestException(
+        'Debes aceptar las políticas para continuar',
+      );
     if (pending.needsCompany && !companyName?.trim()) {
-      throw new BadRequestException('Debes configurar el nombre de tu primera empresa');
+      throw new BadRequestException(
+        'Debes configurar el nombre de tu primera empresa',
+      );
     }
 
     if (pending.needsCompany) {
@@ -793,7 +912,9 @@ export class AuthService {
           razonSocial: companyName!.trim(),
           rnc: rnc?.trim() || null,
           propietarioId: pending.userId,
-          membresias: { create: { usuarioId: pending.userId, estado: 'ACTIVO' } },
+          membresias: {
+            create: { usuarioId: pending.userId, estado: 'ACTIVO' },
+          },
           suscripcion: {
             create: {
               planId: 'trial',
@@ -812,7 +933,10 @@ export class AuthService {
     });
     const user = await this.prisma.usuario.findUnique({
       where: { id: pending.userId },
-      include: { membresias: { include: { role: true } }, empresasPropiedad: true },
+      include: {
+        membresias: { include: { role: true } },
+        empresasPropiedad: true,
+      },
     });
     if (!user) throw new NotFoundException('Usuario de Google no encontrado');
     return this.login(user, request);
