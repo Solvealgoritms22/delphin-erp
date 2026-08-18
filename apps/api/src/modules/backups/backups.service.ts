@@ -34,7 +34,7 @@ const TENANT_MODELS = [
   'producto',
   'cliente',
   'proveedor',
-  'notificacion',
+  'notification',
   'secuenciaNCF',
   'facturaVenta',
   'aiConversation',
