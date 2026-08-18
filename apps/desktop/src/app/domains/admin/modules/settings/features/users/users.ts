@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, signal, inject, TemplateRef, ViewChild, DestroyRef } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import { Component, OnInit, computed, signal, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -8,12 +8,11 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { UsersService, User as Account } from '../../data/users';
 import { RolesService } from '../../data/roles';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
-import { StatCardComponent } from '@/app/shared/components/stat-card/stat-card.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { UserDialogComponent, UserDialogData } from './user-dialog.component';
 import { AuthState } from '@/app/core/auth/auth.state';
@@ -28,6 +27,7 @@ import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, Chevro
   },
   imports: [
     CommonModule,
+    DecimalPipe,
     FormsModule,
     MatButtonModule,
     MatIconModule,
@@ -35,7 +35,6 @@ import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, Chevro
     MatDialogModule,
     MatSnackBarModule,
     EmptyStateComponent,
-    StatCardComponent,
     TranslocoPipe,
     PlusIcon,
     UserRoundIcon,
@@ -81,28 +80,37 @@ import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, Chevro
       <!-- Central Scrollable Body -->
       <div class="flex-auto min-h-0 overflow-y-auto px-6 sm:px-10 py-8 pb-16">
         <!-- Stat Cards Grid -->
-        <div class="w-full mb-8">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <app-stat-card
-             [label]="'settings.users.total' | transloco"
-            [value]="accounts().length"
-            color="blue">
-            <i-user-round slot="icon" [size]="20" />
-          </app-stat-card>
-          <app-stat-card
-             [label]="'settings.users.activeMembers' | transloco"
-            [value]="activeCount()"
-            color="green">
-            <i-user-check slot="icon" [size]="20" />
-          </app-stat-card>
-          <app-stat-card
-             [label]="'settings.users.inactiveMembers' | transloco"
-            [value]="inactiveCount()"
-            color="amber">
-            <i-user-cog slot="icon" [size]="20" />
-          </app-stat-card>
-        </div>
-      </div>
+        <section class="grid gap-4 sm:grid-cols-3 mb-8">
+          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
+            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
+              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ 'settings.users.total' | transloco }}</p>
+              <div>
+                <p class="mt-5 text-4xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ accounts().length | number }}</p>
+                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">100% {{ 'dashboard.general.ofTotal' | transloco }}</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
+            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
+              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ 'settings.users.activeMembers' | transloco }}</p>
+              <div>
+                <p class="mt-5 text-4xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ activeCount() | number }}</p>
+                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">{{ percentageOf(activeCount()) }}% {{ 'dashboard.general.ofTotal' | transloco }}</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
+            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
+              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ 'settings.users.inactiveMembers' | transloco }}</p>
+              <div>
+                <p class="mt-5 text-4xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ inactiveCount() | number }}</p>
+                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">{{ percentageOf(inactiveCount()) }}% {{ 'dashboard.general.ofTotal' | transloco }}</p>
+              </div>
+            </div>
+          </article>
+        </section>
 
       <!-- Toolbar & Accounts List -->
       <div class="px-6 sm:px-10 w-full pb-12 flex flex-col gap-6">
@@ -384,8 +392,13 @@ export class UsersComponent implements OnInit {
       this.usersService.remove(user.id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: () => this.snackBar.open('Usuario eliminado', 'Cerrar', { duration: 2000 })
+          next: () => this.snackBar.open('Usuario eliminado', 'Cerrar', { duration: 2000 }),
         });
     }
+  }
+
+  percentageOf(value: number): number {
+    const total = this.accounts().length;
+    return total > 0 ? Math.round((value / total) * 100) : 0;
   }
 }

@@ -66,7 +66,6 @@ import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/think
               (keydown.enter)="saveTitle()"
               (blur)="saveTitle()"
               class="px-2 py-1 text-sm font-semibold rounded border border-blue-400 bg-transparent text-neutral-900 dark:text-white outline-none"
-              autofocus
             />
           } @else {
             <div class="truncate font-semibold text-sm text-neutral-900 dark:text-white">
