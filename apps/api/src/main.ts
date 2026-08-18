@@ -7,6 +7,12 @@ import { AppModule } from './app.module';
 import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 import helmet from 'helmet';
 
+// Permite la serialización automática de BigInt de Prisma en respuestas JSON
+(BigInt.prototype as any).toJSON = function () {
+  const intVal = Number(this);
+  return Number.isSafeInteger(intVal) ? intVal : this.toString();
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,

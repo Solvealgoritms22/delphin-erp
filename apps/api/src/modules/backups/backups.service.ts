@@ -62,7 +62,7 @@ export class BackupsService {
   async list(userId: string, empresaId?: string) {
     if (!empresaId) throw new BadRequestException('Empresa activa requerida');
     await this.assertOwner(userId, empresaId);
-    return this.prisma.backup.findMany({
+    const backups = await this.prisma.backup.findMany({
       where: { propietarioId: userId, empresaId, estado: { not: 'DELETED' } },
       select: {
         id: true,
@@ -80,6 +80,10 @@ export class BackupsService {
       },
       orderBy: { creadoEn: 'desc' },
     });
+    return backups.map((b) => ({
+      ...b,
+      tamanoBytes: b.tamanoBytes != null ? Number(b.tamanoBytes) : null,
+    }));
   }
 
   async create(
@@ -154,7 +158,11 @@ export class BackupsService {
         resourceType: 'Backup',
         metadata: { provider, sha256 },
       });
-      return result;
+      return {
+        ...result,
+        tamanoBytes:
+          result.tamanoBytes != null ? Number(result.tamanoBytes) : null,
+      };
     } catch (error) {
       await this.prisma.backup
         .update({
