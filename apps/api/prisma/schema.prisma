@@ -302,6 +302,7 @@ model OutboxEvent {
   id              String    @id @default(uuid())
   tipo            String
   aggregateId     String?   @map("aggregate_id")
+  empresaId       String?   @map("empresa_id")
   payload         String
   estado          String    @default("PENDING")
   intentos        Int       @default(0)
@@ -309,7 +310,9 @@ model OutboxEvent {
   procesadoEn     DateTime? @map("procesado_en")
   creadoEn        DateTime  @default(now()) @map("creado_en")
 
+  @@unique([tipo, aggregateId])
   @@index([estado, proximoIntentoEn, creadoEn])
+  @@index([empresaId])
   @@map("outbox_events")
 }
 
@@ -680,6 +683,9 @@ model FacturaVenta {
   // NCF Modificado (para Notas de Crédito E34 / B04)
   ncfModificado            String?      @map("ncf_modificado")
   motivoModificacion       String?      @map("motivo_modificacion")
+  facturaOriginalId        String?      @map("factura_original_id")
+  facturaOriginal          FacturaVenta?  @relation("NotasCredito", fields: [facturaOriginalId], references: [id], onDelete: SetNull)
+  notasCredito             FacturaVenta[] @relation("NotasCredito")
 
   notas                    String?
   creadoEn                 DateTime     @default(now()) @map("creado_en")
@@ -715,6 +721,9 @@ model FacturaVentaDetalle {
   subtotal       Decimal      @db.Decimal(12, 2)
   total          Decimal      @db.Decimal(12, 2)
   creadoEn       DateTime     @default(now()) @map("creado_en")
+  detalleOriginalId String?   @map("detalle_original_id")
+  detalleOriginal   FacturaVentaDetalle?  @relation("LineasCredito", fields: [detalleOriginalId], references: [id], onDelete: SetNull)
+  lineasCredito     FacturaVentaDetalle[] @relation("LineasCredito")
 
   factura        FacturaVenta @relation(fields: [facturaId], references: [id], onDelete: Cascade)
   producto       Producto     @relation(fields: [productoId], references: [id], onDelete: Restrict)

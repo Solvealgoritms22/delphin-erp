@@ -8,6 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SequencesService } from '../sequences/sequences.service';
 import { FiscalBridgeService } from './fiscalbridge.service';
 import { BillingConfigService } from '../billing-config/billing-config.service';
+import { FiscalOutboxService } from './fiscal-outbox.service';
 import { CreateInvoiceDto, FilterInvoiceDto } from './dto/invoice.dto';
 import { Response } from 'express';
 import { Prisma } from '@prisma/client';
@@ -34,6 +35,7 @@ export class InvoicesService {
     private readonly sequencesService: SequencesService,
     private readonly fiscalBridgeService: FiscalBridgeService,
     private readonly billingConfig: BillingConfigService,
+    private readonly fiscalOutbox: FiscalOutboxService,
   ) {}
 
   async create(empresaId: string, usuarioId: string, dto: CreateInvoiceDto) {
@@ -196,6 +198,8 @@ export class InvoicesService {
         configuration.precisionMoneda,
         Prisma.Decimal.ROUND_HALF_UP,
       );
+    const needsFiscal =
+      empresa.fiscalbridgeEnabled && dto.tipoNcf.toUpperCase().startsWith('E');
 
     // Transacción de creación de factura y descuento de inventario
     const invoice = await this.prisma.$transaction(async (tx) => {

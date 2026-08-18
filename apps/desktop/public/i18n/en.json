@@ -131,6 +131,8 @@
     "paymentTerms": "Payment terms",
     "days": "days",
     "loadError": "Billing settings could not be loaded.",
+    "emptyTitle": "No billing settings available",
+    "emptyDescription": "Could not retrieve the billing parameters for the active company.",
     "saved": "Billing settings saved.",
     "saveError": "Billing settings could not be saved."
   },

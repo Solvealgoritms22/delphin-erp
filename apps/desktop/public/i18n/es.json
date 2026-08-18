@@ -131,6 +131,8 @@
     "paymentTerms": "Términos de pago",
     "days": "días",
     "loadError": "No se pudo cargar la configuración de facturación.",
+    "emptyTitle": "Sin configuración de facturación",
+    "emptyDescription": "No se pudieron obtener los parámetros de facturación de la empresa activa.",
     "saved": "Configuración de facturación guardada.",
     "saveError": "No se pudo guardar la configuración de facturación."
   },

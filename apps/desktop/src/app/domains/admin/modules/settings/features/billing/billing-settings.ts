@@ -53,7 +53,48 @@ type BillingData = {
       </div>
 
       <!-- Main Content -->
-      @if (data(); as config) {
+      @if (loading()) {
+        <!-- Skeleton Loading State -->
+        <div
+          class="flex-auto overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto"
+        >
+          <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <div
+              class="xl:col-span-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 space-y-4"
+            >
+              <app-skeleton type="text" width="40%" height="1.5rem" />
+              <app-skeleton type="text" width="70%" height="1rem" />
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                <app-skeleton type="rect" height="3.5rem" />
+                <app-skeleton type="rect" height="3.5rem" />
+                <app-skeleton type="rect" height="3.5rem" />
+                <app-skeleton type="rect" height="3.5rem" />
+              </div>
+            </div>
+            <div
+              class="xl:col-span-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 space-y-4"
+            >
+              <app-skeleton type="text" width="40%" height="1.5rem" />
+              <app-skeleton type="text" width="70%" height="1rem" />
+              <app-skeleton type="card" height="5.5rem" />
+              <app-skeleton type="card" height="5.5rem" />
+            </div>
+          </div>
+          <div
+            class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 space-y-4"
+          >
+            <app-skeleton type="text" width="30%" height="1.5rem" />
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4"
+            >
+              <app-skeleton type="card" height="8rem" />
+              <app-skeleton type="card" height="8rem" />
+              <app-skeleton type="card" height="8rem" />
+              <app-skeleton type="card" height="8rem" />
+            </div>
+          </div>
+        </div>
+      } @else if (data(); as config) {
         <div
           class="flex-auto overflow-y-auto min-w-0 p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto"
         >
@@ -348,45 +389,39 @@ type BillingData = {
           </section>
         </div>
       } @else {
-        <!-- Skeleton Loading State -->
+        <!-- Empty / Error Illustration State -->
         <div
-          class="flex-auto overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto"
+          class="flex flex-auto flex-col items-center justify-center p-8 text-center sm:p-16 min-h-[420px]"
         >
-          <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            <div
-              class="xl:col-span-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 space-y-4"
-            >
-              <app-skeleton type="text" width="40%" height="1.5rem" />
-              <app-skeleton type="text" width="70%" height="1rem" />
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                <app-skeleton type="rect" height="3.5rem" />
-                <app-skeleton type="rect" height="3.5rem" />
-                <app-skeleton type="rect" height="3.5rem" />
-                <app-skeleton type="rect" height="3.5rem" />
-              </div>
-            </div>
-            <div
-              class="xl:col-span-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 space-y-4"
-            >
-              <app-skeleton type="text" width="40%" height="1.5rem" />
-              <app-skeleton type="text" width="70%" height="1rem" />
-              <app-skeleton type="card" height="5.5rem" />
-              <app-skeleton type="card" height="5.5rem" />
-            </div>
-          </div>
-          <div
-            class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 space-y-4"
+          <img
+            class="dark:hidden max-h-[180px] sm:max-h-[220px] mb-6 object-contain"
+            alt="Sin configuración"
+            src="illustrations/24.svg"
+          />
+          <img
+            class="hidden dark:block max-h-[180px] sm:max-h-[220px] mb-6 object-contain"
+            alt="Sin configuración"
+            src="illustrations/28-dark.svg"
+          />
+          <h2
+            class="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white"
           >
-            <app-skeleton type="text" width="30%" height="1.5rem" />
-            <div
-              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4"
-            >
-              <app-skeleton type="card" height="8rem" />
-              <app-skeleton type="card" height="8rem" />
-              <app-skeleton type="card" height="8rem" />
-              <app-skeleton type="card" height="8rem" />
-            </div>
-          </div>
+            {{ 'billingConfig.emptyTitle' | transloco }}
+          </h2>
+          <p
+            class="mt-2 max-w-md text-sm text-neutral-500 dark:text-neutral-400"
+          >
+            {{ 'billingConfig.emptyDescription' | transloco }}
+          </p>
+          <button
+            mat-flat-button
+            class="mt-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 inline-flex items-center gap-2 cursor-pointer"
+            type="button"
+            (click)="load()"
+          >
+            <mat-icon svgIcon="refresh-cw" class="icon-size-4"></mat-icon>
+            <span>{{ 'common.retry' | transloco }}</span>
+          </button>
         </div>
       }
     </div>
@@ -398,17 +433,30 @@ export class BillingSettingsComponent {
   private readonly i18n = inject(TranslocoService);
   readonly data = signal<BillingData | null>(null);
   readonly saving = signal(false);
+  readonly loading = signal(true);
+  readonly error = signal(false);
   private readonly api = `${environment.apiUrl}/billing-config`;
 
   constructor() {
     this.load();
   }
-  private load() {
+
+  load() {
+    this.loading.set(true);
+    this.error.set(false);
     this.http.get<BillingData>(this.api).subscribe({
-      next: (value) => this.data.set(value),
-      error: () => this.notice('billingConfig.loadError'),
+      next: (value) => {
+        this.data.set(value);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set(true);
+        this.loading.set(false);
+        this.notice('billingConfig.loadError');
+      },
     });
   }
+
   save(config: any) {
     this.saving.set(true);
     this.http.patch(`${this.api}`, config).subscribe({
@@ -424,6 +472,7 @@ export class BillingSettingsComponent {
       },
     });
   }
+
   saveTax(tax: any) {
     this.saving.set(true);
     this.http.patch(`${this.api}/taxes/${tax.id}`, tax).subscribe({
@@ -437,6 +486,7 @@ export class BillingSettingsComponent {
       },
     });
   }
+
   saveTerm(term: any) {
     this.saving.set(true);
     this.http.patch(`${this.api}/payment-terms/${term.id}`, term).subscribe({
@@ -450,6 +500,7 @@ export class BillingSettingsComponent {
       },
     });
   }
+
   private notice(key: string) {
     this.snack.open(
       this.i18n.translate(key),
