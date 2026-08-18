@@ -741,7 +741,30 @@
         "downloadPdf": "Download Official PDF (RI)",
         "downloadXml": "Download DGII Signed XML",
         "transmitFiscalBridge": "Transmit to FiscalBridge",
-        "cancelInvoice": "Void Invoice"
+        "cancelInvoice": "Void Invoice",
+        "creditNote": "Issue Credit Note"
+      },
+      "creditNotes": {
+        "title": "Credit Note",
+        "lines": "Original invoice lines",
+        "invoiced": "Invoiced",
+        "quantityToCredit": "Qty. to credit",
+        "reason": "Modification reason (DGII)",
+        "reasons": {
+          "1": "1 · Transaction canceled",
+          "2": "2 · Error correction",
+          "3": "3 · Goods returned",
+          "4": "4 · Discount or rebate",
+          "5": "5 · Other"
+        },
+        "notes": "Notes",
+        "notesPlaceholder": "Detail the reason for the credit note...",
+        "returnToInventory": "Return goods to inventory",
+        "submit": "Issue Credit Note",
+        "minOneLine": "You must credit at least one line with a quantity greater than zero.",
+        "success": "Credit note {{ncf}} issued successfully.",
+        "error": "The credit note could not be issued.",
+        "loadError": "The original invoice could not be loaded."
       },
       "modal": {
         "title": "Fiscal Invoice / e-CF Issuance",

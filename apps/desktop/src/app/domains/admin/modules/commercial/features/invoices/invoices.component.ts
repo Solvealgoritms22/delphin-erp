@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   OnInit,
+  signal,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -19,6 +20,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import {
@@ -28,6 +30,7 @@ import {
 import {
   InvoicesService,
   CreateInvoiceDto,
+  FacturaVenta,
 } from '../../data/invoices.service';
 import { SequencesService } from '../../data/sequences.service';
 import { ProductsService } from '../../../catalogs/data/products.service';
@@ -53,6 +56,7 @@ import { environment } from '@/environments/environment';
     MatSelectModule,
     MatInputModule,
     MatMenuModule,
+    MatCheckboxModule,
     TranslocoPipe,
     EmptyStateComponent,
   ],
@@ -383,6 +387,24 @@ import { environment } from '@/environments/environment';
                         <span>{{
                           'commercial.invoices.actions.transmitFiscalBridge'
                             | transloco
+                        }}</span>
+                      </button>
+                    }
+                    @if (
+                      inv.estado !== 'ANULADA' &&
+                      !inv.tipoNcf.startsWith('E34') &&
+                      !inv.tipoNcf.startsWith('B04')
+                    ) {
+                      <button
+                        mat-menu-item
+                        (click)="openCreditNoteModal(inv)"
+                      >
+                        <mat-icon
+                          svgIcon="rotate-ccw"
+                          class="icon-size-4 text-amber-600"
+                        ></mat-icon>
+                        <span>{{
+                          'commercial.invoices.actions.creditNote' | transloco
                         }}</span>
                       </button>
                     }
@@ -725,6 +747,169 @@ import { environment } from '@/environments/environment';
           </div>
         </div>
       </ng-template>
+
+      <!-- ================= MODAL: NOTA DE CRÉDITO ================= -->
+      <ng-template #creditNoteModalTemplate>
+        <div
+          class="flex max-h-[90vh] w-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
+        >
+          <div
+            class="flex shrink-0 items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800"
+          >
+            <h3
+              class="flex items-center gap-2 text-lg font-bold text-neutral-900 dark:text-white"
+            >
+              <mat-icon
+                svgIcon="rotate-ccw"
+                class="icon-size-5 text-amber-600"
+              ></mat-icon>
+              {{ 'commercial.creditNotes.title' | transloco }}
+            </h3>
+            <button
+              (click)="closeDialog()"
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 hover:text-neutral-700 dark:bg-neutral-800 dark:hover:text-neutral-300"
+            >
+              <mat-icon svgIcon="x" class="icon-size-4"></mat-icon>
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-5 overflow-y-auto p-6">
+            @if (creditNoteInvoice(); as original) {
+              <div
+                class="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-700 dark:bg-neutral-800/60"
+              >
+                <div class="font-bold text-neutral-900 dark:text-white">
+                  {{ original.numeroFactura }}
+                  <span class="font-mono text-blue-600 dark:text-blue-400">{{
+                    original.ncf
+                  }}</span>
+                </div>
+                <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                  {{ original.cliente?.nombreRazonSocial || ('commercial.invoices.cashClient' | transloco) }}
+                  · {{ getCurrencySymbol(original.moneda) }}
+                  {{ original.total | number: '1.2-2' }}
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-3">
+                <h4
+                  class="text-[11px] font-bold uppercase tracking-wider text-neutral-900 dark:text-white"
+                >
+                  {{ 'commercial.creditNotes.lines' | transloco }}
+                </h4>
+                @for (row of creditNoteRows(); track row.detalleOriginalId) {
+                  <div
+                    class="flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-800/40"
+                  >
+                    <div class="min-w-[180px] flex-1">
+                      <div
+                        class="text-sm font-semibold text-neutral-900 dark:text-white"
+                      >
+                        {{ row.nombre }}
+                      </div>
+                      <div class="text-xs text-neutral-500 dark:text-neutral-400">
+                        {{
+                          'commercial.creditNotes.invoiced' | transloco
+                        }}: {{ row.cantidadOriginal }}
+                        · {{ getCurrencySymbol(creditNoteInvoice()?.moneda) }}
+                        {{ row.precioUnitario | number: '1.2-2' }}
+                      </div>
+                    </div>
+                    <div class="w-36">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-full !mb-0"
+                      >
+                        <mat-label>{{
+                          'commercial.creditNotes.quantityToCredit' | transloco
+                        }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          [max]="row.cantidadOriginal"
+                          [(ngModel)]="row.cantidad"
+                        />
+                      </mat-form-field>
+                    </div>
+                    <div
+                      class="w-28 text-right font-mono text-sm font-bold text-neutral-900 dark:text-white"
+                    >
+                      {{ getCurrencySymbol(creditNoteInvoice()?.moneda) }}
+                      {{
+                        (row.cantidad || 0) * row.precioUnitario
+                          | number: '1.2-2'
+                      }}
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>{{
+                  'commercial.creditNotes.reason' | transloco
+                }}</mat-label>
+                <mat-select [(ngModel)]="creditNoteReason">
+                  <mat-option value="1">{{
+                    'commercial.creditNotes.reasons.1' | transloco
+                  }}</mat-option>
+                  <mat-option value="2">{{
+                    'commercial.creditNotes.reasons.2' | transloco
+                  }}</mat-option>
+                  <mat-option value="3">{{
+                    'commercial.creditNotes.reasons.3' | transloco
+                  }}</mat-option>
+                  <mat-option value="4">{{
+                    'commercial.creditNotes.reasons.4' | transloco
+                  }}</mat-option>
+                  <mat-option value="5">{{
+                    'commercial.creditNotes.reasons.5' | transloco
+                  }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>{{
+                  'commercial.creditNotes.notes' | transloco
+                }}</mat-label>
+                <textarea
+                  matInput
+                  rows="2"
+                  [(ngModel)]="creditNoteNotas"
+                  [placeholder]="'commercial.creditNotes.notesPlaceholder' | transloco"
+                ></textarea>
+              </mat-form-field>
+
+              <label
+                class="flex cursor-pointer items-center gap-3 text-sm text-neutral-700 dark:text-neutral-300"
+              >
+                <mat-checkbox
+                  [(ngModel)]="creditNoteReturnToInventory"
+                  color="primary"
+                ></mat-checkbox>
+                {{ 'commercial.creditNotes.returnToInventory' | transloco }}
+              </label>
+            }
+          </div>
+
+          <div
+            class="flex shrink-0 items-center justify-end gap-3 border-t border-neutral-100 bg-neutral-50/50 px-6 py-4 dark:border-neutral-800 dark:bg-neutral-900"
+          >
+            <button mat-button (click)="closeDialog()" class="rounded-xl">
+              {{ 'common.cancel' | transloco }}
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              [disabled]="submittingCreditNote()"
+              (click)="submitCreditNote()"
+              class="rounded-xl bg-amber-600 text-white"
+            >
+              {{ 'commercial.creditNotes.submit' | transloco }}
+            </button>
+          </div>
+        </div>
+      </ng-template>
     </div>
   `,
 })
@@ -741,7 +926,25 @@ export class InvoicesComponent implements OnInit {
 
   @ViewChild('createInvoiceModalTemplate')
   createInvoiceModalTemplate!: TemplateRef<any>;
+  @ViewChild('creditNoteModalTemplate')
+  creditNoteModalTemplate!: TemplateRef<any>;
   private dialogRef?: MatDialogRef<any>;
+
+  // Credit note state
+  readonly creditNoteInvoice = signal<FacturaVenta | null>(null);
+  readonly creditNoteRows = signal<
+    {
+      detalleOriginalId: string;
+      nombre: string;
+      cantidadOriginal: number;
+      precioUnitario: number;
+      cantidad: number;
+    }[]
+  >([]);
+  creditNoteReason = '1';
+  creditNoteNotas = '';
+  creditNoteReturnToInventory = false;
+  readonly submittingCreditNote = signal(false);
 
   searchQuery = '';
   selectedNcfFilter = 'ALL';
@@ -890,6 +1093,89 @@ export class InvoicesComponent implements OnInit {
 
   closeDialog() {
     this.dialogRef?.close();
+  }
+
+  openCreditNoteModal(inv: FacturaVenta) {
+    this.invoicesService.findOne(inv.id).subscribe({
+      next: (invoice) => {
+        this.creditNoteInvoice.set(invoice);
+        this.creditNoteRows.set(
+          (invoice.detalles || []).map((det) => ({
+            detalleOriginalId: det.id,
+            nombre: det.producto?.nombre || det.productoId,
+            cantidadOriginal: Number(det.cantidad),
+            precioUnitario: Number(det.precioUnitario),
+            cantidad: 0,
+          }))
+        );
+        this.creditNoteReason = '1';
+        this.creditNoteNotas = '';
+        this.creditNoteReturnToInventory = false;
+        this.dialogRef = this.dialog.open(this.creditNoteModalTemplate, {
+          width: '720px',
+          maxWidth: '95vw',
+          panelClass: ['custom-dialog-container'],
+        });
+      },
+      error: () =>
+        this.snackBar.open(
+          this.i18n.translate('commercial.creditNotes.loadError'),
+          this.i18n.translate('common.close'),
+          { duration: 3500 }
+        ),
+    });
+  }
+
+  submitCreditNote() {
+    const original = this.creditNoteInvoice();
+    if (!original) return;
+    const lines = this.creditNoteRows()
+      .filter((row) => row.cantidad > 0)
+      .map((row) => ({
+        detalleOriginalId: row.detalleOriginalId,
+        cantidad: Number(row.cantidad),
+      }));
+    if (lines.length === 0) {
+      this.snackBar.open(
+        this.i18n.translate('commercial.creditNotes.minOneLine'),
+        this.i18n.translate('common.close'),
+        { duration: 3000 }
+      );
+      return;
+    }
+
+    this.submittingCreditNote.set(true);
+    this.invoicesService
+      .createCreditNote({
+        facturaOriginalId: original.id,
+        motivoModificacion: this.creditNoteReason,
+        returnToInventory: this.creditNoteReturnToInventory,
+        notas: this.creditNoteNotas || undefined,
+        lines,
+      })
+      .subscribe({
+        next: (created) => {
+          this.submittingCreditNote.set(false);
+          this.snackBar.open(
+            this.i18n.translate('commercial.creditNotes.success', {
+              ncf: created.ncf || created.numeroFactura,
+            }),
+            this.i18n.translate('common.close'),
+            { duration: 3500 }
+          );
+          this.closeDialog();
+          this.invoicesService.findAll().subscribe();
+        },
+        error: (err) => {
+          this.submittingCreditNote.set(false);
+          this.snackBar.open(
+            err.error?.message ||
+              this.i18n.translate('commercial.creditNotes.error'),
+            this.i18n.translate('common.close'),
+            { duration: 4500 }
+          );
+        },
+      });
   }
 
   submitInvoice() {

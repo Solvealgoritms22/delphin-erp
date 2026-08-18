@@ -29,6 +29,7 @@ import { BackupsModule } from './modules/backups/backups.module';
 import { BillingConfigModule } from './modules/billing-config/billing-config.module';
 import { CustomerPaymentsModule } from './modules/customer-payments/customer-payments.module';
 import { FiscalbridgeWebhookModule } from './modules/invoices/fiscalbridge-webhook.module';
+import { CreditNotesModule } from './modules/credit-notes/credit-notes.module';
 
 @Module({
   imports: [
@@ -100,6 +101,7 @@ import { FiscalbridgeWebhookModule } from './modules/invoices/fiscalbridge-webho
     BillingConfigModule,
     CustomerPaymentsModule,
     FiscalbridgeWebhookModule,
+    CreditNotesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

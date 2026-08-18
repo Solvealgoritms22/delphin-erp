@@ -71,6 +71,8 @@ export interface FacturaVenta {
   fiscalbridgeSecurityCode?: string | null;
   fiscalbridgeSignDate?: string | null;
   ncfModificado?: string | null;
+  facturaOriginalId?: string | null;
+  facturaOriginal?: { id: string; numeroFactura: string; ncf?: string | null } | null;
   motivoModificacion?: string | null;
   notas?: string | null;
   creadoEn: string;
@@ -98,6 +100,19 @@ export interface CreateInvoiceDto {
   notas?: string;
   items: InvoiceItemDto[];
   moneda?: string;
+}
+
+export interface CreateCreditNoteLineDto {
+  detalleOriginalId: string;
+  cantidad: number;
+}
+
+export interface CreateCreditNoteDto {
+  facturaOriginalId: string;
+  motivoModificacion: string;
+  returnToInventory?: boolean;
+  notas?: string;
+  lines: CreateCreditNoteLineDto[];
 }
 
 export interface FilterInvoiceDto {
@@ -154,8 +169,18 @@ export class InvoicesService {
     return this.http.post<FacturaVenta>(this.apiUrl, dto).pipe(
       tap((created) => {
         this.invoices.update((list) => [created, ...list]);
-      })
+      }),
     );
+  }
+
+  createCreditNote(dto: CreateCreditNoteDto): Observable<FacturaVenta> {
+    return this.http
+      .post<FacturaVenta>(`${environment.apiUrl}/credit-notes`, dto)
+      .pipe(
+        tap((created) => {
+          this.invoices.update((list) => [created, ...list]);
+        }),
+      );
   }
 
   sendToFiscalBridge(id: string): Observable<FacturaVenta> {

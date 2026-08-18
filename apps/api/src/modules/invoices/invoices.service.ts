@@ -282,6 +282,7 @@ export class InvoicesService {
           ncfModificado: dto.ncfModificado,
           motivoModificacion: dto.motivoModificacion,
           notas: dto.notas,
+          fiscalbridgeStatus: needsFiscal ? 'PENDING' : 'NOT_TRANSMITTED',
           detalles: {
             create: calculatedItems.map((item) => ({
               productoId: item.productoId,
@@ -320,47 +321,29 @@ export class InvoicesService {
         .filter((line): line is NonNullable<typeof line> => Boolean(line));
       if (taxLines.length)
         await tx.impuestoFactura.createMany({ data: taxLines });
-      return created;
-    });
-
-    // Transmitir a FiscalBridge si está habilitado y es comprobante electrónico
-    if (
-      empresa.fiscalbridgeEnabled &&
-      dto.tipoNcf.toUpperCase().startsWith('E')
-    ) {
-      try {
-        const fbResult = await this.fiscalBridgeService.transmitInvoice(
-          invoice,
-          empresa,
-        );
-        const updated = await this.prisma.facturaVenta.update({
-          where: { id: invoice.id },
+      // Outbox fiscal: el evento se crea atómicamente con la factura.
+      if (needsFiscal) {
+        await tx.outboxEvent.create({
           data: {
-            fiscalbridgeStatus: fbResult.status || 'SENT',
-            fiscalbridgeDocId: fbResult.documentUuid,
-            fiscalbridgeTrackId: fbResult.trackId,
-            fiscalbridgeSecurityCode: fbResult.securityCode,
-            fiscalbridgeQrUrl: fbResult.qrUrl,
-            fiscalbridgeSignDate: new Date(),
-          },
-          include: {
-            cliente: true,
-            almacen: true,
-            sucursal: true,
-            detalles: { include: { producto: true } },
-          },
-        });
-        return updated;
-      } catch (err: any) {
-        this.logger.error(`Error al transmitir a FiscalBridge: ${err.message}`);
-        await this.prisma.facturaVenta.update({
-          where: { id: invoice.id },
-          data: {
-            fiscalbridgeStatus: 'FAILED',
-            fiscalbridgeError: err.message,
+            empresaId,
+            tipo: 'FISCALBRIDGE_TRANSMIT',
+            aggregateId: created.id,
+            payload: JSON.stringify({ facturaId: created.id }),
           },
         });
       }
+      return created;
+    });
+
+    // Transmisión asíncrona: no bloquea la respuesta al usuario.
+    if (needsFiscal) {
+      void this.fiscalOutbox
+        .transmitNow(invoice.id, empresaId)
+        .catch((error) =>
+          this.logger.error(
+            `Outbox fiscal inicial para ${invoice.numeroFactura}: ${error?.message}`,
+          ),
+        );
     }
 
     return invoice;
@@ -446,29 +429,11 @@ export class InvoicesService {
       throw new BadRequestException(
         'La factura ya fue transmitida a FiscalBridge.',
       );
-    const fbResult = await this.fiscalBridgeService.transmitInvoice(
-      invoice,
-      empresa,
-    );
 
-    return this.prisma.facturaVenta.update({
-      where: { id, empresaId },
-      data: {
-        fiscalbridgeStatus: fbResult.status || 'SENT',
-        fiscalbridgeDocId: fbResult.documentUuid,
-        fiscalbridgeTrackId: fbResult.trackId,
-        fiscalbridgeSecurityCode: fbResult.securityCode,
-        fiscalbridgeQrUrl: fbResult.qrUrl,
-        fiscalbridgeSignDate: new Date(),
-        fiscalbridgeError: null,
-      },
-      include: {
-        cliente: true,
-        almacen: true,
-        sucursal: true,
-        detalles: { include: { producto: true } },
-      },
-    });
+    // Reintento manual a través del outbox: respeta idempotencia y reintentos.
+    await this.fiscalOutbox.transmitNow(id, empresaId);
+
+    return this.findOne(empresaId, id);
   }
 
   async proxyPdf(empresaId: string, id: string, res: Response) {

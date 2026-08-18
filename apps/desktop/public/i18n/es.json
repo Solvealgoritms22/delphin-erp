@@ -741,7 +741,30 @@
         "downloadPdf": "Descargar PDF Oficial (RI)",
         "downloadXml": "Descargar XML Firmado DGII",
         "transmitFiscalBridge": "Transmitir a FiscalBridge",
-        "cancelInvoice": "Anular Factura"
+        "cancelInvoice": "Anular Factura",
+        "creditNote": "Emitir Nota de Crédito"
+      },
+      "creditNotes": {
+        "title": "Nota de Crédito",
+        "lines": "Líneas de la factura original",
+        "invoiced": "Facturado",
+        "quantityToCredit": "Cant. a acreditar",
+        "reason": "Motivo de la modificación (DGII)",
+        "reasons": {
+          "1": "1 · Anulación de la operación",
+          "2": "2 · Corrección por error",
+          "3": "3 · Devolución de mercancía",
+          "4": "4 · Descuento o rebaja",
+          "5": "5 · Otro"
+        },
+        "notes": "Notas",
+        "notesPlaceholder": "Detalle del motivo de la nota de crédito...",
+        "returnToInventory": "Devolver la mercancía al inventario",
+        "submit": "Emitir Nota de Crédito",
+        "minOneLine": "Debes acreditar al menos una línea con cantidad mayor a cero.",
+        "success": "Nota de crédito {{ncf}} emitida correctamente.",
+        "error": "No se pudo emitir la nota de crédito.",
+        "loadError": "No se pudo cargar la factura original."
       },
       "modal": {
         "title": "Emisión de Factura Fiscal / e-CF",
