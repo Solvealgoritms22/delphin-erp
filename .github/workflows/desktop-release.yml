@@ -96,6 +96,7 @@ jobs:
           body: ${{ steps.release_notes.outputs.body }}
           draft: false
           prerelease: false
+          fail_on_unmatched_files: false
           files: |
             apps/desktop/dist/electron/*.exe
             apps/desktop/dist/electron/*.yml
