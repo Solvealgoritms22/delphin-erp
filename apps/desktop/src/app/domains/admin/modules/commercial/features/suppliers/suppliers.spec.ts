@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { provideTransloco } from '@jsverse/transloco';
 
 import { Suppliers } from './suppliers';
 
@@ -9,6 +12,11 @@ describe('Suppliers', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Suppliers],
+      providers: [
+        provideHttpClient(),
+        provideRouter([]),
+        provideTransloco({ config: { availableLangs: ['es', 'en'], defaultLang: 'es' } }),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Suppliers);
@@ -20,3 +28,4 @@ describe('Suppliers', () => {
     expect(component).toBeTruthy();
   });
 });
+

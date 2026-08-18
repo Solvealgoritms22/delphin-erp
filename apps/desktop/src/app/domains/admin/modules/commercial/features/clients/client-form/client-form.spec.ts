@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { provideTransloco } from '@jsverse/transloco';
 
 import { ClientForm } from './client-form';
 
@@ -9,6 +12,11 @@ describe('ClientForm', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ClientForm],
+      providers: [
+        provideHttpClient(),
+        provideRouter([]),
+        provideTransloco({ config: { availableLangs: ['es', 'en'], defaultLang: 'es' } }),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ClientForm);
@@ -20,3 +28,4 @@ describe('ClientForm', () => {
     expect(component).toBeTruthy();
   });
 });
+

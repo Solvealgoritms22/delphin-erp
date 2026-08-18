@@ -1,6 +1,6 @@
 {
   "name": "dolphin-erp",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "private": true,
   "workspaces": [
     "apps/*"
@@ -19,5 +19,8 @@
     "mailparser": "3.9.15",
     "nanoid": "3.3.18",
     "nodemailer": "9.0.5"
+  },
+  "devDependencies": {
+    "@angular/compiler": "^22.1.0"
   }
 }

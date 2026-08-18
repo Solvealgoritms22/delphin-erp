@@ -27,9 +27,7 @@ import {
 } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import {
   InvoicesService,
-  FacturaVenta,
   CreateInvoiceDto,
-  InvoiceItemDto,
 } from '../../data/invoices.service';
 import { SequencesService } from '../../data/sequences.service';
 import { ProductsService } from '../../../catalogs/data/products.service';
