@@ -751,7 +751,7 @@
         "addLine": "Add Line",
         "product": "Product",
         "quantity": "Qty",
-        "price": "Price (RD$)",
+        "price": "Price",
         "subtotalTaxed": "Taxable Subtotal:",
         "itbis": "Taxes:",
         "totalToInvoice": "Total to Invoice:",
