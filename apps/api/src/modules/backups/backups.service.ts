@@ -101,7 +101,10 @@ export class BackupsService {
     }
 
     const id = cryptoRandomId();
-    const name = `dolphin-${empresaId}-${new Date().toISOString().replace(/[:.]/g, '-')}-${id}.backup`;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const name = `backup_${timestamp}.backup`;
     await this.prisma.backup.create({
       data: {
         id,
