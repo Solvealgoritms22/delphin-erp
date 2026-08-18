@@ -25,7 +25,11 @@ export class InvoiceItemDto {
   @IsNumber()
   @Min(0)
   @IsOptional()
-  tasaItbis?: number = 18;
+  tasaItbis?: number;
+
+  @IsString()
+  @IsOptional()
+  impuestoId?: string;
 }
 
 export class CreateInvoiceDto {
@@ -52,6 +56,28 @@ export class CreateInvoiceDto {
   @IsString()
   @IsOptional()
   metodoPago?: string = 'EFECTIVO'; // EFECTIVO | TARJETA | TRANSFERENCIA | CHEQUE
+
+  @IsString()
+  @IsOptional()
+  moneda?: string;
+
+  @IsNumber()
+  @Min(0.000001)
+  @IsOptional()
+  tasaCambio?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  descuento?: number;
+
+  @IsString()
+  @IsOptional()
+  terminoPagoId?: string;
+
+  @IsString()
+  @IsOptional()
+  fechaVencimiento?: string;
 
   @IsString()
   @IsOptional()

@@ -6,9 +6,10 @@
     "createLocal": "Crear backup local",
     "download": "Descargar",
     "delete": "Eliminar backup",
+    "deleteTitle": "Eliminar copia de seguridad",
     "emptyTitle": "Aún no hay backups",
     "emptyDescription": "Crea una copia cifrada para proteger la información de esta empresa.",
-    "confirmDelete": "¿Eliminar esta copia de seguridad?",
+    "confirmDelete": "¿Estás seguro de que deseas eliminar esta copia de seguridad?",
     "loadError": "No se pudieron cargar los backups.",
     "createError": "No se pudo crear el backup.",
     "driveError": "No se pudo iniciar la conexión con Google Drive.",
@@ -79,6 +80,7 @@
     "branches": "Sucursales",
     "companies": "Mis empresas",
     "backups": "Copias de seguridad",
+    "billingSettings": "Configuración de facturación",
     "security": "Seguridad",
     "securityDescription": "Gestión de accesos",
     "roles": "Roles y permisos",
@@ -89,6 +91,44 @@
     "systemDescription": "Auditoría y actividad",
     "activity": "Actividad",
     "legal": "Documentación legal"
+  },
+  "billingConfig": {
+    "title": "Configuración fiscal y de facturación",
+    "description": "Define la moneda, redondeo, impuestos y términos de pago de tu empresa.",
+    "general": "Facturación general",
+    "generalDescription": "Estas reglas son aplicadas por el backend a cada documento nuevo.",
+    "baseCurrency": "Moneda base",
+    "currencyDop": "DOP · Peso dominicano",
+    "currencyUsd": "USD · Dólar estadounidense",
+    "currencyEur": "EUR · Euro",
+    "timezone": "Zona horaria",
+    "timezoneSantoDomingo": "Santo Domingo (UTC-04:00)",
+    "timezoneNewYork": "Nueva York (UTC-05:00/UTC-04:00)",
+    "rounding": "Método de redondeo",
+    "roundingBy": "Redondear por",
+    "currencyPrecision": "Decimales de moneda",
+    "quantityPrecision": "Decimales de cantidad",
+    "includesTax": "Precios incluyen impuestos",
+    "graceDays": "Días de gracia",
+    "yes": "Sí",
+    "no": "No",
+    "halfUp": "Redondeo comercial",
+    "byLine": "Línea",
+    "byDocument": "Documento",
+    "taxes": "Impuestos",
+    "taxesDescription": "Las tasas se guardan en cada documento para no alterar facturas históricas.",
+    "taxName": "Nombre del impuesto",
+    "rate": "Tasa %",
+    "dgiiIndicator": "Indicador DGII",
+    "taxable": "Gravado",
+    "zeroRated": "Tasa 0",
+    "exempt": "Exento",
+    "termName": "Nombre del término",
+    "paymentTerms": "Términos de pago",
+    "days": "días",
+    "loadError": "No se pudo cargar la configuración de facturación.",
+    "saved": "Configuración de facturación guardada.",
+    "saveError": "No se pudo guardar la configuración de facturación."
   },
   "language": {
     "english": "Inglés",
@@ -481,7 +521,104 @@
       "description": "Control de existencias multi-sucursal, bodegas, transferencias y Kardex inmutable.",
       "newWarehouse": "Nuevo Almacén",
       "stockAdjustment": "Ajuste de Stock",
-      "newTransfer": "Nueva Transferencia"
+      "newTransfer": "Nueva Transferencia",
+      "searchPlaceholder": "Buscar por producto, código o SKU...",
+      "allWarehouses": "Todos los Almacenes",
+      "tabs": {
+        "stocks": "Existencias por Ubicación",
+        "warehouses": "Almacenes y Bodegas",
+        "kardex": "Kardex de Movimientos"
+      },
+      "columns": {
+        "product": "Producto",
+        "warehouse": "Almacén / Sucursal",
+        "currentStock": "Existencia Actual",
+        "minStock": "Stock Mínimo",
+        "status": "Estado",
+        "dateTime": "Fecha / Hora",
+        "movementType": "Tipo Movimiento",
+        "originDestination": "Origen / Destino",
+        "quantity": "Cantidad"
+      },
+      "empty": {
+        "stocksTitle": "Sin existencias registradas",
+        "stocksDesc": "Realiza un ajuste de stock inicial o transfiere productos para registrar existencias.",
+        "kardexTitle": "Sin movimientos en Kardex",
+        "kardexDesc": "Todas las compras, ventas, traslados y ajustes quedarán registrados aquí de forma inmutable."
+      },
+      "stockStatus": {
+        "outOfStock": "Agotado",
+        "low": "Bajo",
+        "optimal": "Óptimo"
+      },
+      "warehouses": {
+        "mainBadge": "Principal / CEDI",
+        "type": "Tipo",
+        "branch": "Sucursal",
+        "central": "Almacén Central",
+        "transferFromHere": "Transferir desde aquí"
+      },
+      "movementTypes": {
+        "TRANSFERENCIA": "Transferencia",
+        "COMPRA": "Compra",
+        "VENTA": "Venta",
+        "AJUSTE_POSITIVO": "Ajuste Positivo",
+        "AJUSTE_NEGATIVO": "Ajuste Negativo"
+      },
+      "modals": {
+        "transfer": {
+          "title": "Transferencia de Stock entre Almacenes",
+          "product": "Producto a Transferir",
+          "productPlaceholder": "Selecciona un producto",
+          "originWarehouse": "Almacén Origen",
+          "originPlaceholder": "Selecciona origen",
+          "destWarehouse": "Almacén Destino",
+          "destPlaceholder": "Selecciona destino",
+          "quantity": "Cantidad a Transferir",
+          "reason": "Motivo / Documento de Referencia",
+          "reasonPlaceholder": "Reabastecimiento de tienda, Solicitud #TR-102",
+          "submit": "Ejecutar Transferencia"
+        },
+        "adjustment": {
+          "title": "Ajuste Directo de Inventario",
+          "product": "Producto",
+          "productPlaceholder": "Selecciona un producto",
+          "warehouse": "Almacén",
+          "warehousePlaceholder": "Selecciona almacén",
+          "type": "Tipo de Ajuste",
+          "positive": "Ajuste Positivo (+ Entrada)",
+          "negative": "Ajuste Negativo (- Salida / Merma)",
+          "quantity": "Cantidad",
+          "reason": "Motivo / Explicación del Ajuste",
+          "reasonPlaceholder": "Conteo físico mensual, producto dañado, etc.",
+          "submit": "Aplicar Ajuste"
+        },
+        "warehouse": {
+          "title": "Nuevo Almacén o Bodega",
+          "name": "Nombre del Almacén",
+          "namePlaceholder": "Bodega Central, Piso de Venta Piantini",
+          "type": "Tipo de Almacén",
+          "types": {
+            "salesFloor": "Piso de Venta",
+            "distributionCenter": "Centro de Distribución (CEDI)",
+            "waste": "Almacén de Mermas / Averías",
+            "transit": "En Tránsito"
+          },
+          "code": "Código",
+          "codePlaceholder": "ALM-01",
+          "submit": "Guardar Almacén"
+        }
+      },
+      "messages": {
+        "fillRequired": "Por favor completa todos los campos requeridos",
+        "transferSuccess": "Transferencia ejecutada exitosamente",
+        "transferError": "Error al transferir stock",
+        "adjustmentSuccess": "Ajuste de inventario aplicado",
+        "adjustmentError": "Error al aplicar ajuste",
+        "nameRequired": "El nombre del almacén es obligatorio",
+        "warehouseSuccess": "Almacén creado exitosamente",
+        "warehouseError": "Error al crear almacén"
+      }
     }
   },
   "commercial": {
@@ -506,6 +643,140 @@
       "emptyTitle": "No hay proveedores registrados",
       "emptyDescription": "Crea tu primer proveedor para gestionar tus operaciones comerciales.",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar este proveedor?"
+    },
+    "sequences": {
+      "title": "Comprobantes Fiscales (NCF)",
+      "description": "Administración de secuencias NCF tradicionales y e-CF electrónicos autorizados por la DGII.",
+      "newSequence": "Nueva Secuencia NCF",
+      "columns": {
+        "name": "Tipo / Nombre",
+        "prefix": "Prefijo / Tipo",
+        "environment": "Ambiente",
+        "nextNumber": "Próximo a Emitir",
+        "expiration": "Vencimiento",
+        "action": "Acción"
+      },
+      "emptyTitle": "Sin secuencias NCF registradas",
+      "emptyDescription": "Configura las secuencias autorizadas por la DGII para emitir comprobantes fiscales.",
+      "range": "Rango",
+      "number": "Número",
+      "electronic": "Electrónico",
+      "traditional": "Tradicional",
+      "noExpiration": "Sin Vencimiento",
+      "environments": {
+        "prod": "PRODUCCIÓN",
+        "cert": "CERTIFICACIÓN",
+        "test": "PRUEBAS (TEST)"
+      },
+      "types": {
+        "E31": "E31 - Crédito Fiscal Electrónico",
+        "E32": "E32 - Consumo Electrónico",
+        "E34": "E34 - Nota de Crédito Electrónica",
+        "E44": "E44 - Régimen Especial Electrónico",
+        "E45": "E45 - Gubernamental Electrónico",
+        "B01": "B01 - Factura de Crédito Fiscal Tradicional",
+        "B02": "B02 - Factura de Consumo Tradicional",
+        "B04": "B04 - Nota de Crédito Tradicional"
+      },
+      "modal": {
+        "title": "Nueva Secuencia NCF / e-CF",
+        "name": "Nombre Descriptivo",
+        "namePlaceholder": "Crédito Fiscal Electrónico (Ventas Principales)",
+        "type": "Tipo de Comprobante",
+        "environment": "Ambiente",
+        "envOptions": {
+          "test": "TEST (Pruebas / Sandbox)",
+          "cert": "CERT (Certificación DGII)",
+          "prod": "PROD (Producción en Vivo)"
+        },
+        "startNumber": "Número Inicial (Desde)",
+        "limitNumber": "Límite Autorizado (Hasta)",
+        "expirationDate": "Fecha de Vencimiento DGII (Opcional)",
+        "submit": "Guardar Secuencia"
+      },
+      "messages": {
+        "fillRequired": "Por favor completa todos los campos requeridos",
+        "saveSuccess": "Secuencia NCF guardada exitosamente",
+        "saveError": "Error al guardar secuencia",
+        "deleteTitle": "Eliminar secuencia NCF",
+        "deleteConfirm": "¿Estás seguro de que deseas eliminar la secuencia <strong>{{ name }}</strong>?",
+        "deleteSuccess": "Secuencia eliminada",
+        "deleteError": "Error al eliminar secuencia"
+      }
+    },
+    "invoices": {
+      "title": "Facturación y Ventas",
+      "description": "Emisión de facturas fiscales, notas de crédito e integración con e-CF FiscalBridge (DGII).",
+      "newInvoice": "Nueva Factura / Venta",
+      "searchPlaceholder": "Buscar por cliente, NCF o número de factura...",
+      "allNcf": "Todos los NCF",
+      "columns": {
+        "invoiceDate": "Factura / Fecha",
+        "ncf": "Comprobante NCF",
+        "clientRnc": "Cliente / RNC",
+        "total": "Total Facturado",
+        "status": "Estado Fiscal DGII",
+        "actions": "Acciones"
+      },
+      "emptyTitle": "Sin facturas emitidas",
+      "emptyDescription": "Empieza emitiendo tu primera factura con comprobante fiscal o e-CF.",
+      "noNcf": "Sin NCF",
+      "cashClient": "Cliente Contado",
+      "finalConsumer": "Consumidor Final",
+      "finalConsumerNoRnc": "Consumidor Final (Sin RNC)",
+      "centralWarehouse": "Central",
+      "status": {
+        "ecfValidated": "e-CF Validado DGII",
+        "transmissionFailed": "Fallo Transmisión",
+        "ecfPending": "e-CF Pendiente",
+        "ncfTraditional": "NCF Tradicional"
+      },
+      "actions": {
+        "downloadPdf": "Descargar PDF Oficial (RI)",
+        "downloadXml": "Descargar XML Firmado DGII",
+        "transmitFiscalBridge": "Transmitir a FiscalBridge",
+        "cancelInvoice": "Anular Factura"
+      },
+      "modal": {
+        "title": "Emisión de Factura Fiscal / e-CF",
+        "client": "Cliente / RNC",
+        "ncfType": "Tipo de Comprobante Fiscal",
+        "warehouse": "Almacén de Despacho",
+        "paymentCondition": "Condición de Pago",
+        "paymentConditions": {
+          "cash": "Contado (Pago Inmediato)",
+          "credit": "Crédito (Cuenta por Cobrar)"
+        },
+        "itemsSection": "Productos y Servicios a Facturar",
+        "addLine": "Agregar Línea",
+        "product": "Producto",
+        "quantity": "Cant.",
+        "price": "Precio (RD$)",
+        "subtotalTaxed": "Subtotal Gravado:",
+        "itbis": "Impuestos:",
+        "totalToInvoice": "Total a Facturar:",
+        "submit": "Emitir y Transmitir Factura"
+      },
+      "types": {
+        "E31": "E31 - Factura de Crédito Fiscal Electrónica",
+        "E32": "E32 - Factura de Consumo Electrónica",
+        "E34": "E34 - Nota de Crédito Electrónica",
+        "E44": "E44 - Régimen Especial Electrónico",
+        "E45": "E45 - Gubernamental Electrónico",
+        "B01": "B01 - Crédito Fiscal Tradicional",
+        "B02": "B02 - Consumo Tradicional"
+      },
+      "messages": {
+        "minOneProduct": "Debes agregar al menos un producto a la factura",
+        "issuedSuccess": "Factura {{ invoiceNumber }} emitida ({{ ncf }})",
+        "issueError": "Error al emitir factura",
+        "transmitSuccess": "Factura transmitida a FiscalBridge exitosamente",
+        "transmitError": "Error al transmitir a FiscalBridge",
+        "cancelTitle": "Anular Factura",
+        "cancelConfirm": "¿Estás seguro de que deseas anular esta factura{{ ncf }}? El inventario será restaurado.",
+        "cancelSuccess": "Factura anulada y stock devuelto al almacén",
+        "cancelError": "No se pudo anular la factura"
+      }
     },
     "form": {
       "name": "Nombre o razón social",

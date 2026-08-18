@@ -16,6 +16,14 @@ export interface Product {
   categoria?: any;
   marca?: any;
   unidadMedida?: any;
+  taxRate?: number;
+  impuestoId?: string | null;
+  impuesto?: {
+    id: string;
+    codigo: string;
+    nombre: string;
+    tasa: number;
+  } | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -48,9 +56,18 @@ export class ProductsService {
   }
 
   loadCatalogs() {
-    this.http.get<any[]>(`${this.catalogsUrl}/categories`).subscribe({ next: data => this.categories.set(data), error: () => {} });
-    this.http.get<any[]>(`${this.catalogsUrl}/brands`).subscribe({ next: data => this.brands.set(data), error: () => {} });
-    this.http.get<any[]>(`${this.catalogsUrl}/units`).subscribe({ next: data => this.units.set(data), error: () => {} });
+    this.http
+      .get<any[]>(`${this.catalogsUrl}/categories`)
+      .subscribe({
+        next: (data) => this.categories.set(data),
+        error: () => {},
+      });
+    this.http
+      .get<any[]>(`${this.catalogsUrl}/brands`)
+      .subscribe({ next: (data) => this.brands.set(data), error: () => {} });
+    this.http
+      .get<any[]>(`${this.catalogsUrl}/units`)
+      .subscribe({ next: (data) => this.units.set(data), error: () => {} });
   }
 
   create(product: Partial<Product>) {

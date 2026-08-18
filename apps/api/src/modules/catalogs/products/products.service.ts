@@ -11,9 +11,11 @@ export class ProductsService {
 
   async create(empresaId: string, data: any) {
     const { imagenes, ...productData } = data;
+    const tax = await this.resolveTax(empresaId, productData.impuestoId);
     return this.prisma.producto.create({
       data: {
         ...productData,
+        ...(tax ? { taxRate: tax.tasa } : {}),
         ...(imagenes !== undefined
           ? { imagenes: this.normalizeImages(imagenes) }
           : {}),
@@ -29,6 +31,7 @@ export class ProductsService {
         categoria: true,
         marca: true,
         unidadMedida: true,
+        impuesto: true,
       },
     });
   }
@@ -40,6 +43,7 @@ export class ProductsService {
         categoria: true,
         marca: true,
         unidadMedida: true,
+        impuesto: true,
       },
     });
     if (!producto) throw new NotFoundException('Producto no encontrado');
@@ -49,6 +53,7 @@ export class ProductsService {
   async update(empresaId: string, id: string, data: any) {
     await this.findOne(empresaId, id); // check existence
     const { imagenes, ...productData } = data;
+    const tax = await this.resolveTax(empresaId, productData.impuestoId);
     return this.prisma.producto.update({
       where: { id },
       data: {
@@ -56,6 +61,7 @@ export class ProductsService {
         ...(imagenes !== undefined
           ? { imagenes: this.normalizeImages(imagenes) }
           : {}),
+        ...(tax ? { taxRate: tax.tasa } : {}),
       },
     });
   }
@@ -89,5 +95,17 @@ export class ProductsService {
       throw new BadRequestException('El formato de las imágenes no es válido');
     }
     return JSON.stringify(images);
+  }
+
+  private async resolveTax(empresaId: string, impuestoId?: string) {
+    if (!impuestoId) return null;
+    const tax = await this.prisma.impuesto.findFirst({
+      where: { id: impuestoId, empresaId, activo: true },
+    });
+    if (!tax)
+      throw new BadRequestException(
+        'El impuesto no pertenece a la empresa o está inactivo',
+      );
+    return tax;
   }
 }

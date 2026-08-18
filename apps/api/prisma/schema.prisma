@@ -62,6 +62,11 @@ model Empresa {
   facturasVenta  FacturaVenta[]
   aiConversaciones AiConversation[]
   backups        Backup[]
+  fiscalbridgeWebhookEvents FiscalbridgeWebhookEvent[]
+  configuracion  ConfiguracionEmpresa?
+  impuestos      Impuesto[]
+  terminosPago   TerminoPago[]
+  pagosCliente   PagoCliente[]
 
   @@map("empresas")
 }
@@ -167,6 +172,22 @@ model GoogleDriveConnection {
   propietario Usuario @relation(fields: [propietarioId], references: [id], onDelete: Cascade)
 
   @@map("google_drive_connections")
+}
+
+model FiscalbridgeWebhookEvent {
+  id            String   @id @default(uuid())
+  empresaId     String   @map("empresa_id")
+  eventoId      String   @map("evento_id")
+  tipo          String
+  documentUuid  String?  @map("document_uuid")
+  rawBody       String   @map("raw_body") @db.Text
+  recibidoEn    DateTime @default(now()) @map("recibido_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, eventoId])
+  @@index([empresaId, documentUuid])
+  @@map("fiscalbridge_webhook_events")
 }
 
 model Membresia {
@@ -362,6 +383,7 @@ model Producto {
   precioVenta      Decimal       @map("precio_venta") @db.Decimal(12, 2)
   costo            Decimal?      @db.Decimal(12, 2)
   taxRate          Decimal?      @default(0) @map("tax_rate") @db.Decimal(5, 2)
+  impuestoId       String?       @map("impuesto_id")
   imagenes         String?       // JSON stringified array of URLs
   tags             String?       // Comma separated tags
   
@@ -377,6 +399,7 @@ model Producto {
   categoria        Categoria?    @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
   marca            Marca?        @relation(fields: [marcaId], references: [id], onDelete: SetNull)
   unidadMedida     UnidadMedida? @relation(fields: [unidadMedidaId], references: [id], onDelete: SetNull)
+  impuesto         Impuesto?     @relation(fields: [impuestoId], references: [id], onDelete: SetNull)
   stocks           InventarioStock[]
   movimientosInventario MovimientoInventario[]
   facturasDetalle  FacturaVentaDetalle[]
@@ -464,6 +487,7 @@ model Cliente {
 
   empresa           Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   facturasVenta     FacturaVenta[]
+  pagos             PagoCliente[]
 
   @@unique([empresaId, numeroDocumento])
   @@map("clientes")
@@ -638,6 +662,11 @@ model FacturaVenta {
   total                    Decimal      @db.Decimal(12, 2)
   montoPagado              Decimal      @default(0) @map("monto_pagado") @db.Decimal(12, 2)
   balancePendiente         Decimal      @default(0) @map("balance_pendiente") @db.Decimal(12, 2)
+  moneda                   String       @default("DOP") @db.VarChar(3)
+  tasaCambio               Decimal      @default(1) @map("tasa_cambio") @db.Decimal(18, 8)
+  monedaBase               String       @default("DOP") @map("moneda_base") @db.VarChar(3)
+  redondeoAjuste           Decimal      @default(0) @map("redondeo_ajuste") @db.Decimal(12, 2)
+  terminoPagoId            String?      @map("termino_pago_id")
 
   // Integración e-CF con FiscalBridge
   fiscalbridgeStatus       String?      @default("NOT_TRANSMITTED") @map("fiscalbridge_status") // NOT_TRANSMITTED, PENDING, SENT, FAILED, ACCEPTED, REJECTED
@@ -662,6 +691,9 @@ model FacturaVenta {
   cliente                  Cliente?     @relation(fields: [clienteId], references: [id], onDelete: SetNull)
   usuario                  Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
   detalles                 FacturaVentaDetalle[]
+  impuestos                ImpuestoFactura[]
+  pagosAplicados           AplicacionPago[]
+  terminoPago              TerminoPago? @relation(fields: [terminoPagoId], references: [id], onDelete: SetNull)
 
   @@unique([empresaId, numeroFactura])
   @@index([empresaId, ncf])
@@ -677,6 +709,8 @@ model FacturaVentaDetalle {
   cantidad       Decimal      @db.Decimal(12, 2)
   precioUnitario Decimal      @map("precio_unitario") @db.Decimal(12, 2)
   tasaItbis      Decimal      @default(18) @map("tasa_itbis") @db.Decimal(5, 2)
+  impuestoId     String?      @map("impuesto_id")
+  indicadorFacturacion String? @map("indicador_facturacion")
   itbis          Decimal      @db.Decimal(12, 2)
   subtotal       Decimal      @db.Decimal(12, 2)
   total          Decimal      @db.Decimal(12, 2)
@@ -684,9 +718,125 @@ model FacturaVentaDetalle {
 
   factura        FacturaVenta @relation(fields: [facturaId], references: [id], onDelete: Cascade)
   producto       Producto     @relation(fields: [productoId], references: [id], onDelete: Restrict)
+  impuesto       Impuesto?    @relation(fields: [impuestoId], references: [id], onDelete: SetNull)
+  impuestos      ImpuestoFactura[]
 
   @@index([facturaId])
   @@map("facturas_venta_detalles")
+}
+
+model ConfiguracionEmpresa {
+  id                 String   @id @default(uuid())
+  empresaId          String   @unique @map("empresa_id")
+  monedaBase         String   @default("DOP") @map("moneda_base") @db.VarChar(3)
+  zonaHoraria        String   @default("America/Santo_Domingo") @map("zona_horaria")
+  locale             String   @default("es-DO")
+  precisionMoneda    Int      @default(2) @map("precision_moneda")
+  precisionCantidad  Int      @default(4) @map("precision_cantidad")
+  metodoRedondeo     String   @default("HALF_UP") @map("metodo_redondeo")
+  redondeoPor        String   @default("LINEA") @map("redondeo_por")
+  preciosIncluyenImpuesto Boolean @default(false) @map("precios_incluyen_impuesto")
+  diasGracia         Int      @default(0) @map("dias_gracia")
+  creadoEn           DateTime @default(now()) @map("creado_en")
+  actualizadoEn      DateTime @updatedAt @map("actualizado_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  @@map("configuraciones_empresa")
+}
+
+model Impuesto {
+  id                 String   @id @default(uuid())
+  empresaId          String   @map("empresa_id")
+  codigo             String
+  nombre             String
+  tasa               Decimal  @db.Decimal(5, 2)
+  tipo               String   @default("ITBIS")
+  indicadorFacturacion String @default("1") @map("indicador_facturacion")
+  incluidoEnPrecio   Boolean  @default(false) @map("incluido_en_precio")
+  vigenteDesde      DateTime @default(now()) @map("vigente_desde")
+  vigenteHasta      DateTime? @map("vigente_hasta")
+  activo             Boolean  @default(true)
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  productos Producto[]
+  detalles FacturaVentaDetalle[]
+  facturas ImpuestoFactura[]
+
+  @@unique([empresaId, codigo])
+  @@index([empresaId, activo])
+  @@map("impuestos")
+}
+
+model ImpuestoFactura {
+  id             String   @id @default(uuid())
+  facturaId      String   @map("factura_id")
+  detalleId      String?  @map("detalle_id")
+  impuestoId     String   @map("impuesto_id")
+  baseImponible  Decimal  @map("base_imponible") @db.Decimal(12, 2)
+  tasa           Decimal  @db.Decimal(5, 2)
+  monto          Decimal  @db.Decimal(12, 2)
+  indicadorFacturacion String @map("indicador_facturacion")
+  creadoEn       DateTime @default(now()) @map("creado_en")
+
+  factura  FacturaVenta @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  detalle  FacturaVentaDetalle? @relation(fields: [detalleId], references: [id], onDelete: SetNull)
+  impuesto Impuesto @relation(fields: [impuestoId], references: [id], onDelete: Restrict)
+  @@index([facturaId])
+  @@map("impuestos_factura")
+}
+
+model TerminoPago {
+  id              String   @id @default(uuid())
+  empresaId       String   @map("empresa_id")
+  codigo          String
+  nombre          String
+  tipo            String   @default("CONTADO")
+  diasCredito     Int      @default(0) @map("dias_credito")
+  porcentajeAnticipo Decimal @default(0) @map("porcentaje_anticipo") @db.Decimal(5, 2)
+  activo          Boolean  @default(true)
+  creadoEn        DateTime @default(now()) @map("creado_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  facturas FacturaVenta[]
+  @@unique([empresaId, codigo])
+  @@map("terminos_pago")
+}
+
+model PagoCliente {
+  id             String   @id @default(uuid())
+  empresaId      String   @map("empresa_id")
+  clienteId      String   @map("cliente_id")
+  moneda         String   @default("DOP") @db.VarChar(3)
+  monto          Decimal  @db.Decimal(12, 2)
+  tasaCambio     Decimal  @default(1) @map("tasa_cambio") @db.Decimal(18, 8)
+  metodo         String
+  referencia     String?
+  fechaPago      DateTime @default(now()) @map("fecha_pago")
+  estado         String   @default("REGISTRADO")
+  usuarioId      String   @map("usuario_id")
+  notas          String?
+  creadoEn       DateTime @default(now()) @map("creado_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  aplicaciones AplicacionPago[]
+  @@index([empresaId, clienteId, fechaPago])
+  @@map("pagos_clientes")
+}
+
+model AplicacionPago {
+  id          String   @id @default(uuid())
+  pagoId      String   @map("pago_id")
+  facturaId   String   @map("factura_id")
+  monto       Decimal  @db.Decimal(12, 2)
+  creadoEn    DateTime @default(now()) @map("creado_en")
+
+  pago    PagoCliente @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+  factura FacturaVenta @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  @@unique([pagoId, facturaId])
+  @@index([facturaId])
+  @@map("aplicaciones_pago")
 }
 
 // Fase AI Agent & Chat Multi-Tenant

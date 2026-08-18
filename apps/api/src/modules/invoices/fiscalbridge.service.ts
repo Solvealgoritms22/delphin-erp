@@ -33,6 +33,32 @@ export class FiscalBridgeService {
     };
 
     let baseUrl = empresa.fiscalbridgeUrl.trim();
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(baseUrl);
+    } catch {
+      throw new BadRequestException('La URL de FiscalBridge no es válida.');
+    }
+    const allowedHosts = (process.env.FISCALBRIDGE_ALLOWED_HOSTS || '')
+      .split(',')
+      .map((host) => host.trim().toLowerCase())
+      .filter(Boolean);
+    if (process.env.NODE_ENV === 'production' && !allowedHosts.length)
+      throw new BadRequestException(
+        'FISCALBRIDGE_ALLOWED_HOSTS debe configurarse en producción.',
+      );
+    const isLocalTest =
+      this.normalizeFbEnv(empresa.fiscalbridgeEnv) === 'TEST' &&
+      ['localhost', '127.0.0.1'].includes(parsedUrl.hostname);
+    if (parsedUrl.protocol !== 'https:' && !isLocalTest)
+      throw new BadRequestException('FiscalBridge debe utilizar HTTPS.');
+    if (
+      allowedHosts.length &&
+      !allowedHosts.includes(parsedUrl.hostname.toLowerCase())
+    )
+      throw new BadRequestException(
+        'El host de FiscalBridge no está permitido.',
+      );
     if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
     const cleanedBaseUrl = baseUrl.endsWith('/v1')
       ? baseUrl.slice(0, -3)

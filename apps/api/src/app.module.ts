@@ -26,6 +26,9 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { SequencesModule } from './modules/sequences/sequences.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { BackupsModule } from './modules/backups/backups.module';
+import { BillingConfigModule } from './modules/billing-config/billing-config.module';
+import { CustomerPaymentsModule } from './modules/customer-payments/customer-payments.module';
+import { FiscalbridgeWebhookModule } from './modules/invoices/fiscalbridge-webhook.module';
 
 @Module({
   imports: [
@@ -94,6 +97,9 @@ import { BackupsModule } from './modules/backups/backups.module';
     SequencesModule,
     InvoicesModule,
     BackupsModule,
+    BillingConfigModule,
+    CustomerPaymentsModule,
+    FiscalbridgeWebhookModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

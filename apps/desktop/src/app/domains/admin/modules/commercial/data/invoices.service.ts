@@ -13,6 +13,12 @@ export interface FacturaVentaDetalle {
     codigo: string;
     precioVenta: number;
     taxRate: number;
+    impuesto?: {
+      id: string;
+      codigo: string;
+      nombre: string;
+      tasa: number;
+    } | null;
   };
   cantidad: number;
   precioUnitario: number;
@@ -54,6 +60,9 @@ export interface FacturaVenta {
   total: number;
   montoPagado: number;
   balancePendiente: number;
+  moneda?: string;
+  tasaCambio?: number;
+  monedaBase?: string;
   fiscalbridgeStatus?: string | null; // NOT_TRANSMITTED | PENDING | SENT | FAILED | ACCEPTED | REJECTED
   fiscalbridgeDocId?: string | null;
   fiscalbridgeTrackId?: string | null;
@@ -74,6 +83,7 @@ export interface InvoiceItemDto {
   cantidad: number;
   precioUnitario: number;
   tasaItbis?: number;
+  impuestoId?: string;
 }
 
 export interface CreateInvoiceDto {
@@ -87,6 +97,7 @@ export interface CreateInvoiceDto {
   motivoModificacion?: string;
   notas?: string;
   items: InvoiceItemDto[];
+  moneda?: string;
 }
 
 export interface FilterInvoiceDto {
@@ -114,9 +125,11 @@ export class InvoicesService {
     let params = new HttpParams();
     if (filters) {
       if (filters.search) params = params.set('search', filters.search);
-      if (filters.clienteId) params = params.set('clienteId', filters.clienteId);
+      if (filters.clienteId)
+        params = params.set('clienteId', filters.clienteId);
       if (filters.estado) params = params.set('estado', filters.estado);
-      if (filters.fiscalbridgeStatus) params = params.set('fiscalbridgeStatus', filters.fiscalbridgeStatus);
+      if (filters.fiscalbridgeStatus)
+        params = params.set('fiscalbridgeStatus', filters.fiscalbridgeStatus);
       if (filters.tipoNcf) params = params.set('tipoNcf', filters.tipoNcf);
       if (filters.desde) params = params.set('desde', filters.desde);
       if (filters.hasta) params = params.set('hasta', filters.hasta);
@@ -129,7 +142,7 @@ export class InvoicesService {
           this.loading.set(false);
         },
         error: () => this.loading.set(false),
-      }),
+      })
     );
   }
 
@@ -141,53 +154,59 @@ export class InvoicesService {
     return this.http.post<FacturaVenta>(this.apiUrl, dto).pipe(
       tap((created) => {
         this.invoices.update((list) => [created, ...list]);
-      }),
+      })
     );
   }
 
   sendToFiscalBridge(id: string): Observable<FacturaVenta> {
-    return this.http.post<FacturaVenta>(`${this.apiUrl}/${id}/send-fiscalbridge`, {}).pipe(
-      tap((updated) => {
-        this.invoices.update((list) =>
-          list.map((inv) => (inv.id === id ? updated : inv)),
-        );
-      }),
-    );
+    return this.http
+      .post<FacturaVenta>(`${this.apiUrl}/${id}/send-fiscalbridge`, {})
+      .pipe(
+        tap((updated) => {
+          this.invoices.update((list) =>
+            list.map((inv) => (inv.id === id ? updated : inv))
+          );
+        })
+      );
   }
 
   downloadPdf(id: string, fileName?: string): void {
-    this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' }).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName || `Factura_${id}.pdf`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-      },
-    });
+    this.http
+      .get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName || `Factura_${id}.pdf`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+        },
+      });
   }
 
   downloadXml(id: string, fileName?: string): void {
-    this.http.get(`${this.apiUrl}/${id}/xml`, { responseType: 'blob' }).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName || `eCF_${id}.xml`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-      },
-    });
+    this.http
+      .get(`${this.apiUrl}/${id}/xml`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName || `eCF_${id}.xml`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+        },
+      });
   }
 
   cancel(id: string): Observable<FacturaVenta> {
     return this.http.post<FacturaVenta>(`${this.apiUrl}/${id}/cancel`, {}).pipe(
       tap((cancelled) => {
         this.invoices.update((list) =>
-          list.map((inv) => (inv.id === id ? cancelled : inv)),
+          list.map((inv) => (inv.id === id ? cancelled : inv))
         );
-      }),
+      })
     );
   }
 }

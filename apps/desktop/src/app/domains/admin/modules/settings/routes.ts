@@ -7,6 +7,12 @@ export default [
     children: [
       { path: '', redirectTo: 'empresas', pathMatch: 'full' },
       {
+        path: 'billing',
+        canActivate: [permissionGuard],
+        data: { permissions: ['company:read'] },
+        loadComponent: () => import('./features/billing/billing-settings').then(c => c.BillingSettingsComponent)
+      },
+      {
         path: 'backups',
         canActivate: [permissionGuard],
         data: { permissions: ['backups:read'] },
@@ -41,4 +47,3 @@ export default [
     ]
   }
 ] as Routes;
-

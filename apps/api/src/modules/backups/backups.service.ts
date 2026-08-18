@@ -39,6 +39,10 @@ const TENANT_MODELS = [
   'facturaVenta',
   'aiConversation',
   'activityLog',
+  'configuracionEmpresa',
+  'impuesto',
+  'terminoPago',
+  'pagoCliente',
 ] as const;
 
 type Provider = 'LOCAL' | 'GOOGLE_DRIVE';
@@ -298,7 +302,17 @@ export class BackupsService {
     };
     const prisma = this.prisma as any;
     for (const model of TENANT_MODELS) {
-      data[model] = await prisma[model].findMany({ where: { empresaId } });
+      data[model] = await prisma[model].findMany({
+        where: { empresaId },
+        ...(model === 'facturaVenta'
+          ? {
+              include: {
+                impuestos: true,
+                pagosAplicados: { include: { pago: true } },
+              },
+            }
+          : {}),
+      });
     }
     return Buffer.from(
       JSON.stringify(data, (_key, value) =>

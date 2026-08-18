@@ -8,7 +8,10 @@ import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    rawBody: true,
+  });
   app.useLogger(app.get(Logger));
   app.use(helmet());
   const corsOrigins = process.env.CORS_ORIGINS?.split(',')

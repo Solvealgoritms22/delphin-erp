@@ -138,6 +138,13 @@ export const NAVIGATION: NavigationItem[] = [
         icon: 'archive',
         route: '/admin/settings/backups',
         activeOptions: { exact: false }
+      },
+      {
+        id: 'settings/billing',
+        label: 'nav.billingSettings',
+        icon: 'sliders-horizontal',
+        route: '/admin/settings/billing',
+        activeOptions: { exact: false }
       }
     ]
   },

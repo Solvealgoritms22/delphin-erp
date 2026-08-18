@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { SequencesService } from '../sequences/sequences.service';
 import { FiscalBridgeService } from './fiscalbridge.service';
+import { BillingConfigService } from '../billing-config/billing-config.service';
 import { CreateInvoiceDto, FilterInvoiceDto } from './dto/invoice.dto';
 import { Response } from 'express';
 import { Prisma } from '@prisma/client';
@@ -19,6 +20,9 @@ interface CalculatedItem {
   itbis: Prisma.Decimal;
   subtotal: Prisma.Decimal;
   total: Prisma.Decimal;
+  impuestoId?: string;
+  indicadorFacturacion: string;
+  afectaInventario: boolean;
 }
 
 @Injectable()
@@ -29,6 +33,7 @@ export class InvoicesService {
     private readonly prisma: PrismaService,
     private readonly sequencesService: SequencesService,
     private readonly fiscalBridgeService: FiscalBridgeService,
+    private readonly billingConfig: BillingConfigService,
   ) {}
 
   async create(empresaId: string, usuarioId: string, dto: CreateInvoiceDto) {
@@ -44,6 +49,25 @@ export class InvoicesService {
     if (!empresa) {
       throw new NotFoundException('Empresa no encontrada.');
     }
+    const billing = await this.billingConfig.get(empresaId);
+    const configuration = billing.configuracion;
+    const currency = (
+      dto.moneda ||
+      configuration.monedaBase ||
+      'DOP'
+    ).toUpperCase();
+    const exchangeRate = new Prisma.Decimal(dto.tasaCambio || 1);
+    const selectedTerm = dto.terminoPagoId
+      ? billing.terminosPago.find((term) => term.id === dto.terminoPagoId)
+      : billing.terminosPago.find(
+          (term) =>
+            term.codigo ===
+            (dto.tipoPago === 'CREDITO' ? 'CREDITO30' : 'CONTADO'),
+        );
+    if (dto.terminoPagoId && !selectedTerm)
+      throw new BadRequestException(
+        'El término de pago no pertenece a la empresa.',
+      );
 
     // Determinar Almacén
     let almacenId = dto.almacenId;
@@ -96,13 +120,13 @@ export class InvoicesService {
     // Calcular Subtotal, ITBIS y Total
     let subtotalAcc = new Prisma.Decimal(0);
     let itbisAcc = new Prisma.Decimal(0);
-    let totalAcc = new Prisma.Decimal(0);
 
     const calculatedItems: CalculatedItem[] = [];
 
     for (const item of dto.items) {
       const producto = await this.prisma.producto.findFirst({
         where: { id: item.productoId, empresaId },
+        include: { impuesto: true },
       });
       if (!producto) {
         throw new NotFoundException(
@@ -112,17 +136,38 @@ export class InvoicesService {
 
       const cantidad = new Prisma.Decimal(item.cantidad);
       const precio = new Prisma.Decimal(item.precioUnitario);
+      const configuredTax = item.impuestoId
+        ? billing.impuestos.find((tax) => tax.id === item.impuestoId)
+        : producto.impuesto?.empresaId === empresaId
+          ? producto.impuesto
+          : billing.impuestos.find((tax) => tax.codigo === 'ITBIS18');
+      if (item.impuestoId && !configuredTax)
+        throw new BadRequestException('El impuesto no pertenece a la empresa.');
       const tasaItbis = new Prisma.Decimal(
-        item.tasaItbis ?? producto.taxRate ?? 18,
+        item.tasaItbis ?? configuredTax?.tasa ?? producto.taxRate ?? 0,
       );
+      if (tasaItbis.lt(0) || tasaItbis.gt(100))
+        throw new BadRequestException(
+          'La tasa de impuesto debe estar entre 0 y 100.',
+        );
 
       const itemSubtotal = cantidad.mul(precio);
-      const itemItbis = itemSubtotal.mul(tasaItbis).div(100);
-      const itemTotal = itemSubtotal.add(itemItbis);
+      const itemItbis = itemSubtotal
+        .mul(tasaItbis)
+        .div(100)
+        .toDecimalPlaces(
+          configuration.precisionMoneda,
+          Prisma.Decimal.ROUND_HALF_UP,
+        );
+      const itemTotal = itemSubtotal
+        .add(itemItbis)
+        .toDecimalPlaces(
+          configuration.precisionMoneda,
+          Prisma.Decimal.ROUND_HALF_UP,
+        );
 
       subtotalAcc = subtotalAcc.add(itemSubtotal);
       itbisAcc = itbisAcc.add(itemItbis);
-      totalAcc = totalAcc.add(itemTotal);
 
       calculatedItems.push({
         productoId: item.productoId,
@@ -132,13 +177,31 @@ export class InvoicesService {
         itbis: itemItbis,
         subtotal: itemSubtotal,
         total: itemTotal,
+        impuestoId: item.impuestoId || configuredTax?.id,
+        indicadorFacturacion:
+          configuredTax?.indicadorFacturacion || (tasaItbis.eq(0) ? '2' : '1'),
+        afectaInventario: producto.tipo !== 'SERVICIO',
       });
     }
+
+    const discount = new Prisma.Decimal(dto.descuento || 0);
+    if (discount.lt(0) || discount.gt(subtotalAcc))
+      throw new BadRequestException(
+        'El descuento no puede superar el subtotal.',
+      );
+    const totalAfterDiscount = subtotalAcc
+      .sub(discount)
+      .add(itbisAcc)
+      .toDecimalPlaces(
+        configuration.precisionMoneda,
+        Prisma.Decimal.ROUND_HALF_UP,
+      );
 
     // Transacción de creación de factura y descuento de inventario
     const invoice = await this.prisma.$transaction(async (tx) => {
       // Descontar inventario
       for (const item of calculatedItems) {
+        if (!item.afectaInventario) continue;
         const stock = await tx.inventarioStock.findUnique({
           where: {
             productoId_almacenId: {
@@ -183,7 +246,7 @@ export class InvoicesService {
       }
 
       // Crear Factura
-      return tx.facturaVenta.create({
+      const created = await tx.facturaVenta.create({
         data: {
           empresaId,
           sucursalId: dto.sucursalId,
@@ -197,12 +260,21 @@ export class InvoicesService {
           tipoPago: dto.tipoPago || 'CONTADO',
           metodoPago: dto.metodoPago || 'EFECTIVO',
           subtotal: subtotalAcc,
+          descuento: discount,
           itbis: itbisAcc,
-          total: totalAcc,
-          montoPagado:
-            dto.tipoPago === 'CONTADO' ? totalAcc : new Prisma.Decimal(0),
-          balancePendiente:
-            dto.tipoPago === 'CONTADO' ? new Prisma.Decimal(0) : totalAcc,
+          total: totalAfterDiscount,
+          moneda: currency,
+          tasaCambio: exchangeRate,
+          monedaBase: configuration.monedaBase,
+          redondeoAjuste: new Prisma.Decimal(0),
+          terminoPagoId: selectedTerm?.id,
+          fechaVencimiento: dto.fechaVencimiento
+            ? new Date(dto.fechaVencimiento)
+            : selectedTerm && selectedTerm.diasCredito > 0
+              ? new Date(Date.now() + selectedTerm.diasCredito * 86400000)
+              : null,
+          montoPagado: new Prisma.Decimal(0),
+          balancePendiente: totalAfterDiscount,
           ncfModificado: dto.ncfModificado,
           motivoModificacion: dto.motivoModificacion,
           notas: dto.notas,
@@ -215,6 +287,8 @@ export class InvoicesService {
               itbis: item.itbis,
               subtotal: item.subtotal,
               total: item.total,
+              impuestoId: item.impuestoId,
+              indicadorFacturacion: item.indicadorFacturacion,
             })),
           },
         },
@@ -225,6 +299,24 @@ export class InvoicesService {
           detalles: { include: { producto: true } },
         },
       });
+      const taxLines = calculatedItems
+        .map((item, index) =>
+          item.impuestoId && created.detalles[index]
+            ? {
+                facturaId: created.id,
+                detalleId: created.detalles[index]?.id,
+                impuestoId: item.impuestoId,
+                baseImponible: item.subtotal,
+                tasa: item.tasaItbis,
+                monto: item.itbis,
+                indicadorFacturacion: item.indicadorFacturacion,
+              }
+            : null,
+        )
+        .filter((line): line is NonNullable<typeof line> => Boolean(line));
+      if (taxLines.length)
+        await tx.impuestoFactura.createMany({ data: taxLines });
+      return created;
     });
 
     // Transmitir a FiscalBridge si está habilitado y es comprobante electrónico
@@ -449,6 +541,7 @@ export class InvoicesService {
         );
       // Restaurar stock
       for (const det of invoice.detalles) {
+        if (det.producto.tipo === 'SERVICIO') continue;
         if (invoice.almacenId) {
           const stock = await tx.inventarioStock.findUnique({
             where: {

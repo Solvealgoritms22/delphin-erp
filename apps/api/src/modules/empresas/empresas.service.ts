@@ -260,6 +260,9 @@ export class EmpresasService {
       updateData.fiscalbridgeClientSecret = data.fiscalbridgeClientSecret;
     if (data.fiscalbridgeEnv !== undefined)
       updateData.fiscalbridgeEnv = data.fiscalbridgeEnv;
+    if (data.fiscalbridgeWebhookSecret !== undefined)
+      updateData.fiscalbridgeWebhookSecret =
+        data.fiscalbridgeWebhookSecret || null;
     // SMTP fields were moved to User profile
 
     return this.prisma.empresa.update({

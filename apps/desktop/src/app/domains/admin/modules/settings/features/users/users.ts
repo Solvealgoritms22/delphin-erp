@@ -192,7 +192,7 @@ import { PlusIcon, UserRoundIcon, UserCheckIcon, UserCogIcon, SearchIcon, Chevro
                       </td>
                       <td class="py-4 px-6">
                         <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                          {{ getRoleName(account.roleId) }}
+                          {{ getRoleName(account.roleId, account.isOwner) }}
                         </span>
                       </td>
                       <td class="py-4 px-6">
@@ -301,9 +301,10 @@ export class UsersComponent implements OnInit {
     return this.getRoleName(rId);
   }
 
-  getRoleName(roleId: string | undefined): string {
-    if (!roleId) return 'Sin Rol';
-    return this.roles().find(r => r.id === roleId)?.nombre || 'Desconocido';
+  getRoleName(roleId: string | undefined, isOwner = false): string {
+    if (isOwner) return this.transloco.translate('settings.users.owner');
+    if (!roleId) return this.transloco.translate('settings.users.noRole');
+    return this.roles().find(r => r.id === roleId)?.nombre || this.transloco.translate('settings.users.unknown');
   }
 
   async openUserModal(user?: Account) {

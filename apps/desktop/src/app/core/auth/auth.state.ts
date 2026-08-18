@@ -1,4 +1,10 @@
-import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import {
+  computed,
+  inject,
+  Injectable,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { User } from './auth.types';
 
@@ -24,7 +30,8 @@ export class AuthState {
   setSession(user: User, token: string, empresaId?: string | null): void {
     this._user.set(user);
     this._accessToken.set(token);
-    const activeEmpresa = empresaId !== undefined ? empresaId : (user.empresaId || null);
+    const activeEmpresa =
+      empresaId !== undefined ? empresaId : user.empresaId || null;
     this._empresaId.set(activeEmpresa);
     this.saveToStorage(user, token, activeEmpresa);
   }
@@ -62,6 +69,8 @@ export class AuthState {
     this._accessToken.set(null);
     this._empresaId.set(null);
     if (this.isBrowser) {
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_user');
       localStorage.removeItem('auth_user');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('active_empresa_id');
@@ -71,11 +80,13 @@ export class AuthState {
   private loadFromStorage(): void {
     if (!this.isBrowser) return;
     try {
-        const user = localStorage.getItem('auth_user');
+      // Keep the access token for the renderer session so a page reload does not
+      // log the user out, but do not persist it after the application is closed.
+      const token = sessionStorage.getItem('auth_token');
+      const user = sessionStorage.getItem('auth_user');
 
-      // Access tokens are intentionally memory-only. A renderer compromise must not
-      // be able to recover a long-lived credential from persistent storage.
-      if (user) {
+      if (token && user && token.length <= 8192) {
+        this._accessToken.set(token);
         const parsed: User | null = JSON.parse(user);
         this._user.set(parsed);
         const empresaId = parsed?.empresaId || null;
@@ -88,9 +99,14 @@ export class AuthState {
     }
   }
 
-  private saveToStorage(user: User, token: string, empresaId?: string | null): void {
+  private saveToStorage(
+    user: User,
+    token: string,
+    empresaId?: string | null
+  ): void {
     if (this.isBrowser) {
-      localStorage.setItem('auth_user', JSON.stringify(user));
+      sessionStorage.setItem('auth_token', token);
+      sessionStorage.setItem('auth_user', JSON.stringify(user));
       const targetEmpresa = empresaId ?? user.empresaId;
       if (targetEmpresa) {
         localStorage.setItem('active_empresa_id', targetEmpresa);

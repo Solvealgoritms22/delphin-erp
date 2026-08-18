@@ -6,9 +6,10 @@
     "createLocal": "Create local backup",
     "download": "Download",
     "delete": "Delete backup",
+    "deleteTitle": "Delete backup",
     "emptyTitle": "No backups yet",
     "emptyDescription": "Create an encrypted copy to protect this company's information.",
-    "confirmDelete": "Delete this backup?",
+    "confirmDelete": "Are you sure you want to delete this backup?",
     "loadError": "Backups could not be loaded.",
     "createError": "The backup could not be created.",
     "driveError": "Google Drive connection could not be started.",
@@ -79,6 +80,7 @@
     "branches": "Branches",
     "companies": "My companies",
     "backups": "Backups",
+    "billingSettings": "Billing settings",
     "security": "Security",
     "securityDescription": "Access management",
     "roles": "Roles and permissions",
@@ -89,6 +91,44 @@
     "systemDescription": "Audit and activity",
     "activity": "Activity",
     "legal": "Legal documentation"
+  },
+  "billingConfig": {
+    "title": "Billing and tax settings",
+    "description": "Define the currency, rounding policy, taxes and payment terms used by your company.",
+    "general": "General billing",
+    "generalDescription": "These rules are applied by the backend to every new document.",
+    "baseCurrency": "Base currency",
+    "currencyDop": "DOP · Dominican peso",
+    "currencyUsd": "USD · US dollar",
+    "currencyEur": "EUR · Euro",
+    "timezone": "Timezone",
+    "timezoneSantoDomingo": "Santo Domingo (UTC-04:00)",
+    "timezoneNewYork": "New York (UTC-05:00/UTC-04:00)",
+    "rounding": "Rounding method",
+    "roundingBy": "Round by",
+    "currencyPrecision": "Currency decimals",
+    "quantityPrecision": "Quantity decimals",
+    "includesTax": "Prices include tax",
+    "graceDays": "Grace days",
+    "yes": "Yes",
+    "no": "No",
+    "halfUp": "Half up",
+    "byLine": "Line",
+    "byDocument": "Document",
+    "taxes": "Taxes",
+    "taxesDescription": "Tax rates are stored with each document so historical invoices do not change.",
+    "taxName": "Tax name",
+    "rate": "Rate %",
+    "dgiiIndicator": "DGII indicator",
+    "taxable": "Taxable",
+    "zeroRated": "Zero rated",
+    "exempt": "Exempt",
+    "termName": "Term name",
+    "paymentTerms": "Payment terms",
+    "days": "days",
+    "loadError": "Billing settings could not be loaded.",
+    "saved": "Billing settings saved.",
+    "saveError": "Billing settings could not be saved."
   },
   "language": {
     "english": "English",
@@ -481,7 +521,104 @@
       "description": "Multi-branch stock control, warehouses, transfers, and immutable Kardex ledger.",
       "newWarehouse": "New Warehouse",
       "stockAdjustment": "Stock Adjustment",
-      "newTransfer": "New Transfer"
+      "newTransfer": "New Transfer",
+      "searchPlaceholder": "Search by product, code or SKU...",
+      "allWarehouses": "All Warehouses",
+      "tabs": {
+        "stocks": "Stock by Location",
+        "warehouses": "Warehouses & Storage",
+        "kardex": "Movement Kardex"
+      },
+      "columns": {
+        "product": "Product",
+        "warehouse": "Warehouse / Branch",
+        "currentStock": "Current Stock",
+        "minStock": "Minimum Stock",
+        "status": "Status",
+        "dateTime": "Date / Time",
+        "movementType": "Movement Type",
+        "originDestination": "Origin / Destination",
+        "quantity": "Quantity"
+      },
+      "empty": {
+        "stocksTitle": "No stock registered",
+        "stocksDesc": "Make an initial stock adjustment or transfer products to register stock.",
+        "kardexTitle": "No movements in Kardex",
+        "kardexDesc": "All purchases, sales, transfers, and adjustments will be recorded here immutably."
+      },
+      "stockStatus": {
+        "outOfStock": "Out of stock",
+        "low": "Low",
+        "optimal": "Optimal"
+      },
+      "warehouses": {
+        "mainBadge": "Main / Hub",
+        "type": "Type",
+        "branch": "Branch",
+        "central": "Central Warehouse",
+        "transferFromHere": "Transfer from here"
+      },
+      "movementTypes": {
+        "TRANSFERENCIA": "Transfer",
+        "COMPRA": "Purchase",
+        "VENTA": "Sale",
+        "AJUSTE_POSITIVO": "Positive Adjustment",
+        "AJUSTE_NEGATIVO": "Negative Adjustment"
+      },
+      "modals": {
+        "transfer": {
+          "title": "Stock Transfer Between Warehouses",
+          "product": "Product to Transfer",
+          "productPlaceholder": "Select a product",
+          "originWarehouse": "Origin Warehouse",
+          "originPlaceholder": "Select origin",
+          "destWarehouse": "Destination Warehouse",
+          "destPlaceholder": "Select destination",
+          "quantity": "Quantity to Transfer",
+          "reason": "Reason / Reference Document",
+          "reasonPlaceholder": "Store replenishment, Request #TR-102",
+          "submit": "Execute Transfer"
+        },
+        "adjustment": {
+          "title": "Direct Inventory Adjustment",
+          "product": "Product",
+          "productPlaceholder": "Select a product",
+          "warehouse": "Warehouse",
+          "warehousePlaceholder": "Select warehouse",
+          "type": "Adjustment Type",
+          "positive": "Positive Adjustment (+ Inflow)",
+          "negative": "Negative Adjustment (- Outflow / Waste)",
+          "quantity": "Quantity",
+          "reason": "Reason / Adjustment Explanation",
+          "reasonPlaceholder": "Monthly physical count, damaged product, etc.",
+          "submit": "Apply Adjustment"
+        },
+        "warehouse": {
+          "title": "New Warehouse or Storage",
+          "name": "Warehouse Name",
+          "namePlaceholder": "Central Storage, Piantini Sales Floor",
+          "type": "Warehouse Type",
+          "types": {
+            "salesFloor": "Sales Floor",
+            "distributionCenter": "Distribution Center (Hub)",
+            "waste": "Waste / Damage Storage",
+            "transit": "In Transit"
+          },
+          "code": "Code",
+          "codePlaceholder": "ALM-01",
+          "submit": "Save Warehouse"
+        }
+      },
+      "messages": {
+        "fillRequired": "Please fill in all required fields",
+        "transferSuccess": "Transfer executed successfully",
+        "transferError": "Error transferring stock",
+        "adjustmentSuccess": "Inventory adjustment applied",
+        "adjustmentError": "Error applying adjustment",
+        "nameRequired": "Warehouse name is required",
+        "warehouseSuccess": "Warehouse created successfully",
+        "warehouseError": "Error creating warehouse"
+      }
     }
   },
   "commercial": {
@@ -506,6 +643,140 @@
       "emptyTitle": "No suppliers registered",
       "emptyDescription": "Create your first supplier to manage commercial operations.",
       "deleteConfirm": "Are you sure you want to delete this supplier?"
+    },
+    "sequences": {
+      "title": "Tax Receipts (NCF)",
+      "description": "Management of traditional NCF and electronic e-CF sequences authorized by the DGII.",
+      "newSequence": "New NCF Sequence",
+      "columns": {
+        "name": "Type / Name",
+        "prefix": "Prefix / Type",
+        "environment": "Environment",
+        "nextNumber": "Next to Issue",
+        "expiration": "Expiration",
+        "action": "Action"
+      },
+      "emptyTitle": "No NCF sequences registered",
+      "emptyDescription": "Configure the DGII-authorized sequences to issue tax receipts.",
+      "range": "Range",
+      "number": "Number",
+      "electronic": "Electronic",
+      "traditional": "Traditional",
+      "noExpiration": "No Expiration",
+      "environments": {
+        "prod": "PRODUCTION",
+        "cert": "CERTIFICATION",
+        "test": "TEST (SANDBOX)"
+      },
+      "types": {
+        "E31": "E31 - Electronic Tax Credit",
+        "E32": "E32 - Electronic Consumer Invoice",
+        "E34": "E34 - Electronic Credit Note",
+        "E44": "E44 - Electronic Special Regime",
+        "E45": "E45 - Electronic Government",
+        "B01": "B01 - Traditional Tax Credit Invoice",
+        "B02": "B02 - Traditional Consumer Invoice",
+        "B04": "B04 - Traditional Credit Note"
+      },
+      "modal": {
+        "title": "New NCF / e-CF Sequence",
+        "name": "Descriptive Name",
+        "namePlaceholder": "Electronic Tax Credit (Main Sales)",
+        "type": "Receipt Type",
+        "environment": "Environment",
+        "envOptions": {
+          "test": "TEST (Sandbox / Tests)",
+          "cert": "CERT (DGII Certification)",
+          "prod": "PROD (Live Production)"
+        },
+        "startNumber": "Starting Number (From)",
+        "limitNumber": "Authorized Limit (To)",
+        "expirationDate": "DGII Expiration Date (Optional)",
+        "submit": "Save Sequence"
+      },
+      "messages": {
+        "fillRequired": "Please fill in all required fields",
+        "saveSuccess": "NCF sequence saved successfully",
+        "saveError": "Error saving sequence",
+        "deleteTitle": "Delete NCF Sequence",
+        "deleteConfirm": "Are you sure you want to delete sequence <strong>{{ name }}</strong>?",
+        "deleteSuccess": "Sequence deleted",
+        "deleteError": "Error deleting sequence"
+      }
+    },
+    "invoices": {
+      "title": "Invoicing & Sales",
+      "description": "Issuance of fiscal invoices, credit notes and integration with e-CF FiscalBridge (DGII).",
+      "newInvoice": "New Invoice / Sale",
+      "searchPlaceholder": "Search by client, NCF or invoice number...",
+      "allNcf": "All NCF",
+      "columns": {
+        "invoiceDate": "Invoice / Date",
+        "ncf": "NCF Receipt",
+        "clientRnc": "Client / Tax ID",
+        "total": "Total Invoiced",
+        "status": "DGII Fiscal Status",
+        "actions": "Actions"
+      },
+      "emptyTitle": "No invoices issued",
+      "emptyDescription": "Start by issuing your first invoice with tax receipt or e-CF.",
+      "noNcf": "No NCF",
+      "cashClient": "Cash Customer",
+      "finalConsumer": "Final Consumer",
+      "finalConsumerNoRnc": "Final Consumer (No Tax ID)",
+      "centralWarehouse": "Central",
+      "status": {
+        "ecfValidated": "e-CF Validated DGII",
+        "transmissionFailed": "Transmission Failed",
+        "ecfPending": "e-CF Pending",
+        "ncfTraditional": "Traditional NCF"
+      },
+      "actions": {
+        "downloadPdf": "Download Official PDF (RI)",
+        "downloadXml": "Download DGII Signed XML",
+        "transmitFiscalBridge": "Transmit to FiscalBridge",
+        "cancelInvoice": "Void Invoice"
+      },
+      "modal": {
+        "title": "Fiscal Invoice / e-CF Issuance",
+        "client": "Client / Tax ID",
+        "ncfType": "Fiscal Receipt Type",
+        "warehouse": "Dispatch Warehouse",
+        "paymentCondition": "Payment Term",
+        "paymentConditions": {
+          "cash": "Cash (Immediate Payment)",
+          "credit": "Credit (Account Receivable)"
+        },
+        "itemsSection": "Products and Services to Invoice",
+        "addLine": "Add Line",
+        "product": "Product",
+        "quantity": "Qty",
+        "price": "Price (RD$)",
+        "subtotalTaxed": "Taxable Subtotal:",
+        "itbis": "Taxes:",
+        "totalToInvoice": "Total to Invoice:",
+        "submit": "Issue & Transmit Invoice"
+      },
+      "types": {
+        "E31": "E31 - Electronic Tax Credit Invoice",
+        "E32": "E32 - Electronic Consumer Invoice",
+        "E34": "E34 - Electronic Credit Note",
+        "E44": "E44 - Electronic Special Regime",
+        "E45": "E45 - Electronic Government",
+        "B01": "B01 - Traditional Tax Credit Invoice",
+        "B02": "B02 - Traditional Consumer Invoice"
+      },
+      "messages": {
+        "minOneProduct": "You must add at least one product to the invoice",
+        "issuedSuccess": "Invoice {{ invoiceNumber }} issued ({{ ncf }})",
+        "issueError": "Error issuing invoice",
+        "transmitSuccess": "Invoice transmitted to FiscalBridge successfully",
+        "transmitError": "Error transmitting to FiscalBridge",
+        "cancelTitle": "Void Invoice",
+        "cancelConfirm": "Are you sure you want to void this invoice{{ ncf }}? Inventory will be restored.",
+        "cancelSuccess": "Invoice voided and stock returned to warehouse",
+        "cancelError": "Could not void invoice"
+      }
     },
     "form": {
       "name": "Name or company",

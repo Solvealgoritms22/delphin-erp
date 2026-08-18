@@ -8,6 +8,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/sequences.service';
@@ -28,6 +30,8 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
+    MatTooltipModule,
+    TranslocoPipe,
     EmptyStateComponent,
   ],
   template: `
@@ -37,10 +41,10 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
         <div>
           <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
-            Comprobantes Fiscales (NCF)
+            {{ 'commercial.sequences.title' | transloco }}
           </div>
           <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            Administración de secuencias NCF tradicionales y e-CF electrónicos autorizados por la DGII.
+            {{ 'commercial.sequences.description' | transloco }}
           </p>
         </div>
 
@@ -48,7 +52,7 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
         <div class="flex flex-wrap items-center gap-3 mt-6 sm:mt-0 sm:ml-4">
           <button (click)="openModal()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
             <mat-icon svgIcon="plus" class="icon-size-4"></mat-icon>
-            Nueva Secuencia NCF
+            {{ 'commercial.sequences.newSequence' | transloco }}
           </button>
         </div>
       </div>
@@ -60,21 +64,21 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
         <div class="grid">
           <!-- Sticky Table Header -->
           <div class="z-10 sticky top-0 grid grid-cols-12 gap-4 py-4 px-6 md:px-8 shadow-xs text-[11px] font-bold text-neutral-500 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
-            <div class="col-span-3">Tipo / Nombre</div>
-            <div class="col-span-2">Prefijo / Tipo</div>
-            <div class="col-span-2 text-center">Ambiente</div>
-            <div class="col-span-2 text-right">Próximo a Emitir</div>
-            <div class="col-span-2 text-center">Vencimiento</div>
-            <div class="col-span-1 text-center">Acción</div>
+            <div class="col-span-3">{{ 'commercial.sequences.columns.name' | transloco }}</div>
+            <div class="col-span-2">{{ 'commercial.sequences.columns.prefix' | transloco }}</div>
+            <div class="col-span-2 text-center">{{ 'commercial.sequences.columns.environment' | transloco }}</div>
+            <div class="col-span-2 text-right">{{ 'commercial.sequences.columns.nextNumber' | transloco }}</div>
+            <div class="col-span-2 text-center">{{ 'commercial.sequences.columns.expiration' | transloco }}</div>
+            <div class="col-span-1 text-center">{{ 'commercial.sequences.columns.action' | transloco }}</div>
           </div>
 
           @if (sequencesService.sequences().length === 0) {
             <div class="flex flex-auto justify-center p-6 sm:p-10">
               <app-empty-state
                 icon="hash"
-                title="Sin secuencias NCF registradas"
-                description="Configura las secuencias autorizadas por la DGII para emitir comprobantes fiscales."
-                actionLabel="Nueva Secuencia"
+                [title]="'commercial.sequences.emptyTitle' | transloco"
+                [description]="'commercial.sequences.emptyDescription' | transloco"
+                [actionLabel]="'commercial.sequences.newSequence' | transloco"
                 actionIcon="plus"
                 (action)="openModal()"
               />
@@ -86,7 +90,7 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
                 <!-- Tipo / Nombre -->
                 <div class="col-span-3 flex flex-col">
                   <span class="font-bold text-neutral-900 dark:text-white">{{ seq.nombre }}</span>
-                  <span class="text-xs text-neutral-400">Rango: 1 - {{ seq.numeroHasta | number }}</span>
+                  <span class="text-xs text-neutral-400">{{ 'commercial.sequences.range' | transloco }}: 1 - {{ seq.numeroHasta | number }}</span>
                 </div>
 
                 <!-- Prefijo -->
@@ -94,17 +98,17 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
                   <span class="px-2.5 py-1 rounded-lg font-mono font-extrabold text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                     {{ seq.prefijo }}
                   </span>
-                  <span class="text-xs text-neutral-500">{{ seq.prefijo.startsWith('E') ? 'Electrónico' : 'Tradicional' }}</span>
+                  <span class="text-xs text-neutral-500">{{ (seq.prefijo.startsWith('E') ? 'commercial.sequences.electronic' : 'commercial.sequences.traditional') | transloco }}</span>
                 </div>
 
                 <!-- Ambiente -->
                 <div class="col-span-2 flex justify-center">
                   @if (seq.ambiente === 'PROD') {
-                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">PRODUCCIÓN</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">{{ 'commercial.sequences.environments.prod' | transloco }}</span>
                   } @else if (seq.ambiente === 'CERT') {
-                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">CERTIFICACIÓN</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">{{ 'commercial.sequences.environments.cert' | transloco }}</span>
                   } @else {
-                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400">PRUEBAS (TEST)</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400">{{ 'commercial.sequences.environments.test' | transloco }}</span>
                   }
                 </div>
 
@@ -113,17 +117,17 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
                   <span class="font-mono font-bold text-neutral-900 dark:text-white">
                     {{ formatNcfPreview(seq) }}
                   </span>
-                  <span class="text-[11px] text-neutral-400">Número: {{ seq.numeroActual }}</span>
+                  <span class="text-[11px] text-neutral-400">{{ 'commercial.sequences.number' | transloco }}: {{ seq.numeroActual }}</span>
                 </div>
 
                 <!-- Vencimiento -->
                 <div class="col-span-2 text-center text-xs text-neutral-500">
-                  {{ seq.fechaVencimiento ? (seq.fechaVencimiento | date:'dd/MM/yyyy') : 'Sin Vencimiento' }}
+                  {{ seq.fechaVencimiento ? (seq.fechaVencimiento | date:'dd/MM/yyyy') : ('commercial.sequences.noExpiration' | transloco) }}
                 </div>
 
                 <!-- Acción -->
                 <div class="col-span-1 flex justify-center">
-                  <button (click)="deleteSequence(seq)" class="w-8 h-8 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center cursor-pointer">
+                  <button (click)="deleteSequence(seq)" [matTooltip]="'common.delete' | transloco" class="w-8 h-8 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center cursor-pointer">
                     <mat-icon svgIcon="trash" class="icon-size-4"></mat-icon>
                   </button>
                 </div>
@@ -142,7 +146,7 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
           <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
             <h3 class="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
               <mat-icon svgIcon="hash" class="icon-size-5 text-blue-600"></mat-icon>
-              Nueva Secuencia NCF / e-CF
+              {{ 'commercial.sequences.modal.title' | transloco }}
             </h3>
             <button (click)="closeDialog()" class="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500">
               <mat-icon svgIcon="x" class="icon-size-4"></mat-icon>
@@ -153,33 +157,33 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
             
             <!-- Nombre descriptivo -->
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Nombre Descriptivo</mat-label>
-              <input matInput type="text" [(ngModel)]="newSequence.nombre" placeholder="Crédito Fiscal Electrónico (Ventas Principales)">
+              <mat-label>{{ 'commercial.sequences.modal.name' | transloco }}</mat-label>
+              <input matInput type="text" [(ngModel)]="newSequence.nombre" [placeholder]="'commercial.sequences.modal.namePlaceholder' | transloco">
             </mat-form-field>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <!-- Tipo de Comprobante -->
               <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Tipo de Comprobante</mat-label>
+                <mat-label>{{ 'commercial.sequences.modal.type' | transloco }}</mat-label>
                 <mat-select [(ngModel)]="newSequence.tipo" (selectionChange)="onTypeChange($event.value)">
-                  <mat-option value="E31">E31 - Crédito Fiscal Electrónico</mat-option>
-                  <mat-option value="E32">E32 - Consumo Electrónico</mat-option>
-                  <mat-option value="E34">E34 - Nota de Crédito Electrónica</mat-option>
-                  <mat-option value="E44">E44 - Régimen Especial Electrónico</mat-option>
-                  <mat-option value="E45">E45 - Gubernamental Electrónico</mat-option>
-                  <mat-option value="B01">B01 - Factura de Crédito Fiscal Tradicional</mat-option>
-                  <mat-option value="B02">B02 - Factura de Consumo Tradicional</mat-option>
-                  <mat-option value="B04">B04 - Nota de Crédito Tradicional</mat-option>
+                  <mat-option value="E31">{{ 'commercial.sequences.types.E31' | transloco }}</mat-option>
+                  <mat-option value="E32">{{ 'commercial.sequences.types.E32' | transloco }}</mat-option>
+                  <mat-option value="E34">{{ 'commercial.sequences.types.E34' | transloco }}</mat-option>
+                  <mat-option value="E44">{{ 'commercial.sequences.types.E44' | transloco }}</mat-option>
+                  <mat-option value="E45">{{ 'commercial.sequences.types.E45' | transloco }}</mat-option>
+                  <mat-option value="B01">{{ 'commercial.sequences.types.B01' | transloco }}</mat-option>
+                  <mat-option value="B02">{{ 'commercial.sequences.types.B02' | transloco }}</mat-option>
+                  <mat-option value="B04">{{ 'commercial.sequences.types.B04' | transloco }}</mat-option>
                 </mat-select>
               </mat-form-field>
 
               <!-- Ambiente -->
               <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Ambiente</mat-label>
+                <mat-label>{{ 'commercial.sequences.modal.environment' | transloco }}</mat-label>
                 <mat-select [(ngModel)]="newSequence.ambiente">
-                  <mat-option value="TEST">TEST (Pruebas / Sandbox)</mat-option>
-                  <mat-option value="CERT">CERT (Certificación DGII)</mat-option>
-                  <mat-option value="PROD">PROD (Producción en Vivo)</mat-option>
+                  <mat-option value="TEST">{{ 'commercial.sequences.modal.envOptions.test' | transloco }}</mat-option>
+                  <mat-option value="CERT">{{ 'commercial.sequences.modal.envOptions.cert' | transloco }}</mat-option>
+                  <mat-option value="PROD">{{ 'commercial.sequences.modal.envOptions.prod' | transloco }}</mat-option>
                 </mat-select>
               </mat-form-field>
             </div>
@@ -187,29 +191,29 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <!-- Número Inicial -->
               <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Número Inicial (Desde)</mat-label>
+                <mat-label>{{ 'commercial.sequences.modal.startNumber' | transloco }}</mat-label>
                 <input matInput type="number" [(ngModel)]="newSequence.numeroActual" min="1">
               </mat-form-field>
 
               <!-- Número Límite -->
               <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Límite Autorizado (Hasta)</mat-label>
+                <mat-label>{{ 'commercial.sequences.modal.limitNumber' | transloco }}</mat-label>
                 <input matInput type="number" [(ngModel)]="newSequence.numeroHasta" min="1">
               </mat-form-field>
             </div>
 
             <!-- Fecha de Vencimiento -->
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Fecha de Vencimiento DGII (Opcional)</mat-label>
+              <mat-label>{{ 'commercial.sequences.modal.expirationDate' | transloco }}</mat-label>
               <input matInput type="date" [(ngModel)]="newSequence.fechaVencimiento">
             </mat-form-field>
 
           </div>
 
           <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900">
-            <button mat-button (click)="closeDialog()" class="rounded-xl">Cancelar</button>
+            <button mat-button (click)="closeDialog()" class="rounded-xl">{{ 'common.cancel' | transloco }}</button>
             <button mat-flat-button color="primary" (click)="submitSequence()" class="rounded-xl bg-blue-600 text-white">
-              Guardar Secuencia
+              {{ 'commercial.sequences.modal.submit' | transloco }}
             </button>
           </div>
 
@@ -223,6 +227,7 @@ export class SequencesComponent implements OnInit {
   sequencesService = inject(SequencesService);
   dialog = inject(MatDialog);
   snackBar = inject(MatSnackBar);
+  i18n = inject(TranslocoService);
 
   @ViewChild('sequenceModalTemplate') sequenceModalTemplate!: TemplateRef<any>;
   private dialogRef?: MatDialogRef<any>;
@@ -255,7 +260,7 @@ export class SequencesComponent implements OnInit {
 
   openModal() {
     this.newSequence = {
-      nombre: 'Facturas de Crédito Fiscal Electrónicas',
+      nombre: '',
       tipo: 'E31',
       prefijo: 'E31',
       numeroActual: 1,
@@ -277,31 +282,32 @@ export class SequencesComponent implements OnInit {
 
   submitSequence() {
     if (!this.newSequence.nombre || !this.newSequence.tipo || !this.newSequence.prefijo) {
-      this.snackBar.open('Por favor completa todos los campos requeridos', 'Cerrar', { duration: 3000 });
+      this.snackBar.open(this.i18n.translate('commercial.sequences.messages.fillRequired'), this.i18n.translate('common.close'), { duration: 3000 });
       return;
     }
 
     this.sequencesService.create(this.newSequence).subscribe({
       next: () => {
-        this.snackBar.open('Secuencia NCF guardada exitosamente', 'Cerrar', { duration: 3000 });
+        this.snackBar.open(this.i18n.translate('commercial.sequences.messages.saveSuccess'), this.i18n.translate('common.close'), { duration: 3000 });
         this.closeDialog();
         this.sequencesService.findAll().subscribe();
       },
       error: (err) => {
-        this.snackBar.open(err.error?.message || 'Error al guardar secuencia', 'Cerrar', { duration: 4000 });
+        this.snackBar.open(err.error?.message || this.i18n.translate('commercial.sequences.messages.saveError'), this.i18n.translate('common.close'), { duration: 4000 });
       }
     });
   }
 
   deleteSequence(seq: any) {
-    const name = seq?.nombre || seq?.prefijo || 'esta secuencia NCF';
+    const name = seq?.nombre || seq?.prefijo || 'NCF';
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Eliminar secuencia NCF',
-        message: `¿Estás seguro de que deseas eliminar la secuencia <strong>${name}</strong>?`,
-        confirmLabel: 'Eliminar',
-        cancelLabel: 'Cancelar',
+        title: this.i18n.translate('commercial.sequences.messages.deleteTitle'),
+        message: this.i18n.translate('commercial.sequences.messages.deleteConfirm', { name }),
+        confirmLabel: this.i18n.translate('common.delete'),
+        cancelLabel: this.i18n.translate('common.cancel'),
         destructive: true,
+        icon: 'trash',
       } satisfies ConfirmDialogData,
       autoFocus: false,
     });
@@ -310,10 +316,10 @@ export class SequencesComponent implements OnInit {
       if (confirmed) {
         this.sequencesService.delete(seq.id || seq).subscribe({
           next: () => {
-            this.snackBar.open('Secuencia eliminada', 'Cerrar', { duration: 2500 });
+            this.snackBar.open(this.i18n.translate('commercial.sequences.messages.deleteSuccess'), this.i18n.translate('common.close'), { duration: 2500 });
           },
           error: (err) => {
-            this.snackBar.open(err.error?.message || 'Error al eliminar secuencia', 'Cerrar', { duration: 3000 });
+            this.snackBar.open(err.error?.message || this.i18n.translate('commercial.sequences.messages.deleteError'), this.i18n.translate('common.close'), { duration: 3000 });
           }
         });
       }
