@@ -28,4 +28,3 @@ describe('SupplierForm', () => {
     expect(component).toBeTruthy();
   });
 });
-

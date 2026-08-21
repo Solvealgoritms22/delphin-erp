@@ -52,10 +52,9 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
   `,
 })
 export class LanguageSwitcher {
-  // Dependencies
+
   private readonly transloco = inject(TranslocoService);
 
-  // State
   protected activeLang = this.transloco.getActiveLang();
   protected readonly availableLangs =
     this.transloco.getAvailableLangs() as LangDefinition[];

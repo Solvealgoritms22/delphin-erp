@@ -17,7 +17,6 @@ export const provideTheming = (config: ThemeConfig): EnvironmentProviders =>
       useValue: config,
     },
 
-    // Initialize the Theming
     provideAppInitializer(() => {
       inject(Theming);
     }),

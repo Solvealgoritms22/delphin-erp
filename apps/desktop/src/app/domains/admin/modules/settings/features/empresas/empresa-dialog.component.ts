@@ -70,7 +70,7 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
         [formGroup]="form"
         class="mt-4 flex flex-col gap-4"
       >
-        <!-- Company logo -->
+
         <div
           class="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/50"
         >
@@ -259,7 +259,6 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
           ></textarea>
         </mat-form-field>
 
-        <!-- FiscalBridge e-CF Section -->
         <div
           class="mt-4 flex flex-col gap-4 rounded-2xl border border-blue-200 bg-blue-50/50 p-5 dark:border-blue-900/50 dark:bg-blue-950/20 mb-2"
         >
@@ -376,7 +375,6 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
               />
             </mat-form-field>
 
-            <!-- EMAIL: correo + contraseña + client ID (entorno/tenant) -->
             <div
               *ngIf="form.get('fiscalbridgeAuthMethod')?.value === 'EMAIL'"
               class="flex flex-col gap-4"
@@ -424,7 +422,6 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
               </mat-form-field>
             </div>
 
-            <!-- OAUTH2: clientId + clientSecret -->
             <div
               *ngIf="form.get('fiscalbridgeAuthMethod')?.value === 'OAUTH2'"
               class="flex flex-col gap-4"

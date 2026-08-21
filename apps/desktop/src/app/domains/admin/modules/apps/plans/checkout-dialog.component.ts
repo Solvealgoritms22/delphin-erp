@@ -34,7 +34,7 @@ export interface CheckoutResult {
       </div>
 
       <div class="flex flex-col px-6 py-6 gap-6">
-        <!-- Order summary -->
+
         <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4">
           <div class="flex items-center justify-between">
             <div>
@@ -45,7 +45,6 @@ export interface CheckoutResult {
           </div>
         </div>
 
-        <!-- Checkout button -->
         <button mat-flat-button
           (click)="pay()"
           [disabled]="isProcessing()"

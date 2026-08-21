@@ -31,15 +31,9 @@ export class TonalPalette {
     this.palette = this.generatePalette(config);
   }
 
-  /**
-   * Chroma-js based implementation for stable palette generation.
-   * Uses HSLuv for perceived mode and direct HSL manipulation for linear mode.
-   * https://github.com/SimeonGriggs/tints.dev.
-   */
   private generatePalette(config: PaletteConfig): Color[] {
     const { color } = config;
 
-    // Tweaks may be passed in, otherwise use defaults
     const colorHue = config.hue ?? 600;
     const hues = config.hues ?? [
       0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950, 1000,
@@ -50,7 +44,6 @@ export class TonalPalette {
     const lMin = config.lMin ?? 0;
     const lMax = config.lMax ?? 100;
 
-    // Create base color from input safely
     let baseColor: chroma.Color;
     try {
       if (typeof color === 'string' && color.includes('oklch')) {

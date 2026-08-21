@@ -29,14 +29,13 @@ import { TranslocoService } from '@jsverse/transloco';
   ],
 })
 export default class AuthVerifyAccount implements OnInit {
-  // Dependencies
+
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
   private transloco = inject(TranslocoService);
   private snackBar = inject(MatSnackBar);
 
-  // State
   protected verifyFormModel = signal({
     email: '',
     otp: '',
@@ -92,7 +91,7 @@ export default class AuthVerifyAccount implements OnInit {
   resendCode(event: Event) {
     event.preventDefault();
     const { email } = this.verifyFormModel();
-    
+
     if (!email) {
       this.snackBar.open('El correo es requerido para reenviar el código.', this.transloco.translate('common.close'), {
         duration: 3000,

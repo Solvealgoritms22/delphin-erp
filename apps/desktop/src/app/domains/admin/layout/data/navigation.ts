@@ -128,7 +128,7 @@ export const NAVIGATION: NavigationItem[] = [
       {
         id: 'settings/empresas',
         label: 'nav.companies',
-        icon: 'briefcase', 
+        icon: 'briefcase',
         route: '/admin/settings/empresas',
         activeOptions: { exact: false }
       },

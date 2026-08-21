@@ -1,9 +1,9 @@
 ---
-name: fuse-template
-description: Lineamientos, estándares de diseño, arquitectura, tipografía, componentes y recursos para desarrollar en la plantilla Fuse (Angular + TailwindCSS + Angular Material).
+name: dolphin-erp-ui
+description: Lineamientos, estándares de diseño, arquitectura, tipografía, componentes y recursos para desarrollar en Dolphin ERP (Angular + TailwindCSS + Angular Material).
 ---
 
-# Fuse Template - Standards & Design Guidelines
+# Dolphin ERP UI - Standards & Design Guidelines
 
 Este skill define los lineamientos obligatorios de arquitectura, diseño, estilizado, assets y componentes reutilizables para cualquier nuevo desarrollo o refactorización dentro de este proyecto.
 
@@ -464,7 +464,7 @@ Para garantizar una experiencia premium e interactiva, aplica obligatoriamente l
 * **Loading Spinners & Skeletons**: 
   * Usa placeholders de carga (`skeleton` screens o clases de `animate-pulse`) durante la carga inicial de datos de una página.
   * Usa spinners de carga (ej. `<mat-spinner [diameter]="20">` o SVG spinners) dentro de botones cuando el usuario envía un formulario o ejecuta una acción, deshabilitando el botón temporalmente.
-* **Confirm Dialogs (Diálogos de Confirmación)**: Siempre solicita confirmación antes de ejecutar acciones destructivas (como eliminar o dar de baja) o cambios masivos. Utiliza el servicio de diálogos estándar de Angular Material o Fuse.
+* **Confirm Dialogs (Diálogos de Confirmación)**: Siempre solicita confirmación antes de ejecutar acciones destructivas (como eliminar o dar de baja) o cambios masivos. Utiliza el servicio de diálogos estándar de Angular Material o Dolphin.
 * **Alertas y Feedback (Snackbars)**: Proporciona feedback visual inmediato tras el resultado de cualquier acción importante (ej. "Rol guardado", "Error de conexión"). Usa `MatSnackBar` para emitir mensajes breves en la parte inferior.
 
 ---
@@ -483,7 +483,7 @@ Para evitar resultados repetitivos, genéricos y de baja calidad, la IA **NUNCA*
 ### Diseño y estructura
 * **No dupliques** componentes: SIEMPRE revisa y reutiliza los que ya existen en `src/app/shared/components/` antes de crear uno nuevo.
 * **No** copies bloques idénticos de HTML/CSS entre pantallas sin adaptar las clases de grid (`standard-grid`), la paleta y el contexto real de cada módulo.
-* **No dejes** contenido de la plantilla Fuse sin personalizar (botones "Get Started", textos en inglés, imágenes mock como `brian-hughes.jpg`, `http://...` externos).
+* **No dejes** contenido de plantilla sin personalizar (botones "Get Started", textos en inglés, imágenes mock, `http://...` externos).
 * **No ignores** el modo oscuro: ninguna clase puede quedar sin su contraparte `dark:`.
 * **No uses** íconos con prefijos desconocidos (`heroicons_solid:`, `heroicons_outline:`) ni URLs externas para avatares/imágenes.
 * **No dejes** botones de acción sin un ícono representativo de la acción (ver sección 3, "Íconos en Botones"), ni uses un ícono que no coincida semánticamente con el botón.

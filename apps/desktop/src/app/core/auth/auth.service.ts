@@ -51,8 +51,8 @@ export class AuthService {
       tap(response => {
         const currentUser = this.state.user();
         if (currentUser) {
-          const updated: User = { 
-            ...currentUser, 
+          const updated: User = {
+            ...currentUser,
             empresaId: response.user.empresaId,
             name: response.user.name || currentUser.name,
             avatar: response.user.avatar || currentUser.avatar,

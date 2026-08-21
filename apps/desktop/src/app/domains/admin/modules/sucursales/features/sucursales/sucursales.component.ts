@@ -20,7 +20,7 @@ import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
   imports: [MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule, TranslocoPipe, EmptyStateComponent, TableSkeletonComponent, PlusIcon, PencilIcon, TrashIcon],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
-      <!-- Header -->
+
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
          <div>
            <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'branches.title' | transloco }}</div>
@@ -34,10 +34,9 @@ import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
         </div>
       </div>
 
-      <!-- Main -->
       <div class="flex flex-col flex-auto min-h-0 overflow-y-auto">
         <div class="grid">
-            <!-- Header -->
+
             <div class="sucursales-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
                <div>{{ 'branches.name' | transloco }}</div>
                <div class="hidden sm:block">{{ 'branches.location' | transloco }}</div>
@@ -46,7 +45,6 @@ import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
                <div>{{ 'common.actions' | transloco }}</div>
             </div>
 
-            <!-- Rows -->
             @if (sucursalesService.isLoading()) {
               <app-table-skeleton [gridClass]="'sucursales-grid'" [rows]="6" [cells]="cells5" />
             } @else if (sucursalesService.sucursales().length === 0) {

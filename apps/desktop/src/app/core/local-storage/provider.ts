@@ -8,7 +8,7 @@ import { LocalStorage } from './local-storage';
 
 export const provideLocalStorage = (): EnvironmentProviders =>
   makeEnvironmentProviders([
-    // Initialize the LocalStorage
+
     provideAppInitializer(() => {
       inject(LocalStorage);
     }),

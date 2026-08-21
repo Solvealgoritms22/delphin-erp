@@ -22,9 +22,9 @@ interface DashboardMetric {
     class: 'flex h-full w-full flex-col min-h-0 overflow-hidden',
   },
   imports: [
-    DecimalPipe, 
-    MatIconModule, 
-    RouterLink, 
+    DecimalPipe,
+    MatIconModule,
+    RouterLink,
     TranslocoPipe,
     RotateCcwIcon,
     ActivityIcon,
@@ -34,7 +34,7 @@ interface DashboardMetric {
   ],
   template: `
     <div class="flex h-full w-full flex-col min-h-0 bg-white dark:bg-neutral-950 overflow-hidden">
-      <!-- Header (Fixed) -->
+
       <header class="shrink-0 flex flex-col gap-5 border-b border-neutral-200 px-6 py-7 dark:border-neutral-800 md:flex-row md:items-end md:justify-between md:px-10 select-none">
         <div>
           <h1 class="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-white md:text-3xl">{{ 'dashboard.general.title' | transloco }}</h1>
@@ -42,7 +42,6 @@ interface DashboardMetric {
         </div>
       </header>
 
-      <!-- Main Content (Scrollable) -->
       <main class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden flex flex-col gap-6 p-6 md:p-10">
         @if (loading()) {
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -53,12 +52,11 @@ interface DashboardMetric {
           <div class="h-[430px] animate-pulse rounded-3xl bg-neutral-100 dark:bg-neutral-900"></div>
         } @else if (error()) {
           <section class="flex min-h-[380px] flex-col items-center justify-center rounded-3xl border border-neutral-200/80 bg-neutral-50/50 p-8 text-center dark:border-neutral-800/80 dark:bg-neutral-900/40">
-            <!-- Icon Container -->
+
             <div class="mb-4 flex size-16 items-center justify-center rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border border-neutral-200/60 dark:border-neutral-700/60 shadow-xs">
               <i-rotate-ccw [size]="26" class="text-neutral-500 dark:text-neutral-400" />
             </div>
 
-            <!-- Title & Description -->
             <h2 class="text-xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-2xl">
               {{ 'dashboard.general.loadError' | transloco }}
             </h2>
@@ -78,7 +76,7 @@ interface DashboardMetric {
             </div>
           </section>
         } @else {
-          <!-- KPI row -->
+
           <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             @for (metric of metrics(); track metric.label) {
               <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
@@ -93,7 +91,6 @@ interface DashboardMetric {
             }
           </section>
 
-          <!-- Main overview panel -->
           <section class="rounded-3xl bg-neutral-100 p-1 dark:bg-neutral-900">
             <div class="flex items-center justify-between px-4 py-3 md:px-5">
               <div class="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
@@ -144,7 +141,6 @@ interface DashboardMetric {
             </div>
           </section>
 
-          <!-- Summary and actions -->
           <section class="rounded-3xl bg-neutral-100 p-1 dark:bg-neutral-900">
             <div class="flex items-center justify-between px-4 py-3 md:px-5">
               <div class="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white">
@@ -164,12 +160,10 @@ interface DashboardMetric {
             </div>
           </section>
 
-          <!-- Bottom 2-Column Responsive Section -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <!-- Left Column: Reference Exchange Rates -->
+
             <app-exchange-rates class="w-full" />
 
-            <!-- Right Column Slot (Ready for next component) -->
             <div class="flex flex-col gap-6 w-full">
             </div>
           </div>

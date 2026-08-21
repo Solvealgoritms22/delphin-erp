@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
       [style.height.px]="size()"
     >
       @switch (code().toUpperCase()) {
-        <!-- European Union (EUR) -->
+
         @case ('EUR') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <circle cx="16" cy="16" r="16" fill="#003399" />
@@ -34,21 +34,20 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- USA (USD) -->
         @case ('USD') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="circleClip">
               <circle cx="16" cy="16" r="16" />
             </clipPath>
             <g clip-path="url(#circleClip)">
-              <!-- Stripes -->
+
               <rect x="0" y="0" width="32" height="32" fill="#B22234" />
               <rect x="0" y="4.5" width="32" height="4.5" fill="#FFFFFF" />
               <rect x="0" y="13.5" width="32" height="4.5" fill="#FFFFFF" />
               <rect x="0" y="22.5" width="32" height="4.5" fill="#FFFFFF" />
-              <!-- Blue Canton -->
+
               <rect x="0" y="0" width="16" height="17" fill="#3C3B6E" />
-              <!-- Stars -->
+
               <circle cx="4" cy="4" r="0.9" fill="#FFF" />
               <circle cx="8" cy="4" r="0.9" fill="#FFF" />
               <circle cx="12" cy="4" r="0.9" fill="#FFF" />
@@ -61,7 +60,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Great Britain (GBP) -->
         @case ('GBP') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="ukClip">
@@ -77,7 +75,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Canada (CAD) -->
         @case ('CAD') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="cadClip">
@@ -87,7 +84,7 @@ import { CommonModule } from '@angular/common';
               <rect width="32" height="32" fill="#FFFFFF" />
               <rect x="0" y="0" width="8" height="32" fill="#D80621" />
               <rect x="24" y="0" width="8" height="32" fill="#D80621" />
-              <!-- Stylized Maple Leaf -->
+
               <path
                 d="M16 8l1.5 4 3-1-1.5 3.5 3.5.5-2.5 2 2.5 3-4.5.5.5 3-2-1.5-2 1.5.5-3-4.5-.5 2.5-3-2.5-2 3.5-.5-1.5-3.5 3 1z"
                 fill="#D80621"
@@ -96,7 +93,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Sweden (SEK) -->
         @case ('SEK') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="sekClip">
@@ -109,7 +105,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Norway (NOK) -->
         @case ('NOK') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="nokClip">
@@ -123,7 +118,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Denmark (DKK) -->
         @case ('DKK') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="dkkClip">
@@ -136,7 +130,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Dominican Republic (DOP) -->
         @case ('DOP') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="dopClip">
@@ -153,7 +146,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Switzerland (CHF) -->
         @case ('CHF') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="chfClip">
@@ -166,7 +158,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Japan (JPY) -->
         @case ('JPY') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <circle cx="16" cy="16" r="16" fill="#FFFFFF" />
@@ -174,7 +165,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Brazil (BRL) -->
         @case ('BRL') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="brlClip">
@@ -188,7 +178,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Mexico (MXN) -->
         @case ('MXN') {
           <svg viewBox="0 0 32 32" class="w-full h-full">
             <clipPath id="mxnClip">
@@ -203,7 +192,6 @@ import { CommonModule } from '@angular/common';
           </svg>
         }
 
-        <!-- Generic / Fallback -->
         @default {
           <div class="w-full h-full flex items-center justify-center bg-neutral-200 dark:bg-neutral-700 text-xs font-bold text-neutral-700 dark:text-neutral-200">
             {{ code().substring(0, 2) }}

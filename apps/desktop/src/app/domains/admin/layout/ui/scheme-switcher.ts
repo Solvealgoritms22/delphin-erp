@@ -29,13 +29,13 @@ import { TranslocoPipe } from '@jsverse/transloco';
         [class.rotate-0]="!isDark()"
       >
         @if (isDark()) {
-          <!-- Sun Icon in Dark mode with amber glow -->
+
           <mat-icon
             svgIcon="sun"
             class="icon-size-5 text-amber-400 transition-all duration-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] group-hover:scale-110"
           />
         } @else {
-          <!-- Moon Icon in Light mode with deep slate tone -->
+
           <mat-icon
             svgIcon="moon"
             class="icon-size-5 text-neutral-600 dark:text-neutral-300 transition-all duration-300 group-hover:scale-110"
@@ -55,4 +55,3 @@ export class SchemeSwitcher {
     this.theming.setScheme(nextScheme);
   }
 }
-

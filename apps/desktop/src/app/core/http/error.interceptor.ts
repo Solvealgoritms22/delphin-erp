@@ -14,7 +14,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401) {
         const hadSession = authState.isAuthenticated();
         authState.clearSession();
-        // Avoid a hard reload loop: only redirect when there was an active session.
+
         if (hadSession && typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
           router.navigate(['/auth/sign-in']);
         }

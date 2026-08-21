@@ -9,7 +9,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "fuse": {
+    "desktop": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -71,10 +71,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "fuse:build:production"
+              "buildTarget": "desktop:build:production"
             },
             "development": {
-              "buildTarget": "fuse:build:development"
+              "buildTarget": "desktop:build:development"
             }
           },
           "defaultConfiguration": "development"

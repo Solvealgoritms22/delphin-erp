@@ -34,7 +34,7 @@ import { environment } from '@/environments/environment';
     <div
       class="flex h-full w-full flex-auto flex-col overflow-x-hidden overflow-y-auto px-4 py-8 sm:px-6 md:px-8"
     >
-      <!-- Header -->
+
       <div class="mb-8 flex items-center justify-between">
         <div class="flex items-center gap-4">
           <button
@@ -63,9 +63,9 @@ import { environment } from '@/environments/environment';
         (ngSubmit)="submit()"
         class="flex w-full flex-col gap-6 pb-24 md:flex-row"
       >
-        <!-- Left Column -->
+
         <div class="flex flex-auto flex-col gap-6 md:w-2/3">
-          <!-- Basic Information Card -->
+
           <div
             class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
           >
@@ -93,7 +93,7 @@ import { environment } from '@/environments/environment';
 
             <mat-form-field class="w-full">
               <mat-label>{{ 'common.description' | transloco }}</mat-label>
-              <!-- Simulating a rich text editor with a textarea for now -->
+
               <textarea
                 matInput
                 formControlName="descripcion"
@@ -105,7 +105,6 @@ import { environment } from '@/environments/environment';
             </mat-form-field>
           </div>
 
-          <!-- Pricing Card -->
           <div
             class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
           >
@@ -181,9 +180,8 @@ import { environment } from '@/environments/environment';
           </div>
         </div>
 
-        <!-- Right Column -->
         <div class="flex w-full flex-col gap-6 md:w-1/3">
-          <!-- Product Image Card -->
+
           <div
             class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
           >
@@ -194,7 +192,6 @@ import { environment } from '@/environments/environment';
               {{ 'catalogs.products.imageDescription' | transloco }}
             </p>
 
-            <!-- Hidden file input -->
             <input
               type="file"
               #fileInput
@@ -204,7 +201,6 @@ import { environment } from '@/environments/environment';
               multiple
             />
 
-            <!-- Drag and Drop Area -->
             <div
               (click)="fileInput.click()"
               (dragover)="onDragOver($event)"
@@ -214,7 +210,7 @@ import { environment } from '@/environments/environment';
               [class.bg-blue-50]="isDragging"
               class="relative flex min-h-[190px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-neutral-300 p-6 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800/50"
             >
-              <!-- Image Preview -->
+
               @if (imagePreviews.length > 0) {
                 <div class="grid w-full grid-cols-2 gap-3 sm:grid-cols-3">
                   @for (image of imagePreviews; track $index) {
@@ -284,7 +280,6 @@ import { environment } from '@/environments/environment';
             </p>
           </div>
 
-          <!-- Attribute Card -->
           <div
             class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
           >
@@ -328,7 +323,6 @@ import { environment } from '@/environments/environment';
         </div>
       </form>
 
-      <!-- Sticky Footer -->
       <div
         class="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-end border-t border-neutral-200 bg-white px-8 py-4 sm:left-64 dark:border-neutral-800 dark:bg-neutral-900"
       >

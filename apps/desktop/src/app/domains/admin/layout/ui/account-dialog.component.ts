@@ -26,7 +26,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   ],
   template: `
     <div class="flex flex-col w-full min-w-[340px] sm:min-w-[440px] max-h-[85vh] overflow-hidden bg-white dark:bg-neutral-900 rounded-3xl">
-      <!-- Header -->
+
       <div class="flex items-center justify-between px-6 py-5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
         <div class="flex items-center gap-2">
           <mat-icon svgIcon="user-round" class="!w-5 !h-5 !text-[20px] text-blue-600 dark:text-blue-400"></mat-icon>
@@ -37,10 +37,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
         </button>
       </div>
 
-      <!-- Content -->
       <div class="p-6 flex flex-col gap-6 overflow-y-auto flex-1">
-        
-        <!-- Avatar / Photo Profile Section -->
+
         <div class="flex flex-col items-center justify-center gap-3">
           <div class="relative group">
             <div class="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-bold text-2xl flex items-center justify-center border-2 border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
@@ -61,7 +59,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </div>
         </div>
 
-        <!-- Account Info Badges -->
         <div class="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800">
           <div class="flex flex-col gap-1">
            <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">{{ 'account.systemRole' | transloco }}</span>
@@ -85,7 +82,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </div>
         </div>
 
-        <!-- Form fields -->
         <form [formGroup]="form" class="flex flex-col gap-4">
           <mat-form-field appearance="outline" class="w-full">
              <mat-label>{{ 'account.fullName' | transloco }}</mat-label>
@@ -98,7 +94,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
             <mat-icon matSuffix svgIcon="lock" class="!w-4 !h-4 !text-[16px] text-neutral-400"></mat-icon>
           </mat-form-field>
 
-          <!-- SMTP Global para Propietarios -->
           @if (isOwner()) {
             <div class="mt-2 p-5 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20 flex flex-col gap-4">
               <div class="flex items-center justify-between">
@@ -143,7 +138,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
                     </div>
                   </div>
 
-                  <!-- Resultado del test TCP -->
                   @if (smtpTestResult()) {
                     <div [class]="'flex items-start gap-2 rounded-xl px-4 py-3 text-sm font-medium ' + (smtpTestResult()!.success ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-500/30')">
                       <mat-icon [svgIcon]="smtpTestResult()!.success ? 'check-circle' : 'alert-triangle'" class="icon-size-4 shrink-0 mt-0.5"></mat-icon>
@@ -156,7 +150,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
                     </div>
                   }
 
-                  <button type="button" (click)="testSmtp()" [disabled]="testingSmtp()" 
+                  <button type="button" (click)="testSmtp()" [disabled]="testingSmtp()"
                     class="self-start flex items-center gap-2 h-9 px-4 rounded-xl border border-emerald-300 dark:border-emerald-700 text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                     <mat-icon [svgIcon]="testingSmtp() ? 'loader' : 'wifi'" class="icon-size-4" [class.animate-spin]="testingSmtp()"></mat-icon>
                     {{ testingSmtp() ? 'Probando...' : 'Probar conexión TCP' }}
@@ -171,7 +165,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
       </div>
 
-      <!-- Footer -->
       <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900">
         <button (click)="dialogRef.close()" class="px-5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
            {{ 'common.close' | transloco }}

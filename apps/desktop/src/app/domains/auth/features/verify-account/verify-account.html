@@ -1,6 +1,6 @@
 <div class="flex flex-auto items-center justify-center p-4 sm:p-12">
   <mat-card class="flex w-full max-w-sm flex-col p-8 sm:p-12">
-    <!-- Logo -->
+
     <div class="flex items-center gap-x-2.5">
       <img
         src="/images/logo/logo_dolphin_light.png"
@@ -14,16 +14,14 @@
       />
     </div>
 
-    <!-- Title -->
     <div class="leading-tight mt-8 text-4xl font-extrabold tracking-tight">
       Verificar Cuenta
     </div>
     <div class="mt-0.5 font-medium">Hemos enviado un código a tu correo electrónico. Por favor, ingrésalo a continuación para continuar.</div>
 
-    <!-- Verify account form -->
     <form class="mt-8" (submit)="verifyAccount($event)">
       <div class="flex flex-col gap-y-4">
-        <!-- Email field -->
+
         <mat-form-field class="w-full">
           <mat-label>Correo electrónico</mat-label>
           <input
@@ -42,7 +40,6 @@
           </mat-error>
         </mat-form-field>
 
-        <!-- OTP field -->
         <mat-form-field class="w-full">
           <mat-label>Código OTP</mat-label>
           <input
@@ -60,7 +57,6 @@
           </mat-error>
         </mat-form-field>
 
-        <!-- Submit button -->
         <button
           class="mt-2 w-full"
           mat-flat-button

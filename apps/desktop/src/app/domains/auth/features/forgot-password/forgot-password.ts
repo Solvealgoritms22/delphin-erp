@@ -32,12 +32,11 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
   ],
 })
 export default class AuthForgotPassword {
-  // Dependencies
+
   private router = inject(Router);
   private authService = inject(AuthService);
   private transloco = inject(TranslocoService);
 
-  // State
   protected forgotPasswordFormModel = signal({
     email: '',
   });

@@ -33,19 +33,17 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col p-6 overflow-y-auto">
         <div class="grid grid-cols-1 gap-4">
-          <!-- Nombre -->
+
           <mat-form-field class="w-full">
            <mat-label>{{ 'common.name' | transloco }}</mat-label>
             <input matInput formControlName="nombre" />
           </mat-form-field>
 
-          <!-- Abreviatura -->
           <mat-form-field class="w-full">
            <mat-label>{{ 'catalogs.units.abbreviation' | transloco }}</mat-label>
             <input matInput formControlName="abreviatura" />
           </mat-form-field>
 
-          <!-- Estado -->
           <mat-form-field class="w-full">
            <mat-label>{{ 'common.status' | transloco }}</mat-label>
             <mat-select formControlName="estado">

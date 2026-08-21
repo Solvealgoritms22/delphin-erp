@@ -66,7 +66,7 @@ import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/w
       </mat-sidenav>
 
       <mat-sidenav-content class="flex flex-col h-full min-h-0 overflow-hidden">
-        <!-- Toolbar: draggable in Electron frameless mode -->
+
         <div
           class="flex shrink-0 items-center border-t border-b border-neutral-200 dark:border-neutral-800 px-4 py-2.5 select-none"
           [style.-webkit-app-region]="isElectron ? 'drag' : null"
@@ -79,10 +79,8 @@ import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/w
             <mat-icon svgIcon="panel-left" />
           </button>
 
-          <!-- Separator -->
           <div class="mx-3 h-5 border-l border-neutral-200 dark:border-neutral-800"></div>
-          
-           <!-- Company Selector -->
+
            @if (empresas().length > 1) {
              <button [matMenuTriggerFor]="companyMenu" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer mr-2" style="-webkit-app-region: no-drag">
                @if (currentEmpresaLogo()) {
@@ -117,7 +115,7 @@ import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/w
                </div>
              </div>
            }
-          
+
           <mat-menu #companyMenu="matMenu" class="mt-2 rounded-xl">
             <div class="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800">
               <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Switch Company</span>
@@ -158,9 +156,10 @@ import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/w
             </div>
           </mat-menu>
 
-          <shortcuts style="-webkit-app-region: no-drag" />
+          @if (showShortcuts) {
+            <shortcuts style="-webkit-app-region: no-drag" />
+          }
 
-          <!-- Draggable spacer across entire empty header area -->
           <div class="flex-auto h-full self-stretch min-w-8" [style.-webkit-app-region]="isElectron ? 'drag' : null"></div>
 
           <div class="flex items-center gap-x-2" style="-webkit-app-region: no-drag">
@@ -179,10 +178,9 @@ import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/w
             <assistant />
           </div>
 
-          <!-- Electron window controls (only in desktop app) -->
           @if (isElectron) {
             <div class="flex items-center gap-1 ml-3" style="-webkit-app-region: no-drag">
-              <!-- Minimize -->
+
               <button
                 type="button"
                 (click)="windowMinimize()"
@@ -191,7 +189,7 @@ import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/w
               >
                 <mat-icon svgIcon="minus" class="icon-size-4 flex items-center justify-center !w-4 !h-4"></mat-icon>
               </button>
-              <!-- Maximize / Restore -->
+
               <button
                 type="button"
                 (click)="windowMaximize()"
@@ -200,7 +198,7 @@ import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/w
               >
                 <mat-icon [svgIcon]="isMaximized() ? 'minimize-2' : 'maximize-2'" class="icon-size-4 flex items-center justify-center !w-4 !h-4"></mat-icon>
               </button>
-              <!-- Close -->
+
               <button
                 type="button"
                 (click)="windowClose()"
@@ -213,7 +211,6 @@ import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/w
           }
         </div>
 
-        <!-- View Container -->
         <div class="relative flex flex-col flex-1 min-h-0 w-full overflow-hidden" [@routeAnimations]="outlet.isActivated ? outlet.activatedRoute : ''">
           <router-outlet #outlet="outlet" />
         </div>
@@ -222,7 +219,7 @@ import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/w
   `,
 })
 export class AdminLayout implements OnInit, OnDestroy {
-  // Dependencies
+
   private platformId = inject(PLATFORM_ID);
   private media = inject(Media);
   private router = inject(Router);
@@ -230,21 +227,18 @@ export class AdminLayout implements OnInit, OnDestroy {
   private authState = inject(AuthState);
   private updateService = inject(UpdateService);
   private destroyRef = inject(DestroyRef);
-  /** Cleanup handle for the Electron maximize-change native callback */
+
   private electronMaximizeCleanup?: () => void;
 
-  // Electron frameless window support
   readonly isElectron = isPlatformBrowser(this.platformId) && !!(window as any).dolphinWindow;
   readonly isMaximized = signal(false);
+  readonly showShortcuts = false;
 
-  // Tenant State (real)
   empresas = signal<Empresa[]>([]);
   loadingSwitch = signal(false);
 
-  // Current empresa ID from auth state
   currentEmpresaId = this.authState.empresaId;
 
-  // Derived labels
   currentEmpresaLabel = computed(() => {
     const id = this.currentEmpresaId();
     const found = this.empresas().find(e => e.id === id);

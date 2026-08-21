@@ -1,14 +1,11 @@
-/* -------------------------------------------------------------------------- */
-/* Scrollbar styles                                                           */
-/* -------------------------------------------------------------------------- */
+
 @layer base {
-  /* Firefox */
+
   * {
     scrollbar-width: thin;
     scrollbar-color: light-dark(var(--color-neutral-300), var(--color-neutral-700)) transparent;
   }
 
-  /* WebKit / Blink */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;

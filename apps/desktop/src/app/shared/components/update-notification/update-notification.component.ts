@@ -21,9 +21,9 @@ interface SnackBarData {
   template: `
     <div class="w-full max-w-[440px] select-none p-1.5 font-sans">
       <div class="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-2xl backdrop-blur-2xl transition-all dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-neutral-950/80">
-        
+
         <div class="flex items-start gap-3.5 p-5">
-          <!-- Icon badge -->
+
           <div
             class="flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors shadow-xs"
             [ngClass]="{
@@ -40,7 +40,6 @@ interface SnackBarData {
             />
           </div>
 
-          <!-- Text body & Progress -->
           <div class="flex min-w-0 flex-auto flex-col">
             <div class="flex items-center justify-between gap-2">
               <span class="text-sm font-bold tracking-tight text-neutral-900 dark:text-white">

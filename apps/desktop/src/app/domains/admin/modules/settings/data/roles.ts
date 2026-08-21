@@ -7,7 +7,7 @@ export interface Role {
   id: string;
   nombre: string;
   descripcion?: string;
-  permissions?: string; // JSON string
+  permissions?: string;
   empresaId: string;
 }
 

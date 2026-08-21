@@ -45,21 +45,19 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
   ],
   template: `
     <div class="flex flex-col w-full h-full bg-white dark:bg-neutral-900 overflow-hidden relative border-t sm:border-t-0 sm:border-l border-neutral-200 dark:border-neutral-800">
-      <!-- Header -->
+
       <div class="shrink-0 p-6 sm:py-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <h2 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'sessions.title' | transloco }}</h2>
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'sessions.description' | transloco }}</p>
       </div>
 
-      <!-- Main Panel (central scroll) -->
       <div class="flex-auto min-h-0 overflow-y-auto p-4 sm:p-6 sm:pb-8">
         <div class="flex flex-col flex-auto bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
-            
-            <!-- Toolbar -->
+
             <div class="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-neutral-200 dark:border-neutral-700 gap-4">
-              
+
               <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                <!-- Search -->
+
                 <div class="relative flex items-center h-10 px-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent min-w-[200px] sm:min-w-64 max-w-full flex-auto sm:flex-initial">
                   <i-search [size]="18" class="absolute left-3 text-neutral-400" />
                   <input
@@ -69,8 +67,7 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
                     class="w-full h-full pl-7 bg-transparent border-none outline-none text-sm placeholder:text-neutral-400 text-neutral-700 dark:text-neutral-200"
                     [placeholder]="'sessions.search' | transloco">
                 </div>
-                
-                <!-- Browser Filter -->
+
                 <button [matMenuTriggerFor]="browserMenu" type="button"
                   class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
                   <i-sliders-horizontal [size]="16" />
@@ -88,7 +85,6 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
                   }
                 </mat-menu>
 
-                <!-- Location Filter -->
                 <button [matMenuTriggerFor]="locationMenu" type="button"
                   class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
                   <i-sliders-horizontal [size]="16" />
@@ -121,13 +117,12 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
                   <i-log-out [size]="16" class="mr-1.5 text-red-500" />
                   <span class="whitespace-nowrap">{{ 'sessions.closeOthers' | transloco }}</span>
                 </button>
-                <!-- Active Toggle -->
+
                 <div class="flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap shrink-0">
                   <span>{{ 'sessions.onlyActive' | transloco }}</span>
                   <mat-slide-toggle [checked]="onlyActive()" (change)="onlyActive.set($event.checked)"></mat-slide-toggle>
                 </div>
 
-                <!-- Columns -->
                 <button [matMenuTriggerFor]="columnsMenu" type="button"
                   class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
                   <i-sliders-horizontal [size]="16" />
@@ -164,7 +159,6 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
 
             </div>
 
-            <!-- Table -->
             <div class="w-full overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
@@ -290,8 +284,7 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
                 </tbody>
               </table>
             </div>
-            
-            <!-- Pagination -->
+
             <div class="flex items-center justify-between px-6 py-4 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
               <span class="text-sm text-neutral-500">
                 {{ 'sessions.showing' | transloco }}
@@ -303,7 +296,7 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
                   {{ sessions().length }}
                 </span>
               </span>
-              
+
               <div class="flex gap-2">
                 <button mat-icon-button disabled class="!w-8 !h-8 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex items-center justify-center">
                   <i-chevron-left [size]="16" class="text-neutral-400" />
@@ -313,7 +306,7 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
                 </button>
               </div>
             </div>
-            
+
           </div>
         </div>
       </div>

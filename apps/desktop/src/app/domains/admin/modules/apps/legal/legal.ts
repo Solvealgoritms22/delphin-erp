@@ -15,7 +15,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   ],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
-      <!-- Header (Pinned) -->
+
       <div class="shrink-0 flex flex-col gap-5 px-6 pt-6 sm:px-10 sm:pt-8 border-b border-neutral-100 dark:border-neutral-800">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
@@ -26,7 +26,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </p>
         </div>
 
-        <!-- Navigation Tabs -->
         <nav class="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar -mb-px">
           @for (tab of tabs; track tab.route) {
             <a
@@ -41,7 +40,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
         </nav>
       </div>
 
-      <!-- Central Content (Scrollable) -->
       <div class="flex-auto min-h-0 overflow-y-auto px-6 sm:px-10 py-8 pb-20">
         <div class="max-w-4xl mx-auto bg-neutral-50/50 dark:bg-neutral-900/50 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 p-6 sm:p-10 shadow-xs">
           <router-outlet></router-outlet>

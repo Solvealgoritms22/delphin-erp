@@ -20,8 +20,7 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-y-auto overflow-x-hidden pb-12">
-      
-      <!-- Header -->
+
       <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:pb-8 sm:pt-10 border-b bg-card dark:bg-transparent">
         <div class="flex-1 min-w-0">
           <div class="flex items-center cursor-pointer mb-2" (click)="goBack()">
@@ -35,15 +34,13 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
         </div>
       </div>
 
-      <!-- Main Form -->
       <form [formGroup]="form" class="flex w-full flex-col md:flex-row flex-auto p-6 sm:p-10 gap-6">
-        
-        <!-- Left Column: Primary Data -->
+
         <div class="flex flex-col w-full md:w-2/3 gap-6">
-          
+
           <div class="flex flex-col bg-card rounded-2xl shadow-sm border p-6 sm:p-8">
              <h2 class="text-lg font-bold mb-6">{{ 'common.basicInformation' | transloco }}</h2>
-            
+
             <mat-form-field class="w-full mb-4">
                <mat-label>{{ 'commercial.form.name' | transloco }}</mat-label>
                <input matInput formControlName="nombreRazonSocial" [placeholder]="'commercial.form.namePlaceholder' | transloco" />
@@ -58,13 +55,13 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
                   <mat-option value="DNI">DNI</mat-option>
                 </mat-select>
               </mat-form-field>
-              
+
               <mat-form-field class="w-full">
                <mat-label>{{ 'commercial.form.documentNumber' | transloco }}</mat-label>
                 <input matInput formControlName="numeroDocumento" placeholder="12345678-9" />
               </mat-form-field>
             </div>
-            
+
              <mat-form-field class="w-full">
                 <mat-label>{{ 'commercial.form.address' | transloco }}</mat-label>
                <textarea matInput formControlName="direccion" rows="3" placeholder="Full address..."></textarea>
@@ -96,15 +93,14 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
                 </mat-select>
               </mat-form-field>
            </div>
-           
+
          </div>
 
-        <!-- Right Column: Contact & Settings -->
         <div class="flex flex-col w-full md:w-1/3 gap-6">
-          
+
           <div class="flex flex-col bg-card rounded-2xl shadow-sm border p-6 sm:p-8">
              <h2 class="text-lg font-bold mb-6">{{ 'common.contact' | transloco }}</h2>
-            
+
             <mat-form-field class="w-full mb-4">
                <mat-label>{{ 'auth.fields.email' | transloco }}</mat-label>
                <mat-icon matPrefix svgIcon="mail" class="mr-2 text-secondary"></mat-icon>
@@ -130,7 +126,7 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
 
            <div class="flex flex-col bg-card rounded-2xl shadow-sm border p-6 sm:p-8">
              <h2 class="text-lg font-bold mb-6">{{ 'common.settings' | transloco }}</h2>
-            
+
             <mat-form-field class="w-full">
                <mat-label>{{ 'common.status' | transloco }}</mat-label>
               <mat-select formControlName="estado">
@@ -144,7 +140,6 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
 
       </form>
 
-      <!-- Sticky Footer -->
       <div class="fixed bottom-0 bg-white dark:bg-gray-800 left-0 sm:left-64 right-0 z-50 flex items-center justify-end px-8 py-4 bg-card border-t">
         <button mat-button type="button" (click)="goBack()">
            {{ 'common.discard' | transloco }}

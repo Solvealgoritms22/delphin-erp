@@ -53,15 +53,14 @@ export interface RolePermissions {
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full bg-white dark:bg-neutral-900 overflow-hidden">
-      
-      <!-- Header & Tabs -->
+
       <div class="shrink-0 flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
          <div class="flex items-center justify-between w-full mb-6">
            <div>
               <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">{{ 'roles.title' | transloco }}</h1>
               <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'roles.description' | transloco }}</p>
            </div>
-          
+
           <button (click)="openRoleModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm align-center flex items-center gap-2 cursor-pointer">
             <i-plus [size]="16" />
              {{ 'roles.create' | transloco }}
@@ -69,20 +68,18 @@ export interface RolePermissions {
         </div>
       </div>
 
-      <!-- Central Scrollable Body -->
       <div class="flex-auto min-h-0 overflow-y-auto px-6 sm:px-10 py-8 pb-16">
-        <!-- ==================== ROLES & ACCOUNTS TAB ==================== -->
-        <!-- Roles Grid -->
+
         <div class="w-full">
           @if (roles().length > 0) {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              
+
               @for (role of roles(); track role.id) {
-                <!-- Card -->
+
                 <div class="bg-neutral-50 dark:bg-neutral-800 rounded-2xl p-6 flex flex-col gap-4 border border-transparent dark:border-neutral-700/50 shadow-sm relative group">
                   <h3 class="text-base font-bold text-neutral-900 dark:text-white">{{ role.nombre }}</h3>
                    <p class="text-sm text-neutral-500 dark:text-neutral-400 min-h-[40px] leading-relaxed">{{ role.descripcion || ('roles.defaultDescription' | transloco) }}</p>
-                  
+
                   <div class="flex justify-between items-center mt-auto pt-2">
                     <div class="flex items-center -space-x-1.5 min-h-[28px]">
                       @for (acc of getRoleAccounts(role.id).slice(0, 4); track acc.id) {
@@ -109,7 +106,7 @@ export interface RolePermissions {
                   </div>
                 </div>
               }
-              
+
             </div>
           } @else {
             <app-empty-state
@@ -122,23 +119,21 @@ export interface RolePermissions {
           }
         </div>
 
-        <!-- All accounts Section -->
         <div class="px-6 sm:px-10 w-full mt-14 pb-12 flex flex-col gap-6">
            <h2 class="text-xl font-bold text-neutral-900 dark:text-white">{{ 'roles.accounts' | transloco }}</h2>
-          
-          <!-- Toolbar -->
+
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="relative w-full sm:w-72 flex-auto sm:flex-initial">
               <i-search [size]="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input type="text" placeholder="Search..." [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500">
             </div>
-            
+
             <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-              <!-- Status Filter -->
+
               <div class="relative flex-auto sm:flex-initial">
                 <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-32 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap cursor-pointer">
                   <div class="flex items-center gap-2">
-                    <div class="w-2.5 h-2.5 rounded-full" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div> 
+                    <div class="w-2.5 h-2.5 rounded-full" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div>
                     {{ statusFilter() === 'All' ? 'All Status' : statusFilter() }}
                   </div>
                   <i-chevron-down [size]="16" class="text-neutral-500" />
@@ -149,8 +144,7 @@ export interface RolePermissions {
                   <button mat-menu-item (click)="statusFilter.set('Inactive')">Inactive</button>
                 </mat-menu>
               </div>
-              
-              <!-- Role Filter -->
+
               <div class="relative flex-auto sm:flex-initial">
                 <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-40 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap cursor-pointer">
                   <span class="truncate pr-2">{{ getSelectedRoleName() }}</span>
@@ -165,8 +159,7 @@ export interface RolePermissions {
               </div>
             </div>
           </div>
-          
-          <!-- Table -->
+
           <div class="overflow-x-auto -mx-6 sm:-mx-10 px-6 sm:px-10 pb-4">
             <table class="w-full text-left min-w-[800px]">
               <thead>
@@ -187,9 +180,9 @@ export interface RolePermissions {
                 </tr>
               </thead>
               <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-                
+
                 @for (account of filteredAccounts(); track account.id) {
-                  <!-- Row -->
+
                   <tr class="group hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20 transition-colors cursor-default">
                     <td class="py-4 pl-0 pr-4 cursor-pointer" (click)="toggleAccountSelection(account.id)">
                       @if (isAccountSelected(account.id)) {
@@ -234,11 +227,11 @@ export interface RolePermissions {
                           Owner
                         </span>
                       } @else {
-                        <!-- Dropdown Trigger -->
+
                         <button [matMenuTriggerFor]="roleMenu" class="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                           {{ getRoleName(account.roleId) }} <i-chevron-down [size]="12" class="text-neutral-500 dark:text-neutral-400" />
                         </button>
-                        <!-- Dropdown Menu -->
+
                         <mat-menu #roleMenu="matMenu">
                           @for (role of roles(); track role.id) {
                             <button mat-menu-item (click)="changeAccountRole(account.id, role.id)">
@@ -262,12 +255,11 @@ export interface RolePermissions {
                     </td>
                   </tr>
                 }
-                
+
               </tbody>
             </table>
           </div>
-          
-          <!-- Pagination -->
+
           <div class="flex items-center justify-between px-6 py-4 border-t border-neutral-100 dark:border-neutral-800">
             <div class="flex items-center gap-3">
               <span class="text-sm font-medium text-neutral-500 dark:text-neutral-400">Rows per page:</span>
@@ -287,17 +279,13 @@ export interface RolePermissions {
               </div>
             </div>
           </div>
-          
+
         </div>
       </div>
 
-      <!-- ==================== MODALS ==================== -->
-      
-      <!-- Create/Edit Role Modal Template (Rendered via MatDialog above sidebar) -->
       <ng-template #roleModalTemplate>
         <div class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full border border-neutral-200 dark:border-neutral-800 flex flex-col max-h-[85vh] overflow-hidden">
-          
-          <!-- Header (Fixed) -->
+
           <div class="flex items-center justify-between px-8 py-5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
             <h2 class="text-xl font-bold text-neutral-900 dark:text-white">
               {{ editingRole ? 'Edit role' : 'Create role' }}
@@ -306,10 +294,9 @@ export interface RolePermissions {
               <i-x [size]="16" />
             </button>
           </div>
-          
-          <!-- Body (Scrollable) -->
+
           <div class="p-8 flex flex-col gap-8 overflow-y-auto flex-1 max-h-[calc(85vh-140px)]">
-            <!-- Basic Info -->
+
             <div class="flex flex-col gap-6">
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-bold text-neutral-500">Role name</label>
@@ -320,15 +307,14 @@ export interface RolePermissions {
                 <textarea [(ngModel)]="modalRoleData.description" rows="3" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white outline-none resize-none transition-colors"></textarea>
               </div>
             </div>
-            
-            <!-- Permissions Section (DYNAMIC) -->
+
             <div class="flex flex-col gap-4">
               <h3 class="text-sm font-bold text-neutral-500">Permissions Assignment</h3>
-              
+
               <div class="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800 border-b border-neutral-100 dark:border-neutral-800">
-                
+
                 @for (mod of permissionModules; track mod.id) {
-                  <!-- Dynamic Module Row -->
+
                   <div class="flex flex-col sm:flex-row sm:items-center justify-between py-6 gap-4">
                     <div class="flex items-center gap-4">
                       <div class="w-12 h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-blue-500 shadow-sm shrink-0">
@@ -352,20 +338,18 @@ export interface RolePermissions {
                     </div>
                   </div>
                 }
-                
+
               </div>
             </div>
           </div>
-          
-          <!-- Footer (Fixed) -->
+
           <div class="flex items-center justify-end gap-3 px-8 py-5 border-t border-neutral-100 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900">
             <button (click)="closeRoleModal()" class="px-6 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">Cancel</button>
             <button (click)="saveRole()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-8 py-2.5 rounded-xl transition-colors shadow-sm">Save Role</button>
           </div>
-          
+
         </div>
       </ng-template>
-
 
     </div>
   `,
@@ -385,7 +369,6 @@ export class RolesComponent implements OnInit {
   roles = this.rolesService.roles;
   accounts = this.usersService.users;
 
-  // Filters State
   searchQuery = signal('');
   statusFilter = signal<string>('All');
   roleFilter = signal<string>('All');
@@ -427,7 +410,6 @@ export class RolesComponent implements OnInit {
     return this.getRoleName(rId);
   }
 
-  // Navigation State
   activeTab: 'roles' | 'permissions' = 'roles';
 
   permissionModules: PermissionModule[] = [
@@ -545,10 +527,8 @@ export class RolesComponent implements OnInit {
     }
   ];
 
-  // Selections
   selectedAccounts = new Set<string>();
 
-  // Role Modal State
   isRoleModalOpen = false;
   editingRole: Role | null = null;
   modalRoleData: { name: string; description: string; permissions: RolePermissions } = {
@@ -556,8 +536,6 @@ export class RolesComponent implements OnInit {
     description: '',
     permissions: {}
   };
-
-
 
   ngOnInit() {
     this.rolesService.findAll()
@@ -567,8 +545,6 @@ export class RolesComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
-
-  // --- Logic for Accounts Selection ---
 
   toggleAccountSelection(accountId: string) {
     if (this.selectedAccounts.has(accountId)) {
@@ -595,8 +571,6 @@ export class RolesComponent implements OnInit {
     return accs.length > 0 && this.selectedAccounts.size === accs.length;
   }
 
-  // --- Logic for Roles ---
-
   getRoleAccounts(roleId: string): User[] {
     return this.accounts().filter(a => a.roleId === roleId);
   }
@@ -616,9 +590,6 @@ export class RolesComponent implements OnInit {
     });
   }
 
-  // --- Logic for Role Modal & Permissions ---
-
-  // Convierte el formato array "modulo:accion" (backend/JWT) al objeto de la UI
   permissionsObject(perms: string[]): RolePermissions {
     const namespaces: Record<string, string> = {
       roles: 'settings_roles',
@@ -758,6 +729,5 @@ export class RolesComponent implements OnInit {
       });
     }
   }
-
 
 }

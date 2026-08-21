@@ -134,7 +134,7 @@ import { UserRoundIcon, BellIcon, SunIcon, LogOutIcon, ArrowUpRightIcon } from '
   `,
 })
 export class User implements OnInit {
-  // Dependencies
+
   private http = inject(HttpClient);
   private theming = inject(Theming);
   private authService = inject(AuthService);
@@ -143,7 +143,6 @@ export class User implements OnInit {
   private dialog = inject(MatDialog);
   private transloco = inject(TranslocoService);
 
-  // State
   protected isEnterprise = signal(false);
   protected scheme = computed(() => this.theming.scheme());
   protected schemes: { label: string; value: Scheme }[] = [

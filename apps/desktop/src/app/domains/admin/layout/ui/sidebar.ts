@@ -31,9 +31,9 @@ import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, Sparkl
     class: 'flex w-full h-full flex-col overflow-hidden border-t border-neutral-200 dark:border-neutral-800',
   },
   template: `
-    <!-- Header (draggable in desktop frameless window) -->
+
     <div class="relative flex shrink-0 items-center gap-x-2.5 pt-5 pr-4 pb-0 pl-6 h-16 select-none" style="-webkit-app-region: drag">
-      <!-- Logo -->
+
       <img
         src="/images/logo/logo_dolphin_light.png"
         class="h-8 w-auto max-w-[200px] object-contain object-left pointer-events-none select-none dark:hidden"
@@ -55,7 +55,6 @@ import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, Sparkl
       </div>
     </div>
 
-    <!-- Search -->
     <div class="relative shrink-0 px-4 pt-4 pb-1">
       <div class="relative">
         <i-search
@@ -81,21 +80,18 @@ import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, Sparkl
       </div>
     </div>
 
-    <!-- Scrollable content -->
-    <div 
+    <div
       class="flex flex-col flex-auto overflow-y-auto"
       style="mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);"
     >
-      <!-- Navigation -->
+
       <navigation [searchQuery]="searchQuery()" class="mt-4 mb-4 shrink-0" />
 
-      <!-- Spacer -->
       <div class="flex-auto"></div>
 
-      <!-- Trial widget -->
        @if (isTrial()) {
         @if (trialExpired()) {
-          <!-- Trial expirado -->
+
           <div class="m-4 mb-2 shrink-0 rounded-xl border border-red-200 bg-red-50 dark:border-red-500/20 dark:bg-red-500/10 p-4">
             <div class="flex items-center gap-2 mb-1">
               <i-triangle-alert [size]="16" class="text-red-500 shrink-0" />
@@ -114,7 +110,7 @@ import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, Sparkl
             </button>
           </div>
         } @else if (trialDaysLeft() <= 3) {
-          <!-- Trial próximo a expirar (urgente) -->
+
           <div class="m-4 mb-2 shrink-0 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/10 p-4">
             <div class="flex items-center gap-2 mb-1">
               <i-clock [size]="16" class="text-amber-600 shrink-0" />
@@ -133,7 +129,7 @@ import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, Sparkl
             </button>
           </div>
         } @else {
-          <!-- Trial activo (normal) -->
+
           <div class="m-4 mb-2 shrink-0 rounded-xl border border-blue-200 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10 p-4">
             <div class="flex items-center gap-2 mb-1">
               <i-sparkles [size]="16" class="text-blue-500 shrink-0" />
@@ -169,7 +165,6 @@ import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, Sparkl
         }
     </div>
 
-    <!-- Footer -->
     <div class="shrink-0 p-2">
       <user />
     </div>

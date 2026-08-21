@@ -44,7 +44,7 @@ export class EmptyStateComponent {
   type = input<EmptyStateType>('no-data');
   title = input.required<string>();
   description = input<string>('There is nothing to show here at the moment.');
-  
+
   icon = input<string>();
   actionLabel = input<string>();
   actionIcon = input<string>('plus');

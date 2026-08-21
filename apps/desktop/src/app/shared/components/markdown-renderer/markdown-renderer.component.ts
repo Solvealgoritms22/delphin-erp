@@ -11,7 +11,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { marked } from 'marked';
 import * as Prism from 'prismjs';
 
-// Common prism language modules
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-json';
@@ -35,15 +34,12 @@ export class MarkdownRendererComponent {
   private sanitizer = inject(DomSanitizer);
   private container = viewChild<ElementRef<HTMLDivElement>>('container');
 
-  // Input raw markdown text
   content = input<string>('');
 
-  // Computed parsed safe HTML
   renderedHtml = computed<SafeHtml>(() => {
     const raw = this.content() || '';
     if (!raw.trim()) return '';
 
-    // Configure marked renderer
     const renderer = new marked.Renderer();
 
     renderer.code = function ({ text, lang }: { text: string; lang?: string }) {
@@ -70,7 +66,7 @@ export class MarkdownRendererComponent {
 
     try {
       let html = marked.parse(raw, { renderer, gfm: true, breaks: true }) as string;
-      
+
       // Wrap tables for horizontal responsiveness
       html = html.replace(/<table>/g, '<div class="markdown-table-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
 

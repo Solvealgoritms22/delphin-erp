@@ -65,9 +65,9 @@ function formatExpiracion(value: string): string {
       <div class="flex flex-col p-6 overflow-y-auto flex-auto">
         <!-- VIRTUAL CARD PREVIEW -->
         <div class="relative flex flex-col justify-between w-full max-w-[340px] aspect-[1.586] mx-auto rounded-2xl p-6 text-white overflow-hidden shadow-2xl mb-8 transition-colors duration-500 shrink-0 min-h-[214px]"
-             [ngClass]="cardType() === 'visa' ? 'bg-gradient-to-br from-blue-600 to-blue-900' : 
+             [ngClass]="cardType() === 'visa' ? 'bg-gradient-to-br from-blue-600 to-blue-900' :
                        (cardType() === 'mastercard' ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gradient-to-br from-slate-700 to-slate-900')">
-          
+
           <!-- background decoration -->
           <div class="absolute top-0 right-0 -mr-8 -mt-8 w-40 h-40 rounded-full bg-white opacity-10 blur-2xl"></div>
           <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 rounded-full bg-white opacity-10 blur-xl"></div>
@@ -85,7 +85,7 @@ function formatExpiracion(value: string): string {
                 <path d="M5 8.5c2.4 2.4 3 6.6 0 10m4.5-13.5c3.6 3.6 4.5 9.9 0 15m4.5-18c4.8 4.8 6 13.2 0 19"/>
               </svg>
             </div>
-            
+
             <!-- Brand Logo -->
             <div class="font-bold text-2xl italic tracking-wider opacity-90 drop-shadow-md">
               <span *ngIf="cardType() === 'visa'" class="font-serif tracking-tighter">VISA</span>
@@ -251,11 +251,11 @@ export class CardDialogComponent implements OnInit {
 
   async submit(): Promise<void> {
     if (this.form.invalid || this.loadingVault()) return;
-    
+
     this.loadingVault.set(true); // Show loading overlay again while processing payment
-    
+
     const { nombre, numero, expiracion, cvc } = this.form.getRawValue();
-    
+
     // Format expiration from MM/YY to MMYY
     const exp = expiracion?.replace(/\//g, '') || '';
 
@@ -267,12 +267,12 @@ export class CardDialogComponent implements OnInit {
         cvc: cvc,
         cardHolder: nombre
       }));
-      
-      this.dialogRef.close({ 
-        nombre, 
-        numeroEnmascarado: `**** **** **** ${response.cardLast4 || numero?.slice(-4)}`, 
-        expiracion, 
-        marca: response.cardBrand || this.cardType() 
+
+      this.dialogRef.close({
+        nombre,
+        numeroEnmascarado: `**** **** **** ${response.cardLast4 || numero?.slice(-4)}`,
+        expiracion,
+        marca: response.cardBrand || this.cardType()
       });
     } catch (error) {
       console.error('Error tokenizing card:', error);

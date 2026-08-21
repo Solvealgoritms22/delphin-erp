@@ -30,12 +30,11 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
   ],
 })
 export default class AuthResetPassword {
-  // Dependencies
+
   private router = inject(Router);
   private authService = inject(AuthService);
   private transloco = inject(TranslocoService);
 
-  // State
   protected resetPasswordFormModel = signal({
     email: '',
     otp: '',

@@ -42,14 +42,12 @@ type ActiveTab = 'rates' | 'calculator';
   ],
   template: `
     <div class="w-full rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900 shadow-xs select-none">
-      
-      <!-- Card Header -->
+
       <div class="flex items-center justify-between">
         <h2 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
           {{ (activeTab() === 'calculator' ? 'dashboard.exchange.currencyCalculator' : 'dashboard.exchange.exchangeRates') | transloco }}
         </h2>
 
-        <!-- Context Menu Button -->
         <button
           type="button"
           [matMenuTriggerFor]="moreMenu"
@@ -73,7 +71,6 @@ type ActiveTab = 'rates' | 'calculator';
         </mat-menu>
       </div>
 
-      <!-- Segment Tabs (Currency Calculator / Exchange Rates) -->
       <div class="mt-6 inline-flex p-1 rounded-full border border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-950/60">
         <button
           type="button"
@@ -104,14 +101,12 @@ type ActiveTab = 'rates' | 'calculator';
         </button>
       </div>
 
-      <!-- TAB 1: Exchange Rates Table List -->
       @if (activeTab() === 'rates') {
         <div class="mt-7 flex flex-col">
           <h3 class="text-base font-bold text-neutral-900 dark:text-white">
             {{ 'dashboard.exchange.popular' | transloco }}
           </h3>
 
-          <!-- Table Header -->
           <div class="mt-4 grid grid-cols-12 items-center text-xs font-medium text-neutral-400 dark:text-neutral-500 pb-2 border-b border-neutral-100 dark:border-neutral-800">
             <span class="col-span-6">{{ 'dashboard.exchange.currency' | transloco }}</span>
             <span class="col-span-3 text-center flex items-center justify-center gap-1">
@@ -121,7 +116,6 @@ type ActiveTab = 'rates' | 'calculator';
             <span class="col-span-3 text-right">{{ 'dashboard.exchange.rate' | transloco }}</span>
           </div>
 
-          <!-- Currency List Rows or Skeleton -->
           @if (loading() && currencyList().length === 0) {
             <div class="flex flex-col gap-3 py-4 animate-pulse">
               @for (i of [1, 2, 3, 4, 5, 6]; track i) {
@@ -132,8 +126,7 @@ type ActiveTab = 'rates' | 'calculator';
             <div class="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800/80">
               @for (item of currencyList(); track item.code) {
                 <div class="grid grid-cols-12 items-center py-3.5 hover:bg-neutral-50/70 dark:hover:bg-neutral-800/40 rounded-xl px-1 transition-colors">
-                  
-                  <!-- Currency Flag & Label -->
+
                   <div class="col-span-6 flex items-center gap-3 min-w-0">
                     <currency-flag [code]="item.code" [size]="34" />
                     <div class="flex items-baseline gap-1.5 truncate">
@@ -145,7 +138,6 @@ type ActiveTab = 'rates' | 'calculator';
                     </div>
                   </div>
 
-                <!-- 24h LIVE Change Tag -->
                 <div class="col-span-3 flex justify-center">
                   @if (item.isPositive) {
                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -160,7 +152,6 @@ type ActiveTab = 'rates' | 'calculator';
                   }
                 </div>
 
-                <!-- Live Rate Value -->
                 <div class="col-span-3 text-right">
                   <span class="text-sm font-semibold text-neutral-900 dark:text-white tabular-nums">
                     {{ item.rate | number: (item.code === 'JPY' ? '1.2-2' : item.code === 'DOP' || item.code === 'SEK' || item.code === 'NOK' ? '1.2-4' : '1.4-5') }}
@@ -172,10 +163,8 @@ type ActiveTab = 'rates' | 'calculator';
             </div>
           }
 
-          <!-- Card Footer (Add Currency Button + Timestamp) -->
           <div class="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
-            
-            <!-- + Add Currency Button -->
+
             <div>
               <button
                 type="button"
@@ -186,7 +175,6 @@ type ActiveTab = 'rates' | 'calculator';
                 <span>{{ 'dashboard.exchange.addCurrency' | transloco }}</span>
               </button>
 
-              <!-- Currency Selection Menu -->
               <mat-menu #addCurrencyMenu="matMenu" class="rounded-2xl max-h-64 overflow-y-auto">
                 <div class="px-3 py-2 border-b border-neutral-100 dark:border-neutral-800">
                   <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
@@ -210,7 +198,6 @@ type ActiveTab = 'rates' | 'calculator';
               </mat-menu>
             </div>
 
-            <!-- Last Updated Timestamp -->
             <span class="text-[11px] text-neutral-400 dark:text-neutral-500">
               {{ 'dashboard.exchange.lastUpdated' | transloco }}: {{ formattedLastUpdated() }}
             </span>
@@ -219,11 +206,9 @@ type ActiveTab = 'rates' | 'calculator';
         </div>
       }
 
-      <!-- TAB 2: Currency Calculator (Matching User Reference Image) -->
       @if (activeTab() === 'calculator') {
         <div class="mt-6 flex flex-col gap-4">
-          
-          <!-- Amount Input Field -->
+
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
               {{ 'dashboard.exchange.amount' | transloco }}
@@ -241,10 +226,8 @@ type ActiveTab = 'rates' | 'calculator';
             </div>
           </div>
 
-          <!-- Currency Selectors Row (From -> Swap -> To) with Flag Icons -->
           <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2 sm:gap-3">
-            
-            <!-- From Currency -->
+
             <div class="flex flex-col gap-1.5 min-w-0">
               <label class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
                 {{ 'dashboard.exchange.from' | transloco }}
@@ -270,7 +253,6 @@ type ActiveTab = 'rates' | 'calculator';
               </div>
             </div>
 
-            <!-- Swap Arrow Button -->
             <div class="pb-1 flex justify-center">
               <button
                 type="button"
@@ -278,14 +260,13 @@ type ActiveTab = 'rates' | 'calculator';
                 class="flex size-9 items-center justify-center rounded-full border border-neutral-200/80 dark:border-neutral-700/80 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all cursor-pointer shadow-2xs"
                 [matTooltip]="'dashboard.exchange.swap' | transloco"
               >
-                <!-- Swap Arrow Symbol ⇄ -->
+
                 <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/>
                 </svg>
               </button>
             </div>
 
-            <!-- To Currency -->
             <div class="flex flex-col gap-1.5 min-w-0">
               <label class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
                 {{ 'dashboard.exchange.to' | transloco }}
@@ -313,7 +294,6 @@ type ActiveTab = 'rates' | 'calculator';
 
           </div>
 
-          <!-- Big Convert Action Button -->
           <div class="mt-2">
             <button
               type="button"
@@ -324,18 +304,15 @@ type ActiveTab = 'rates' | 'calculator';
             </button>
           </div>
 
-          <!-- Result Display Section (Exact Mockup Layout) -->
           <div class="mt-4 flex flex-col gap-1 border-t border-neutral-100 dark:border-neutral-800/80 pt-4">
             <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
               {{ calcAmount() | number: '1.2-2' }} {{ ('dashboard.exchange.currencies.' + calcFrom().toLowerCase()) | transloco }} =
             </span>
 
-            <!-- Large Result Number -->
             <div class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#0B132B] dark:text-white mt-1">
               {{ calcResult() | number: (calcTo() === 'JPY' ? '1.2-2' : calcTo() === 'DOP' || calcTo() === 'SEK' || calcTo() === 'NOK' ? '1.2-2' : '1.2-4') }} {{ ('dashboard.exchange.currencies.' + calcTo().toLowerCase()) | transloco }}
             </div>
 
-            <!-- Single Unit Breakdowns -->
             <div class="mt-3 flex flex-col gap-0.5 text-xs text-neutral-400 dark:text-neutral-500 font-medium">
               <div>
                 1 {{ calcFrom() }} = {{ unitRateFromTo() | number: (calcTo() === 'DOP' ? '1.2-4' : '1.4-6') }} {{ calcTo() }}
@@ -362,13 +339,12 @@ export class ExchangeRatesComponent {
   readonly currencyList = computed(() => this.exchangeService.getCurrencyList());
   readonly allAvailableCurrencies = this.exchangeService.getAllAvailableCurrencies();
 
-  // Reactive Calculator State using Signals
   readonly calcAmount = signal<number>(1.0);
   readonly calcFrom = signal<string>('USD');
   readonly calcTo = signal<string>('DOP');
 
   readonly calcResult = computed(() => {
-    this.data(); // Triggers on live rate update
+    this.data();
     const amt = Number(this.calcAmount()) || 0;
     return this.exchangeService.convert(amt, this.calcFrom(), this.calcTo());
   });

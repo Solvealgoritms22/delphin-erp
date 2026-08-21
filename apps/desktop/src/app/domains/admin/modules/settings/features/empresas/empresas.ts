@@ -32,12 +32,12 @@ export interface Empresa {
     class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
   },
   imports: [
-    CommonModule, 
-    FormsModule, 
-    MatButtonModule, 
-    MatIconModule, 
-    MatMenuModule, 
-    EmptyStateComponent, 
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    EmptyStateComponent,
     TranslocoPipe,
     PlusIcon,
     BriefcaseIcon,
@@ -48,8 +48,7 @@ export interface Empresa {
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full bg-white dark:bg-neutral-900 overflow-hidden">
-      
-      <!-- Header -->
+
       <div class="shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-neutral-50/50 dark:bg-transparent">
         <div class="flex-1 min-w-0">
           <h2 class="text-3xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
@@ -59,7 +58,7 @@ export interface Empresa {
              {{ 'companies.description' | transloco }}
           </p>
         </div>
-        
+
         <div class="flex items-center gap-3 mt-6 sm:mt-0">
           <button mat-flat-button color="primary" class="rounded-xl shadow-sm cursor-pointer" (click)="openCreateDialog()">
             <i-plus [size]="18" class="mr-2"></i-plus>
@@ -68,16 +67,15 @@ export interface Empresa {
         </div>
       </div>
 
-      <!-- Main Container (central scroll) -->
       <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-12">
-        
+
         <div *ngIf="isLoading()" class="flex justify-center p-12">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
 
         <div *ngIf="!isLoading()">
-          
-          <app-empty-state 
+
+          <app-empty-state
             *ngIf="empresas().length === 0"
             illustration="18.svg"
             [title]="'companies.emptyTitle' | transloco"
@@ -87,13 +85,12 @@ export interface Empresa {
           </app-empty-state>
 
           <div *ngIf="empresas().length > 0" class="flex flex-col gap-10">
-            
-            <!-- Empresa Activa -->
+
             <div *ngIf="activeEmpresa" class="flex flex-col gap-4">
                 <h3 class="text-xl font-bold">{{ 'companies.active' | transloco }}</h3>
-              
+
               <div class="flex flex-col sm:flex-row bg-white dark:bg-neutral-800 rounded-2xl shadow-md border-2 border-blue-500 dark:border-blue-400 overflow-hidden relative">
-                
+
                 <div class="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
                     {{ 'companies.current' | transloco }}
                 </div>
@@ -123,14 +120,12 @@ export interface Empresa {
               </div>
             </div>
 
-            <!-- Otras Empresas -->
             <div *ngIf="otherEmpresas.length > 0" class="flex flex-col gap-4">
                 <h3 class="text-xl font-bold">{{ 'companies.other' | transloco }}</h3>
-              
+
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div *ngFor="let empresa of otherEmpresas" class="flex flex-col bg-white dark:bg-neutral-800 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                  
-                  <!-- Card Header -->
+
                   <div class="flex items-start justify-between p-6 pb-4">
                     <div class="flex items-center gap-4">
                         <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 overflow-hidden">
@@ -142,7 +137,7 @@ export interface Empresa {
                         <p class="text-sm text-neutral-500 mt-0.5">RNC: {{ empresa.rnc || 'N/A' }}</p>
                       </div>
                     </div>
-                    
+
                     <button mat-icon-button [matMenuTriggerFor]="menu">
                        <mat-icon svgIcon="ellipsis-vertical" class="icon-size-5 text-neutral-500"></mat-icon>
                     </button>
@@ -163,7 +158,6 @@ export interface Empresa {
 
                   </div>
 
-                  <!-- Card Body -->
                   <div class="flex flex-col flex-auto p-6 pt-2">
 
                     <div class="flex items-center justify-between">
@@ -178,7 +172,6 @@ export interface Empresa {
                     </div>
                   </div>
 
-                  <!-- Card Footer -->
                   <div class="flex items-center p-4 bg-neutral-50 dark:bg-neutral-900/50 border-t border-neutral-100 dark:border-neutral-800">
                     <button mat-button class="w-full text-blue-600" (click)="switchTenant(empresa.id)">
                        {{ 'companies.switch' | transloco }}
@@ -190,7 +183,7 @@ export interface Empresa {
             </div>
 
           </div>
-          
+
         </div>
       </div>
     </div>
@@ -203,7 +196,7 @@ export class EmpresasComponent implements OnInit {
   private http = inject(HttpClient);
   private transloco = inject(TranslocoService);
   private destroyRef = inject(DestroyRef);
-  
+
   empresas = signal<Empresa[]>([]);
   isLoading = signal<boolean>(true);
   currentEmpresaId = signal<string>('');
@@ -272,9 +265,7 @@ export class EmpresasComponent implements OnInit {
     if (result) {
       this.loadEmpresas();
       if (empresa.id === this.currentEmpresaId()) {
-        // Si editamos la actual, idealmente actualizamos el usuario en el storage para que se refleje globalmente si aplica,
-        // pero como AuthState jala el nombre desde el token (switchTenant hace refresh de esto).
-        // Recargando la vista por ahora es mas seguro.
+
         window.location.reload();
       }
     }

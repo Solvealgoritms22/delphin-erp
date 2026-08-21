@@ -19,7 +19,7 @@ export class App implements OnInit, OnDestroy {
   private commandPalette = inject(CommandPaletteService);
   private document = inject(DOCUMENT);
   private sessionMonitor = inject(SessionMonitorService);
-  /** Cleanup handle for the Electron maximize-change native callback */
+
   private electronMaximizeCleanup?: () => void;
 
   readonly isElectron = isPlatformBrowser(this.platformId) && typeof window !== 'undefined' && !!(window as any).dolphinWindow;
@@ -36,7 +36,6 @@ export class App implements OnInit, OnDestroy {
       };
     }
 
-    // Give the splash screen a minimum display time of 1.5 seconds
     setTimeout(() => {
       const splashScreen = this.document.getElementById('splash-screen');
       if (splashScreen) {

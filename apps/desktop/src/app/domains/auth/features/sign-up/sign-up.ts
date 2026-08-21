@@ -37,13 +37,12 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
   ],
 })
 export default class AuthSignUp {
-  // Dependencies
+
   private router = inject(Router);
   private authService = inject(AuthService);
   private transloco = inject(TranslocoService);
   private snackBar = inject(MatSnackBar);
 
-  // State
   protected isLoading = signal(false);
   protected signUpFormModel = signal({
     name: '',

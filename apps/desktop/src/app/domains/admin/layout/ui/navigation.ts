@@ -36,7 +36,7 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
   template: `
     <div class="flex flex-col gap-y-4">
       @if (searchQuery() && filteredNavigation().length === 0) {
-        <!-- Empty search result -->
+
         <div class="flex flex-col items-center justify-center px-6 py-10 text-center">
           <img
             class="max-h-[120px] w-auto select-none pointer-events-none drop-shadow-xs"
@@ -54,11 +54,10 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
 
       @for (section of filteredNavigation(); track section.id) {
         <div class="flex flex-col px-4">
-          <!-- Section title -->
+
           <div class="px-2.5 py-1.5 text-sm font-semibold text-blue-400">
              {{ section.label | transloco }}
 
-            <!-- Section description -->
             @if (section.description) {
               <div class="text-xs font-medium text-neutral-400">
                  {{ section.description | transloco }}
@@ -66,7 +65,6 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
             }
           </div>
 
-          <!-- Section content -->
           <ul
             ngTree
             class="mt-1 flex flex-col gap-y-1"
@@ -82,7 +80,6 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
             />
           </ul>
 
-          <!-- Menu item -->
           <ng-template
             let-nodes="nodes"
             let-parent="parent"
@@ -108,7 +105,7 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
                 #rla="routerLinkActive"
                 #treeItem="ngTreeItem"
               >
-                <!-- Icon -->
+
                 @if (node.icon) {
                   <mat-icon
                     class="pointer-events-none size-4.5 shrink-0 transition-transform duration-250 ease-out group-hover:scale-115 group-hover:-rotate-6"
@@ -116,11 +113,9 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
                   />
                 }
 
-                <!-- Label -->
                 <div class="flex flex-auto flex-col font-medium truncate">
                    {{ node.label | transloco }}
 
-                  <!-- Description -->
                   @if (node.description) {
                     <div class="text-[11px] text-neutral-400 font-normal truncate">
                        {{ node.description | transloco }}
@@ -128,7 +123,6 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
                   }
                 </div>
 
-                <!-- Badge -->
                 @if (node.badge) {
                   <div
                     class="rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 text-[10px] font-bold"
@@ -137,7 +131,6 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
                   </div>
                 }
 
-                <!-- Expand icon -->
                 @if (node.children && node.children.length > 0) {
                   <mat-icon
                     svgIcon="chevron-right"
@@ -147,7 +140,6 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
                 }
               </a>
 
-              <!-- Children -->
               @if (node.children && node.children.length > 0) {
                 <ul
                   class="flex flex-col gap-y-1 [&_ul>.navigation-item]:pl-14.5 [&>.navigation-item]:pl-8.5"
@@ -178,10 +170,9 @@ import { PermissionService } from '@/app/core/permissions/permission.service';
   `,
 })
 export class Navigation {
-  // Dependencies
+
   private router = inject(Router);
 
-  // State
   protected navigation = signal<NavigationItem[]>([]);
   searchQuery = input('');
   protected navigationEnd = toSignal(
@@ -203,13 +194,12 @@ export class Navigation {
   });
 
   constructor() {
-    // Update navigation when auth state changes
+
     effect(() => {
       const filtered = this.filterByPermission(structuredClone(NAVIGATION));
       this.navigation.set(filtered);
     });
 
-    // Expand active route on initial load
     effect(() => {
       const navigationEnd = this.navigationEnd();
       if (!navigationEnd) {
@@ -227,10 +217,9 @@ export class Navigation {
       }
       if (item.children) {
         item.children = this.filterByPermission(item.children);
-        // If it's a section or group and has no children after filtering, we might want to hide it, 
-        // but let's keep it simple and just filter out the children.
+
         if (item.children.length === 0 && item.id.includes('/')) {
-           return false; // hide empty groups
+           return false;
         }
       }
       return true;
@@ -264,10 +253,6 @@ export class Navigation {
     }, []);
   }
 
-  /**
-   * Expand all parent routes of the active route.
-   * @param items
-   */
   expandActiveRoute(items: NavigationItem[]): NavigationItem[] {
     for (const item of items) {
       if (item.children?.length) {
@@ -292,10 +277,6 @@ export class Navigation {
     return items;
   }
 
-  /**
-   * Convert simple exact option to full IsActiveMatchOptions.
-   * @param options
-   */
   isActiveOption(
     options: { exact: boolean } | IsActiveMatchOptions
   ): IsActiveMatchOptions {

@@ -45,8 +45,7 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full bg-white dark:bg-neutral-900 overflow-hidden">
-      
-      <!-- SMTP Warning Banner -->
+
       @if (currentEmpresa() && !currentEmpresa()?.smtpEnabled) {
         <div class="bg-amber-50 dark:bg-amber-500/10 border-b border-amber-200 dark:border-amber-500/20 px-6 py-3 flex items-start gap-3">
           <i-triangle-alert [size]="20" class="text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
@@ -57,14 +56,13 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
         </div>
       }
 
-      <!-- Header -->
       <div class="shrink-0 flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full mb-6 gap-4">
           <div>
              <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">{{ 'settings.users.title' | transloco }}</h1>
              <p class="mt-1 text-sm text-neutral-500">{{ 'settings.users.description' | transloco }}</p>
           </div>
-          
+
           <div class="flex items-center gap-3">
             <button (click)="openUserModal()" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer">
               <i-plus [size]="18" />
@@ -74,9 +72,8 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
         </div>
       </div>
 
-      <!-- Central Scrollable Body -->
       <div class="flex-auto min-h-0 overflow-y-auto px-6 sm:px-10 py-8 pb-16">
-        <!-- Stat Cards Grid -->
+
         <section class="grid gap-4 sm:grid-cols-3 mb-8">
           <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
             <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
@@ -109,22 +106,20 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
           </article>
         </section>
 
-      <!-- Toolbar & Accounts List -->
       <div class="px-6 sm:px-10 w-full pb-12 flex flex-col gap-6">
-        
-        <!-- Toolbar -->
+
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="relative w-full sm:w-72">
             <i-search [size]="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input type="text" [placeholder]="'settings.users.search' | transloco" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" class="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500 outline-none">
           </div>
-          
+
           <div class="flex items-center gap-3 w-full sm:w-auto">
-            <!-- Status Filter -->
+
             <div class="relative flex-auto sm:flex-initial">
               <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-36 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer">
                 <div class="flex items-center gap-2">
-                  <div class="w-2.5 h-2.5 rounded-full" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div> 
+                  <div class="w-2.5 h-2.5 rounded-full" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div>
                   {{ statusFilter() === 'All' ? 'Todos' : (statusFilter() === 'Active' ? 'Activos' : 'Inactivos') }}
                 </div>
                 <i-chevron-down [size]="16" class="text-neutral-500" />
@@ -135,8 +130,7 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
                  <button mat-menu-item (click)="statusFilter.set('Inactive')">{{ 'settings.users.inactive' | transloco }}</button>
               </mat-menu>
             </div>
-            
-            <!-- Role Filter -->
+
             <div class="relative flex-auto sm:flex-initial">
               <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-44 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer">
                 <span class="truncate pr-2">{{ getSelectedRoleName() }}</span>
@@ -152,7 +146,6 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
           </div>
         </div>
 
-        <!-- Table Container -->
         <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">

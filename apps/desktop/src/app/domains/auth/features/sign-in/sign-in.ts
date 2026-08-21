@@ -36,13 +36,12 @@ import { EyeOffIcon } from 'ng-animated-icons';
   ],
 })
 export default class AuthSignIn {
-  // Dependencies
+
   private router = inject(Router);
   protected authService = inject(AuthService);
   private transloco = inject(TranslocoService);
   private snackBar = inject(MatSnackBar);
 
-  // State
   protected signInFormModel = signal({
     email: '',
     password: '',
@@ -77,7 +76,7 @@ export default class AuthSignIn {
         },
         error: (err: any) => {
           this.isLoading.set(false);
-          
+
           const rawMessage = typeof err?.error?.message === 'string' ? err.error.message : (typeof err?.message === 'string' ? err.message : '');
           const isUnverified = err?.error?.needsVerification === true ||
             rawMessage.toLowerCase().includes('verific') ||

@@ -1,13 +1,10 @@
-/* -------------------------------------------------------------------------- */
-/* Base styles                                                                */
-/* -------------------------------------------------------------------------- */
+
 @layer base {
-  /* Enable keyword support for size interpolation */
+
   :root {
     interpolate-size: allow-keywords;
   }
 
-  /* Ensure root elements fill the viewport without duplicate scrollbars */
   html,
   body,
   app-root {
@@ -20,7 +17,6 @@
     overflow: hidden;
   }
 
-  /* Ensure routed component always fills the remaining vertical space and delegates scrolling to views */
   router-outlet + * {
     display: flex;
     flex-direction: column;
@@ -31,7 +27,6 @@
     overflow: hidden;
   }
 
-  /* Default border color */
   *,
   ::after,
   ::before,
@@ -43,21 +38,16 @@
     );
   }
 
-  /* Disable focus outline by default */
   *:focus {
     outline: none;
   }
 
-  /* Show focus outline only for heuristically determined focus. Ignores
-     programmatic focus determined by the Angular CDK Focus Monitor. This allows
-     to control the focus styles precisely by using the Focus Monitor. */
   *:focus-visible:not(.cdk-program-focused),
   .cdk-keyboard-focused {
     outline: var(--color-primary-600) solid 2px;
-    outline-offset: 0.125rem; /* 2px */
+    outline-offset: 0.125rem;
   }
 
-  /* Base colors */
   body {
     background-color: light-dark(
       var(--color-neutral-100),
@@ -66,7 +56,6 @@
     color: light-dark(var(--color-neutral-950), var(--color-white));
   }
 
-  /* Form Elements Dark Mode Compatibility */
   select {
     color-scheme: light dark;
   }
@@ -79,15 +68,12 @@
     color: #171717;
   }
 
-  /* -------------------------------------------------------------------------- */
-  /* Animated Icons & Custom Elements Standard Alignment                         */
-  /* -------------------------------------------------------------------------- */
   [class*="i-"],
-  i-plus, i-trash, i-search, i-sparkles, i-check, i-x, i-arrow-right, i-user-round, 
-  i-bell, i-clock, i-tag, i-award, i-pencil, i-rotate-cw, i-rotate-ccw, i-refresh-cw, 
-  i-download, i-chart-line, i-sliders-horizontal, i-triangle-alert, i-circle-alert, 
-  i-circle-check-big, i-calendar-days, i-sun, i-chevron-right, i-chevron-down, 
-  i-chevron-left, i-send, i-star, i-activity, i-briefcase, i-user-check, i-user-cog, 
+  i-plus, i-trash, i-search, i-sparkles, i-check, i-x, i-arrow-right, i-user-round,
+  i-bell, i-clock, i-tag, i-award, i-pencil, i-rotate-cw, i-rotate-ccw, i-refresh-cw,
+  i-download, i-chart-line, i-sliders-horizontal, i-triangle-alert, i-circle-alert,
+  i-circle-check-big, i-calendar-days, i-sun, i-chevron-right, i-chevron-down,
+  i-chevron-left, i-send, i-star, i-activity, i-briefcase, i-user-check, i-user-cog,
   i-arrow-up-right, i-arrow-right-left, i-eye-off, i-settings, i-layers, i-bot {
     display: inline-flex !important;
     align-items: center !important;
@@ -98,21 +84,18 @@
   }
 
   [class*="i-"] svg,
-  i-plus svg, i-trash svg, i-search svg, i-sparkles svg, i-check svg, i-x svg, 
-  i-arrow-right svg, i-user-round svg, i-bell svg, i-clock svg, i-tag svg, 
-  i-award svg, i-pencil svg, i-rotate-cw svg, i-rotate-ccw svg, i-refresh-cw svg, 
-  i-download svg, i-chart-line svg, i-sliders-horizontal svg, i-triangle-alert svg, 
-  i-circle-alert svg, i-circle-check-big svg, i-calendar-days svg, i-sun svg, 
-  i-chevron-right svg, i-chevron-down svg, i-chevron-left svg, i-send svg, 
-  i-star svg, i-activity svg, i-briefcase svg, i-user-check svg, i-user-cog svg, 
-  i-arrow-up-right svg, i-arrow-right-left svg, i-eye-off svg, i-settings svg, 
+  i-plus svg, i-trash svg, i-search svg, i-sparkles svg, i-check svg, i-x svg,
+  i-arrow-right svg, i-user-round svg, i-bell svg, i-clock svg, i-tag svg,
+  i-award svg, i-pencil svg, i-rotate-cw svg, i-rotate-ccw svg, i-refresh-cw svg,
+  i-download svg, i-chart-line svg, i-sliders-horizontal svg, i-triangle-alert svg,
+  i-circle-alert svg, i-circle-check-big svg, i-calendar-days svg, i-sun svg,
+  i-chevron-right svg, i-chevron-down svg, i-chevron-left svg, i-send svg,
+  i-star svg, i-activity svg, i-briefcase svg, i-user-check svg, i-user-cog svg,
+  i-arrow-up-right svg, i-arrow-right-left svg, i-eye-off svg, i-settings svg,
   i-layers svg, i-bot svg {
     display: block;
   }
 
-  /* -------------------------------------------------------------------------- */
-  /* Center icons perfectly inside Material Buttons and Menu Items              */
-  /* -------------------------------------------------------------------------- */
   .mat-mdc-button-base {
     display: inline-flex !important;
     align-items: center !important;
@@ -153,9 +136,6 @@
     line-height: 0 !important;
   }
 
-  /* -------------------------------------------------------------------------- */
-  /* Sidebar Navigation Animations                                              */
-  /* -------------------------------------------------------------------------- */
   .navigation-item mat-icon,
   .navigation-item [class*="i-"] {
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
@@ -165,9 +145,6 @@
     transform: scale(1.15) rotate(-3deg);
   }
 
-  /* -------------------------------------------------------------------------- */
-  /* Assistant Drawer Backdrop & Slide Animations                               */
-  /* -------------------------------------------------------------------------- */
   .assistant-backdrop {
     background-color: rgba(0, 0, 0, 0.45) !important;
     backdrop-filter: blur(6px) !important;

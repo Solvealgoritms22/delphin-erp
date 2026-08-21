@@ -14,13 +14,11 @@ export const provideIcons = (): EnvironmentProviders =>
       const domSanitizer = inject(DomSanitizer);
       const matIconRegistry = inject(MatIconRegistry);
 
-      // Lucide icons
       matIconRegistry.addSvgIconSetLiteral(
         domSanitizer.bypassSecurityTrustHtml(lucideIcons),
         { viewBox: '0 0 24 24' }
       );
 
-      // Google Drive brand icon
       matIconRegistry.addSvgIconLiteral(
         'google-drive',
         domSanitizer.bypassSecurityTrustHtml(
@@ -28,7 +26,6 @@ export const provideIcons = (): EnvironmentProviders =>
         )
       );
 
-      // AI Assistant stars icon
       const aiSparklesSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3C10 7.97 5.97 12 1 12C5.97 12 10 16.03 10 21C10 16.03 14.03 12 19 12C14.03 12 10 7.97 10 3Z"/><path d="M19 1C19 3.21 17.21 5 15 5C17.21 5 19 6.79 19 9C19 6.79 20.79 5 23 5C20.79 5 19 3.21 19 1Z"/></svg>`;
       matIconRegistry.addSvgIconLiteral(
         'sparkles',
@@ -39,7 +36,6 @@ export const provideIcons = (): EnvironmentProviders =>
         domSanitizer.bypassSecurityTrustHtml(aiSparklesSvg)
       );
 
-      // Sidebar panel toggle icons
       const panelLeftSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>`;
       const panelLeftCloseSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></svg>`;
       const panelLeftOpenSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>`;

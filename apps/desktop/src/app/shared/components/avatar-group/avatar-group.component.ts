@@ -3,7 +3,7 @@ import { Component, input, computed } from '@angular/core';
 export interface AvatarItem {
   name: string;
   src?: string;
-  color?: string; // fallback bg color if no src
+  color?: string;
 }
 
 @Component({
@@ -34,7 +34,6 @@ export interface AvatarItem {
         </div>
       }
 
-      <!-- Overflow counter -->
       @if (overflow() > 0) {
         <div
           class="relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-600 ring-2 ring-white dark:bg-neutral-800 dark:text-neutral-300 dark:ring-neutral-900"

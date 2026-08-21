@@ -1,7 +1,5 @@
-#fuse {
-  /* ------------------------------------------------------------------------ */
-  /* Styles                                                                   */
-  /* ------------------------------------------------------------------------ */
+#dolphin {
+
   kbd {
     font-family: var(--kbd-font-family);
     font-feature-settings: var(--kbd-font-feature-settings);
@@ -16,38 +14,31 @@
     color: var(--kbd-text-color);
     background: var(--kbd-bg-color);
 
-    /* Padding */
     padding-block: var(--kbd-padding-y);
     padding-inline: var(--kbd-padding-x);
 
-    /* Border */
     border-style: solid;
     border-width: 1px;
     border-color: var(--kbd-border-color);
     border-radius: var(--kbd-border-radius);
   }
 
-  /* ------------------------------------------------------------------------ */
-  /* Variables                                                                */
-  /* ------------------------------------------------------------------------ */
   kbd {
-    /* Typography */
+
     --kbd-font-family: var(--font-sans);
     --kbd-font-feature-settings: var(--font-sans--font-feature-settings);
     --kbd-font-optical-sizing: var(--font-optical-sizing);
     --kbd-font-smoothing: var(--font-smoothing);
 
-    --kbd-font-size: var(--text-sm); /* 12px */
-    --kbd-line-height: var(--leading-4); /* 16px */
+    --kbd-font-size: var(--text-sm);
+    --kbd-line-height: var(--leading-4);
     --kbd-font-weight: var(--font-weight-medium);
     --kbd-letter-spacing: var(--tracking-widest);
 
-    /* Size */
-    --kbd-padding-y: 0.125rem; /* 2px */
-    --kbd-padding-x: 0.25rem; /* 4px */
-    --kbd-border-radius: 0.25rem; /* 4px */
+    --kbd-padding-y: 0.125rem;
+    --kbd-padding-x: 0.25rem;
+    --kbd-border-radius: 0.25rem;
 
-    /* Color */
     --kbd-bg-color: light-dark(var(--color-neutral-100), var(--color-neutral-800));
     --kbd-text-color: light-dark(var(--color-neutral-700), var(--color-neutral-200));
     --kbd-border-color: light-dark(var(--color-neutral-300), var(--color-neutral-700));
@@ -61,4 +52,3 @@
     --kbd-border-color: var(--color-neutral-700);
   }
 }
-

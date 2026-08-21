@@ -28,4 +28,3 @@ describe('Suppliers', () => {
     expect(component).toBeTruthy();
   });
 });
-

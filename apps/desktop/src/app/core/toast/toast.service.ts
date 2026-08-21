@@ -36,6 +36,6 @@ export class ToastService {
   }
 
   loading(message: string, title?: string): MatSnackBarRef<ToastComponent> {
-    return this.show({ type: 'loading', message, title }, { duration: 0 }); // duration 0 means it won't auto dismiss
+    return this.show({ type: 'loading', message, title }, { duration: 0 });
   }
 }

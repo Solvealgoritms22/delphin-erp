@@ -19,7 +19,7 @@ export interface CommandItem {
   imports: [MatDialogModule, MatIconModule, FormsModule, SearchIcon],
   template: `
     <div class="flex flex-col bg-white dark:bg-neutral-900 rounded-xl overflow-hidden shadow-2xl ring-1 ring-black/5 max-h-[80vh]">
-      <!-- Search input -->
+
       <div class="flex items-center border-b border-neutral-200 px-4 dark:border-neutral-800">
         <i-search [size]="18" class="text-neutral-400 mr-2" />
         <input
@@ -34,7 +34,6 @@ export interface CommandItem {
         </div>
       </div>
 
-      <!-- Results list -->
       <div class="overflow-y-auto p-2" style="max-height: 400px;">
         @if (filteredCommands().length > 0) {
           <div class="text-xs font-semibold text-neutral-400 px-3 py-2 uppercase tracking-wider">
@@ -72,8 +71,7 @@ export class CommandPaletteDialogComponent {
   private router = inject(Router);
 
   searchQuery = signal('');
-  
-  // This would typically come from a service
+
   allCommands: CommandItem[] = [
     { id: 'home', icon: 'heroicons_outline:home', label: 'Go to Dashboard', action: () => this.router.navigate(['/admin']) },
     { id: 'profile', icon: 'heroicons_outline:user', label: 'Go to Profile', action: () => this.router.navigate(['/admin/profile']) },

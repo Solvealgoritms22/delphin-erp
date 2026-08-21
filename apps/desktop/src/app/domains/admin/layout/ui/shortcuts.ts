@@ -48,7 +48,7 @@ const DEFAULT_SHORTCUTS = [
     class: 'flex items-center',
   },
   template: `
-    <!-- Bookmarks -->
+
     @for (item of visibleBookmarks(); track item.id) {
       <button
         class="hidden sm:inline-flex"
@@ -75,7 +75,7 @@ const DEFAULT_SHORTCUTS = [
       class="min-w-60"
       #shortcutsMenu="matMenu"
     >
-      <!-- Search -->
+
       <div class="flex items-center gap-x-3 px-4">
         <i-search [size]="16" class="text-neutral-500" />
         <input
@@ -91,7 +91,6 @@ const DEFAULT_SHORTCUTS = [
       </div>
       <mat-divider />
 
-      <!-- List -->
       <div class="flex max-h-100 flex-col overflow-y-auto">
         @for (item of filteredItems(); track item.id) {
           @if (item.id === firstUnbookmarkedId()) {
@@ -135,12 +134,11 @@ const DEFAULT_SHORTCUTS = [
   `,
 })
 export class Shortcuts {
-  // Dependencies
+
   private localStorage = inject(LocalStorage);
   private media = inject(Media);
   private transloco = inject(TranslocoService);
 
-  // State
   protected search = signal('');
   protected bookmarks = signal<string[]>(this.restoreBookmarks());
   protected items = NAVIGATION.flatMap((group) => group.children ?? []).filter(

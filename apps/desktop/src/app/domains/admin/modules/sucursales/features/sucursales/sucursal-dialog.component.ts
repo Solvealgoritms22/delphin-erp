@@ -36,7 +36,7 @@ import { XIcon } from 'ng-animated-icons';
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col p-6 overflow-y-auto">
         <div class="grid grid-cols-1 gap-4">
-          <!-- Nombre -->
+
           <mat-form-field class="w-full">
              <mat-label>{{ 'branches.name' | transloco }}</mat-label>
              <input matInput formControlName="nombre" [placeholder]="'branches.namePlaceholder' | transloco" />
@@ -45,26 +45,23 @@ import { XIcon } from 'ng-animated-icons';
             }
           </mat-form-field>
 
-          <!-- Ciudad -->
           <mat-form-field class="w-full">
              <mat-label>{{ 'branches.city' | transloco }}</mat-label>
              <input matInput formControlName="ciudad" [placeholder]="'branches.cityPlaceholder' | transloco" />
           </mat-form-field>
 
-          <!-- Dirección -->
           <mat-form-field class="w-full">
              <mat-label>{{ 'branches.address' | transloco }}</mat-label>
              <textarea matInput formControlName="direccion" rows="2" [placeholder]="'branches.addressPlaceholder' | transloco"></textarea>
           </mat-form-field>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Teléfono -->
+
             <mat-form-field class="w-full">
                <mat-label>{{ 'branches.phone' | transloco }}</mat-label>
                <input matInput formControlName="telefono" placeholder="(809) 555-0000" />
             </mat-form-field>
 
-            <!-- Email -->
             <mat-form-field class="w-full">
                <mat-label>{{ 'auth.fields.email' | transloco }}</mat-label>
               <input matInput formControlName="email" placeholder="sucursal@empresa.com" type="email" />
@@ -74,7 +71,6 @@ import { XIcon } from 'ng-animated-icons';
             </mat-form-field>
           </div>
 
-          <!-- Estado -->
           <mat-form-field class="w-full">
            <mat-label>{{ 'common.status' | transloco }}</mat-label>
             <mat-select formControlName="estado">

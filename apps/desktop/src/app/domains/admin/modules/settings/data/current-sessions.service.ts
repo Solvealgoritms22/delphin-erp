@@ -52,7 +52,6 @@ export class CurrentSessionsService {
 
   private decorate(session: SessionLog): SessionLog {
     const browserIcons: Record<string, string> = {
-      // The Fuse icon registry is Lucide-based and does not include brand logos.
       Chrome: 'globe',
       Firefox: 'globe',
       Safari: 'compass',

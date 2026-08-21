@@ -14,7 +14,6 @@ export const authGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  // Redirect to the login page with the return url
   return router.createUrlTree(['/auth/sign-in'], {
     queryParams: { redirectUrl: state.url },
   });
@@ -30,7 +29,7 @@ export const guestGuard: CanActivateFn = (route) => {
         ? true
         : router.createUrlTree(['/auth/change-password']);
     }
-    // Redirect to the admin dashboard
+
     return router.createUrlTree(['/admin']);
   }
 
@@ -49,7 +48,7 @@ export const permissionGuard: CanActivateFn = (route, state) => {
 
   const requiredPermissions = route.data['permissions'] as string[];
   if (!requiredPermissions || requiredPermissions.length === 0) {
-    return true; // No specific permissions required
+    return true;
   }
 
   const user = authState.user();
@@ -57,7 +56,6 @@ export const permissionGuard: CanActivateFn = (route, state) => {
     return router.createUrlTree(['/admin']);
   }
 
-  // Owner wildcard check
   if (user.permissions.includes('*')) {
     return true;
   }
@@ -65,7 +63,7 @@ export const permissionGuard: CanActivateFn = (route, state) => {
   const hasPermission = requiredPermissions.every(p => user.permissions!.includes(p));
 
   if (!hasPermission) {
-    // User does not have the required permissions
+
     return router.createUrlTree(['/admin/404']);
   }
 

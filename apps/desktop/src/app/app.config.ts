@@ -41,7 +41,6 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })
     ),
 
-    // Material
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: {
@@ -57,7 +56,6 @@ export const appConfig: ApplicationConfig = {
     },
     provideNativeDateAdapter(),
 
-    // Core
     provideIcons(),
     provideTheming({
       scheme: 'system',
@@ -65,7 +63,6 @@ export const appConfig: ApplicationConfig = {
       error: '#dc2626',
     }),
 
-    // Third-party
     provideTransloco({
       config: {
         availableLangs: [

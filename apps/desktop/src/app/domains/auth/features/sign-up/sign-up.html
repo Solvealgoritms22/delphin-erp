@@ -1,7 +1,7 @@
 <div class="flex flex-auto overflow-hidden h-full">
   <div class="flex flex-auto bg-white px-4 py-1.5 sm:px-8 sm:py-3 lg:px-12 dark:bg-neutral-950 overflow-y-auto justify-center items-center">
     <div class="w-full max-w-lg sm:max-w-xl flex flex-col m-auto py-0.5 sm:py-1">
-      <!-- Logo -->
+
       <div class="flex items-center gap-x-2.5">
         <img src="/images/logo/logo_dolphin_light.png"
           class="h-6.5 sm:h-7.5 w-auto max-w-[150px] object-contain object-left dark:hidden" alt="Dolphin logo" />
@@ -9,7 +9,6 @@
           class="h-7.5 sm:h-8.5 w-auto max-w-[150px] object-contain object-left hidden dark:block" alt="Dolphin logo" />
       </div>
 
-      <!-- Title -->
       <div class="leading-tight mt-2 sm:mt-2.5 text-lg sm:text-xl font-extrabold tracking-tight">
         {{ 'auth.signUp.title' | transloco }}
       </div>
@@ -20,11 +19,9 @@
         </a>
       </div>
 
-      <!-- Sign up form -->
       <form class="mt-2 sm:mt-2.5" (submit)="signUp($event)">
         <div class="flex flex-col gap-y-1 sm:gap-y-1.5">
-          
-          <!-- Name & Company (2 columns) -->
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
             <mat-form-field class="w-full" subscriptSizing="dynamic">
               <mat-label>{{ 'auth.fields.name' | transloco }}</mat-label>
@@ -51,7 +48,6 @@
             </mat-form-field>
           </div>
 
-          <!-- Country & Document Type (2 columns) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
             <mat-form-field class="w-full" subscriptSizing="dynamic">
               <mat-label>{{ 'auth.fields.country' | transloco }}</mat-label>
@@ -74,7 +70,6 @@
             </mat-form-field>
           </div>
 
-          <!-- Document Number & Phone (2 columns) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
             <mat-form-field class="w-full" subscriptSizing="dynamic">
               <mat-label>{{ 'auth.fields.documentNumber' | transloco }}</mat-label>
@@ -87,7 +82,6 @@
             </mat-form-field>
           </div>
 
-          <!-- Email field (Full width) -->
           <mat-form-field class="w-full" subscriptSizing="dynamic">
             <mat-label>{{ 'auth.fields.email' | transloco }}</mat-label>
             <input id="email" matInput [formField]="signUpForm.email" placeholder="correo@empresa.com" />
@@ -100,7 +94,6 @@
             </mat-error>
           </mat-form-field>
 
-          <!-- Password & Confirm Password (2 columns) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
             <mat-form-field class="w-full" subscriptSizing="dynamic">
               <mat-label>{{ 'auth.fields.password' | transloco }}</mat-label>
@@ -154,7 +147,6 @@
             </mat-form-field>
           </div>
 
-          <!-- Password Strength -->
           <div class="mt-0.5" aria-live="polite">
             <div class="flex items-center justify-between text-[10.5px]">
               <span class="text-neutral-500">{{ 'auth.signUp.passwordStrength' | transloco }}</span>
@@ -169,7 +161,6 @@
           </div>
         </div>
 
-        <!-- Legal Agreements -->
         <div class="mt-2 flex flex-col gap-0.5 text-xs">
           <mat-checkbox class="-ml-2 scale-90 origin-left" [formField]="signUpForm.agreements">
             <span class="text-neutral-500 text-[11px]">{{ 'legal.agreeTo' | transloco }}</span>
@@ -185,7 +176,6 @@
           </mat-checkbox>
         </div>
 
-        <!-- Submit button -->
         <button type="submit" matButton="filled" class="mt-2.5 w-full !h-8.5 sm:!h-9 !rounded-xl text-xs font-semibold" [disabled]="signUpForm().invalid() || !passwordsMatch() || passwordStrength().score < 4 || isLoading()">
           @if (isLoading()) {
             Procesando...
@@ -198,33 +188,24 @@
   </div>
 
   <div
-    class="relative hidden flex-auto items-center justify-center overflow-hidden border-l bg-neutral-950 p-8 sm:px-12 md:flex">
-    <!-- Background -->
-    <!-- Rings -->
-    <!-- prettier-ignore -->
-    <svg class="absolute inset-0 pointer-events-none" viewBox="0 0 960 540" width="100%" height="100%"
-      preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-      <g class="text-neutral-700/25" fill="none" stroke="currentColor" stroke-width="100">
-        <circle r="234" cx="196" cy="23"></circle>
-        <circle r="234" cx="790" cy="491"></circle>
-      </g>
-    </svg>
+    class="relative hidden flex-auto items-center justify-center overflow-hidden border-l border-neutral-200/10 bg-slate-950 p-8 sm:px-12 md:flex">
 
-    <!-- Dots -->
-    <!-- prettier-ignore -->
-    <svg class="absolute -top-16 -right-16 text-neutral-700" viewBox="0 0 220 192" width="220" height="192" fill="none">
-      <defs>
-        <pattern id="837c3e70-6c3a-44e6-8854-cc48c737b659" x="0" y="0" width="20" height="20"
-          patternUnits="userSpaceOnUse">
-          <rect x="0" y="0" width="4" height="4" fill="currentColor"></rect>
-        </pattern>
-      </defs>
-      <rect width="220" height="192" fill="url(#837c3e70-6c3a-44e6-8854-cc48c737b659)"></rect>
-    </svg>
+    <!-- Ambient glowing light orbs -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-600/20 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none"></div>
 
-    <!-- Centered Brand Content (Logo + Brand Lockup + Tagline + Subtitle) -->
+    <!-- Tech grid background with radial fade mask -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#33415518_1px,transparent_1px),linear-gradient(to_bottom,#33415518_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
+
+    <!-- Subtle concentric wave rings -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25">
+      <div class="w-[360px] h-[360px] rounded-full border border-blue-500/30"></div>
+      <div class="absolute w-[540px] h-[540px] rounded-full border border-blue-400/20"></div>
+      <div class="absolute w-[720px] h-[720px] rounded-full border border-cyan-400/10"></div>
+    </div>
+
     <div class="relative z-10 flex flex-col items-center justify-center text-center max-w-xl px-6 select-none">
-      <!-- Brand Lockup: Logo Icon + "DOLPHIN" + "SISTEMA DE RECURSOS EMPRESARIALES" -->
       <div class="flex items-center justify-center gap-4 sm:gap-5 mb-8">
         <img
           src="/images/logo/logo_dolphin_dark.png"
@@ -241,15 +222,28 @@
         </div>
       </div>
 
-      <!-- Label / Tagline -->
       <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
         {{ 'auth.brand.tagline' | transloco }}
       </h2>
 
-      <!-- Subtitle -->
       <p class="mt-3 text-sm sm:text-base text-neutral-400 max-w-md leading-relaxed">
         {{ 'auth.brand.description' | transloco }}
       </p>
+
+      <div class="mt-10 grid grid-cols-3 gap-4 w-full max-w-md pt-8 border-t border-white/10">
+        <div class="flex flex-col items-center">
+          <span class="text-lg font-bold text-white tracking-tight">100%</span>
+          <span class="text-[11px] text-neutral-400">En la nube</span>
+        </div>
+        <div class="flex flex-col items-center border-x border-white/10">
+          <span class="text-lg font-bold text-white tracking-tight">DGII / e-CF</span>
+          <span class="text-[11px] text-neutral-400">Facturación</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-lg font-bold text-white tracking-tight">Multi-Empresa</span>
+          <span class="text-[11px] text-neutral-400">Centralizado</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>

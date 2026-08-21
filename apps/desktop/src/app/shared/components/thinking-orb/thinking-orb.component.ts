@@ -61,7 +61,6 @@ export class ThinkingOrbComponent implements OnInit, OnDestroy, OnChanges {
     return this.size || 24;
   }
 
-  // Always use the full-detail 64 preset so the 3D sphere is complete and identical everywhere
   readonly targetPresetSize: OrbSize = 64;
 
   ngOnInit(): void {
@@ -81,7 +80,7 @@ export class ThinkingOrbComponent implements OnInit, OnDestroy, OnChanges {
   private isDarkMode(): boolean {
     if (this.theme === 'dark') return true;
     if (this.theme === 'light') return false;
-    // Auto-detect from HTML dark class or media query
+
     if (typeof document !== 'undefined') {
       return document.documentElement.classList.contains('dark') ||
              document.documentElement.classList.contains('scheme-dark');
@@ -121,7 +120,7 @@ export class ThinkingOrbComponent implements OnInit, OnDestroy, OnChanges {
     if (!ctx) return;
 
     const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-    const baseSize = this.targetPresetSize; // 20 or 64
+    const baseSize = this.targetPresetSize;
     const scaleFactor = this.displaySize / baseSize;
 
     const pixelWidth = Math.round(this.displaySize * dpr);
@@ -135,7 +134,6 @@ export class ThinkingOrbComponent implements OnInit, OnDestroy, OnChanges {
     ctx.save();
     ctx.clearRect(0, 0, pixelWidth, pixelHeight);
 
-    // Apply scale for DPR and arbitrary size scaling
     ctx.scale(dpr * scaleFactor, dpr * scaleFactor);
 
     const preset = resolvePreset(this.state, baseSize);

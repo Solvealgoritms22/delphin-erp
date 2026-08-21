@@ -64,7 +64,7 @@ import { environment } from '@/environments/environment';
     <div
       class="flex flex-col flex-auto min-w-0 h-full overflow-hidden"
     >
-      <!-- Header -->
+
       <div
         class="relative flex flex-0 shrink-0 flex-col border-b border-neutral-200 bg-white px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8 dark:border-neutral-700 dark:bg-neutral-900"
       >
@@ -79,7 +79,6 @@ import { environment } from '@/environments/environment';
           </p>
         </div>
 
-        <!-- Actions -->
         <div class="mt-6 flex flex-wrap items-center gap-3 sm:mt-0 sm:ml-4">
           <button
             (click)="openCreateModal()"
@@ -94,9 +93,8 @@ import { environment } from '@/environments/environment';
         </div>
       </div>
 
-      <!-- Main Scrollable Content -->
       <div class="flex min-h-0 flex-auto flex-col overflow-y-auto">
-        <!-- Filters Toolbar -->
+
         <div
           class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-neutral-200 bg-white p-6 pb-4 md:px-8 dark:border-neutral-700 dark:bg-neutral-900"
         >
@@ -119,7 +117,7 @@ import { environment } from '@/environments/environment';
           </div>
 
           <div class="flex items-center gap-3">
-            <!-- NCF Type Filter Menu -->
+
             <button
               [matMenuTriggerFor]="ncfFilterMenu"
               type="button"
@@ -183,9 +181,8 @@ import { environment } from '@/environments/environment';
           </div>
         </div>
 
-        <!-- Invoices Table Grid -->
         <div class="grid">
-          <!-- Sticky Table Header -->
+
           <div
             class="sticky top-0 z-10 grid grid-cols-12 gap-4 border-b border-neutral-200 bg-neutral-50 px-6 py-4 text-[11px] font-bold tracking-wider text-neutral-500 uppercase shadow-xs md:px-8 dark:border-neutral-700 dark:bg-neutral-800"
           >
@@ -227,7 +224,7 @@ import { environment } from '@/environments/environment';
               <div
                 class="grid grid-cols-12 items-center gap-4 border-b border-neutral-100 px-6 py-4 text-sm transition-colors hover:bg-neutral-50/50 md:px-8 dark:border-neutral-800/80 dark:hover:bg-neutral-800/30"
               >
-                <!-- Factura / Fecha -->
+
                 <div class="col-span-2 flex flex-col">
                   <span class="font-bold text-neutral-900 dark:text-white">{{
                     inv.numeroFactura
@@ -237,7 +234,6 @@ import { environment } from '@/environments/environment';
                   }}</span>
                 </div>
 
-                <!-- Comprobante NCF -->
                 <div class="col-span-2 flex flex-col">
                   <span
                     class="font-mono font-bold text-blue-600 dark:text-blue-400"
@@ -250,7 +246,6 @@ import { environment } from '@/environments/environment';
                   }}</span>
                 </div>
 
-                <!-- Cliente / RNC -->
                 <div class="col-span-3 flex flex-col">
                   <span
                     class="truncate font-bold text-neutral-900 dark:text-white"
@@ -265,7 +260,6 @@ import { environment } from '@/environments/environment';
                   }}</span>
                 </div>
 
-                <!-- Total Facturado -->
                 <div class="col-span-2 flex flex-col text-right">
                   <span
                     class="font-mono font-bold text-neutral-900 dark:text-white"
@@ -279,7 +273,6 @@ import { environment } from '@/environments/environment';
                   >
                 </div>
 
-                <!-- Estado Fiscal DGII / Borrador -->
                 <div
                   class="col-span-2 flex flex-col items-center justify-center"
                 >
@@ -338,7 +331,6 @@ import { environment } from '@/environments/environment';
                   }
                 </div>
 
-                <!-- Acciones -->
                 <div class="col-span-1 flex justify-center">
                   <button
                     [matMenuTriggerFor]="actionMenu"
@@ -456,12 +448,11 @@ import { environment } from '@/environments/environment';
         </div>
       </div>
 
-      <!-- ================= MODAL: NUEVA FACTURA ================= -->
       <ng-template #createInvoiceModalTemplate>
         <div
           class="flex max-h-[90vh] w-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
         >
-          <!-- Modal Header -->
+
           <div
             class="flex shrink-0 items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800"
           >
@@ -489,11 +480,10 @@ import { environment } from '@/environments/environment';
             </button>
           </div>
 
-          <!-- Modal Body -->
           <div class="flex flex-col gap-5 overflow-y-auto p-6">
-            <!-- Row 1: Cliente & NCF Type -->
+
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <!-- Cliente -->
+
               <mat-form-field
                 appearance="outline"
                 class="w-full"
@@ -515,7 +505,6 @@ import { environment } from '@/environments/environment';
                 </mat-select>
               </mat-form-field>
 
-              <!-- Tipo de Comprobante NCF -->
               <mat-form-field
                 appearance="outline"
                 class="w-full"
@@ -552,9 +541,8 @@ import { environment } from '@/environments/environment';
               </mat-form-field>
             </div>
 
-            <!-- Row 2: Almacén Despacho & Término de Pago -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <!-- Almacén -->
+
               <mat-form-field
                 appearance="outline"
                 class="w-full"
@@ -574,7 +562,6 @@ import { environment } from '@/environments/environment';
                 </mat-select>
               </mat-form-field>
 
-              <!-- Tipo de Pago -->
               <mat-form-field
                 appearance="outline"
                 class="w-full"
@@ -595,7 +582,6 @@ import { environment } from '@/environments/environment';
               </mat-form-field>
             </div>
 
-            <!-- Items Section -->
             <div class="mt-2 flex flex-col gap-3">
               <div class="flex items-center justify-between">
                 <h4
@@ -616,13 +602,12 @@ import { environment } from '@/environments/environment';
                 </button>
               </div>
 
-              <!-- Product Rows -->
               <div class="flex flex-col gap-3">
                 @for (item of invoiceRows; track $index) {
                   <div
                     class="flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-800/40"
                   >
-                    <!-- Producto -->
+
                     <div class="min-w-[200px] flex-1">
                       <mat-form-field
                         appearance="outline"
@@ -649,7 +634,6 @@ import { environment } from '@/environments/environment';
                       </mat-form-field>
                     </div>
 
-                    <!-- Cantidad -->
                     <div class="w-24">
                       <mat-form-field
                         appearance="outline"
@@ -668,7 +652,6 @@ import { environment } from '@/environments/environment';
                       </mat-form-field>
                     </div>
 
-                    <!-- Precio Unitario -->
                     <div class="w-32">
                       <mat-form-field
                         appearance="outline"
@@ -686,7 +669,6 @@ import { environment } from '@/environments/environment';
                       </mat-form-field>
                     </div>
 
-                    <!-- Subtotal Preview -->
                     <div
                       class="w-28 text-right font-mono text-sm font-bold text-neutral-900 dark:text-white"
                     >
@@ -696,7 +678,6 @@ import { environment } from '@/environments/environment';
                       }}
                     </div>
 
-                    <!-- Remove row -->
                     @if (invoiceRows.length > 1) {
                       <button
                         type="button"
@@ -714,7 +695,6 @@ import { environment } from '@/environments/environment';
               </div>
             </div>
 
-            <!-- Totals Summary Card -->
             <div class="mt-2 flex justify-end">
               <div
                 class="flex w-full max-w-sm flex-col gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60"
@@ -759,7 +739,6 @@ import { environment } from '@/environments/environment';
             </div>
           </div>
 
-          <!-- Modal Footer -->
           <div
             class="flex shrink-0 items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50/50 px-6 py-4 dark:border-neutral-800 dark:bg-neutral-900"
           >
@@ -771,7 +750,7 @@ import { environment } from '@/environments/environment';
               {{ 'common.cancel' | transloco }}
             </button>
             <div class="flex items-center gap-2">
-              <!-- Guardar como borrador: solo cuando no hay transmisión electrónica -->
+
               @if (!fiscalbridgeEnabled) {
                 <button
                   mat-stroked-button
@@ -798,7 +777,6 @@ import { environment } from '@/environments/environment';
         </div>
       </ng-template>
 
-      <!-- ================= MODAL: NOTA DE CRÉDITO ================= -->
       <ng-template #creditNoteModalTemplate>
         <div
           class="flex max-h-[90vh] w-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
@@ -980,7 +958,6 @@ export class InvoicesComponent implements OnInit {
   creditNoteModalTemplate!: TemplateRef<any>;
   private dialogRef?: MatDialogRef<any>;
 
-  // Credit note state
   readonly creditNoteInvoice = signal<FacturaVenta | null>(null);
   readonly creditNoteRows = signal<
     {
@@ -999,10 +976,8 @@ export class InvoicesComponent implements OnInit {
   searchQuery = '';
   selectedNcfFilter = 'ALL';
 
-  // Electronic invoicing (FiscalBridge) flag - loaded from company profile
   fiscalbridgeEnabled = false;
 
-  // Invoice creation form state
   newInvoice: CreateInvoiceDto = {
     clienteId: '',
     almacenId: '',

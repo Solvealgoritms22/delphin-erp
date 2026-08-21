@@ -26,7 +26,6 @@ export class PermissionService {
     const permissions = ROLE_PERMISSIONS[role];
     if (permissions.includes('*')) return true;
 
-    // Support basic wildcard matching (e.g. read:*)
     for (const p of permissions) {
       if (p === permission) return true;
       if (p.endsWith('*')) {

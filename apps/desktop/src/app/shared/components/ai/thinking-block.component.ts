@@ -22,7 +22,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
         [class.ring-1]="isThinking()"
         [class.ring-blue-500/30]="isThinking()"
       >
-        <!-- Thinking Header Trigger -->
+
         <button
           type="button"
           (click)="toggleExpanded()"
@@ -65,7 +65,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </div>
         </button>
 
-        <!-- Collapsible Content -->
         @if (isExpanded()) {
           <div
             class="border-t border-neutral-200/60 dark:border-neutral-800/80 px-4 py-3 text-xs leading-relaxed text-neutral-600 dark:text-neutral-300 font-sans bg-white/40 dark:bg-black/20"

@@ -35,4 +35,3 @@ export type Conversation = {
   createdAt: string;
   messages: Message[];
 };
-

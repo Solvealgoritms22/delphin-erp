@@ -15,14 +15,13 @@ import { THEME_CONFIG } from './provider';
 
 @Injectable({ providedIn: 'root' })
 export class Theming {
-  // Dependencies
+
   private document = inject(DOCUMENT);
   private isServer = isPlatformServer(inject(PLATFORM_ID));
   private localStorage = inject(LocalStorage);
   private media = inject(Media);
   private themeConfig = inject(THEME_CONFIG);
 
-  // State
   private prefersDarkMode = this.media.match('(prefers-color-scheme: dark)');
 
   colors = signal<Colors>({
@@ -41,19 +40,16 @@ export class Theming {
   );
   isLight = computed(() => !this.isDark());
 
-  // DOM
   private rootEl = this.document.documentElement;
   private themeStyleEl = this.document.createElement('style');
 
   constructor() {
-    // Append the themeStyleEl to the DOM
+
     this.document.head.appendChild(this.themeStyleEl);
     this.themeStyleEl.classList.add('theme-colors');
 
-    // Update scheme
     effect(() => {
-      // Skip the server. Otherwise, the scheme will always be 'system' and
-      // the class will always be 'scheme-dark'.
+
       if (this.isServer) {
         return;
       }
@@ -61,26 +57,19 @@ export class Theming {
       const scheme = this.scheme();
       const prefersDarkMode = this.prefersDarkMode();
 
-      // Figure out if the scheme is 'dark'
       const isDark =
         scheme === 'dark' || (scheme === 'system' && prefersDarkMode);
 
-      // Add the 'dark' or 'light' class to the html element
       this.rootEl.classList.toggle('scheme-dark', isDark);
       this.rootEl.classList.toggle('scheme-light', !isDark);
       this.rootEl.classList.toggle('dark', isDark);
 
-      // Store the scheme in local storage
       this.localStorage.setItem('scheme', scheme);
     });
 
-    // Generate the theme for the first time
     this.generateTheme(this.themeConfig);
   }
 
-  /**
-   * Sets the active color scheme with View Transitions API support.
-   */
   setScheme(scheme: Scheme): void {
     if (this.scheme() === scheme) return;
 
@@ -103,11 +92,6 @@ export class Theming {
     }
   }
 
-  /**
-   * Generates a theme using the provided theming configuration and
-   * applies it to the DOM by injecting CSS variables into a
-   * style element.
-   */
   private generateTheme(config: Colors): {
     primary: TonalPalette;
     error: TonalPalette;
@@ -133,7 +117,6 @@ export class Theming {
       --theme-color-primary-900: ${primary.hue(900)};
       --theme-color-primary-950: ${primary.hue(950)};
 
-      /* Error */
       --theme-color-error-50: ${error.hue(50)};
       --theme-color-error-100: ${error.hue(100)};
       --theme-color-error-200: ${error.hue(200)};

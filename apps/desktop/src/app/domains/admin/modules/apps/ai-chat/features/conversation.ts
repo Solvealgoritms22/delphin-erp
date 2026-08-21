@@ -75,7 +75,7 @@ export interface AttachedFile {
     @let conv = currentConversation();
 
     @if (conv) {
-      <!-- Header -->
+
       <div class="flex items-center gap-x-2 border-b border-neutral-200 dark:border-neutral-800 px-4 py-2.5 lg:px-6 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shrink-0 z-20">
         @if (!aiChat.isSidebarOpen() || aiChat.isMobile()) {
           <button
@@ -131,12 +131,11 @@ export interface AttachedFile {
         </mat-menu>
       </div>
 
-      <!-- Main Conversation Feed & Floating Composer Container -->
       <div class="relative flex flex-1 flex-col overflow-hidden h-full">
-        <!-- Messages Feed (Full height, passes behind the floating input) -->
+
         <div #scrollContainer class="flex-1 overflow-y-auto px-4 pt-6 pb-44 lg:px-8 space-y-6 flex flex-col">
           @if (conv.messages.length === 0) {
-            <!-- Empty State Center Illustration -->
+
             <div class="my-auto flex flex-col items-center justify-center py-6 text-center max-w-xl mx-auto w-full animate-in fade-in zoom-in-95 duration-300">
               <div class="relative mb-5 flex items-center justify-center">
                 <div class="absolute -inset-4 rounded-full bg-blue-500/15 dark:bg-blue-500/20 blur-xl"></div>
@@ -154,9 +153,9 @@ export interface AttachedFile {
             <div class="mx-auto flex w-full max-w-4xl flex-col gap-y-6">
               @for (message of conv.messages; track message.id) {
                 @if (message.role === 'user') {
-                  <!-- User Message -->
+
                   <div class="flex flex-col items-end gap-2">
-                    <!-- Image Attachments Gallery -->
+
                     @if (message.images && message.images.length > 0) {
                       <div class="flex flex-wrap justify-end gap-2 max-w-[85%] sm:max-w-[75%]">
                         @for (imgUrl of message.images; track imgUrl) {
@@ -182,16 +181,15 @@ export interface AttachedFile {
                     }
                   </div>
                 } @else {
-                  <!-- Assistant Message -->
+
                   <div class="flex items-start gap-3.5 w-full group">
-                    <!-- AI Avatar: Thinking Orb 3D Sphere directly without container box -->
+
                     <div class="flex items-center justify-center shrink-0 mt-0.5 select-none">
                       <thinking-orb [size]="24" state="composing" />
                     </div>
 
                     <div class="flex-1 min-w-0 pt-0.5 space-y-3">
-                      
-                      <!-- Thinking / Reasoning Block -->
+
                       @if (getThinkingText(message)) {
                         <app-thinking-block
                           [content]="getThinkingText(message)"
@@ -200,7 +198,6 @@ export interface AttachedFile {
                         />
                       }
 
-                      <!-- Tools execution cards -->
                       @if (message.toolsUsed && message.toolsUsed.length > 0) {
                         <div class="space-y-1.5">
                           @for (tool of message.toolsUsed; track tool) {
@@ -212,7 +209,6 @@ export interface AttachedFile {
                         </div>
                       }
 
-                      <!-- Content / Streaming / Markdown Body -->
                       @if (message.streaming && !getCleanResponseText(message) && !getThinkingText(message)) {
                         <div class="flex items-center gap-2.5 py-1.5 text-neutral-500 dark:text-neutral-400 text-xs">
                           <thinking-orb [size]="18" state="composing" />
@@ -227,7 +223,6 @@ export interface AttachedFile {
                         </div>
                       }
 
-                      <!-- Message Actions Toolbar -->
                       @if (!message.streaming && getCleanResponseText(message)) {
                         <div class="pt-1">
                           <app-chat-message-actions
@@ -244,16 +239,15 @@ export interface AttachedFile {
           }
         </div>
 
-        <!-- Floating Chat Input -->
         <div class="absolute bottom-4 inset-x-0 px-4 lg:px-8 pointer-events-none z-20 flex justify-center">
           <div class="mx-auto w-full max-w-3xl pointer-events-auto">
-            <!-- Modern Auto-Growing Floating Composer Card -->
+
             <div
               (dragover)="onDragOver($event)"
               (drop)="onDrop($event)"
               class="relative flex flex-col rounded-[26px] border border-neutral-200/90 dark:border-neutral-700/80 bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl shadow-xl shadow-neutral-900/10 dark:shadow-black/60 p-2.5 sm:p-3 transition-all duration-200"
             >
-              <!-- Hidden File Input -->
+
               <input
                 type="file"
                 #fileInput
@@ -263,7 +257,6 @@ export interface AttachedFile {
                 class="hidden"
               />
 
-              <!-- Attached Images Preview Shelf (Max 4) -->
               @if (selectedImages().length > 0) {
                 <div class="flex items-center gap-2 px-1 pt-1 pb-2 overflow-x-auto">
                   @for (img of selectedImages(); track img.id) {
@@ -296,7 +289,6 @@ export interface AttachedFile {
                 </div>
               }
 
-              <!-- Top Row: Textarea + Conditional Expand Button -->
               <div class="relative flex items-start gap-2 w-full">
                 <textarea
                   [ngModel]="prompt()"
@@ -314,7 +306,6 @@ export interface AttachedFile {
                   [disabled]="isGenerating()"
                 ></textarea>
 
-                <!-- Expand / Collapse Button -->
                 @if (hasLongText() || isEditorExpanded()) {
                   <button
                     type="button"
@@ -331,7 +322,6 @@ export interface AttachedFile {
                 }
               </div>
 
-              <!-- Bottom Toolbar -->
               <div class="flex items-center justify-between pt-1 mt-0.5">
                 <div class="flex items-center gap-1">
                   <button
@@ -408,7 +398,6 @@ export interface AttachedFile {
           </div>
         </div>
 
-        <!-- Lightbox Image Preview Modal -->
         @if (previewModalImage()) {
           <div
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in duration-150"

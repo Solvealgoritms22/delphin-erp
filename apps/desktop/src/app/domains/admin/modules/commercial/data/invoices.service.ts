@@ -51,9 +51,9 @@ export interface FacturaVenta {
   tipoNcf: string;
   fecha: string;
   fechaVencimiento?: string | null;
-  estado: string; // EMITIDA | PAGADA | ANULADA
-  tipoPago: string; // CONTADO | CREDITO
-  metodoPago: string; // EFECTIVO | TARJETA | TRANSFERENCIA | CHEQUE
+  estado: string;
+  tipoPago: string;
+  metodoPago: string;
   subtotal: number;
   descuento: number;
   itbis: number;
@@ -63,7 +63,7 @@ export interface FacturaVenta {
   moneda?: string;
   tasaCambio?: number;
   monedaBase?: string;
-  fiscalbridgeStatus?: string | null; // NOT_TRANSMITTED | PENDING | SENT | FAILED | ACCEPTED | REJECTED
+  fiscalbridgeStatus?: string | null;
   fiscalbridgeDocId?: string | null;
   fiscalbridgeTrackId?: string | null;
   fiscalbridgeError?: string | null;

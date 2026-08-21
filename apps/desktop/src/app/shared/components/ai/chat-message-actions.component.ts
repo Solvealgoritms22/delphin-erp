@@ -18,7 +18,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   imports: [CommonModule, MatTooltip, RotateCwIcon, CheckIcon, MatIcon, TranslocoPipe],
   template: `
     <div class="flex items-center gap-1 mt-2 text-neutral-400 select-none">
-      <!-- Copy Button -->
+
       <button
         type="button"
         (click)="copyText()"
@@ -32,7 +32,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
         }
       </button>
 
-      <!-- Retry / Regenerate -->
       <button
         type="button"
         (click)="retry.emit()"
@@ -42,7 +41,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
         <i-rotate-cw [size]="13" />
       </button>
 
-      <!-- Thumbs Up Feedback -->
       <button
         type="button"
         (click)="rate(1)"
@@ -55,7 +53,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
         <mat-icon svgIcon="thumbs-up" class="size-3.5" />
       </button>
 
-      <!-- Thumbs Down Feedback -->
       <button
         type="button"
         (click)="rate(-1)"

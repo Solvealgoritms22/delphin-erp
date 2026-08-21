@@ -11,8 +11,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   },
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden text-neutral-900 dark:text-neutral-100">
-      
-      <!-- Simple Header (Pinned) -->
+
       <header class="shrink-0 flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md z-50">
         <a routerLink="/" class="flex items-center gap-3">
           <img src="/images/logo/logo_dolphin_light.png" class="h-8 w-auto dark:hidden" alt="Dolphin ERP" />
@@ -21,10 +20,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
         <div class="text-sm text-neutral-500 font-medium">{{ 'legalPages.layoutTitle' | transloco }}</div>
       </header>
 
-      <!-- Central Body (Scrollable Container) -->
       <div class="flex-auto min-h-0 overflow-y-auto bg-white dark:bg-neutral-900">
         <div class="flex flex-col md:flex-row max-w-6xl w-full mx-auto min-h-full">
-          <!-- Sidebar Menu -->
+
           <aside class="w-full md:w-64 shrink-0 py-8 px-6 md:pr-8 md:pl-0 border-r-0 md:border-r border-neutral-200 dark:border-neutral-800">
             <nav class="flex flex-col space-y-1 sticky top-8">
               <a routerLink="terms" routerLinkActive="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold" class="px-4 py-2.5 rounded-lg text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
@@ -42,13 +40,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
             </nav>
           </aside>
 
-          <!-- Main Content -->
           <main class="flex-auto py-8 px-6 md:pl-10">
             <router-outlet></router-outlet>
           </main>
         </div>
 
-        <!-- Footer -->
         <footer class="shrink-0 py-6 text-center text-sm text-neutral-500 border-t border-neutral-200 dark:border-neutral-800">
           &copy; {{ currentYear }} Dolphin ERP. {{ 'legalPages.rights' | transloco }}
         </footer>

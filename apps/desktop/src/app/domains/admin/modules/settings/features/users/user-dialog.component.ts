@@ -56,8 +56,7 @@ export interface UserDialogData {
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col p-6 gap-4 overflow-y-auto flex-1">
-        
-        <!-- Profile Picture Upload -->
+
         <div class="flex items-center gap-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 p-4">
           <div class="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-sm">
             @if (avatarPreview()) {

@@ -8,7 +8,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     <div
       class="flex flex-auto flex-col items-center justify-center p-6 text-center sm:p-10"
     >
-      <!-- Logo -->
+
       <div class="flex items-center justify-center gap-x-2.5">
         <img
           class="h-20 w-auto max-w-[250px] object-contain dark:hidden"
@@ -22,7 +22,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
         />
       </div>
 
-      <!-- Title -->
       <div class="mt-8 text-4xl font-bold md:text-[64px]/24">
          {{ 'maintenance.title' | transloco }}
       </div>

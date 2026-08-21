@@ -12,7 +12,7 @@ export interface ApiOptions {
 })
 export class ApiService {
   private http = inject(HttpClient);
-  
+
   private baseUrl = '/api';
 
   get<T>(path: string, options?: ApiOptions): Observable<T> {

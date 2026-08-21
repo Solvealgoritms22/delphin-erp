@@ -27,7 +27,7 @@ import { RefreshCwIcon, MonitorCheckIcon, CircleCheckBigIcon, CircleAlertIcon, D
   ],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
-      <!-- Pinned Header -->
+
       <div class="shrink-0 p-6 sm:py-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-transparent">
         <div class="w-full max-w-3xl mx-auto">
           <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
@@ -39,11 +39,9 @@ import { RefreshCwIcon, MonitorCheckIcon, CircleCheckBigIcon, CircleAlertIcon, D
         </div>
       </div>
 
-      <!-- Central Scroll Container -->
       <div class="flex-auto min-h-0 overflow-y-auto p-4 sm:p-6 pb-12">
         <div class="w-full max-w-3xl mx-auto">
 
-          <!-- Version Card -->
           <mat-card class="mb-6" appearance="outlined">
             <mat-card-content class="p-6">
               <div class="flex items-center justify-between gap-4">
@@ -71,7 +69,6 @@ import { RefreshCwIcon, MonitorCheckIcon, CircleCheckBigIcon, CircleAlertIcon, D
             </mat-card-content>
           </mat-card>
 
-          <!-- Update Card -->
           <mat-card appearance="outlined" class="overflow-hidden">
             <mat-card-header>
               <mat-card-title class="text-lg font-semibold">
@@ -164,7 +161,6 @@ import { RefreshCwIcon, MonitorCheckIcon, CircleCheckBigIcon, CircleAlertIcon, D
         </mat-card-content>
       </mat-card>
 
-      <!-- Info Card -->
       <mat-card appearance="outlined" class="mt-6">
         <mat-card-header>
           <mat-card-title class="text-lg font-semibold">

@@ -36,8 +36,7 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
   ],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
-      
-      <!-- Header -->
+
       <div class="shrink-0 flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full mb-6 gap-4">
           <div>
@@ -47,22 +46,19 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
         </div>
       </div>
 
-      <!-- Scrollable Central Body -->
       <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-12">
-        
+
         <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm">
-          
-          <!-- Toolbar -->
+
           <div class="flex flex-wrap items-center justify-between p-4 gap-4 border-b border-neutral-200 dark:border-neutral-800">
             <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-              <!-- Search -->
+
               <div class="relative flex items-center w-full sm:w-64 flex-auto sm:flex-initial">
                 <i-search [size]="18" class="absolute left-3 text-neutral-400" />
-                <input type="text" [placeholder]="'securityLogs.search' | transloco" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" 
+                <input type="text" [placeholder]="'securityLogs.search' | transloco" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"
                   class="w-full h-10 pl-10 pr-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
               </div>
-              
-              <!-- Severity Filter Dropdown -->
+
               <button [matMenuTriggerFor]="severityMenu" type="button"
                 class="flex items-center justify-between gap-2.5 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 text-sm font-medium text-neutral-700 dark:text-neutral-200 transition-colors shrink-0 cursor-pointer min-w-36">
                 <span class="inline-flex items-center gap-2">
@@ -105,7 +101,7 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
                 </button>
               </mat-menu>
             </div>
-            
+
               <div class="flex flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto justify-start lg:justify-end">
                 <button mat-stroked-button type="button" (click)="clearLogs()" [disabled]="loading() || logs().length === 0"
                   class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400 !whitespace-nowrap shrink-0 !h-10">
@@ -113,13 +109,11 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
                   <span class="whitespace-nowrap">{{ 'securityLogs.clear' | transloco }}</span>
                 </button>
 
-                <!-- Push Alerts Toggle -->
                 <div class="flex items-center gap-2 whitespace-nowrap shrink-0">
                   <span class="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Push Alerts</span>
                   <mat-slide-toggle [checked]="pushAlerts()" (change)="togglePushAlerts($event.checked)"></mat-slide-toggle>
                 </div>
-                
-                <!-- Columns Button -->
+
                 <button [matMenuTriggerFor]="columnsMenu" type="button"
                   class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
                   <i-sliders-horizontal [size]="16" />
@@ -167,7 +161,6 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
               </div>
             </div>
 
-            <!-- Table -->
             <div class="overflow-x-auto">
               <table class="w-full text-left min-w-[900px] border-collapse">
                 <thead>
@@ -281,8 +274,7 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
                 </tbody>
               </table>
             </div>
-            
-            <!-- Paginator Footer -->
+
             <div class="flex items-center justify-between p-4 border-t border-neutral-200 dark:border-neutral-800 text-[13px] text-neutral-500">
               <div class="flex items-center gap-2">
                 <span>Rows per page</span>
@@ -308,7 +300,7 @@ export default class SecurityLogsComponent implements OnInit {
   private securityLogsService = inject(SecurityLogsService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
-  
+
   logs = this.securityLogsService.logs;
   searchQuery = signal('');
   severity = signal('');
@@ -404,9 +396,9 @@ export default class SecurityLogsComponent implements OnInit {
     let currentLogs = this.logs();
     const search = this.searchQuery().toLowerCase();
     if (search) {
-      currentLogs = currentLogs.filter(log => 
-        log.eventType.toLowerCase().includes(search) || 
-        log.sourceIp.includes(search) || 
+      currentLogs = currentLogs.filter(log =>
+        log.eventType.toLowerCase().includes(search) ||
+        log.sourceIp.includes(search) ||
         log.destinationIp.includes(search)
       );
     }

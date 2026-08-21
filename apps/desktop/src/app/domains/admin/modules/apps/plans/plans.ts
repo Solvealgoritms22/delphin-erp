@@ -154,7 +154,6 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
   template: `
     <div class="flex h-full w-full flex-col min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
 
-      <!-- Header with Back button (Pinned) -->
       <div class="shrink-0 flex items-center justify-start p-6 pb-4 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <button (click)="goBack()"
                 class="h-9 px-4 rounded-xl text-sm font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors flex items-center gap-2 shadow-xs cursor-pointer">
@@ -163,10 +162,8 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
         </button>
       </div>
 
-      <!-- Central Scroll Container -->
       <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-16">
 
-      <!-- Trial Banner -->
       @if (trialDaysLeft() !== null) {
         @if (trialExpired()) {
           <div class="mb-8 flex items-center gap-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 px-5 py-4">
@@ -187,15 +184,12 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
         }
       }
 
-      <!-- Top Section -->
       <div class="text-center mb-16">
         <h1 class="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mb-3">{{ 'plans.title' | transloco }}</h1>
         <p class="text-neutral-500 text-sm max-w-xl mx-auto leading-relaxed">{{ 'plans.description' | transloco }}</p>
 
-        <!-- Toggle -->
         <div class="relative inline-flex items-center justify-center p-1 rounded-full bg-neutral-100 dark:bg-neutral-800 mt-16">
-          
-          <!-- Discount Badge & Arrow -->
+
           <div class="absolute -top-12 -right-4 flex flex-col items-center pointer-events-none">
             <span class="bg-blue-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap shadow-sm tracking-wide">
               {{ 'plans.saveUpTo' | transloco }}
@@ -226,7 +220,7 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
       </div>
 
       @if (isLoading()) {
-        <!-- Skeleton Plan Cards -->
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           @for (i of [1, 2, 3]; track i) {
             <div class="flex flex-col bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-8 animate-pulse">
@@ -257,7 +251,7 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
           }
         </div>
       } @else {
-        <!-- Plans Grid -->
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           @for (plan of plans(); track plan.id; let i = $index) {
             <div [class.border-blue-300]="plan.destacado"
@@ -270,7 +264,6 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
                 </div>
               }
 
-              <!-- Icon -->
               <div class="relative w-10 h-10 mb-6">
                 <div class="w-7 h-7 rounded-full absolute top-0 left-0 bg-blue-200 dark:bg-blue-800/40"></div>
                 @if (i % 3 === 1) {
@@ -315,7 +308,6 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
         </div>
       }
 
-      <!-- Contact Link -->
       <div class="text-center mb-20 flex items-center justify-center gap-4">
         <span class="text-neutral-500 text-sm">¿Necesitas un plan personalizado o mayor capacidad?</span>
         <a href="mailto:admin@dolphin-erp.com?subject=Consulta%20sobre%20plan%20personalizado&body=Hola%2C%20me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20sobre%20un%20plan%20personalizado%20para%20mi%20empresa."
@@ -324,12 +316,11 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
         </a>
       </div>
 
-      <!-- Real Features Comparator Matrix -->
       @if (!isLoading()) {
         <div class="mt-8">
           <h2 class="text-2xl font-bold text-center text-neutral-900 dark:text-white mb-2">Comparar capacidades reales del sistema</h2>
           <p class="text-center text-xs text-neutral-500 dark:text-neutral-400 mb-12">Detalle exacto de las funcionalidades incluidas en cada nivel de suscripción</p>
-          
+
           <div class="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-neutral-800">
             <table class="w-full text-left border-collapse min-w-[700px]">
               <thead>
@@ -342,21 +333,19 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
               </thead>
               <tbody class="text-sm divide-y divide-neutral-100 dark:divide-neutral-800">
                 @for (cat of comparisonCategories; track cat.category) {
-                  <!-- Category Header Row -->
+
                   <tr class="bg-neutral-100/70 dark:bg-neutral-800/30">
                     <td colspan="4" class="py-3 px-5 font-bold text-xs uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
                       {{ cat.category }}
                     </td>
                   </tr>
 
-                  <!-- Category Feature Rows -->
                   @for (row of cat.rows; track row.name) {
                     <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20 transition-colors">
                       <td class="py-3.5 px-5 text-neutral-700 dark:text-neutral-300 font-medium">
                         {{ row.name }}
                       </td>
-                      
-                      <!-- Starter -->
+
                       <td class="py-3.5 px-5 text-center">
                         @if (isBoolean(row.starter)) {
                           @if (row.starter) {
@@ -369,7 +358,6 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
                         }
                       </td>
 
-                      <!-- Pro -->
                       <td class="py-3.5 px-5 text-center bg-blue-50/30 dark:bg-blue-950/10">
                         @if (isBoolean(row.pro)) {
                           @if (row.pro) {
@@ -382,7 +370,6 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
                         }
                       </td>
 
-                      <!-- Enterprise -->
                       <td class="py-3.5 px-5 text-center">
                         @if (isBoolean(row.enterprise)) {
                           @if (row.enterprise) {
@@ -436,7 +423,7 @@ export class PlansComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Load subscription status (trial info)
+
     this.http.get<any>(`${environment.apiUrl}/empresas/subscription`).subscribe({
       next: (sub) => {
         if (sub?.estado === 'TRIAL' && sub?.fechaRenovacion) {

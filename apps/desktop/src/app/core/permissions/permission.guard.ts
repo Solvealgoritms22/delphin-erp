@@ -13,6 +13,5 @@ export const permissionGuard: CanActivateFn = (route) => {
     return true;
   }
 
-  // Redirect to a forbidden/error page
-  return router.createUrlTree(['/error/404']); // Or 403 if you have one
+  return router.createUrlTree(['/error/404']);
 };

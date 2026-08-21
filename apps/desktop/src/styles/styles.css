@@ -1,29 +1,18 @@
-/* -------------------------------------------------------------------------- */
-/* Tailwind CSS                                                               */
-/* -------------------------------------------------------------------------- */
+
 @import 'tailwindcss' important;
 @import './tailwind/variants.css';
 @import './tailwind/theme.css';
 @import './tailwind/utilities.css';
 
-/* -------------------------------------------------------------------------- */
-/* Angular CDK                                                                */
-/* -------------------------------------------------------------------------- */
 @import '@angular/cdk/overlay-prebuilt.css';
 
 .cdk-overlay-container {
   z-index: 9999 !important;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Base                                                                       */
-/* -------------------------------------------------------------------------- */
 @import './base/base.css';
 @import './base/typography.css';
 
-/* -------------------------------------------------------------------------- */
-/* Components                                                                 */
-/* -------------------------------------------------------------------------- */
 @import './components/a.css';
 @import './components/input.css';
 @import './components/kbd.css';
@@ -31,14 +20,8 @@
 @import './components/scrollbar.css';
 @import './components/markdown.css';
 
-/* -------------------------------------------------------------------------- */
-/* Third Party                                                                */
-/* -------------------------------------------------------------------------- */
 @import './third-party/lucide-icons.css';
 
-/* -------------------------------------------------------------------------- */
-/* View Transitions (Theme Toggle Effect)                                     */
-/* -------------------------------------------------------------------------- */
 :root {
   --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -73,9 +56,6 @@
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/* Update Snackbar Overrides (Light & Dark Theme)                             */
-/* -------------------------------------------------------------------------- */
 .cdk-overlay-pane.update-snackbar,
 .update-snackbar.cdk-overlay-pane,
 .update-snackbar {
@@ -119,9 +99,6 @@
   max-width: 100% !important;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Modal & Dialog Glassmorphism Blur Backdrop                                 */
-/* -------------------------------------------------------------------------- */
 .cdk-overlay-backdrop.cdk-overlay-dark-backdrop,
 .cdk-overlay-dark-backdrop {
   background-color: rgba(15, 23, 42, 0.45) !important;
@@ -137,7 +114,6 @@
   -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
 }
 
-/* Native dialog ::backdrop */
 ::backdrop {
   background-color: rgba(15, 23, 42, 0.45) !important;
   backdrop-filter: blur(8px) saturate(140%) !important;
@@ -150,7 +126,6 @@
   -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
 }
 
-/* Transparent dropdown overlays shouldn't have blur (menus, autocomplete, tooltips) */
 .cdk-overlay-transparent-backdrop,
 .cdk-overlay-backdrop.cdk-overlay-transparent-backdrop,
 .cdk-overlay-backdrop.transparent {
@@ -160,9 +135,6 @@
   -webkit-backdrop-filter: none !important;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Modal & Dialog Zoom Entrance and Exit Animations                           */
-/* -------------------------------------------------------------------------- */
 @keyframes modalZoomIn {
   0% {
     opacity: 0;
@@ -189,7 +161,6 @@
   }
 }
 
-/* Native HTML <dialog> modern zoom transition with @starting-style & allow-discrete */
 dialog {
   opacity: 0;
   transform: scale(0.65);
@@ -233,7 +204,6 @@ dialog[open]::backdrop {
   }
 }
 
-/* Angular Material MDC Dialog Zoom In / Out */
 .cdk-overlay-pane:has(.mat-mdc-dialog-container),
 .mat-mdc-dialog-container,
 .cdk-dialog-container {
@@ -258,7 +228,6 @@ dialog[open]::backdrop {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Exit Zoom Out Animation */
 .mat-mdc-dialog-container.mdc-dialog--closing .mdc-dialog__surface,
 .mat-mdc-dialog-container.mdc-dialog--closing .mat-mdc-dialog-surface,
 .mat-mdc-dialog-container.mdc-dialog--closing,
@@ -273,15 +242,11 @@ dialog[open]::backdrop {
   animation: modalZoomOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
 }
 
-/* Backdrop Fade Out on Close */
 .cdk-overlay-backdrop.cdk-overlay-backdrop-hiding {
   opacity: 0 !important;
   transition: opacity 220ms cubic-bezier(0.4, 0, 1, 1), backdrop-filter 220ms cubic-bezier(0.4, 0, 1, 1) !important;
 }
 
-/* -------------------------------------------------------------------------- */
-/* OKLCH Animated Gradient Theme (oklch(50% 0.134 242.749))                   */
-/* -------------------------------------------------------------------------- */
 @keyframes dolphin-gradient-flow {
   from {
     background-position: 0% 100%;
@@ -298,7 +263,6 @@ dialog[open]::backdrop {
   --dolphin-primary-glow: oklch(50% 0.134 242.749 / 0.45);
 }
 
-/* Animated gradient utility classes and global standard blue replacement */
 .bg-gradient-animated,
 .bg-animated-primary,
 .btn-gradient-animated,
@@ -318,7 +282,6 @@ dialog[open]::backdrop {
   transition: box-shadow 0.25s ease, filter 0.25s ease, transform 0.15s ease;
 }
 
-/* Hover effect with smooth glow */
 .bg-gradient-animated:hover:not(:disabled):not([disabled]),
 .bg-animated-primary:hover:not(:disabled):not([disabled]),
 .btn-gradient-animated:hover:not(:disabled):not([disabled]),
@@ -329,7 +292,6 @@ dialog[open]::backdrop {
   box-shadow: 0 4px 18px -2px oklch(50% 0.134 242.749 / 0.45) !important;
 }
 
-/* Active click state */
 .bg-gradient-animated:active:not(:disabled):not([disabled]),
 .bg-animated-primary:active:not(:disabled):not([disabled]),
 .btn-gradient-animated:active:not(:disabled):not([disabled]),
@@ -337,7 +299,6 @@ dialog[open]::backdrop {
   transform: scale(0.98);
 }
 
-/* Disabled state */
 .bg-gradient-animated:disabled,
 .bg-gradient-animated[disabled],
 .bg-animated-primary:disabled,

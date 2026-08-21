@@ -54,8 +54,7 @@ export class SessionMonitorService {
       this.stop();
       return;
     }
-    // Si la sesión fue revocada/expiró, el endpoint devuelve 401 y el
-    // interceptor cierra la sesión y redirige al login.
+
     this.http.get<void>(`${environment.apiUrl}/auth/me`).subscribe({
       error: () => {},
     });

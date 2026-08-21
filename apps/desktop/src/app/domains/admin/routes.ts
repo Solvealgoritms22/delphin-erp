@@ -2,13 +2,13 @@ import { Routes } from '@angular/router';
 import { AdminLayout } from './layout/layout';
 
 const routes: Routes = [
-  // 404 Standalone (Fullscreen)
+
   {
     path: '404',
     loadComponent: () =>
       import('./modules/extras/error/features/error-404'),
   },
-  // 500 Standalone (Fullscreen)
+
   {
     path: '500',
     loadComponent: () =>
@@ -18,52 +18,34 @@ const routes: Routes = [
     path: '',
     component: AdminLayout,
     children: [
-      // Redirect empty path to dashboards
+
       { path: '', pathMatch: 'full', redirectTo: 'dashboards/general' },
 
-      // -----------------------------------------------------------------------
-      // Dashboards
-      // -----------------------------------------------------------------------
       {
         path: 'dashboards',
         loadChildren: () => import('./modules/dashboards/routes'),
       },
-      
-      // -----------------------------------------------------------------------
-      // Catalogs
-      // -----------------------------------------------------------------------
+
       {
         path: 'catalogs',
         loadChildren: () => import('./modules/catalogs/routes'),
       },
-      
-      // -----------------------------------------------------------------------
-      // Commercial
-      // -----------------------------------------------------------------------
+
       {
         path: 'commercial',
         loadChildren: () => import('./modules/commercial/routes'),
       },
 
-      // -----------------------------------------------------------------------
-      // Sucursales
-      // -----------------------------------------------------------------------
       {
         path: 'sucursales',
         loadChildren: () => import('./modules/sucursales/routes'),
       },
 
-      // -----------------------------------------------------------------------
-      // Settings
-      // -----------------------------------------------------------------------
       {
         path: 'settings',
         loadChildren: () => import('./modules/settings/routes'),
       },
 
-      // -----------------------------------------------------------------------
-      // AI Chat
-      // -----------------------------------------------------------------------
       {
         path: 'ai-chat',
         loadChildren: () => import('./modules/apps/ai-chat/routes'),
@@ -73,9 +55,6 @@ const routes: Routes = [
         redirectTo: 'ai-chat',
       },
 
-      // -----------------------------------------------------------------------
-      // System & Extras
-      // -----------------------------------------------------------------------
       {
         path: 'billing',
         loadChildren: () => import('./modules/apps/billing/routes'),
@@ -101,7 +80,6 @@ const routes: Routes = [
         loadChildren: () => import('./modules/extras/error/routes'),
       },
 
-      // Catch all
       { path: '**', redirectTo: '404' },
     ],
   },

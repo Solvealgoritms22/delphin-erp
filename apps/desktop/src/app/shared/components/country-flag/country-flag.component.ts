@@ -25,11 +25,11 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
   `],
 })
 export class CountryFlagComponent {
-  /** ISO 3166-1 alpha-2 country code (e.g., 'DO', 'US', 'ES') */
+
   readonly code = input<string>('DO');
-  /** Size in width pixels. Aspect ratio is preserved 4:3 */
+
   readonly width = input<number>(20);
-  /** Shape: 'rounded' (default), 'circle', 'square' */
+
   readonly shape = input<'rounded' | 'circle' | 'square'>('rounded');
 
   readonly flagSrc = computed(() => {

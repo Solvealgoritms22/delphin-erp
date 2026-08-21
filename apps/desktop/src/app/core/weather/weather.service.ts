@@ -34,7 +34,7 @@ export class WeatherService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  // Reactive state signals
+  
   readonly weatherData = signal<WeatherData | null>(this.loadCachedData());
   readonly location = signal<WeatherLocation>(this.loadSavedLocation());
   readonly unit = signal<TemperatureUnit>(this.loadSavedUnit());
@@ -44,23 +44,23 @@ export class WeatherService {
 
   constructor() {
     if (this.isBrowser) {
-      // Auto-load on startup
+      
       this.fetchWeather();
     }
   }
 
-  /**
-   * Loads saved unit or default to Celsius
-   */
+  
+
+
   private loadSavedUnit(): TemperatureUnit {
     if (!this.isBrowser) return 'celsius';
     const saved = localStorage.getItem(STORAGE_UNIT_KEY) as TemperatureUnit;
     return saved === 'fahrenheit' ? 'fahrenheit' : 'celsius';
   }
 
-  /**
-   * Loads saved location or default
-   */
+  
+
+
   private loadSavedLocation(): WeatherLocation {
     if (!this.isBrowser) return DEFAULT_LOCATION;
     try {
@@ -71,9 +71,9 @@ export class WeatherService {
     }
   }
 
-  /**
-   * Loads cached weather data from localStorage for instant display
-   */
+  
+
+
   private loadCachedData(): WeatherData | null {
     if (!this.isBrowser) return null;
     try {
@@ -87,9 +87,9 @@ export class WeatherService {
     }
   }
 
-  /**
-   * Toggles or sets temperature unit
-   */
+  
+
+
   setUnit(unit: TemperatureUnit): void {
     this.unit.set(unit);
     if (this.isBrowser) {
@@ -102,9 +102,9 @@ export class WeatherService {
     this.setUnit(next);
   }
 
-  /**
-   * Formats a temperature value according to selected unit
-   */
+  
+
+
   formatTemp(celsius: number): number {
     if (this.unit() === 'fahrenheit') {
       return Math.round((celsius * 9) / 5 + 32);
@@ -116,9 +116,9 @@ export class WeatherService {
     return this.unit() === 'fahrenheit' ? '°F' : '°C';
   }
 
-  /**
-   * Updates selected location and refreshes weather
-   */
+  
+
+
   setLocation(location: WeatherLocation): void {
     this.location.set(location);
     if (this.isBrowser) {
@@ -127,9 +127,9 @@ export class WeatherService {
     this.fetchWeather();
   }
 
-  /**
-   * Detects user location via HTML5 Geolocation API
-   */
+  
+
+
   detectCurrentLocation(): Promise<boolean> {
     if (!this.isBrowser || !navigator.geolocation) {
       return Promise.resolve(false);
@@ -142,7 +142,7 @@ export class WeatherService {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
 
-          // Try reverse geocoding via Open-Meteo or Nominatim/BigDataCloud
+          
           try {
             const resp = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&accept-language=es`
@@ -184,9 +184,6 @@ export class WeatherService {
     });
   }
 
-  /**
-   * Searches cities worldwide using Open-Meteo Geocoding API
-   */
   searchCities(query: string): Observable<CitySearchResult[]> {
     const trimmed = query.trim();
     if (!trimmed || trimmed.length < 2) return of([]);
@@ -201,9 +198,6 @@ export class WeatherService {
     );
   }
 
-  /**
-   * Fetches weather data from Open-Meteo
-   */
   fetchWeather(isManualRefresh = false): void {
     const loc = this.location();
     if (isManualRefresh) {
@@ -213,7 +207,7 @@ export class WeatherService {
     }
     this.error.set(null);
 
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&forecast_days=6`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
 
     this.http.get<any>(url).pipe(
       tap((res) => {
@@ -237,9 +231,9 @@ export class WeatherService {
     ).subscribe();
   }
 
-  /**
-   * Maps Open-Meteo API response to application models
-   */
+  
+
+
   private mapOpenMeteoResponse(res: any, location: WeatherLocation): WeatherData {
     const currentRaw = res.current || {};
     const isDay = currentRaw.is_day === 1;
@@ -259,7 +253,7 @@ export class WeatherService {
       time: currentRaw.time || new Date().toISOString(),
     };
 
-    // Daily Forecast mapping (next 5 days)
+    
     const daily: DailyForecastItem[] = [];
     const dailyRaw = res.daily || {};
     const dates: string[] = dailyRaw.time || [];
@@ -296,7 +290,7 @@ export class WeatherService {
       });
     }
 
-    // Hourly Forecast mapping (next 12 hours starting from current hour)
+    
     const hourly: HourlyForecastItem[] = [];
     const hourlyRaw = res.hourly || {};
     const hTimes: string[] = hourlyRaw.time || [];
@@ -304,7 +298,7 @@ export class WeatherService {
     const hCodes: number[] = hourlyRaw.weather_code || [];
     const hIsDay: number[] = hourlyRaw.is_day || [];
 
-    const nowIso = new Date().toISOString().substring(0, 13); // 'YYYY-MM-DDTHH'
+    const nowIso = new Date().toISOString().substring(0, 13); 
     let startIndex = hTimes.findIndex((t) => t.startsWith(nowIso));
     if (startIndex === -1) startIndex = 0;
 
@@ -317,7 +311,7 @@ export class WeatherService {
 
       hourly.push({
         time: timeStr,
-        hourLabel: `${hourNumber.toString().padStart(2, '0')}:00`,
+        hourLabel: String(hourNumber).padStart(2, '0') + ':00',
         temperature: hTemps[j] ?? current.temperature,
         weatherCode: hCode,
         conditionType: hCond.type,

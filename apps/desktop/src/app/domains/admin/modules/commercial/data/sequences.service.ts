@@ -7,13 +7,13 @@ export interface SecuenciaNCF {
   id: string;
   empresaId: string;
   nombre: string;
-  tipo: string; // E31, E32, E34, E44, E45, B01, B02, B04, B14, B15
+  tipo: string;
   prefijo: string;
   numeroActual: number;
   numeroHasta: number;
   fechaVencimiento?: string | null;
   activa: boolean;
-  ambiente: string; // TEST | CERT | PROD
+  ambiente: string;
   creadoEn: string;
   actualizadoEn: string;
 }

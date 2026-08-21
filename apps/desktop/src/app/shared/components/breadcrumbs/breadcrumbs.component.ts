@@ -29,7 +29,7 @@ export interface Breadcrumb {
                   {{ item.label }}
                 </span>
               }
-              
+
               @if (!last) {
                 <i-chevron-right
                   [size]="14"

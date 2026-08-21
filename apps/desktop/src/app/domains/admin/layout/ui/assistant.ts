@@ -79,7 +79,7 @@ import {
       <div
         class="fixed inset-y-0 right-0 z-[1000] flex w-[520px] max-w-full flex-col bg-white dark:bg-neutral-900 border-l border-neutral-200 dark:border-neutral-800 shadow-2xl assistant-drawer"
       >
-        <!-- Header -->
+
         <div class="flex shrink-0 items-center justify-between p-3.5 px-5 border-b border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md z-20">
           <div class="flex items-center gap-x-2.5">
             <thinking-orb [size]="24" state="composing" />
@@ -94,7 +94,7 @@ import {
           </div>
 
           <div class="flex items-center gap-1">
-            <!-- Open in full chat app -->
+
             <button
               type="button"
               class="size-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer"
@@ -104,7 +104,6 @@ import {
               <i-arrow-up-right [size]="18" />
             </button>
 
-            <!-- Close button -->
             <button
               type="button"
               class="size-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white transition-colors cursor-pointer"
@@ -116,7 +115,6 @@ import {
           </div>
         </div>
 
-        <!-- Messages List -->
         <div #scrollBox class="flex flex-auto flex-col overflow-y-auto p-4 sm:p-5 gap-y-5 bg-neutral-50/40 dark:bg-neutral-950/30">
           @if (currentMessages().length === 0) {
             <div class="my-auto flex flex-col items-center justify-center py-6 text-center max-w-sm mx-auto animate-in fade-in duration-300">
@@ -134,9 +132,9 @@ import {
           } @else {
             @for (message of currentMessages(); track message.id) {
               @if (message.role === 'user') {
-                <!-- User message bubble -->
+
                 <div class="flex flex-col items-end gap-1.5">
-                  <!-- Attached images gallery -->
+
                   @if (message.images && message.images.length > 0) {
                     <div class="flex flex-wrap justify-end gap-2 max-w-[85%]">
                       @for (imgUrl of message.images; track imgUrl) {
@@ -157,14 +155,14 @@ import {
                   }
                 </div>
               } @else {
-                <!-- Assistant message bubble -->
+
                 <div class="flex items-start gap-3 w-full group">
                   <div class="flex items-center justify-center shrink-0 mt-0.5 select-none">
                     <thinking-orb [size]="22" state="composing" />
                   </div>
 
                   <div class="flex-1 min-w-0 pt-0.5 space-y-2.5">
-                    <!-- Thinking block -->
+
                     @if (getThinkingText(message)) {
                       <app-thinking-block
                         [content]="getThinkingText(message)"
@@ -173,7 +171,6 @@ import {
                       />
                     }
 
-                    <!-- Tools cards -->
                     @if (message.toolsUsed && message.toolsUsed.length > 0) {
                       <div class="space-y-1.5">
                         @for (tool of message.toolsUsed; track tool) {
@@ -185,7 +182,6 @@ import {
                       </div>
                     }
 
-                    <!-- Message Body -->
                     @if (message.streaming && !getCleanResponseText(message) && !getThinkingText(message)) {
                       <div class="flex items-center gap-2.5 py-1 text-xs text-neutral-500">
                         <thinking-orb [size]="16" state="composing" />
@@ -200,7 +196,6 @@ import {
                       </div>
                     }
 
-                    <!-- Message Actions Toolbar -->
                     @if (!message.streaming && getCleanResponseText(message)) {
                       <div class="pt-0.5">
                         <app-chat-message-actions
@@ -216,9 +211,8 @@ import {
           }
         </div>
 
-        <!-- Modern Composer in Drawer -->
         <div class="p-3 sm:p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl shrink-0">
-          <!-- Quick Suggestion Pills -->
+
           <div class="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none text-[11px]">
             <button
               type="button"
@@ -250,13 +244,12 @@ import {
             </button>
           </div>
 
-          <!-- Modern Auto-Growing Composer Card -->
           <div
             (dragover)="onDragOver($event)"
             (drop)="onDrop($event)"
             class="relative flex flex-col rounded-[22px] border border-neutral-200/90 dark:border-neutral-700/80 bg-neutral-50/80 dark:bg-neutral-800/80 p-2 sm:p-2.5 transition-all duration-200 shadow-xs"
           >
-            <!-- Hidden File Input -->
+
             <input
               type="file"
               #fileInput
@@ -266,7 +259,6 @@ import {
               class="hidden"
             />
 
-            <!-- Attached Images Shelf (Max 4) -->
             @if (selectedImages().length > 0) {
               <div class="flex items-center gap-2 px-1 pt-1 pb-2 overflow-x-auto">
                 @for (img of selectedImages(); track img.id) {
@@ -296,7 +288,6 @@ import {
               </div>
             }
 
-            <!-- Textarea + Expand Button -->
             <div class="relative flex items-start gap-1.5 w-full">
               <textarea
                 [ngModel]="prompt()"
@@ -314,7 +305,6 @@ import {
                 [disabled]="isGenerating()"
               ></textarea>
 
-              <!-- Expand / Collapse Button -->
               @if (hasLongText() || isEditorExpanded()) {
                 <button
                   type="button"
@@ -331,9 +321,8 @@ import {
               }
             </div>
 
-            <!-- Bottom Toolbar inside Composer -->
             <div class="flex items-center justify-between pt-1 mt-0.5">
-              <!-- Left: Attachment + Button -->
+
               <div class="flex items-center gap-1">
                 <button
                   type="button"
@@ -346,9 +335,8 @@ import {
                 </button>
               </div>
 
-              <!-- Right: Deep Think, Mic, Send -->
               <div class="flex items-center gap-1.5 shrink-0">
-                <!-- Deep Think (Pensar) Pill -->
+
                 <button
                   type="button"
                   (click)="toggleDeepThinking()"
@@ -370,7 +358,6 @@ import {
                   <span>{{ 'aiChat.think' | transloco }}</span>
                 </button>
 
-                <!-- Dictation / Mic -->
                 <button
                   type="button"
                   (click)="toggleVoiceDictation()"
@@ -393,7 +380,6 @@ import {
                   </svg>
                 </button>
 
-                <!-- Send Button (Arrow Up) -->
                 <button
                   type="button"
                   (click)="sendMessage()"
@@ -408,7 +394,6 @@ import {
           </div>
         </div>
 
-        <!-- Lightbox Image Preview Modal -->
         @if (previewModalImage()) {
           <div
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in duration-150"
@@ -447,11 +432,9 @@ export class Assistant {
   protected isDeepThinking = signal(false);
   protected isEditorExpanded = signal(false);
 
-  // File and Image Attachments (Max 4)
   protected selectedImages = signal<AttachedFile[]>([]);
   protected previewModalImage = signal<string | null>(null);
 
-  // Voice dictation state
   protected isListening = this.speechService.isListening;
 
   private autosize = viewChild(CdkTextareaAutosize);
@@ -696,4 +679,3 @@ export class Assistant {
     }
   }
 }
-

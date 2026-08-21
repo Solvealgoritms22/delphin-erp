@@ -145,7 +145,6 @@ export class ExchangeRateService {
     }
     this.error.set(null);
 
-    // Primary Live API endpoint: Open Exchange Rates Keyless API
     const liveApiUrl = 'https://open.er-api.com/v6/latest/USD';
 
     this.http
@@ -181,7 +180,7 @@ export class ExchangeRateService {
           }
         }),
         catchError((err) => {
-          // If offline, maintain fallback data
+
           if (!this.exchangeData()) {
             const data: ExchangeRatesData = {
               base: 'USD',
@@ -198,9 +197,6 @@ export class ExchangeRateService {
       .subscribe();
   }
 
-  /**
-   * Generates initial baseline comparison when no previous local storage exists
-   */
   private deriveInitialPreviousRates(currentRates: Record<string, number>): Record<string, number> {
     const prev: Record<string, number> = {};
     for (const [code, rate] of Object.entries(currentRates)) {
@@ -210,10 +206,6 @@ export class ExchangeRateService {
     return prev;
   }
 
-  /**
-   * Mathematically exact real-time currency conversion using live API rates
-   * Formula: (amount / fromRate) * toRate
-   */
   convert(amount: number, from: string, to: string): number {
     const data = this.exchangeData();
     const rates = data?.rates || INITIAL_FALLBACK_RATES;
@@ -226,9 +218,6 @@ export class ExchangeRateService {
     return (amount / fromRate) * toRate;
   }
 
-  /**
-   * Returns list of currency items with real-time market rates and calculated 24h variation
-   */
   getCurrencyList(): CurrencyItem[] {
     const data = this.exchangeData();
     const rates = data?.rates || INITIAL_FALLBACK_RATES;

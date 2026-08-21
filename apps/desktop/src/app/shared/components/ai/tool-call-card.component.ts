@@ -81,14 +81,14 @@ const TOOL_CONFIG: Record<string, { labelKey: string; defaultLabel: string; acti
       [class.border-blue-300]="status() === 'running'"
       [class.dark:border-blue-800]="status() === 'running'"
     >
-      <!-- Trigger Header -->
+
       <button
         type="button"
         (click)="toggleExpanded()"
         class="flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left font-medium text-neutral-700 dark:text-neutral-200 transition-colors cursor-pointer select-none"
       >
         <div class="flex items-center gap-2.5 min-w-0">
-          <!-- Tool Status Icon -->
+
           <div
             class="flex size-5 shrink-0 items-center justify-center rounded-md"
             [class.bg-blue-100/80]="status() === 'running'"
@@ -107,7 +107,6 @@ const TOOL_CONFIG: Record<string, { labelKey: string; defaultLabel: string; acti
             }
           </div>
 
-          <!-- Tool Name & Description -->
           <div class="flex items-center gap-2 min-w-0">
             <span class="font-medium text-neutral-800 dark:text-neutral-200 truncate">
               {{ toolInfo().label }}
@@ -133,7 +132,6 @@ const TOOL_CONFIG: Record<string, { labelKey: string; defaultLabel: string; acti
         </div>
       </button>
 
-      <!-- Expandable Arguments & Output Inspection Panel -->
       @if (isExpanded()) {
         <div class="border-t border-neutral-200/60 dark:border-neutral-800 bg-white/60 dark:bg-black/40 p-3 space-y-2 font-mono text-[11px]">
           @if (args()) {

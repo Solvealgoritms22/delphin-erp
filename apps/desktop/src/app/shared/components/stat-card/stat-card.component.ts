@@ -10,23 +10,20 @@ export type StatCardTrend = 'up' | 'down' | 'neutral';
   template: `
     <div class="stat-card group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
 
-      <!-- Background decoration -->
       <div
         class="pointer-events-none absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-10 transition-transform duration-300 group-hover:scale-125"
         [ngClass]="accentBg()"
       ></div>
 
-      <!-- Icon slot -->
       <div class="mb-4 flex items-center justify-between">
         <div
           class="flex h-10 w-10 items-center justify-center rounded-xl"
           [ngClass]="iconBg()"
         >
-          <!-- Icon via ng-content -->
+
           <ng-content select="[slot=icon]" />
         </div>
 
-        <!-- Trend badge -->
         @if (trend() !== 'neutral') {
           <span
             class="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold"
@@ -51,7 +48,6 @@ export type StatCardTrend = 'up' | 'down' | 'neutral';
         }
       </div>
 
-      <!-- Value -->
       <div class="mt-2">
         <p class="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
           {{ prefix() }}{{ value() }}{{ suffix() }}
@@ -59,7 +55,6 @@ export type StatCardTrend = 'up' | 'down' | 'neutral';
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ label() }}</p>
       </div>
 
-      <!-- Sparkline (optional) -->
       @if (sparkline().length > 1) {
         <div class="mt-4">
           <svg class="h-10 w-full" viewBox="0 0 100 40" preserveAspectRatio="none">
@@ -78,7 +73,7 @@ export type StatCardTrend = 'up' | 'down' | 'neutral';
   `,
 })
 export class StatCardComponent {
-  // Inputs
+
   label = input<string>('');
   value = input<string | number>('0');
   prefix = input<string>('');
@@ -88,7 +83,6 @@ export class StatCardComponent {
   color = input<'blue' | 'green' | 'amber' | 'red' | 'purple' | 'indigo'>('blue');
   sparkline = input<number[]>([]);
 
-  // Computed classes
   accentBg = computed(() => ({
     blue: 'bg-blue-500',
     green: 'bg-emerald-500',

@@ -36,10 +36,9 @@ import { ProductsService } from '../../data/products.service';
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
-      
-      <!-- Header -->
+
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
-        <!-- Title -->
+
         <div>
           <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
             {{ 'catalogs.inventory.title' | transloco }}
@@ -49,7 +48,6 @@ import { ProductsService } from '../../data/products.service';
           </p>
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex flex-wrap items-center gap-3 mt-6 sm:mt-0 sm:ml-4">
           <button (click)="openWarehouseModal()" class="px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-bold text-xs hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors flex items-center gap-2 cursor-pointer">
             <mat-icon svgIcon="plus" class="icon-size-4"></mat-icon>
@@ -66,7 +64,6 @@ import { ProductsService } from '../../data/products.service';
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
       <div class="flex items-center gap-6 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shrink-0 text-sm font-bold">
         <button (click)="activeTab = 'stocks'" [class.border-blue-600]="activeTab === 'stocks'" [class.text-blue-600]="activeTab === 'stocks'" [class.dark:text-blue-400]="activeTab === 'stocks'" [class.border-transparent]="activeTab !== 'stocks'" [class.text-neutral-500]="activeTab !== 'stocks'" class="py-4 border-b-2 transition-colors cursor-pointer flex items-center gap-2">
           <mat-icon svgIcon="package" class="icon-size-4"></mat-icon>
@@ -82,14 +79,11 @@ import { ProductsService } from '../../data/products.service';
         </button>
       </div>
 
-      <!-- Content Area (Scrollable) -->
       <div class="flex flex-col flex-auto min-h-0 overflow-y-auto p-6 md:p-8">
-        
-        <!-- ================= TAB 1: STOCKS ================= -->
+
         @if (activeTab === 'stocks') {
           <div class="flex flex-col gap-6">
-            
-            <!-- Filters Bar -->
+
             <div class="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-neutral-900 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
               <div class="flex items-center gap-3 flex-1 min-w-[240px]">
                 <div class="relative w-full max-w-md">
@@ -97,8 +91,7 @@ import { ProductsService } from '../../data/products.service';
                   <input type="text" [(ngModel)]="stockSearch" (ngModelChange)="filterStocks()" [placeholder]="'catalogs.inventory.searchPlaceholder' | transloco" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl pl-10 pr-4 py-2 text-sm font-medium text-neutral-900 dark:text-white outline-none focus:border-blue-500">
                 </div>
               </div>
-              
-              <!-- Warehouse Filter Menu Button -->
+
               <div class="flex items-center gap-3">
                 <button [matMenuTriggerFor]="warehouseFilterMenu" type="button"
                   class="flex items-center gap-2 h-10 px-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors text-sm font-bold text-neutral-700 dark:text-neutral-200 whitespace-nowrap shrink-0 cursor-pointer">
@@ -119,7 +112,6 @@ import { ProductsService } from '../../data/products.service';
               </div>
             </div>
 
-            <!-- Stocks Table -->
             <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
               <div class="grid grid-cols-12 gap-4 py-3.5 px-6 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-bold text-neutral-500 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-800/40">
                 <div class="col-span-4">{{ 'catalogs.inventory.columns.product' | transloco }}</div>
@@ -174,7 +166,6 @@ import { ProductsService } from '../../data/products.service';
           </div>
         }
 
-        <!-- ================= TAB 2: WAREHOUSES ================= -->
         @if (activeTab === 'warehouses') {
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @for (w of inventoryService.warehouses(); track w.id) {
@@ -191,7 +182,7 @@ import { ProductsService } from '../../data/products.service';
                   </div>
                   <h3 class="text-lg font-bold text-neutral-900 dark:text-white">{{ w.nombre }}</h3>
                   <p class="text-xs text-neutral-500 mt-1">
-                    {{ 'catalogs.inventory.warehouses.type' | transloco }}: <span class="font-bold text-neutral-700 dark:text-neutral-300">{{ w.tipo }}</span> · 
+                    {{ 'catalogs.inventory.warehouses.type' | transloco }}: <span class="font-bold text-neutral-700 dark:text-neutral-300">{{ w.tipo }}</span> ·
                     {{ 'catalogs.inventory.warehouses.branch' | transloco }}: <span class="font-bold text-neutral-700 dark:text-neutral-300">{{ w.sucursal?.nombre || ('catalogs.inventory.warehouses.central' | transloco) }}</span>
                   </p>
                 </div>
@@ -209,7 +200,6 @@ import { ProductsService } from '../../data/products.service';
           </div>
         }
 
-        <!-- ================= TAB 3: KARDEX ================= -->
         @if (activeTab === 'kardex') {
           <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
             <div class="grid grid-cols-12 gap-4 py-3.5 px-6 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-bold text-neutral-500 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-800/40">
@@ -264,9 +254,6 @@ import { ProductsService } from '../../data/products.service';
 
       </div>
 
-      <!-- ================= MODALS ================= -->
-
-      <!-- Transfer Modal Template -->
       <ng-template #transferModalTemplate>
         <div class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full border border-neutral-200 dark:border-neutral-800 flex flex-col overflow-hidden max-h-[85vh]">
           <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
@@ -280,7 +267,7 @@ import { ProductsService } from '../../data/products.service';
           </div>
 
           <div class="p-6 flex flex-col gap-4 overflow-y-auto">
-            <!-- Producto -->
+
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'catalogs.inventory.modals.transfer.product' | transloco }}</mat-label>
               <mat-select [(ngModel)]="transferData.productoId" [placeholder]="'catalogs.inventory.modals.transfer.productPlaceholder' | transloco">
@@ -291,7 +278,7 @@ import { ProductsService } from '../../data/products.service';
             </mat-form-field>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Almacén Origen -->
+
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'catalogs.inventory.modals.transfer.originWarehouse' | transloco }}</mat-label>
                 <mat-select [(ngModel)]="transferData.almacenOrigenId" [placeholder]="'catalogs.inventory.modals.transfer.originPlaceholder' | transloco">
@@ -301,7 +288,6 @@ import { ProductsService } from '../../data/products.service';
                 </mat-select>
               </mat-form-field>
 
-              <!-- Almacén Destino -->
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'catalogs.inventory.modals.transfer.destWarehouse' | transloco }}</mat-label>
                 <mat-select [(ngModel)]="transferData.almacenDestinoId" [placeholder]="'catalogs.inventory.modals.transfer.destPlaceholder' | transloco">
@@ -312,13 +298,11 @@ import { ProductsService } from '../../data/products.service';
               </mat-form-field>
             </div>
 
-            <!-- Cantidad -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'catalogs.inventory.modals.transfer.quantity' | transloco }}</mat-label>
               <input matInput type="number" [(ngModel)]="transferData.cantidad" min="1" placeholder="10">
             </mat-form-field>
 
-            <!-- Motivo -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'catalogs.inventory.modals.transfer.reason' | transloco }}</mat-label>
               <input matInput type="text" [(ngModel)]="transferData.motivo" [placeholder]="'catalogs.inventory.modals.transfer.reasonPlaceholder' | transloco">
@@ -332,7 +316,6 @@ import { ProductsService } from '../../data/products.service';
         </div>
       </ng-template>
 
-      <!-- Adjustment Modal Template -->
       <ng-template #adjustmentModalTemplate>
         <div class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full border border-neutral-200 dark:border-neutral-800 flex flex-col overflow-hidden max-h-[85vh]">
           <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
@@ -346,7 +329,7 @@ import { ProductsService } from '../../data/products.service';
           </div>
 
           <div class="p-6 flex flex-col gap-4 overflow-y-auto">
-            <!-- Producto -->
+
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'catalogs.inventory.modals.adjustment.product' | transloco }}</mat-label>
               <mat-select [(ngModel)]="adjustData.productoId" [placeholder]="'catalogs.inventory.modals.adjustment.productPlaceholder' | transloco">
@@ -357,7 +340,7 @@ import { ProductsService } from '../../data/products.service';
             </mat-form-field>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Almacén -->
+
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'catalogs.inventory.modals.adjustment.warehouse' | transloco }}</mat-label>
                 <mat-select [(ngModel)]="adjustData.almacenId" [placeholder]="'catalogs.inventory.modals.adjustment.warehousePlaceholder' | transloco">
@@ -367,7 +350,6 @@ import { ProductsService } from '../../data/products.service';
                 </mat-select>
               </mat-form-field>
 
-              <!-- Tipo de Ajuste -->
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'catalogs.inventory.modals.adjustment.type' | transloco }}</mat-label>
                 <mat-select [(ngModel)]="adjustData.tipo">
@@ -377,13 +359,11 @@ import { ProductsService } from '../../data/products.service';
               </mat-form-field>
             </div>
 
-            <!-- Cantidad -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'catalogs.inventory.modals.adjustment.quantity' | transloco }}</mat-label>
               <input matInput type="number" [(ngModel)]="adjustData.cantidad" min="1" placeholder="5">
             </mat-form-field>
 
-            <!-- Motivo -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'catalogs.inventory.modals.adjustment.reason' | transloco }}</mat-label>
               <input matInput type="text" [(ngModel)]="adjustData.motivo" [placeholder]="'catalogs.inventory.modals.adjustment.reasonPlaceholder' | transloco">
@@ -397,7 +377,6 @@ import { ProductsService } from '../../data/products.service';
         </div>
       </ng-template>
 
-      <!-- Warehouse Modal Template -->
       <ng-template #warehouseModalTemplate>
         <div class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full border border-neutral-200 dark:border-neutral-800 flex flex-col overflow-hidden max-h-[85vh]">
           <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
@@ -411,14 +390,14 @@ import { ProductsService } from '../../data/products.service';
           </div>
 
           <div class="p-6 flex flex-col gap-4 overflow-y-auto">
-            <!-- Nombre -->
+
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'catalogs.inventory.modals.warehouse.name' | transloco }}</mat-label>
               <input matInput type="text" [(ngModel)]="warehouseData.nombre" [placeholder]="'catalogs.inventory.modals.warehouse.namePlaceholder' | transloco">
             </mat-form-field>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Tipo -->
+
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'catalogs.inventory.modals.warehouse.type' | transloco }}</mat-label>
                 <mat-select [(ngModel)]="warehouseData.tipo">
@@ -429,7 +408,6 @@ import { ProductsService } from '../../data/products.service';
                 </mat-select>
               </mat-form-field>
 
-              <!-- Código -->
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'catalogs.inventory.modals.warehouse.code' | transloco }}</mat-label>
                 <input matInput type="text" [(ngModel)]="warehouseData.codigo" [placeholder]="'catalogs.inventory.modals.warehouse.codePlaceholder' | transloco">
@@ -632,4 +610,3 @@ export default class InventoryComponent implements OnInit {
     }
   }
 }
-

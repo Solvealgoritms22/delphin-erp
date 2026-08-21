@@ -17,7 +17,6 @@ export class AuthState {
   private readonly _accessToken = signal<string | null>(null);
   private readonly _empresaId = signal<string | null>(null);
 
-  // Computed state
   readonly user = this._user.asReadonly();
   readonly accessToken = this._accessToken.asReadonly();
   readonly empresaId = this._empresaId.asReadonly();
@@ -80,8 +79,7 @@ export class AuthState {
   private loadFromStorage(): void {
     if (!this.isBrowser) return;
     try {
-      // Keep the access token for the renderer session so a page reload does not
-      // log the user out, but do not persist it after the application is closed.
+
       const token = sessionStorage.getItem('auth_token');
       const user = sessionStorage.getItem('auth_user');
 

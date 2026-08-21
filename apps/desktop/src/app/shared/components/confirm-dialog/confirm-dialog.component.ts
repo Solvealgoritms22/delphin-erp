@@ -64,7 +64,6 @@ export interface ConfirmDialogData {
       <div class="flex flex-col px-6 py-6">
         <p class="text-neutral-600 dark:text-neutral-400" [innerHTML]="data.message"></p>
 
-        <!-- Match String Input -->
         <div *ngIf="data.requireMatchString" class="mt-6">
           <mat-form-field appearance="outline" class="w-full mb-0">
             <mat-label>{{ data.matchPlaceholder || 'Escribe la palabra exacta para confirmar' }}</mat-label>
@@ -102,7 +101,7 @@ export interface ConfirmDialogData {
 export class ConfirmDialogComponent {
   dialogRef = inject(MatDialogRef<ConfirmDialogComponent>);
   data = inject<ConfirmDialogData>(MAT_DIALOG_DATA);
-  
+
   matchValue = '';
 
   isConfirmDisabled(): boolean {

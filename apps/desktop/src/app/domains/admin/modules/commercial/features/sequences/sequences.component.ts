@@ -36,8 +36,7 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
-      
-      <!-- Header -->
+
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
         <div>
           <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
@@ -48,7 +47,6 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
           </p>
         </div>
 
-        <!-- Actions -->
         <div class="flex flex-wrap items-center gap-3 mt-6 sm:mt-0 sm:ml-4">
           <button (click)="openModal()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
             <mat-icon svgIcon="plus" class="icon-size-4"></mat-icon>
@@ -57,12 +55,10 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
         </div>
       </div>
 
-      <!-- Main Scrollable Content -->
       <div class="flex flex-col flex-auto min-h-0 overflow-y-auto">
-        
-        <!-- Table Grid -->
+
         <div class="grid">
-          <!-- Sticky Table Header -->
+
           <div class="z-10 sticky top-0 grid grid-cols-12 gap-4 py-4 px-6 md:px-8 shadow-xs text-[11px] font-bold text-neutral-500 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
             <div class="col-span-3">{{ 'commercial.sequences.columns.name' | transloco }}</div>
             <div class="col-span-2">{{ 'commercial.sequences.columns.prefix' | transloco }}</div>
@@ -86,14 +82,12 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
           } @else {
             @for (seq of sequencesService.sequences(); track seq.id) {
               <div class="grid grid-cols-12 gap-4 py-4 px-6 md:px-8 items-center text-sm border-b border-neutral-100 dark:border-neutral-800/80 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                
-                <!-- Tipo / Nombre -->
+
                 <div class="col-span-3 flex flex-col">
                   <span class="font-bold text-neutral-900 dark:text-white">{{ seq.nombre }}</span>
                   <span class="text-xs text-neutral-400">{{ 'commercial.sequences.range' | transloco }}: 1 - {{ seq.numeroHasta | number }}</span>
                 </div>
 
-                <!-- Prefijo -->
                 <div class="col-span-2 flex items-center gap-2">
                   <span class="px-2.5 py-1 rounded-lg font-mono font-extrabold text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                     {{ seq.prefijo }}
@@ -101,7 +95,6 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
                   <span class="text-xs text-neutral-500">{{ (seq.prefijo.startsWith('E') ? 'commercial.sequences.electronic' : 'commercial.sequences.traditional') | transloco }}</span>
                 </div>
 
-                <!-- Ambiente -->
                 <div class="col-span-2 flex justify-center">
                   @if (seq.ambiente === 'PROD') {
                     <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">{{ 'commercial.sequences.environments.prod' | transloco }}</span>
@@ -112,7 +105,6 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
                   }
                 </div>
 
-                <!-- Próximo a Emitir -->
                 <div class="col-span-2 text-right flex flex-col">
                   <span class="font-mono font-bold text-neutral-900 dark:text-white">
                     {{ formatNcfPreview(seq) }}
@@ -120,12 +112,10 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
                   <span class="text-[11px] text-neutral-400">{{ 'commercial.sequences.number' | transloco }}: {{ seq.numeroActual }}</span>
                 </div>
 
-                <!-- Vencimiento -->
                 <div class="col-span-2 text-center text-xs text-neutral-500">
                   {{ seq.fechaVencimiento ? (seq.fechaVencimiento | date:'dd/MM/yyyy') : ('commercial.sequences.noExpiration' | transloco) }}
                 </div>
 
-                <!-- Acción -->
                 <div class="col-span-1 flex justify-center">
                   <button (click)="deleteSequence(seq)" [matTooltip]="'common.delete' | transloco" class="w-8 h-8 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center cursor-pointer">
                     <mat-icon svgIcon="trash" class="icon-size-4"></mat-icon>
@@ -139,10 +129,9 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
 
       </div>
 
-      <!-- ================= MODAL: NUEVA SECUENCIA ================= -->
       <ng-template #sequenceModalTemplate>
         <div class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full border border-neutral-200 dark:border-neutral-800 flex flex-col overflow-hidden max-h-[85vh]">
-          
+
           <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
             <h3 class="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
               <mat-icon svgIcon="hash" class="icon-size-5 text-blue-600"></mat-icon>
@@ -154,15 +143,14 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
           </div>
 
           <div class="p-6 flex flex-col gap-4 overflow-y-auto">
-            
-            <!-- Nombre descriptivo -->
+
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'commercial.sequences.modal.name' | transloco }}</mat-label>
               <input matInput type="text" [(ngModel)]="newSequence.nombre" [placeholder]="'commercial.sequences.modal.namePlaceholder' | transloco">
             </mat-form-field>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Tipo de Comprobante -->
+
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'commercial.sequences.modal.type' | transloco }}</mat-label>
                 <mat-select [(ngModel)]="newSequence.tipo" (selectionChange)="onTypeChange($event.value)">
@@ -177,7 +165,6 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
                 </mat-select>
               </mat-form-field>
 
-              <!-- Ambiente -->
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'commercial.sequences.modal.environment' | transloco }}</mat-label>
                 <mat-select [(ngModel)]="newSequence.ambiente">
@@ -189,20 +176,18 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Número Inicial -->
+
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'commercial.sequences.modal.startNumber' | transloco }}</mat-label>
                 <input matInput type="number" [(ngModel)]="newSequence.numeroActual" min="1">
               </mat-form-field>
 
-              <!-- Número Límite -->
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'commercial.sequences.modal.limitNumber' | transloco }}</mat-label>
                 <input matInput type="number" [(ngModel)]="newSequence.numeroHasta" min="1">
               </mat-form-field>
             </div>
 
-            <!-- Fecha de Vencimiento -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'commercial.sequences.modal.expirationDate' | transloco }}</mat-label>
               <input matInput type="date" [(ngModel)]="newSequence.fechaVencimiento">

@@ -55,7 +55,7 @@ import { BellIcon } from 'ng-animated-icons';
       <div
         class="z-10 flex max-h-120 w-full max-w-xs flex-col overflow-y-auto rounded-lg bg-white shadow-(--mat-sys-level2) dark:bg-neutral-800"
       >
-        <!-- Header -->
+
         <div class="flex flex-col bg-neutral-100 dark:bg-neutral-800">
           <div class="flex items-center p-4 pb-0 pl-6">
             <div class="flex items-center gap-x-3">
@@ -90,7 +90,6 @@ import { BellIcon } from 'ng-animated-icons';
             </mat-menu>
           </div>
 
-          <!-- Filters -->
           <div class="flex items-center gap-x-2 px-6 pt-3 pb-4">
             @for (filter of filters; track filter.value) {
               <button
@@ -107,7 +106,6 @@ import { BellIcon } from 'ng-animated-icons';
           <mat-divider />
         </div>
 
-        <!-- List -->
         <div class="flex flex-col">
           @if (notifications().length === 0) {
             <div class="flex min-h-64 flex-col items-center justify-center px-6 py-10 text-center">
@@ -167,7 +165,7 @@ export class Notifications implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
-  // State
+
   protected open = signal(false);
   protected filters = [
     {
@@ -184,7 +182,6 @@ export class Notifications implements OnInit, OnDestroy {
      label: 'notifications.all',
   });
 
-  // Data
   protected notifications = this.notificationService.notifications;
   protected unreadCount = this.notificationService.unreadCount;
   protected inAppEnabled = this.notificationService.inAppEnabled;

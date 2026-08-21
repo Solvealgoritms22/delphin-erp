@@ -36,7 +36,7 @@ type BillingData = {
     <div
       class="flex h-full w-full min-w-0 flex-col overflow-hidden bg-neutral-50/50 dark:bg-neutral-950"
     >
-      <!-- Page Header -->
+
       <div
         class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-6 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 z-10"
       >
@@ -52,9 +52,8 @@ type BillingData = {
         </div>
       </div>
 
-      <!-- Main Content -->
       @if (loading()) {
-        <!-- Skeleton Loading State -->
+
         <div
           class="flex-auto overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto"
         >
@@ -98,9 +97,9 @@ type BillingData = {
         <div
           class="flex-auto overflow-y-auto min-w-0 p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto"
         >
-          <!-- Top Grid: General & Taxes -->
+
           <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            <!-- General Settings Section -->
+
             <section
               class="xl:col-span-6 flex flex-col justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs p-5 sm:p-6"
             >
@@ -112,7 +111,7 @@ type BillingData = {
                   {{ 'billingConfig.generalDescription' | transloco }}
                 </p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <!-- Base Currency -->
+
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.baseCurrency' | transloco }}</mat-label>
                     <mat-select [(ngModel)]="config.configuracion.monedaBase">
@@ -122,7 +121,6 @@ type BillingData = {
                     </mat-select>
                   </mat-form-field>
 
-                  <!-- Timezone -->
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.timezone' | transloco }}</mat-label>
                     <mat-select [(ngModel)]="config.configuracion.zonaHoraria">
@@ -136,7 +134,6 @@ type BillingData = {
                     </mat-select>
                   </mat-form-field>
 
-                  <!-- Rounding Method -->
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.rounding' | transloco }}</mat-label>
                     <mat-select [(ngModel)]="config.configuracion.metodoRedondeo">
@@ -144,7 +141,6 @@ type BillingData = {
                     </mat-select>
                   </mat-form-field>
 
-                  <!-- Rounding By -->
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.roundingBy' | transloco }}</mat-label>
                     <mat-select [(ngModel)]="config.configuracion.redondeoPor">
@@ -155,7 +151,6 @@ type BillingData = {
                     </mat-select>
                   </mat-form-field>
 
-                  <!-- Currency Precision -->
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.currencyPrecision' | transloco }}</mat-label>
                     <mat-select [(ngModel)]="config.configuracion.precisionMoneda">
@@ -164,7 +159,6 @@ type BillingData = {
                     </mat-select>
                   </mat-form-field>
 
-                  <!-- Quantity Precision -->
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.quantityPrecision' | transloco }}</mat-label>
                     <mat-select [(ngModel)]="config.configuracion.precisionCantidad">
@@ -174,7 +168,6 @@ type BillingData = {
                     </mat-select>
                   </mat-form-field>
 
-                  <!-- Includes Tax -->
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.includesTax' | transloco }}</mat-label>
                     <mat-select [(ngModel)]="config.configuracion.preciosIncluyenImpuesto">
@@ -183,7 +176,6 @@ type BillingData = {
                     </mat-select>
                   </mat-form-field>
 
-                  <!-- Grace Days -->
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.graceDays' | transloco }}</mat-label>
                     <input
@@ -213,7 +205,6 @@ type BillingData = {
               </div>
             </section>
 
-            <!-- Taxes Section -->
             <section
               class="xl:col-span-6 flex flex-col justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs p-5 sm:p-6"
             >
@@ -315,7 +306,6 @@ type BillingData = {
             </section>
           </div>
 
-          <!-- Bottom Grid: Payment Terms -->
           <section
             class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs p-5 sm:p-6"
           >
@@ -389,7 +379,7 @@ type BillingData = {
           </section>
         </div>
       } @else {
-        <!-- Empty / Error Illustration State -->
+
         <div
           class="flex flex-auto flex-col items-center justify-center p-8 text-center sm:p-16 min-h-[420px]"
         >

@@ -52,10 +52,10 @@ export interface TableAction<T> {
   ],
   template: `
     <div class="flex flex-col bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-      <!-- Header / Toolbar -->
+
       <div class="flex items-center justify-between p-4 sm:p-6 border-b border-neutral-200 dark:border-neutral-800">
-        <!-- Search -->
-        <mat-form-field class="fuse-mat-dense fuse-mat-rounded w-full sm:w-72" subscriptSizing="dynamic">
+
+        <mat-form-field class="dolphin-mat-dense dolphin-mat-rounded w-full sm:w-72" subscriptSizing="dynamic">
           <i-search
             matPrefix
             [size]="18"
@@ -68,18 +68,15 @@ export interface TableAction<T> {
             placeholder="Search..."
           />
         </mat-form-field>
-        
-        <!-- Toolbar Actions -->
+
         <div class="flex items-center gap-2">
            <ng-content select="[toolbar]"></ng-content>
         </div>
       </div>
 
-      <!-- Table Container -->
       <div class="overflow-x-auto">
         <table mat-table [dataSource]="dataSource" matSort class="w-full">
-          
-          <!-- Checkbox Column -->
+
           @if (selectable()) {
             <ng-container matColumnDef="select">
               <th mat-header-cell *matHeaderCellDef class="w-12 px-4">
@@ -103,7 +100,6 @@ export interface TableAction<T> {
             </ng-container>
           }
 
-          <!-- Data Columns -->
           @for (col of columns(); track col.key) {
             <ng-container [matColumnDef]="col.key">
               @if (col.sortable !== false) {
@@ -116,13 +112,12 @@ export interface TableAction<T> {
                 </th>
               }
               <td mat-cell *matCellDef="let row" class="px-4 py-3 text-neutral-900 dark:text-neutral-100">
-                <!-- Custom cell slot can be handled via ng-template in real implementation, for now simple text -->
+
                 {{ row[col.key] }}
               </td>
             </ng-container>
           }
 
-          <!-- Actions Column -->
           @if (actions().length > 0) {
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="w-16 px-4"></th>
@@ -145,14 +140,13 @@ export interface TableAction<T> {
           }
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
-          <tr 
-            mat-row 
+          <tr
+            mat-row
             *matRowDef="let row; columns: displayedColumns();"
             class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors cursor-pointer"
             (click)="rowClick.emit(row)"
           ></tr>
 
-          <!-- No Data Row -->
           <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell px-6 py-8 text-center text-neutral-500" [attr.colspan]="displayedColumns().length">
               No matching records found.
@@ -161,7 +155,6 @@ export interface TableAction<T> {
         </table>
       </div>
 
-      <!-- Paginator -->
       <mat-paginator
         class="border-t border-neutral-200 dark:border-neutral-800"
         [pageSizeOptions]="pageSizeOptions()"
@@ -172,7 +165,7 @@ export interface TableAction<T> {
   `,
 })
 export class DataTableComponent<T> implements AfterViewInit {
-  // Inputs
+
   data = input<T[]>([]);
   columns = input<TableColumn<T>[]>([]);
   selectable = input<boolean>(false);
@@ -180,15 +173,12 @@ export class DataTableComponent<T> implements AfterViewInit {
   pageSizeOptions = input<number[]>([10, 25, 50, 100]);
   defaultPageSize = input<number>(10);
 
-  // Outputs
   selectionChange = output<T[]>();
   rowClick = output<T>();
 
-  // View Childs
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  // State
   dataSource = new MatTableDataSource<T>([]);
   selection = new SelectionModel<T>(true, []);
   searchQuery = '';
@@ -218,7 +208,6 @@ export class DataTableComponent<T> implements AfterViewInit {
     }
   }
 
-  // Selection Logic
   isAllSelected() {
     const numSelected = this.selection.selected.length;
     const numRows = this.dataSource.data.length;

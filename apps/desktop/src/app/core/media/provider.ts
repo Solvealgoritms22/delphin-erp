@@ -8,7 +8,7 @@ import { Media } from './media';
 
 export const provideMedia = (): EnvironmentProviders =>
   makeEnvironmentProviders([
-    // Initialize the Media
+
     provideAppInitializer(() => {
       inject(Media);
     }),

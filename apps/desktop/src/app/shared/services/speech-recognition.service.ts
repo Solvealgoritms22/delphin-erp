@@ -108,7 +108,7 @@ export class SpeechRecognitionService {
       try {
         this.recognition.stop();
       } catch {
-        // ignore
+
       }
     }
     this.isListening.set(false);

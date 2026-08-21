@@ -20,7 +20,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   imports: [CommonModule, MatButtonModule, MatIconModule, MatDialogModule, MatSnackBarModule, DatePipe, TranslocoPipe],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
-      <!-- Header (Pinned) -->
+
       <div class="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <div>
            <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">{{ 'billingPage.title' | transloco }}</h1>
@@ -34,7 +34,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
         </div>
       </div>
 
-      <!-- Central Scroll Container -->
       <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-16">
 
       @if (isLoading()) {
@@ -42,13 +41,12 @@ import { TranslocoPipe } from '@jsverse/transloco';
            <div class="text-neutral-500 font-medium">{{ 'billingPage.loading' | transloco }}</div>
         </div>
       } @else {
-        <!-- Main Grid -->
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          <!-- Left Column: Current Plan -->
           <div class="flex flex-col bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
             <div class="p-6 flex-auto">
-              <!-- Icon -->
+
               <div class="flex items-center mb-6">
                 <div class="relative w-10 h-10">
                   <div class="absolute left-0 top-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 mix-blend-multiply dark:mix-blend-lighten"></div>
@@ -128,7 +126,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
             </div>
           </div>
 
-          <!-- Right Column: Payment Methods -->
           <div class="flex flex-col bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
             <div class="p-6 flex-auto">
                <h2 class="text-lg font-bold text-neutral-900 dark:text-white">{{ 'billingPage.paymentMethods' | transloco }}</h2>
@@ -145,16 +142,16 @@ import { TranslocoPipe } from '@jsverse/transloco';
                     <div class="flex items-center justify-between gap-3 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800"
                          [ngClass]="{'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800/50': card.isPrimary}">
                       <div class="flex items-center gap-3">
-                        <div class="flex items-center justify-center w-12 h-8 rounded shrink-0 overflow-hidden" 
+                        <div class="flex items-center justify-center w-12 h-8 rounded shrink-0 overflow-hidden"
                              [ngClass]="card.marca === 'Visa' || card.marca === 'Mastercard' ? 'bg-transparent' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'">
-                          
+
                           <img *ngIf="card.marca === 'Visa'" src="brand-logos/visa.svg" class="h-6 w-auto object-contain dark:brightness-0 dark:invert" alt="Visa" />
-                          
+
                           <div *ngIf="card.marca === 'Mastercard'" class="flex items-center justify-center">
                             <div class="w-6 h-6 rounded-full bg-[#EB001B] opacity-90 mix-blend-multiply dark:mix-blend-normal"></div>
                             <div class="w-6 h-6 rounded-full bg-[#F79E1B] opacity-90 mix-blend-multiply dark:mix-blend-normal -ml-2.5"></div>
                           </div>
-                          
+
                           <mat-icon *ngIf="card.marca !== 'Visa' && card.marca !== 'Mastercard'" svgIcon="credit-card" class="!w-5 !h-5 !text-[20px]"></mat-icon>
                         </div>
                         <div class="flex flex-col">
@@ -198,7 +195,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </div>
         </div>
 
-        <!-- Invoices Table -->
         <div class="mt-8 overflow-x-auto bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-sm">
           <div class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
              <h2 class="text-lg font-bold text-neutral-900 dark:text-white">{{ 'billingPage.invoices' | transloco }}</h2>

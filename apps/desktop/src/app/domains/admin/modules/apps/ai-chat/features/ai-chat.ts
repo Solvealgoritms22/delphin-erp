@@ -57,7 +57,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
         class="h-full flex-auto [&_.mat-drawer-backdrop]:fixed"
         (backdropClick)="panelOpened.set(false)"
       >
-        <!-- Conversations panel -->
+
         <mat-sidenav
           class="w-72 border-r border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900"
           [mode]="isMobile() ? 'over' : 'side'"
@@ -67,7 +67,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
           disableClose
         >
           <div class="flex h-full w-full flex-col">
-            <!-- Panel header -->
+
             <div class="flex items-center justify-between py-3.5 pr-2.5 pl-4 border-b border-neutral-200/60 dark:border-neutral-800/60 shrink-0">
               <div class="flex items-center gap-2 text-base font-bold tracking-tight text-neutral-900 dark:text-white truncate">
                 <thinking-orb [size]="20" state="composing" />
@@ -93,7 +93,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
               </div>
             </div>
 
-            <!-- Search -->
             <div class="px-3 py-2.5">
               <div class="relative flex items-center">
                 <mat-icon svgIcon="search" class="absolute left-3 size-4 text-neutral-400 pointer-events-none" />
@@ -106,7 +105,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
               </div>
             </div>
 
-            <!-- Conversation List Groups -->
             <div class="flex-1 overflow-y-auto px-2 pb-4 space-y-4">
               @for (group of filteredGroups(); track group.label) {
                 <div>
@@ -199,7 +197,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                   </div>
                 </div>
 
-                <!-- Suggestions -->
                 <div class="mt-8 grid grid-cols-1 gap-3 @xl:grid-cols-2">
                   @for (suggestion of suggestions(); track suggestion.title) {
                     <button
@@ -221,16 +218,15 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
               </div>
             </div>
 
-            <!-- Initial Composer in Empty State -->
             <div class="px-6 pb-6 lg:px-8">
               <div class="mx-auto w-full max-w-3xl">
-                <!-- Modern Auto-Growing Composer Card -->
+
                 <div
                   (dragover)="onDragOverEmpty($event)"
                   (drop)="onDropEmpty($event)"
                   class="relative flex flex-col rounded-[26px] border border-neutral-200/90 dark:border-neutral-700/80 bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl shadow-xl shadow-neutral-900/10 dark:shadow-black/60 p-2.5 sm:p-3 transition-all duration-200"
                 >
-                  <!-- Hidden File Input -->
+
                   <input
                     type="file"
                     #fileInputEmpty
@@ -240,7 +236,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                     class="hidden"
                   />
 
-                  <!-- Attached Images Preview Shelf (Max 4) -->
                   @if (selectedImagesEmpty().length > 0) {
                     <div class="flex items-center gap-2 px-1 pt-1 pb-2 overflow-x-auto">
                       @for (img of selectedImagesEmpty(); track img.id) {
@@ -273,7 +268,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                     </div>
                   }
 
-                  <!-- Top Row: Textarea + Conditional Expand Button -->
                   <div class="relative flex items-start gap-2 w-full">
                     <textarea
                       [ngModel]="emptyPrompt()"
@@ -290,7 +284,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                       [cdkAutosizeMaxRows]="isEditorExpandedEmpty() ? 16 : 8"
                     ></textarea>
 
-                    <!-- Expand / Collapse Button -->
                     @if (hasLongTextEmpty() || isEditorExpandedEmpty()) {
                       <button
                         type="button"
@@ -311,9 +304,8 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                     }
                   </div>
 
-                  <!-- Bottom Toolbar Inside Card -->
                   <div class="flex items-center justify-between pt-1 mt-0.5">
-                    <!-- Left: Plus Action -->
+
                     <div class="flex items-center gap-1">
                       <button
                         type="button"
@@ -326,9 +318,8 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                       </button>
                     </div>
 
-                    <!-- Right: Deep Think Pill, Mic, and Circular Send Button -->
                     <div class="flex items-center gap-1.5 shrink-0">
-                      <!-- Deep Think (Pensar) Pill -->
+
                       <button
                         type="button"
                         (click)="toggleDeepThinkingEmpty()"
@@ -352,7 +343,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                         <span>{{ 'aiChat.think' | transloco }}</span>
                       </button>
 
-                      <!-- Dictation / Mic -->
                       <button
                         type="button"
                         (click)="toggleVoiceDictationEmpty()"
@@ -377,7 +367,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                         </svg>
                       </button>
 
-                      <!-- Send Button (Arrow Up) -->
                       <button
                         type="button"
                         class="flex items-center justify-center size-8.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 transition-all cursor-pointer shrink-0 shadow-sm"
@@ -416,7 +405,6 @@ export default class AiChat implements OnInit {
   protected isDeepThinkingEmpty = signal(false);
   protected isEditorExpandedEmpty = signal(false);
 
-  // Attachments in empty composer (Max 4)
   protected selectedImagesEmpty = signal<AttachedFile[]>([]);
   protected isListeningEmpty = this.speechService.isListening;
 

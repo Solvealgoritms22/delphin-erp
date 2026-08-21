@@ -67,7 +67,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
 
-      <!-- Page header (Pinned) -->
       <div class="shrink-0 flex items-center justify-between px-6 sm:px-10 py-6 border-b border-neutral-100 dark:border-neutral-800">
          <div>
            <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">{{ 'activity.title' | transloco }}</h1>
@@ -82,13 +81,11 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
 
       <div class="flex flex-auto min-h-0 overflow-hidden">
 
-        <!-- Main content (central scroll) -->
         <div class="flex flex-col flex-1 min-h-0 overflow-y-auto px-6 sm:px-10 py-6 pb-16">
 
-          <!-- Toolbar -->
           <div class="flex items-center justify-between mb-8 gap-4 flex-wrap">
             <div class="flex items-center gap-3 flex-wrap">
-              <!-- Module filter menu button -->
+
               <button
                 [matMenuTriggerFor]="moduleMenu"
                 type="button"
@@ -111,7 +108,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
                 }
               </mat-menu>
 
-              <!-- Action filter menu button -->
               <button
                 [matMenuTriggerFor]="actionMenu"
                 type="button"
@@ -142,7 +138,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
               }
             </div>
 
-            <!-- Auto refresh -->
             <div class="flex items-center gap-2 text-sm text-neutral-500">
                <span class="select-none">{{ 'activity.autoRefresh' | transloco }}</span>
               <mat-slide-toggle [(ngModel)]="autoRefresh" (change)="onAutoRefreshChange()" color="primary" />
@@ -152,7 +147,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
             </div>
           </div>
 
-          <!-- Skeleton loading -->
           @if (isLoading() && items().length === 0) {
             <div class="flex flex-col gap-0">
               @for (i of [1,2,3,4,5,6]; track i) {
@@ -170,7 +164,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
             </div>
           }
 
-          <!-- Empty state -->
           @if (!isLoading() && items().length === 0) {
             <div class="flex flex-auto justify-center p-6 sm:p-10">
               <app-empty-state
@@ -181,16 +174,15 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
             </div>
           }
 
-          <!-- Activity timeline -->
           @if (items().length > 0) {
             <div class="relative">
-              <!-- Vertical line -->
+
               <div class="absolute left-[17px] top-5 bottom-5 w-px bg-neutral-200 dark:bg-neutral-700 z-0"></div>
 
               <div class="flex flex-col">
                 @for (item of items(); track item.id; let isLast = $last) {
                   <div class="flex gap-4 group py-3.5">
-                    <!-- Module icon bubble -->
+
                     <div
                       class="relative z-10 flex items-center justify-center w-9 h-9 rounded-full border-2 border-white dark:border-neutral-900 shadow-sm shrink-0"
                       [ngClass]="getModule(item.modulo).bgColor"
@@ -202,9 +194,8 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
                       ></mat-icon>
                     </div>
 
-                    <!-- Content -->
                     <div class="flex flex-col flex-1 min-w-0 pt-1">
-                      <!-- Description line -->
+
                       <p class="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
                         <span class="font-semibold">{{ item.usuarioNombre || item.usuarioEmail || 'Sistema' }}</span>
                         <span class="text-neutral-400 mx-1.5">·</span>
@@ -217,7 +208,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
                         }
                       </p>
 
-                      <!-- Timestamp & badges -->
                       <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                         <span class="text-xs text-neutral-400">
                           {{ item.creadoEn | date:'d MMM y' }}, {{ item.creadoEn | date:'shortTime' }}
@@ -233,7 +223,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
                         </span>
                       </div>
 
-                      <!-- Metadata card -->
                       @if (item.metadata && hasMetadata(item.metadata)) {
                         <div class="mt-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/60 divide-y divide-neutral-100 dark:divide-neutral-700 max-w-sm overflow-hidden">
                           @for (entry of metadataEntries(item.metadata); track entry[0]) {
@@ -249,7 +238,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
                 }
               </div>
 
-              <!-- Load more -->
               @if (hasMore()) {
                 <div class="flex justify-center mt-6 pb-4">
                   <button
@@ -268,7 +256,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
           }
         </div>
 
-        <!-- Right sidebar — year navigation -->
         <div class="hidden lg:flex flex-col shrink-0 w-20 border-l border-neutral-100 dark:border-neutral-800 py-8 px-3 gap-1.5 overflow-y-auto">
           <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2 px-1">Año</p>
           <button

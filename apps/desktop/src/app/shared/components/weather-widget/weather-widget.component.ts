@@ -46,7 +46,7 @@ import {
     class: 'flex items-center select-none',
   },
   template: `
-    <!-- Header Weather Widget (Unboxed / Flat inline layout) -->
+
     <button
       type="button"
       [matMenuTriggerFor]="weatherMenu"
@@ -56,7 +56,7 @@ import {
       style="-webkit-app-region: no-drag"
     >
       @if (loading() && !data()) {
-        <!-- Skeleton -->
+
         <div class="flex items-center gap-1.5 animate-pulse">
           <div class="size-5 rounded-full bg-neutral-200 dark:bg-neutral-700"></div>
           <div class="flex flex-col gap-0.5 text-left">
@@ -65,7 +65,7 @@ import {
           </div>
         </div>
       } @else {
-        <!-- Weather Icon with Animated SVG -->
+
         <div class="shrink-0 transition-transform duration-200 group-hover:scale-105">
           <weather-icon
             [condition]="current()?.conditionType ?? 'partly-cloudy-day'"
@@ -73,7 +73,6 @@ import {
           />
         </div>
 
-        <!-- Temperature and Condition Text -->
         <div class="flex flex-col items-start justify-center text-left leading-none">
           <span class="text-[12px] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 leading-tight">
             {{ weatherService.formatTemp(current()?.temperature ?? 24) }}{{ weatherService.getUnitSymbol() }}
@@ -85,15 +84,13 @@ import {
       }
     </button>
 
-    <!-- Expanded Weather Popover / MatMenu -->
     <mat-menu
       #weatherMenu="matMenu"
       class="!max-w-none !p-0 rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900 backdrop-blur-xl"
       xPosition="before"
     >
       <div class="w-80 sm:w-88 text-neutral-900 dark:text-white flex flex-col overflow-hidden" (click)="$event.stopPropagation()">
-        
-        <!-- Popover Header: Location & Quick Actions (Fixed at Top) -->
+
         <div class="p-3.5 pb-2.5 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-2 shrink-0 select-none">
           <div class="flex items-center gap-1.5 min-w-0">
             <svg class="size-4 text-blue-600 dark:text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -113,7 +110,7 @@ import {
           </div>
 
           <div class="flex items-center gap-1 shrink-0">
-            <!-- Locate via GPS -->
+
             <button
               mat-icon-button
               class="!size-7 text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
@@ -125,7 +122,6 @@ import {
               </svg>
             </button>
 
-            <!-- Toggle City Search -->
             <button
               mat-icon-button
               class="!size-7 text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
@@ -135,7 +131,6 @@ import {
               <i-search [size]="15" />
             </button>
 
-            <!-- Refresh Weather -->
             <button
               mat-icon-button
               class="!size-7 text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
@@ -147,10 +142,8 @@ import {
           </div>
         </div>
 
-        <!-- Scrollable Body Container -->
         <div class="p-3.5 max-h-[62vh] sm:max-h-[68vh] overflow-y-auto overflow-x-hidden flex flex-col gap-3.5 custom-scrollbar">
 
-        <!-- City Search Input (Collapsible) -->
         @if (showSearch()) {
           <div class="flex flex-col gap-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/70 p-2 border border-neutral-200 dark:border-neutral-700">
             <div class="flex items-center gap-2">
@@ -175,7 +168,6 @@ import {
               }
             </div>
 
-            <!-- Search Results Dropdown -->
             @if (searching()) {
               <div class="flex items-center justify-center py-2">
                 <mat-spinner diameter="16" />
@@ -201,7 +193,6 @@ import {
           </div>
         }
 
-        <!-- Hero Status Card (shrink-0 prevents flexbox collapse) -->
         <div class="relative overflow-hidden rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 p-3.5 border border-neutral-200/70 dark:border-neutral-700/60 shrink-0">
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-3 min-w-0">
@@ -228,7 +219,6 @@ import {
               </div>
             </div>
 
-            <!-- Unit switch: °C / °F -->
             <div class="flex flex-col items-end gap-2 shrink-0">
               <div class="flex items-center rounded-xl bg-white dark:bg-neutral-800 p-0.5 border border-neutral-200 dark:border-neutral-700 shadow-2xs">
                 <button
@@ -256,9 +246,8 @@ import {
           </div>
         </div>
 
-        <!-- Weather Metrics Grid (3 columns, shrink-0) -->
         <div class="grid grid-cols-3 gap-2 shrink-0">
-          <!-- Humidity -->
+
           <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
             <svg class="size-3.5 text-sky-500 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
@@ -269,7 +258,6 @@ import {
             </span>
           </div>
 
-          <!-- Wind Speed -->
           <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
             <svg class="size-3.5 text-teal-500 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/>
@@ -282,7 +270,6 @@ import {
             </span>
           </div>
 
-          <!-- Precipitation -->
           <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
             <svg class="size-3.5 text-blue-500 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
@@ -295,7 +282,6 @@ import {
           </div>
         </div>
 
-        <!-- Hourly Forecast Slider (Horizontal) -->
         @if (hourly().length > 0) {
           <div class="flex flex-col gap-1 shrink-0">
             <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
@@ -317,7 +303,6 @@ import {
           </div>
         }
 
-        <!-- 5-Day Forecast List -->
         @if (daily().length > 0) {
           <div class="flex flex-col gap-1 shrink-0">
             <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
@@ -345,7 +330,6 @@ import {
           </div>
         }
 
-        <!-- Footer Info -->
         <div class="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-neutral-800 text-[9px] text-neutral-400 shrink-0">
           <span>{{ 'weather.poweredBy' | transloco }} Open-Meteo</span>
           @if (data()?.lastUpdated) {
@@ -391,7 +375,6 @@ export class WeatherWidgetComponent {
     return new Date(dt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   });
 
-  // Search state
   protected showSearch = signal(false);
   protected searchQuery = '';
   protected searchResults = signal<CitySearchResult[]>([]);

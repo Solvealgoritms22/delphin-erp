@@ -14,7 +14,7 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
       [style.height.px]="size()"
     >
       @switch (condition()) {
-        <!-- Partly Cloudy Day (Sun + Cloud) -->
+
         @case ('partly-cloudy-day') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -31,9 +31,8 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
               </filter>
             </defs>
 
-            <!-- Sun behind cloud -->
             <g transform="translate(34, 22)">
-              <!-- Sun Rays -->
+
               <g>
                 <line x1="0" y1="-14" x2="0" y2="-17" stroke="#FFA000" stroke-width="2.5" stroke-linecap="round" />
                 <line x1="10" y1="-10" x2="12" y2="-12" stroke="#FFA000" stroke-width="2.5" stroke-linecap="round" />
@@ -44,11 +43,10 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
                 <line x1="0" y1="14" x2="0" y2="17" stroke="#FFA000" stroke-width="2.5" stroke-linecap="round" />
                 <line x1="-10" y1="10" x2="-12" y2="12" stroke="#FFA000" stroke-width="2.5" stroke-linecap="round" />
               </g>
-              <!-- Sun Body -->
+
               <circle cx="0" cy="0" r="10" fill="url(#sunGradient)" />
             </g>
 
-            <!-- Puffy Cloud in front -->
             <g class="anim-cloud" filter="url(#softShadow)">
               <path
                 d="M44 48H18c-4.4 0-8-3.6-8-8 0-3.9 2.8-7.2 6.7-7.9C17.5 26.3 22.3 22 28 22c5.5 0 10.1 4 11 9.4 1.6-.9 3.4-1.4 5.3-1.4 5.4 0 9.7 4.3 9.7 9.7 0 4.6-3.7 8.3-8.3 8.3z"
@@ -60,7 +58,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Clear Sun / Sunny Day -->
         @case ('clear-day') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -71,7 +68,7 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
               </linearGradient>
             </defs>
             <g transform="translate(32, 32)">
-              <!-- Outer Rays -->
+
               <g>
                 <line x1="0" y1="-20" x2="0" y2="-25" stroke="#FFA000" stroke-width="3" stroke-linecap="round" />
                 <line x1="14" y1="-14" x2="18" y2="-18" stroke="#FFA000" stroke-width="3" stroke-linecap="round" />
@@ -87,7 +84,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Clear Night (Centered Crescent Moon + Stars) -->
         @case ('clear-night') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -102,14 +98,13 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
                 fill="url(#moonGrad)"
               />
             </g>
-            <!-- Stars -->
+
             <circle cx="14" cy="20" r="2.2" fill="#FFE082" class="anim-star-1" />
             <circle cx="22" cy="12" r="1.6" fill="#FFF59D" class="anim-star-2" />
             <circle cx="15" cy="40" r="1.8" fill="#FFE082" class="anim-star-3" />
           </svg>
         }
 
-        <!-- Partly Cloudy Night -->
         @case ('partly-cloudy-night') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -122,14 +117,14 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
                 <stop offset="100%" stop-color="#CBD5E1" />
               </linearGradient>
             </defs>
-            <!-- Moon behind -->
+
             <g class="anim-moon" transform="translate(6, -2)">
               <path
                 d="M32 14c-1.2 0-2.3.2-3.4.5 6.5 2.6 11.1 9 11.1 16.5s-4.6 13.9-11.1 16.5c1.1.3 2.2.5 3.4.5 9.7 0 17.5-7.8 17.5-17.5S41.7 14 32 14z"
                 fill="url(#nightMoonGrad)"
               />
             </g>
-            <!-- Cloud in front -->
+
             <g class="anim-cloud">
               <path
                 d="M44 48H18c-4.4 0-8-3.6-8-8 0-3.9 2.8-7.2 6.7-7.9C17.5 26.3 22.3 22 28 22c5.5 0 10.1 4 11 9.4 1.6-.9 3.4-1.4 5.3-1.4 5.4 0 9.7 4.3 9.7 9.7 0 4.6-3.7 8.3-8.3 8.3z"
@@ -141,7 +136,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Cloudy -->
         @case ('cloudy') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -171,7 +165,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Overcast -->
         @case ('overcast') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -189,7 +182,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Rain -->
         @case ('rain') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -210,7 +202,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Drizzle -->
         @case ('drizzle') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -231,7 +222,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Heavy Rain -->
         @case ('heavy-rain') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -253,7 +243,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Thunderstorm -->
         @case ('thunderstorm') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -278,7 +267,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Snow -->
         @case ('snow') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <defs>
@@ -301,7 +289,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Fog -->
         @case ('fog') {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full overflow-visible">
             <line x1="14" y1="24" x2="50" y2="24" stroke="#94A3B8" stroke-width="3" stroke-linecap="round" class="anim-fog-1" />
@@ -311,7 +298,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           </svg>
         }
 
-        <!-- Default -->
         @default {
           <svg [attr.viewBox]="'0 0 64 64'" class="w-full h-full">
             <circle cx="32" cy="32" r="16" fill="#FFA000" />
@@ -356,8 +342,6 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
           transform: translateY(-1.5px) translateX(-2px);
         }
       }
-
-
 
       /* Moon glow & float */
       .anim-moon {
