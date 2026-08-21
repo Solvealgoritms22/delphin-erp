@@ -5,6 +5,8 @@ import { MatPseudoCheckbox } from '@angular/material/core';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { LangDefinition, TranslocoService } from '@jsverse/transloco';
 
+import { CountryFlagComponent } from '@/app/shared/components/country-flag/country-flag.component';
+
 @Component({
   selector: 'language-switcher',
   imports: [
@@ -13,17 +15,16 @@ import { LangDefinition, TranslocoService } from '@jsverse/transloco';
     MatMenuItem,
     MatMenuTrigger,
     MatPseudoCheckbox,
+    CountryFlagComponent,
   ],
   template: `
     <button
       matIconButton
       [matMenuTriggerFor]="langMenu"
     >
-      <img
-        [src]="'/images/flags/' + getLangFlag(this.activeLang) + '.svg'"
-        alt="{{ this.activeLang }}"
-        width="20"
-        height="15"
+      <country-flag
+        [code]="getLangFlag(this.activeLang)"
+        [width]="20"
       />
     </button>
     <mat-menu #langMenu="matMenu">
@@ -34,11 +35,9 @@ import { LangDefinition, TranslocoService } from '@jsverse/transloco';
         >
           <span class="flex items-center gap-x-3">
             <span class="flex items-center gap-x-2">
-              <img
-                [src]="'/images/flags/' + getLangFlag(lang.id) + '.svg'"
-                alt="{{ this.activeLang }}"
-                width="20"
-                height="15"
+              <country-flag
+                [code]="getLangFlag(lang.id)"
+                [width]="20"
               />
               <span>{{ lang.label }}</span>
             </span>

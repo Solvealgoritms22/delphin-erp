@@ -8,19 +8,10 @@ const routes: Routes = [
   },
   {
     path: 'general',
-    loadComponent: () => import('./features/general/general').then(m => m.DashboardGeneralComponent),
-  },
-  {
-    path: 'project',
-    loadComponent: () => import('./features/project/project'),
-  },
-  {
-    path: 'analytics',
-    loadComponent: () => import('./features/analytics/analytics'),
-  },
-  {
-    path: 'finance',
-    loadComponent: () => import('./features/finance/finance'),
+    loadComponent: () =>
+      import('./features/general/general').then(
+        (m) => m.DashboardGeneralComponent
+      ),
   },
 ];
 

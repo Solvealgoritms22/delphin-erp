@@ -8,13 +8,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SuppliersService } from '../../../data/suppliers';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { CountryFlagComponent } from '@/app/shared/components/country-flag/country-flag.component';
 
 @Component({
   selector: 'app-supplier-form',
   standalone: true,
   imports: [
     ReactiveFormsModule, MatFormFieldModule, MatInputModule,
-    MatButtonModule, MatIconModule, MatSelectModule, TranslocoPipe
+    MatButtonModule, MatIconModule, MatSelectModule, TranslocoPipe,
+    CountryFlagComponent,
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-y-auto overflow-x-hidden pb-12">
@@ -69,7 +71,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
                   @for (country of countries; track country.code) {
                     <mat-option [value]="country.code" [disabled]="country.disabled">
                       <span class="inline-flex items-center gap-2">
-                        <img [src]="country.flag" [alt]="country.label" class="h-3 w-5 object-cover">
+                        <country-flag [code]="country.code" [width]="20" />
                         {{ country.label }}{{ country.disabled ? ' (próximamente)' : '' }}
                       </span>
                     </mat-option>
@@ -199,9 +201,9 @@ export class SupplierForm implements OnInit {
   }
 
   countries = [
-    { code: 'DO', label: 'República Dominicana', flag: 'flags/dominican-republic.svg', disabled: false },
-    { code: 'US', label: 'Estados Unidos', flag: 'flags/united-states.svg', disabled: true },
-    { code: 'ES', label: 'España', flag: 'flags/spain.svg', disabled: true },
+    { code: 'DO', label: 'República Dominicana', disabled: false },
+    { code: 'US', label: 'Estados Unidos', disabled: true },
+    { code: 'ES', label: 'España', disabled: true },
   ];
   logoPreview = '';
 

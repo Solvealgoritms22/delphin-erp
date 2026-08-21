@@ -5,6 +5,7 @@
 @import './tailwind/variants.css';
 @import './tailwind/theme.css';
 @import './tailwind/utilities.css';
+@import 'flag-icons/css/flag-icons.min.css';
 
 /* -------------------------------------------------------------------------- */
 /* Angular CDK                                                                */

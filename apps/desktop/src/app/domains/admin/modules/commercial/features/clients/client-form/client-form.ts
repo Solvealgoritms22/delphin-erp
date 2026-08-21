@@ -8,13 +8,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClientsService } from '../../../data/clients';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { CountryFlagComponent } from '@/app/shared/components/country-flag/country-flag.component';
 
 @Component({
   selector: 'app-client-form',
   standalone: true,
   imports: [
     ReactiveFormsModule, MatFormFieldModule, MatInputModule,
-    MatButtonModule, MatIconModule, MatSelectModule, TranslocoPipe
+    MatButtonModule, MatIconModule, MatSelectModule, TranslocoPipe,
+    CountryFlagComponent,
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-y-auto overflow-x-hidden pb-12">
@@ -83,16 +85,16 @@ import { TranslocoPipe } from '@jsverse/transloco';
                }
                <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onLogoSelected($event)" class="hidden">
              </label>
-             <mat-form-field class="mt-7 w-full">
-               <mat-label>{{ 'commercial.form.country' | transloco }}</mat-label>
-               <mat-select formControlName="pais">
-                 @for (country of countries; track country.code) {
-                   <mat-option [value]="country.code" [disabled]="country.disabled">
-                     <span class="inline-flex items-center gap-2"><img [src]="country.flag" [alt]="country.label" class="h-3 w-5 object-cover"> {{ country.label }}{{ country.disabled ? ' (próximamente)' : '' }}</span>
-                   </mat-option>
-                 }
-               </mat-select>
-             </mat-form-field>
+              <mat-form-field class="mt-7 w-full">
+                <mat-label>{{ 'commercial.form.country' | transloco }}</mat-label>
+                <mat-select formControlName="pais">
+                  @for (country of countries; track country.code) {
+                    <mat-option [value]="country.code" [disabled]="country.disabled">
+                      <span class="inline-flex items-center gap-2"><country-flag [code]="country.code" [width]="20" /> {{ country.label }}{{ country.disabled ? ' (próximamente)' : '' }}</span>
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
            </div>
            
          </div>
@@ -195,9 +197,9 @@ export class ClientForm implements OnInit {
   }
 
   countries = [
-    { code: 'DO', label: 'República Dominicana', flag: 'flags/dominican-republic.svg', disabled: false },
-    { code: 'US', label: 'Estados Unidos', flag: 'flags/united-states.svg', disabled: true },
-    { code: 'ES', label: 'España', flag: 'flags/spain.svg', disabled: true },
+    { code: 'DO', label: 'República Dominicana', disabled: false },
+    { code: 'US', label: 'Estados Unidos', disabled: true },
+    { code: 'ES', label: 'España', disabled: true },
   ];
   logoPreview = '';
 

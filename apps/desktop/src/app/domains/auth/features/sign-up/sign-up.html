@@ -58,7 +58,7 @@
               <mat-select [formField]="signUpForm.country" (selectionChange)="setCountry($event.value)">
                 @for (country of countries; track country.code) {
                   <mat-option [value]="country.code" [disabled]="country.disabled">
-                    <span class="inline-flex items-center gap-2"><img [src]="country.flag" [alt]="country.label" class="h-3 w-5 object-cover"> {{ country.label }}{{ country.disabled ? ' (próximamente)' : '' }}</span>
+                    <span class="inline-flex items-center gap-2"><country-flag [code]="country.code" [width]="20" /> {{ country.label }}{{ country.disabled ? ' (próximamente)' : '' }}</span>
                   </mat-option>
                 }
               </mat-select>

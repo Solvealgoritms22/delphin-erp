@@ -2,18 +2,16 @@ import { Component, inject, OnInit, OnDestroy, signal, PLATFORM_ID } from '@angu
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { CommandPaletteService } from './core/command-palette/command-palette.component';
-import { CookieBannerComponent } from './core/components/cookie-banner/cookie-banner.component';
 import { SessionMonitorService } from './core/auth/session-monitor.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, CookieBannerComponent],
+  imports: [RouterOutlet],
   host: {
     class: 'flex h-full w-full flex-auto flex-col overflow-hidden bg-white dark:bg-[#09090b]',
   },
   template: `
     <router-outlet />
-    <app-cookie-banner />
   `,
 })
 export class App implements OnInit, OnDestroy {

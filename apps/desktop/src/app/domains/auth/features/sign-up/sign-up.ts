@@ -16,8 +16,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@/app/core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-
 import { EyeOffIcon } from 'ng-animated-icons';
+import { CountryFlagComponent } from '@/app/shared/components/country-flag/country-flag.component';
 
 @Component({
   selector: 'auth-sign-up',
@@ -33,6 +33,7 @@ import { EyeOffIcon } from 'ng-animated-icons';
     FormField,
     TranslocoPipe,
     EyeOffIcon,
+    CountryFlagComponent,
   ],
 })
 export default class AuthSignUp {
@@ -96,9 +97,9 @@ export default class AuthSignUp {
   });
 
   protected countries = [
-    { code: 'DO', label: 'República Dominicana', flag: 'flags/dominican-republic.svg', disabled: false },
-    { code: 'US', label: 'Estados Unidos', flag: 'flags/united-states.svg', disabled: true },
-    { code: 'ES', label: 'España', flag: 'flags/spain.svg', disabled: true },
+    { code: 'DO', label: 'República Dominicana', disabled: false },
+    { code: 'US', label: 'Estados Unidos', disabled: true },
+    { code: 'ES', label: 'España', disabled: true },
   ];
 
   protected documentTypes = computed(() => {

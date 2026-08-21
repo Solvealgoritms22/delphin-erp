@@ -62,12 +62,8 @@ const routes: Routes = [
       },
 
       // -----------------------------------------------------------------------
-      // General
+      // AI Chat
       // -----------------------------------------------------------------------
-      {
-        path: 'academy',
-        loadChildren: () => import('./modules/apps/academy/routes'),
-      },
       {
         path: 'ai-chat',
         loadChildren: () => import('./modules/apps/ai-chat/routes'),
@@ -76,41 +72,13 @@ const routes: Routes = [
         path: 'apps/ai-chat',
         redirectTo: 'ai-chat',
       },
-      {
-        path: 'contacts',
-        loadChildren: () => import('./modules/apps/contacts/routes'),
-      },
-      {
-        path: 'file-manager',
-        loadChildren: () => import('./modules/apps/file-manager/routes'),
-      },
-      {
-        path: 'help-center',
-        loadChildren: () => import('./modules/apps/help-center/routes'),
-      },
-      {
-        path: 'notes',
-        loadChildren: () => import('./modules/apps/notes/routes'),
-      },
-      {
-        path: 'orders',
-        loadChildren: () => import('./modules/apps/orders/routes'),
-      },
-      {
-        path: 'scrumboard',
-        loadChildren: () => import('./modules/apps/scrumboard/routes'),
-      },
-      {
-        path: 'tasks',
-        loadChildren: () => import('./modules/apps/tasks/routes'),
-      },
 
       // -----------------------------------------------------------------------
-      // Extras
+      // System & Extras
       // -----------------------------------------------------------------------
       {
-        path: 'profile',
-        loadChildren: () => import('./modules/apps/profile/routes'),
+        path: 'billing',
+        loadChildren: () => import('./modules/apps/billing/routes'),
       },
       {
         path: 'plans',
@@ -124,15 +92,6 @@ const routes: Routes = [
         path: 'legal',
         loadChildren: () => import('./modules/apps/legal/routes'),
       },
-
-      {
-        path: 'billing',
-        loadChildren: () => import('./modules/apps/billing/routes'),
-      },
-      {
-        path: 'settings',
-        loadChildren: () => import('./modules/extras/settings/routes'),
-      },
       {
         path: 'notifications',
         loadChildren: () => import('./modules/extras/notifications/routes'),
@@ -140,14 +99,6 @@ const routes: Routes = [
       {
         path: 'error',
         loadChildren: () => import('./modules/extras/error/routes'),
-      },
-
-      // -----------------------------------------------------------------------
-      // Documentation
-      // -----------------------------------------------------------------------
-      {
-        path: 'documentation',
-        loadChildren: () => import('./modules/documentation/routes'),
       },
 
       // Catch all

@@ -28,6 +28,8 @@ import {
   RefreshCwIcon,
 } from 'ng-animated-icons';
 
+import { CountryFlagComponent } from '@/app/shared/components/country-flag/country-flag.component';
+
 @Component({
   selector: 'app-empresa-dialog',
   standalone: true,
@@ -46,6 +48,7 @@ import {
     UploadIcon,
     TrashIcon,
     RefreshCwIcon,
+    CountryFlagComponent,
   ],
   template: `
     <h2
@@ -171,10 +174,9 @@ import {
                   [disabled]="c.disabled"
                 >
                   <span class="inline-flex items-center gap-2">
-                    <img
-                      [src]="c.flag"
-                      [alt]="c.label"
-                      class="h-3.5 w-5 rounded-xs object-cover"
+                    <country-flag
+                      [code]="c.code"
+                      [width]="20"
                     />
                     <span>{{ c.label }}</span>
                     @if (c.disabled) {
@@ -525,47 +527,17 @@ export class EmpresaDialogComponent implements OnInit {
   isSaving = false;
 
   countries = [
-    {
-      code: 'DO',
-      label: 'República Dominicana',
-      flag: 'flags/dominican-republic.svg',
-      disabled: false,
-    },
-    {
-      code: 'US',
-      label: 'Estados Unidos',
-      flag: 'flags/united-states.svg',
-      disabled: true,
-    },
-    { code: 'ES', label: 'España', flag: 'flags/spain.svg', disabled: true },
-    { code: 'MX', label: 'México', flag: 'flags/mexico.svg', disabled: true },
-    {
-      code: 'CO',
-      label: 'Colombia',
-      flag: 'flags/colombia.svg',
-      disabled: true,
-    },
-    { code: 'PA', label: 'Panamá', flag: 'flags/panama.svg', disabled: true },
-    {
-      code: 'CR',
-      label: 'Costa Rica',
-      flag: 'flags/costa-rica.svg',
-      disabled: true,
-    },
-    {
-      code: 'GT',
-      label: 'Guatemala',
-      flag: 'flags/guatemala.svg',
-      disabled: true,
-    },
-    { code: 'PE', label: 'Perú', flag: 'flags/peru.svg', disabled: true },
-    { code: 'CL', label: 'Chile', flag: 'flags/chile.svg', disabled: true },
-    {
-      code: 'AR',
-      label: 'Argentina',
-      flag: 'flags/argentina.svg',
-      disabled: true,
-    },
+    { code: 'DO', label: 'República Dominicana', disabled: false },
+    { code: 'US', label: 'Estados Unidos', disabled: true },
+    { code: 'ES', label: 'España', disabled: true },
+    { code: 'MX', label: 'México', disabled: true },
+    { code: 'CO', label: 'Colombia', disabled: true },
+    { code: 'PA', label: 'Panamá', disabled: true },
+    { code: 'CR', label: 'Costa Rica', disabled: true },
+    { code: 'GT', label: 'Guatemala', disabled: true },
+    { code: 'PE', label: 'Perú', disabled: true },
+    { code: 'CL', label: 'Chile', disabled: true },
+    { code: 'AR', label: 'Argentina', disabled: true },
   ];
 
   constructor() {
