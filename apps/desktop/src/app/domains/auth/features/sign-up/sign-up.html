@@ -188,19 +188,18 @@
   </div>
 
   <div
-    class="relative hidden flex-auto items-center justify-center overflow-hidden border-l border-neutral-200/10 bg-neutral-950 p-8 sm:px-12 md:flex">
+    class="relative hidden flex-auto items-center justify-center overflow-hidden border-l border-neutral-200/10 bg-slate-950 p-8 sm:px-12 md:flex">
 
-    <!-- Minimalist subtle dot grid with soft radial mask -->
-    <div
-      class="absolute inset-0 pointer-events-none opacity-40 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_75%)]"
-      style="background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px); background-size: 24px 24px;">
-    </div>
+    <!-- Corporate architectural background image with dark overlay -->
+    <img
+      src="/images/auth-bg.jpg"
+      alt="Corporate Architecture"
+      class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
+    />
+    <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-950/85 backdrop-blur-[2px] pointer-events-none"></div>
 
-    <!-- Soft, elegant top ambient light -->
-    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-blue-600/[0.07] blur-[100px] pointer-events-none"></div>
-
-    <!-- Minimalist Enterprise Card Container -->
-    <div class="relative z-10 flex flex-col items-center justify-center text-center max-w-lg w-full px-8 py-12 rounded-2xl border border-white/[0.07] bg-white/[0.015] backdrop-blur-xs select-none shadow-2xl">
+    <!-- Minimalist Glassmorphic Hero Card -->
+    <div class="relative z-10 flex flex-col items-center justify-center text-center max-w-xl w-full p-8 sm:p-12 rounded-2xl border border-white/[0.12] bg-[#071326]/60 backdrop-blur-md select-none shadow-2xl">
       <div class="flex items-center justify-center gap-4 sm:gap-5 mb-8">
         <img
           src="/images/logo/logo_dolphin_dark.png"
@@ -218,24 +217,41 @@
       </div>
 
       <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white">
-        {{ 'auth.brand.tagline' | transloco }}
+        Tu operación, <span class="text-blue-400">en un solo lugar</span>
       </h2>
 
-      <p class="mt-3 text-sm text-neutral-400 max-w-sm leading-relaxed">
+      <p class="mt-3 text-sm text-neutral-300/90 max-w-md leading-relaxed">
         {{ 'auth.brand.description' | transloco }}
       </p>
 
-      <div class="mt-8 grid grid-cols-3 gap-4 w-full max-w-sm pt-6 border-t border-white/[0.08]">
+      <div class="mt-8 grid grid-cols-3 gap-4 w-full max-w-md pt-6 border-t border-white/[0.1]">
         <div class="flex flex-col items-center">
-          <span class="text-base font-semibold text-white tracking-tight">100%</span>
+          <svg class="w-6 h-6 text-blue-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" d="M12 2a10 10 0 1 0 10 10" />
+          </svg>
+          <span class="text-sm font-bold text-white tracking-tight">100%</span>
           <span class="text-[11px] text-neutral-400 mt-0.5">En la nube</span>
         </div>
-        <div class="flex flex-col items-center border-x border-white/[0.08]">
-          <span class="text-base font-semibold text-white tracking-tight">DGII / e-CF</span>
+        <div class="flex flex-col items-center border-x border-white/[0.1]">
+          <svg class="w-6 h-6 text-blue-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span class="text-sm font-bold text-white tracking-tight">DGII / e-CF</span>
           <span class="text-[11px] text-neutral-400 mt-0.5">Facturación</span>
         </div>
         <div class="flex flex-col items-center">
-          <span class="text-base font-semibold text-white tracking-tight">Multi-Empresa</span>
+          <svg class="w-6 h-6 text-blue-400 mb-2" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="6" cy="6" r="1.8"/>
+            <circle cx="12" cy="6" r="1.8"/>
+            <circle cx="18" cy="6" r="1.8"/>
+            <circle cx="6" cy="12" r="1.8"/>
+            <circle cx="12" cy="12" r="1.8"/>
+            <circle cx="18" cy="12" r="1.8"/>
+            <circle cx="6" cy="18" r="1.8"/>
+            <circle cx="12" cy="18" r="1.8"/>
+            <circle cx="18" cy="18" r="1.8"/>
+          </svg>
+          <span class="text-sm font-bold text-white tracking-tight">Multi-Empresa</span>
           <span class="text-[11px] text-neutral-400 mt-0.5">Centralizado</span>
         </div>
       </div>
