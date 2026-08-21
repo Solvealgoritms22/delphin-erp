@@ -48,8 +48,17 @@
     --kbd-border-radius: 0.25rem; /* 4px */
 
     /* Color */
-    --kbd-bg-color: var(--color-neutral-100);
-    --kbd-text-color: var(--color-neutral-700);
-    --kbd-border-color: var(--color-neutral-300);
+    --kbd-bg-color: light-dark(var(--color-neutral-100), var(--color-neutral-800));
+    --kbd-text-color: light-dark(var(--color-neutral-700), var(--color-neutral-200));
+    --kbd-border-color: light-dark(var(--color-neutral-300), var(--color-neutral-700));
+  }
+
+  :is(.dark, [data-theme='dark']) & kbd,
+  &.dark kbd,
+  .dark kbd {
+    --kbd-bg-color: var(--color-neutral-800);
+    --kbd-text-color: var(--color-neutral-200);
+    --kbd-border-color: var(--color-neutral-700);
   }
 }
+

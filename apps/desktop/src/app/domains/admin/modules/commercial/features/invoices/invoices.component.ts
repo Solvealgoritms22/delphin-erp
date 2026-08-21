@@ -62,7 +62,7 @@ import { environment } from '@/environments/environment';
   ],
   template: `
     <div
-      class="flex h-full min-w-0 flex-auto flex-col overflow-hidden bg-neutral-50/50 dark:bg-neutral-950"
+      class="flex flex-col flex-auto min-w-0 h-full overflow-hidden"
     >
       <!-- Header -->
       <div
@@ -98,7 +98,7 @@ import { environment } from '@/environments/environment';
       <div class="flex min-h-0 flex-auto flex-col overflow-y-auto">
         <!-- Filters Toolbar -->
         <div
-          class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-neutral-200 bg-white p-6 pb-4 md:px-8 dark:border-neutral-800 dark:bg-neutral-900"
+          class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-neutral-200 bg-white p-6 pb-4 md:px-8 dark:border-neutral-700 dark:bg-neutral-900"
         >
           <div class="flex min-w-[260px] flex-1 items-center gap-3">
             <div class="relative w-full max-w-md">
@@ -279,11 +279,21 @@ import { environment } from '@/environments/environment';
                   >
                 </div>
 
-                <!-- Estado Fiscal DGII -->
+                <!-- Estado Fiscal DGII / Borrador -->
                 <div
                   class="col-span-2 flex flex-col items-center justify-center"
                 >
-                  @if (inv.fiscalbridgeDocId) {
+                  @if (inv.estado === 'BORRADOR') {
+                    <span
+                      class="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                    >
+                      <mat-icon
+                        svgIcon="file-text"
+                        class="icon-size-3.5"
+                      ></mat-icon>
+                      {{ 'commercial.invoices.status.draft' | transloco }}
+                    </span>
+                  } @else if (inv.fiscalbridgeDocId) {
                     <span
                       class="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
                     >
@@ -343,7 +353,21 @@ import { environment } from '@/environments/environment';
                     #actionMenu="matMenu"
                     class="!rounded-xl !p-1"
                   >
-                    @if (inv.fiscalbridgeDocId) {
+                    @if (inv.estado === 'BORRADOR') {
+                      <button
+                        mat-menu-item
+                        (click)="emitDraftInvoice(inv)"
+                        class="!text-blue-600 font-medium"
+                      >
+                        <mat-icon
+                          svgIcon="send"
+                          class="icon-size-4 !text-blue-600"
+                        ></mat-icon>
+                        <span>{{
+                          'commercial.invoices.actions.emitDraft' | transloco
+                        }}</span>
+                      </button>
+                    } @else if (inv.fiscalbridgeDocId) {
                       <button
                         mat-menu-item
                         (click)="
@@ -392,6 +416,7 @@ import { environment } from '@/environments/environment';
                     }
                     @if (
                       inv.estado !== 'ANULADA' &&
+                      inv.estado !== 'BORRADOR' &&
                       !inv.tipoNcf.startsWith('E34') &&
                       !inv.tipoNcf.startsWith('B04')
                     ) {
@@ -418,7 +443,9 @@ import { environment } from '@/environments/environment';
                         class="icon-size-4 !text-red-600"
                       ></mat-icon>
                       <span>{{
-                        'commercial.invoices.actions.cancelInvoice' | transloco
+                        (inv.estado === 'BORRADOR'
+                          ? 'commercial.invoices.actions.deleteDraft'
+                          : 'commercial.invoices.actions.cancelInvoice') | transloco
                       }}</span>
                     </button>
                   </mat-menu>
@@ -445,7 +472,11 @@ import { environment } from '@/environments/environment';
                 svgIcon="receipt"
                 class="icon-size-5 text-blue-600"
               ></mat-icon>
-              {{ 'commercial.invoices.modal.title' | transloco }}
+              {{
+                (fiscalbridgeEnabled
+                  ? 'commercial.invoices.modal.titleElectronic'
+                  : 'commercial.invoices.modal.titleTraditional') | transloco
+              }}
             </h3>
             <button
               (click)="closeDialog()"
@@ -493,27 +524,30 @@ import { environment } from '@/environments/environment';
                   'commercial.invoices.modal.ncfType' | transloco
                 }}</mat-label>
                 <mat-select [(ngModel)]="newInvoice.tipoNcf">
-                  <mat-option value="E31">{{
-                    'commercial.invoices.types.E31' | transloco
-                  }}</mat-option>
-                  <mat-option value="E32">{{
-                    'commercial.invoices.types.E32' | transloco
-                  }}</mat-option>
-                  <mat-option value="E34">{{
-                    'commercial.invoices.types.E34' | transloco
-                  }}</mat-option>
-                  <mat-option value="E44">{{
-                    'commercial.invoices.types.E44' | transloco
-                  }}</mat-option>
-                  <mat-option value="E45">{{
-                    'commercial.invoices.types.E45' | transloco
-                  }}</mat-option>
-                  <mat-option value="B01">{{
-                    'commercial.invoices.types.B01' | transloco
-                  }}</mat-option>
-                  <mat-option value="B02">{{
-                    'commercial.invoices.types.B02' | transloco
-                  }}</mat-option>
+                  @if (fiscalbridgeEnabled) {
+                    <mat-option value="E31">{{
+                      'commercial.invoices.types.E31' | transloco
+                    }}</mat-option>
+                    <mat-option value="E32">{{
+                      'commercial.invoices.types.E32' | transloco
+                    }}</mat-option>
+                    <mat-option value="E34">{{
+                      'commercial.invoices.types.E34' | transloco
+                    }}</mat-option>
+                    <mat-option value="E44">{{
+                      'commercial.invoices.types.E44' | transloco
+                    }}</mat-option>
+                    <mat-option value="E45">{{
+                      'commercial.invoices.types.E45' | transloco
+                    }}</mat-option>
+                  } @else {
+                    <mat-option value="B01">{{
+                      'commercial.invoices.types.B01' | transloco
+                    }}</mat-option>
+                    <mat-option value="B02">{{
+                      'commercial.invoices.types.B02' | transloco
+                    }}</mat-option>
+                  }
                 </mat-select>
               </mat-form-field>
             </div>
@@ -727,7 +761,7 @@ import { environment } from '@/environments/environment';
 
           <!-- Modal Footer -->
           <div
-            class="flex shrink-0 items-center justify-end gap-3 border-t border-neutral-100 bg-neutral-50/50 px-6 py-4 dark:border-neutral-800 dark:bg-neutral-900"
+            class="flex shrink-0 items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50/50 px-6 py-4 dark:border-neutral-800 dark:bg-neutral-900"
           >
             <button
               mat-button
@@ -736,14 +770,30 @@ import { environment } from '@/environments/environment';
             >
               {{ 'common.cancel' | transloco }}
             </button>
-            <button
-              mat-flat-button
-              color="primary"
-              (click)="submitInvoice()"
-              class="rounded-xl bg-blue-600 text-white"
-            >
-              {{ 'commercial.invoices.modal.submit' | transloco }}
-            </button>
+            <div class="flex items-center gap-2">
+              <!-- Guardar como borrador: solo cuando no hay transmisión electrónica -->
+              @if (!fiscalbridgeEnabled) {
+                <button
+                  mat-stroked-button
+                  (click)="saveDraft()"
+                  class="rounded-xl"
+                >
+                  {{ 'commercial.invoices.modal.saveDraft' | transloco }}
+                </button>
+              }
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="submitInvoice()"
+                class="rounded-xl bg-blue-600 text-white"
+              >
+                {{
+                  (fiscalbridgeEnabled
+                    ? 'commercial.invoices.modal.submitElectronic'
+                    : 'commercial.invoices.modal.submitTraditional') | transloco
+                }}
+              </button>
+            </div>
           </div>
         </div>
       </ng-template>
@@ -949,11 +999,14 @@ export class InvoicesComponent implements OnInit {
   searchQuery = '';
   selectedNcfFilter = 'ALL';
 
+  // Electronic invoicing (FiscalBridge) flag - loaded from company profile
+  fiscalbridgeEnabled = false;
+
   // Invoice creation form state
   newInvoice: CreateInvoiceDto = {
     clienteId: '',
     almacenId: '',
-    tipoNcf: 'E31',
+    tipoNcf: 'B02',
     tipoPago: 'CONTADO',
     metodoPago: 'EFECTIVO',
     items: [],
@@ -990,6 +1043,11 @@ export class InvoicesComponent implements OnInit {
         );
       },
     });
+    this.http.get<any>(`${environment.apiUrl}/empresas/current`).subscribe({
+      next: (empresa) => {
+        this.fiscalbridgeEnabled = !!empresa?.fiscalbridgeEnabled;
+      },
+    });
   }
 
   setNcfFilter(type: string) {
@@ -1021,7 +1079,7 @@ export class InvoicesComponent implements OnInit {
     this.newInvoice = {
       clienteId: '',
       almacenId: defaultWarehouse ? defaultWarehouse.id : '',
-      tipoNcf: 'E31',
+      tipoNcf: this.fiscalbridgeEnabled ? 'E31' : 'B02',
       tipoPago: 'CONTADO',
       metodoPago: 'EFECTIVO',
       items: [],
@@ -1216,6 +1274,77 @@ export class InvoicesComponent implements OnInit {
         this.snackBar.open(
           err.error?.message ||
             this.i18n.translate('commercial.invoices.messages.issueError'),
+          this.i18n.translate('common.close'),
+          { duration: 4500 }
+        );
+      },
+    });
+  }
+
+  saveDraft() {
+    const validItems = this.invoiceRows.filter(
+      (r) => r.productoId && r.cantidad > 0
+    );
+    if (validItems.length === 0) {
+      this.snackBar.open(
+        this.i18n.translate('commercial.invoices.messages.minOneProduct'),
+        this.i18n.translate('common.close'),
+        { duration: 3000 }
+      );
+      return;
+    }
+
+    const draftPayload = {
+      ...this.newInvoice,
+      esBorrador: true,
+      estado: 'BORRADOR',
+      tipoNcf: this.newInvoice.tipoNcf || 'B02',
+      items: validItems.map((r) => ({
+        productoId: r.productoId,
+        cantidad: Number(r.cantidad),
+        precioUnitario: Number(r.precioUnitario),
+        tasaItbis: Number(r.tasaItbis),
+        impuestoId: r.impuestoId || undefined,
+      })),
+    };
+
+    this.invoicesService.create(draftPayload).subscribe({
+      next: () => {
+        this.snackBar.open(
+          this.i18n.translate('commercial.invoices.messages.draftSuccess'),
+          this.i18n.translate('common.close'),
+          { duration: 3500 }
+        );
+        this.closeDialog();
+        this.invoicesService.findAll().subscribe();
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err.error?.message ||
+            this.i18n.translate('commercial.invoices.messages.issueError'),
+          this.i18n.translate('common.close'),
+          { duration: 4500 }
+        );
+      },
+    });
+  }
+
+  emitDraftInvoice(inv: any) {
+    this.invoicesService.emitDraft(inv.id).subscribe({
+      next: (emitted) => {
+        this.snackBar.open(
+          this.i18n.translate('commercial.invoices.messages.draftEmitSuccess', {
+            ncf: emitted.ncf,
+          }),
+          this.i18n.translate('common.close'),
+          { duration: 3500 }
+        );
+        this.invoicesService.findAll().subscribe();
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err.error?.message ||
+            this.i18n.translate('commercial.invoices.messages.draftEmitError'),
           this.i18n.translate('common.close'),
           { duration: 4500 }
         );

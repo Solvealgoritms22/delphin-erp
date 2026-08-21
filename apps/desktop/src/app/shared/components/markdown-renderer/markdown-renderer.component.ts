@@ -70,7 +70,47 @@ export class MarkdownRendererComponent {
 
     try {
       let html = marked.parse(raw, { renderer, gfm: true, breaks: true }) as string;
+      
+      // Wrap tables for horizontal responsiveness
       html = html.replace(/<table>/g, '<div class="markdown-table-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
+
+      // GitHub Style Alerts / Callouts: [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION]
+      html = html.replace(
+        /<blockquote>\s*<p>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]([\s\S]*?)<\/p>\s*<\/blockquote>/gi,
+        (match, type, body) => {
+          const t = type.toUpperCase();
+          let borderClass = 'border-blue-500 bg-blue-50/60 dark:bg-blue-950/20 text-blue-900 dark:text-blue-200';
+          let titleColor = 'text-blue-600 dark:text-blue-400';
+          let iconSvg = 'ℹ️';
+
+          if (t === 'TIP') {
+            borderClass = 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-200';
+            titleColor = 'text-emerald-600 dark:text-emerald-400';
+            iconSvg = '💡';
+          } else if (t === 'IMPORTANT') {
+            borderClass = 'border-purple-500 bg-purple-50/60 dark:bg-purple-950/20 text-purple-900 dark:text-purple-200';
+            titleColor = 'text-purple-600 dark:text-purple-400';
+            iconSvg = '📌';
+          } else if (t === 'WARNING') {
+            borderClass = 'border-amber-500 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200';
+            titleColor = 'text-amber-600 dark:text-amber-400';
+            iconSvg = '⚠️';
+          } else if (t === 'CAUTION') {
+            borderClass = 'border-red-500 bg-red-50/60 dark:bg-red-950/20 text-red-900 dark:text-red-200';
+            titleColor = 'text-red-600 dark:text-red-400';
+            iconSvg = '🛑';
+          }
+
+          return `<div class="my-3 rounded-xl border-l-4 p-3.5 text-xs ${borderClass} shadow-2xs">
+            <div class="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[11px] mb-1 ${titleColor}">
+              <span>${iconSvg}</span>
+              <span>${t}</span>
+            </div>
+            <div class="leading-relaxed">${body.trim()}</div>
+          </div>`;
+        }
+      );
+
       return this.sanitizer.bypassSecurityTrustHtml(html);
     } catch {
       return this.sanitizer.bypassSecurityTrustHtml(raw);

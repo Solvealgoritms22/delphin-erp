@@ -32,9 +32,9 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
             </defs>
 
             <!-- Sun behind cloud -->
-            <g class="anim-sun-group" transform="translate(34, 22)">
+            <g transform="translate(34, 22)">
               <!-- Sun Rays -->
-              <g class="anim-sun-rays">
+              <g>
                 <line x1="0" y1="-14" x2="0" y2="-17" stroke="#FFA000" stroke-width="2.5" stroke-linecap="round" />
                 <line x1="10" y1="-10" x2="12" y2="-12" stroke="#FFA000" stroke-width="2.5" stroke-linecap="round" />
                 <line x1="14" y1="0" x2="17" y2="0" stroke="#FFA000" stroke-width="2.5" stroke-linecap="round" />
@@ -70,9 +70,9 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
                 <stop offset="100%" stop-color="#FF6F00" />
               </linearGradient>
             </defs>
-            <g class="anim-sun-spin" transform="translate(32, 32)">
+            <g transform="translate(32, 32)">
               <!-- Outer Rays -->
-              <g class="anim-sun-rays">
+              <g>
                 <line x1="0" y1="-20" x2="0" y2="-25" stroke="#FFA000" stroke-width="3" stroke-linecap="round" />
                 <line x1="14" y1="-14" x2="18" y2="-18" stroke="#FFA000" stroke-width="3" stroke-linecap="round" />
                 <line x1="20" y1="0" x2="25" y2="0" stroke="#FFA000" stroke-width="3" stroke-linecap="round" />
@@ -82,7 +82,7 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
                 <line x1="-20" y1="0" x2="-25" y2="0" stroke="#FFA000" stroke-width="3" stroke-linecap="round" />
                 <line x1="-14" y1="-14" x2="-18" y2="-18" stroke="#FFA000" stroke-width="3" stroke-linecap="round" />
               </g>
-              <circle cx="0" cy="0" r="14" fill="url(#fullSunGrad)" class="anim-sun-pulse" />
+              <circle cx="0" cy="0" r="14" fill="url(#fullSunGrad)" />
             </g>
           </svg>
         }
@@ -357,61 +357,7 @@ import { WeatherConditionType } from '@/app/core/weather/weather.types';
         }
       }
 
-      /* Sun ray spinning / pulse */
-      .anim-sun-group {
-        animation: pulse-sun 4s ease-in-out infinite alternate;
-      }
 
-      .anim-sun-rays {
-        animation: spin-rays 24s linear infinite;
-        transform-origin: 0 0;
-      }
-
-      .anim-sun-spin {
-        animation: spin-sun-slow 20s linear infinite;
-        transform-origin: center;
-      }
-
-      .anim-sun-pulse {
-        animation: pulse-sun-body 3s ease-in-out infinite alternate;
-        transform-origin: center;
-      }
-
-      @keyframes spin-rays {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes spin-sun-slow {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes pulse-sun {
-        0% {
-          transform: translate(34px, 22px) scale(0.96);
-        }
-        100% {
-          transform: translate(34px, 22px) scale(1.04);
-        }
-      }
-
-      @keyframes pulse-sun-body {
-        0% {
-          transform: scale(0.95);
-        }
-        100% {
-          transform: scale(1.05);
-        }
-      }
 
       /* Moon glow & float */
       .anim-moon {

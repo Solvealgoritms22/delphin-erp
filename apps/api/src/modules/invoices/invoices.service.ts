@@ -108,13 +108,20 @@ export class InvoicesService {
     )
       throw new BadRequestException('El cliente no pertenece a la empresa.');
 
-    // Reservar NCF
-    const ambiente = empresa.fiscalbridgeEnv || 'TEST';
-    const { ncf } = await this.sequencesService.getNextNCF(
-      empresaId,
-      dto.tipoNcf,
-      ambiente,
-    );
+    const isDraft = dto.esBorrador === true || dto.estado === 'BORRADOR';
+    const tipoNcf = dto.tipoNcf || (empresa.fiscalbridgeEnabled ? 'E31' : 'B02');
+
+    let ncf: string | null = null;
+    if (!isDraft) {
+      // Reservar NCF
+      const ambiente = empresa.fiscalbridgeEnv || 'TEST';
+      const ncfResult = await this.sequencesService.getNextNCF(
+        empresaId,
+        tipoNcf,
+        ambiente,
+      );
+      ncf = ncfResult.ncf;
+    }
 
     // Calcular secuencial interno de factura
     const numeroFactura = `FAC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -199,54 +206,58 @@ export class InvoicesService {
         Prisma.Decimal.ROUND_HALF_UP,
       );
     const needsFiscal =
-      empresa.fiscalbridgeEnabled && dto.tipoNcf.toUpperCase().startsWith('E');
+      !isDraft &&
+      empresa.fiscalbridgeEnabled &&
+      Boolean(tipoNcf?.toUpperCase().startsWith('E'));
 
     // Transacción de creación de factura y descuento de inventario
     const invoice = await this.prisma.$transaction(async (tx) => {
-      // Descontar inventario
-      for (const item of calculatedItems) {
-        if (!item.afectaInventario) continue;
-        const stock = await tx.inventarioStock.findUnique({
-          where: {
-            productoId_almacenId: {
-              productoId: item.productoId,
-              almacenId: almacenId,
-            },
-          },
-        });
-
-        if (stock) {
-          const changed = await tx.inventarioStock.updateMany({
+      // Descontar inventario solo si no es borrador
+      if (!isDraft) {
+        for (const item of calculatedItems) {
+          if (!item.afectaInventario) continue;
+          const stock = await tx.inventarioStock.findUnique({
             where: {
-              id: stock.id,
-              empresaId,
-              cantidad: { gte: item.cantidad },
+              productoId_almacenId: {
+                productoId: item.productoId,
+                almacenId: almacenId,
+              },
             },
-            data: { cantidad: { decrement: item.cantidad } },
           });
-          if (changed.count !== 1)
-            throw new BadRequestException(
-              `Stock insuficiente para el producto ${item.productoId}.`,
-            );
-        } else {
-          throw new BadRequestException(
-            `No existe inventario para el producto ${item.productoId}.`,
-          );
-        }
 
-        // Registrar en Kardex
-        await tx.movimientoInventario.create({
-          data: {
-            empresaId,
-            productoId: item.productoId,
-            almacenOrigenId: almacenId,
-            usuarioId,
-            tipo: 'VENTA',
-            cantidad: item.cantidad,
-            referenciaDoc: `${numeroFactura} (${ncf})`,
-            motivo: `Facturación de Venta - NCF: ${ncf}`,
-          },
-        });
+          if (stock) {
+            const changed = await tx.inventarioStock.updateMany({
+              where: {
+                id: stock.id,
+                empresaId,
+                cantidad: { gte: item.cantidad },
+              },
+              data: { cantidad: { decrement: item.cantidad } },
+            });
+            if (changed.count !== 1)
+              throw new BadRequestException(
+                `Stock insuficiente para el producto ${item.productoId}.`,
+              );
+          } else {
+            throw new BadRequestException(
+              `No existe inventario para el producto ${item.productoId}.`,
+            );
+          }
+
+          // Registrar en Kardex
+          await tx.movimientoInventario.create({
+            data: {
+              empresaId,
+              productoId: item.productoId,
+              almacenOrigenId: almacenId,
+              usuarioId,
+              tipo: 'VENTA',
+              cantidad: item.cantidad,
+              referenciaDoc: `${numeroFactura}${ncf ? ` (${ncf})` : ''}`,
+              motivo: `Facturación de Venta${ncf ? ` - NCF: ${ncf}` : ''}`,
+            },
+          });
+        }
       }
 
       // Crear Factura
@@ -258,9 +269,9 @@ export class InvoicesService {
           clienteId: dto.clienteId,
           usuarioId,
           numeroFactura,
-          ncf,
-          tipoNcf: dto.tipoNcf,
-          estado: 'EMITIDA',
+          ncf: isDraft ? null : ncf,
+          tipoNcf,
+          estado: isDraft ? 'BORRADOR' : 'EMITIDA',
           tipoPago: dto.tipoPago || 'CONTADO',
           metodoPago: dto.metodoPago || 'EFECTIVO',
           subtotal: subtotalAcc,
@@ -486,6 +497,130 @@ export class InvoicesService {
     res.end(xmlBuffer);
   }
 
+  async emitDraft(empresaId: string, usuarioId: string, id: string) {
+    const invoice = await this.findOne(empresaId, id);
+    if (invoice.estado !== 'BORRADOR') {
+      throw new BadRequestException(
+        'Solo las facturas en estado BORRADOR pueden ser emitidas.',
+      );
+    }
+
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+    });
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada.');
+    }
+
+    const tipoNcf = invoice.tipoNcf || (empresa.fiscalbridgeEnabled ? 'E31' : 'B02');
+    const ambiente = empresa.fiscalbridgeEnv || 'TEST';
+
+    // 1. Reservar NCF
+    const { ncf } = await this.sequencesService.getNextNCF(
+      empresaId,
+      tipoNcf,
+      ambiente,
+    );
+
+    const needsFiscal =
+      empresa.fiscalbridgeEnabled && Boolean(tipoNcf?.toUpperCase().startsWith('E'));
+
+    // 2. Transacción de emisión y descuento de inventario
+    const emitted = await this.prisma.$transaction(async (tx) => {
+      // Descontar inventario
+      for (const det of invoice.detalles) {
+        if (det.producto?.tipo === 'SERVICIO') continue;
+        if (invoice.almacenId) {
+          const stock = await tx.inventarioStock.findUnique({
+            where: {
+              productoId_almacenId: {
+                productoId: det.productoId,
+                almacenId: invoice.almacenId,
+              },
+            },
+          });
+
+          if (stock) {
+            const changed = await tx.inventarioStock.updateMany({
+              where: {
+                id: stock.id,
+                empresaId,
+                cantidad: { gte: det.cantidad },
+              },
+              data: { cantidad: { decrement: det.cantidad } },
+            });
+            if (changed.count !== 1) {
+              throw new BadRequestException(
+                `Stock insuficiente para el producto ${det.producto?.nombre || det.productoId}.`,
+              );
+            }
+          } else {
+            throw new BadRequestException(
+              `No existe inventario para el producto ${det.producto?.nombre || det.productoId}.`,
+            );
+          }
+
+          // Registrar en Kardex
+          await tx.movimientoInventario.create({
+            data: {
+              empresaId,
+              productoId: det.productoId,
+              almacenOrigenId: invoice.almacenId,
+              usuarioId,
+              tipo: 'VENTA',
+              cantidad: det.cantidad,
+              referenciaDoc: `${invoice.numeroFactura} (${ncf})`,
+              motivo: `Facturación de Venta - NCF: ${ncf}`,
+            },
+          });
+        }
+      }
+
+      // Actualizar Factura
+      const updated = await tx.facturaVenta.update({
+        where: { id },
+        data: {
+          ncf,
+          tipoNcf,
+          estado: 'EMITIDA',
+          fiscalbridgeStatus: needsFiscal ? 'PENDING' : 'NOT_TRANSMITTED',
+        },
+        include: {
+          cliente: true,
+          almacen: true,
+          sucursal: true,
+          detalles: { include: { producto: true } },
+        },
+      });
+
+      // Outbox fiscal si aplica
+      if (needsFiscal) {
+        await tx.outboxEvent.create({
+          data: {
+            empresaId,
+            tipo: 'FISCALBRIDGE_TRANSMIT',
+            aggregateId: updated.id,
+            payload: JSON.stringify({ facturaId: updated.id }),
+          },
+        });
+      }
+
+      return updated;
+    });
+
+    if (needsFiscal) {
+      void this.fiscalOutbox
+        .transmitNow(emitted.id, empresaId)
+        .catch((error) =>
+          this.logger.error(
+            `Outbox fiscal para ${emitted.numeroFactura}: ${error?.message}`,
+          ),
+        );
+    }
+
+    return emitted;
+  }
+
   async cancel(empresaId: string, usuarioId: string, id: string) {
     const invoice = await this.findOne(empresaId, id);
 
@@ -508,39 +643,42 @@ export class InvoicesService {
         throw new BadRequestException(
           'La factura ya ha sido anulada o no pertenece a la empresa.',
         );
-      // Restaurar stock
-      for (const det of invoice.detalles) {
-        if (det.producto.tipo === 'SERVICIO') continue;
-        if (invoice.almacenId) {
-          const stock = await tx.inventarioStock.findUnique({
-            where: {
-              productoId_almacenId: {
-                productoId: det.productoId,
-                almacenId: invoice.almacenId,
-              },
-            },
-          });
 
-          if (stock) {
-            await tx.inventarioStock.update({
-              where: { id: stock.id },
-              data: { cantidad: { increment: det.cantidad } },
+      // Restaurar stock solo si la factura fue emitida (no borrador)
+      if (invoice.estado !== 'BORRADOR') {
+        for (const det of invoice.detalles) {
+          if (det.producto.tipo === 'SERVICIO') continue;
+          if (invoice.almacenId) {
+            const stock = await tx.inventarioStock.findUnique({
+              where: {
+                productoId_almacenId: {
+                  productoId: det.productoId,
+                  almacenId: invoice.almacenId,
+                },
+              },
+            });
+
+            if (stock) {
+              await tx.inventarioStock.update({
+                where: { id: stock.id },
+                data: { cantidad: { increment: det.cantidad } },
+              });
+            }
+
+            // Registrar movimiento de anulación en Kardex
+            await tx.movimientoInventario.create({
+              data: {
+                empresaId,
+                productoId: det.productoId,
+                almacenDestinoId: invoice.almacenId,
+                usuarioId,
+                tipo: 'AJUSTE_POSITIVO',
+                cantidad: det.cantidad,
+                referenciaDoc: `ANULACIÓN ${invoice.numeroFactura}`,
+                motivo: `Devolución al inventario por anulación de factura ${invoice.numeroFactura}`,
+              },
             });
           }
-
-          // Registrar movimiento de anulación en Kardex
-          await tx.movimientoInventario.create({
-            data: {
-              empresaId,
-              productoId: det.productoId,
-              almacenDestinoId: invoice.almacenId,
-              usuarioId,
-              tipo: 'AJUSTE_POSITIVO',
-              cantidad: det.cantidad,
-              referenciaDoc: `ANULACIÓN ${invoice.numeroFactura}`,
-              motivo: `Devolución al inventario por anulación de factura ${invoice.numeroFactura}`,
-            },
-          });
         }
       }
 

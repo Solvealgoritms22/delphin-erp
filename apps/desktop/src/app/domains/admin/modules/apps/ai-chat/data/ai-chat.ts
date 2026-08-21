@@ -263,15 +263,21 @@ export class AiChatService {
   /**
    * Send a message and consume real-time token-by-token stream (SSE)
    */
-  sendMessage(conversationId: string, text: string): Observable<any> {
+  sendMessage(
+    conversationId: string,
+    text: string,
+    images?: string[],
+    thinking?: boolean,
+  ): Observable<any> {
     const trimmed = text.trim();
-    if (!trimmed) return of(null);
+    if (!trimmed && (!images || images.length === 0)) return of(null);
 
     const userMsgId = `user_${Date.now()}`;
     const userMsg: Message = {
       id: userMsgId,
       role: 'user',
       content: trimmed,
+      images: images && images.length > 0 ? images : undefined,
       createdAt: new Date().toISOString(),
     };
 
@@ -326,6 +332,8 @@ export class AiChatService {
           message: trimmed,
           conversationId,
           history,
+          images: images && images.length > 0 ? images : undefined,
+          thinking: !!thinking,
         }),
       })
         .then(async (response) => {

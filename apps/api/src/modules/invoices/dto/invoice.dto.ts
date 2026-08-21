@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -46,8 +47,16 @@ export class CreateInvoiceDto {
   sucursalId?: string;
 
   @IsString()
-  @IsNotEmpty()
-  tipoNcf: string; // E31, E32, E34, B01, B02, B14, B15
+  @IsOptional()
+  tipoNcf?: string; // E31, E32, E34, B01, B02, B14, B15
+
+  @IsBoolean()
+  @IsOptional()
+  esBorrador?: boolean;
+
+  @IsString()
+  @IsOptional()
+  estado?: string; // BORRADOR | EMITIDA
 
   @IsString()
   @IsOptional()

@@ -35,7 +35,7 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
     EmptyStateComponent,
   ],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
       
       <!-- Header -->
       <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">

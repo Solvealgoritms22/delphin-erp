@@ -30,6 +30,21 @@ export class ChatRequestDto {
   @IsOptional()
   @IsArray()
   history?: ChatMessageDto[];
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Optional base64 image data URLs (up to 4 images)',
+  })
+  @IsOptional()
+  @IsArray()
+  images?: string[];
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description: 'Flag to enable deep analytical reasoning (thinking mode)',
+  })
+  @IsOptional()
+  thinking?: boolean;
 }
 
 export class ChatResponseDto {

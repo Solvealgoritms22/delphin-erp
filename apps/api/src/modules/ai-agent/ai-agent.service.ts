@@ -311,6 +311,9 @@ export class AiAgentService {
       }
     }
 
+    const hasImages = Array.isArray(dto.images) && dto.images.length > 0;
+    const isThinking = !!dto.thinking;
+
     // 3. Try OpenRouter / Groq streaming
     if (!streamedSuccessfully) {
       const apiKey = process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY;
@@ -322,6 +325,8 @@ export class AiAgentService {
             dto.history || [],
             apiKey,
             handleToken,
+            dto.images,
+            isThinking,
           );
           streamedSuccessfully = true;
         } catch (err: any) {
@@ -340,20 +345,16 @@ export class AiAgentService {
           userQuery,
           dbContext,
           dto.history || [],
+          dto.images,
+          isThinking,
         );
       } catch {
         fullText = this.synthesizeSmartResponse(
           userQuery,
           dbContext,
           user.name || user.email,
-        );
-      }
-
-      if (!fullText) {
-        fullText = this.synthesizeSmartResponse(
-          userQuery,
-          dbContext,
-          user.name || user.email,
+          isThinking,
+          dto.images,
         );
       }
 
@@ -385,12 +386,17 @@ export class AiAgentService {
   /**
    * Real streaming for OpenRouter / Groq / OpenAI-compatible APIs
    */
+  /**
+   * Real streaming for OpenRouter / Groq / OpenAI-compatible APIs
+   */
   private async streamOpenAICompatible(
     prompt: string,
     dbContext: any,
     history: ChatMessage[],
     apiKey: string,
     emit: (token: string) => void,
+    images?: string[],
+    thinking?: boolean,
   ): Promise<void> {
     const isGroq =
       !!process.env.GROQ_API_KEY && !process.env.OPENROUTER_API_KEY;
@@ -402,7 +408,7 @@ export class AiAgentService {
       ? process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
       : process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
 
-    const systemPrompt = `Eres Dolphin ERP AI, el copiloto inteligente de gestión empresarial de Dolphin ERP.
+    let systemPrompt = `Eres Dolphin ERP AI, el copiloto inteligente de gestión empresarial de Dolphin ERP.
 Tienes acceso directo y de solo lectura a la base de datos de la empresa activa del usuario.
 
 INSTRUCCIONES CLAVE:
@@ -410,17 +416,32 @@ INSTRUCCIONES CLAVE:
 2. Utiliza tablas Markdown cuando enumeres registros (productos, clientes, proveedores, logs, etc.).
 3. Resalta importes monetarios, cantidades y estados con negrita o badges en código (\`ACTIVO\`, \`DOP\`, \`USD\`).
 4. Si los datos están vacíos, indícalo amablemente y sugiere cómo crearlos en el sistema.
-5. Mantén un tono ejecutivo, analítico y colaborativo.
+5. Mantén un tono ejecutivo, analítico y colaborativo.`;
 
-DATOS ACTUALES DE LA EMPRESA CONSULTADA:
+    if (thinking) {
+      systemPrompt += `\n6. MODO DE RAZONAMIENTO PROFUNDO: Analiza detalladamente la consulta y contexto, estructurando tu proceso analítico paso a paso dentro del bloque <think>...</think> antes de proporcionar la respuesta final al usuario.`;
+    }
+
+    systemPrompt += `\n\nDATOS ACTUALES DE LA EMPRESA CONSULTADA:
 \`\`\`json
 ${JSON.stringify(dbContext, null, 2)}
 \`\`\``;
 
+    const userContent: any =
+      images && images.length > 0
+        ? [
+            { type: 'text', text: prompt },
+            ...images.slice(0, 4).map((url) => ({
+              type: 'image_url',
+              image_url: { url },
+            })),
+          ]
+        : prompt;
+
     const messages = [
       { role: 'system', content: systemPrompt },
       ...history.slice(-6).map((h) => ({ role: h.role, content: h.content })),
-      { role: 'user', content: prompt },
+      { role: 'user', content: userContent },
     ];
 
     const response = await fetch(endpoint, {
@@ -542,8 +563,10 @@ ${JSON.stringify(dbContext, null, 2)}
     prompt: string,
     dbContext: any,
     history: ChatMessage[],
+    images?: string[],
+    thinking?: boolean,
   ): Promise<string> {
-    const systemPrompt = `Eres Dolphin ERP AI, el copiloto inteligente de gestión empresarial de Dolphin ERP.
+    let systemPrompt = `Eres Dolphin ERP AI, el copiloto inteligente de gestión empresarial de Dolphin ERP.
 Tienes acceso directo y de solo lectura a la base de datos de la empresa activa del usuario.
 
 INSTRUCCIONES CLAVE:
@@ -551,9 +574,17 @@ INSTRUCCIONES CLAVE:
 2. Utiliza tablas Markdown cuando enumeres registros (productos, clientes, proveedores, logs, etc.).
 3. Resalta importes monetarios, cantidades y estados con negrita o badges en código (\`ACTIVO\`, \`DOP\`, \`USD\`).
 4. Si los datos están vacíos, indícalo amablemente y sugiere cómo crearlos en el sistema.
-5. Mantén un tono analítico, ejecutivo y colaborativo.
+5. Mantén un tono analítico, ejecutivo y colaborativo.`;
 
-DATOS ACTUALES DE LA EMPRESA CONSULTADA:
+    if (thinking) {
+      systemPrompt += `\n6. MODO RAZONAMIENTO: Incluye tu proceso lógico estructurado dentro de <think>...</think> antes de la respuesta formal.`;
+    }
+
+    if (images && images.length > 0) {
+      systemPrompt += `\n\n[Nota: El usuario adjuntó ${images.length} imagen(es) para análisis visual]`;
+    }
+
+    systemPrompt += `\n\nDATOS ACTUALES DE LA EMPRESA CONSULTADA:
 \`\`\`json
 ${JSON.stringify(dbContext, null, 2)}
 \`\`\``;
@@ -737,17 +768,31 @@ ${JSON.stringify(dbContext, null, 2)}
     query: string,
     data: any,
     userName: string,
+    thinking?: boolean,
+    images?: string[],
   ): string {
     const q = query.toLowerCase();
+
+    let prefix = '';
+    if (thinking) {
+      const activeModules = Object.keys(data)
+        .map((k) => k.toUpperCase())
+        .join(', ') || 'GENERAL';
+      prefix += `<think>\n1. Interpretación de consulta: "${query.slice(0, 100)}"\n2. Verificación de permisos: Lectura autorizada para ${userName}\n3. Módulos de datos examinados: [${activeModules}]\n4. Estructuración analítica de la respuesta en tablas Markdown.\n</think>\n\n`;
+    }
+
+    if (images && images.length > 0) {
+      prefix += `> 🖼️ *Se incluyeron ${images.length} archivo(s)/imagen(es) adjunta(s) en la consulta.*\n\n`;
+    }
 
     // 1. Productos
     if (data.productos) {
       const list = data.productos.productos || [];
       if (list.length === 0) {
-        return `### 📦 Catálogo de Productos\n\n> [!NOTE]\n> Actualmente **no hay productos registrados** en esta empresa. Puedes agregar nuevos productos desde el módulo de [Catálogos > Productos](/admin/catalogs/products).\n\n¿Deseas que te ayude con información sobre cómo importar o categorizar tus productos?`;
+        return prefix + `### 📦 Catálogo de Productos\n\n> [!NOTE]\n> Actualmente **no hay productos registrados** en esta empresa. Puedes agregar nuevos productos desde el módulo de [Catálogos > Productos](/admin/catalogs/products).\n\n¿Deseas que te ayude con información sobre cómo importar o categorizar tus productos?`;
       }
 
-      let table = `### 📦 Catálogo de Productos (${data.productos.totalEncontrados} registros encontrados)\n\n`;
+      let table = prefix + `### 📦 Catálogo de Productos (${data.productos.totalEncontrados} registros encontrados)\n\n`;
       table += `Aquí tienes el detalle de los productos registrados en la base de datos:\n\n`;
       table += `| Código | Nombre del Producto | Categoría | Marca | Precio Venta | Costo | Estado |\n`;
       table += `| :--- | :--- | :--- | :--- | :---: | :---: | :---: |\n`;

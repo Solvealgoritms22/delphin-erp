@@ -6,13 +6,27 @@ export type MessagePart = {
   language?: string;
 };
 
+export interface ToolCallItem {
+  id?: string;
+  name: string;
+  args?: Record<string, any> | string;
+  result?: any;
+  status?: 'running' | 'success' | 'error';
+  durationMs?: number;
+}
+
 export type Message = {
   id: string;
   role: MessageRole;
   content: string | MessagePart[];
+  images?: string[];
   createdAt: string;
   streaming?: boolean;
+  isThinking?: boolean;
+  thinkingContent?: string;
+  thinkingDurationMs?: number;
   toolsUsed?: string[];
+  toolCalls?: ToolCallItem[];
 };
 
 export type Conversation = {

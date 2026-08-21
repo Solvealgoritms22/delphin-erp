@@ -61,6 +61,12 @@ export class InvoicesController {
     return this.invoicesService.proxyXml(user.empresaId, id, res);
   }
 
+  @Post(':id/emit')
+  emit(@CurrentUser() user: any, @Param('id') id: string) {
+    const userId = user.userId || user.id;
+    return this.invoicesService.emitDraft(user.empresaId, userId, id);
+  }
+
   @Post(':id/cancel')
   cancel(@CurrentUser() user: any, @Param('id') id: string) {
     const userId = user.userId || user.id;

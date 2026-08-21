@@ -3,13 +3,16 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { environment } from '@/environments/environment';
 import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { SlidersHorizontalIcon, ChevronDownIcon, TrashIcon } from 'ng-animated-icons';
 
 interface ActivityItem {
   id: string;
@@ -36,18 +39,31 @@ const MODULE_CONFIG: Record<string, { icon: string; color: string; label: string
 };
 
 const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; text: string }> = {
-  CREATE: { label: 'Creó',         verb: 'creó',          bg: 'bg-green-100 dark:bg-green-500/20',   text: 'text-green-700 dark:text-green-400'   },
-  UPDATE: { label: 'Actualizó',    verb: 'actualizó',     bg: 'bg-blue-100 dark:bg-blue-500/20',    text: 'text-blue-700 dark:text-blue-400'     },
-  DELETE: { label: 'Eliminó',      verb: 'eliminó',       bg: 'bg-red-100 dark:bg-red-500/20',      text: 'text-red-700 dark:text-red-400'       },
-  LOGIN:  { label: 'Inició sesión',verb: 'inició sesión', bg: 'bg-teal-100 dark:bg-teal-500/20',   text: 'text-teal-700 dark:text-teal-400'     },
-  LOGOUT: { label: 'Cerró sesión', verb: 'cerró sesión',  bg: 'bg-neutral-100 dark:bg-neutral-700', text: 'text-neutral-600 dark:text-neutral-300'},
-  EXPORT: { label: 'Exportó',      verb: 'exportó',       bg: 'bg-yellow-100 dark:bg-yellow-500/20',text: 'text-yellow-700 dark:text-yellow-400'  },
+  CREATE: { label: 'activity.actions.create', verb: 'creó',          bg: 'bg-green-100 dark:bg-green-500/20',   text: 'text-green-700 dark:text-green-400'   },
+  UPDATE: { label: 'activity.actions.update', verb: 'actualizó',     bg: 'bg-blue-100 dark:bg-blue-500/20',    text: 'text-blue-700 dark:text-blue-400'     },
+  DELETE: { label: 'activity.actions.delete', verb: 'eliminó',       bg: 'bg-red-100 dark:bg-red-500/20',      text: 'text-red-700 dark:text-red-400'       },
+  LOGIN:  { label: 'activity.actions.login',  verb: 'inició sesión', bg: 'bg-teal-100 dark:bg-teal-500/20',   text: 'text-teal-700 dark:text-teal-400'     },
+  LOGOUT: { label: 'activity.actions.logout', verb: 'cerró sesión',  bg: 'bg-neutral-100 dark:bg-neutral-700', text: 'text-neutral-600 dark:text-neutral-300'},
+  EXPORT: { label: 'activity.actions.export', verb: 'exportó',       bg: 'bg-yellow-100 dark:bg-yellow-500/20',text: 'text-yellow-700 dark:text-yellow-400'  },
 };
 
 @Component({
   selector: 'app-activity',
   standalone: true,
-  imports: [CommonModule, DatePipe, MatIconModule, MatButtonModule, MatSlideToggleModule, FormsModule, TranslocoPipe],
+  imports: [
+    CommonModule,
+    DatePipe,
+    MatIconModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatSlideToggleModule,
+    FormsModule,
+    EmptyStateComponent,
+    TranslocoPipe,
+    SlidersHorizontalIcon,
+    ChevronDownIcon,
+    TrashIcon,
+  ],
   template: `
     <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
 
@@ -58,9 +74,9 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
            <p class="text-sm text-neutral-500 mt-0.5">{{ 'activity.description' | transloco }}</p>
          </div>
          <button mat-stroked-button type="button" (click)="clearActivity()" [disabled]="isLoading() || items().length === 0"
-           class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400">
-           <mat-icon svgIcon="trash" class="icon-size-4 mr-2"></mat-icon>
-           {{ 'activity.clear' | transloco }}
+           class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400 cursor-pointer !h-10">
+           <i-trash [size]="16" class="mr-2 text-red-500" />
+           <span>{{ 'activity.clear' | transloco }}</span>
          </button>
       </div>
 
@@ -72,34 +88,56 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
           <!-- Toolbar -->
           <div class="flex items-center justify-between mb-8 gap-4 flex-wrap">
             <div class="flex items-center gap-3 flex-wrap">
-              <!-- Module filter -->
-              <select
-                [(ngModel)]="selectedModule"
-                (ngModelChange)="onFilterChange()"
-                class="text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 transition"
+              <!-- Module filter menu button -->
+              <button
+                [matMenuTriggerFor]="moduleMenu"
+                type="button"
+                class="flex h-10 shrink-0 cursor-pointer items-center justify-between gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 text-sm font-medium whitespace-nowrap text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/50"
               >
-                 <option value="">{{ 'activity.allModules' | transloco }}</option>
+                <div class="flex items-center gap-2">
+                  <i-sliders-horizontal [size]="15" class="text-neutral-500 dark:text-neutral-400" />
+                  <span>{{ selectedModule ? (MODULE_CONFIG[selectedModule]?.label | transloco) : ('activity.allModules' | transloco) }}</span>
+                </div>
+                <i-chevron-down [size]="14" class="text-neutral-400" />
+              </button>
+              <mat-menu #moduleMenu="matMenu" class="!rounded-xl !p-1">
+                <button mat-menu-item (click)="setModuleFilter('')">
+                  <span>{{ 'activity.allModules' | transloco }}</span>
+                </button>
                 @for (entry of moduleEntries; track entry[0]) {
-                  <option [value]="entry[0]">{{ entry[1].label }}</option>
+                  <button mat-menu-item (click)="setModuleFilter(entry[0])">
+                    <span>{{ entry[1].label | transloco }}</span>
+                  </button>
                 }
-              </select>
+              </mat-menu>
 
-              <!-- Action filter -->
-              <select
-                [(ngModel)]="selectedAction"
-                (ngModelChange)="onFilterChange()"
-                class="text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 transition"
+              <!-- Action filter menu button -->
+              <button
+                [matMenuTriggerFor]="actionMenu"
+                type="button"
+                class="flex h-10 shrink-0 cursor-pointer items-center justify-between gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 text-sm font-medium whitespace-nowrap text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/50"
               >
-                 <option value="">{{ 'activity.allActions' | transloco }}</option>
+                <div class="flex items-center gap-2">
+                  <i-sliders-horizontal [size]="15" class="text-neutral-500 dark:text-neutral-400" />
+                  <span>{{ selectedAction ? (ACTION_CONFIG[selectedAction]?.label | transloco) : ('activity.allActions' | transloco) }}</span>
+                </div>
+                <i-chevron-down [size]="14" class="text-neutral-400" />
+              </button>
+              <mat-menu #actionMenu="matMenu" class="!rounded-xl !p-1">
+                <button mat-menu-item (click)="setActionFilter('')">
+                  <span>{{ 'activity.allActions' | transloco }}</span>
+                </button>
                 @for (entry of actionEntries; track entry[0]) {
-                  <option [value]="entry[0]">{{ entry[1].label }}</option>
+                  <button mat-menu-item (click)="setActionFilter(entry[0])">
+                    <span>{{ entry[1].label | transloco }}</span>
+                  </button>
                 }
-              </select>
+              </mat-menu>
 
               @if (selectedModule || selectedAction || selectedYear) {
                 <button
                   (click)="clearFilters()"
-                  class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  class="text-sm text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                  >{{ 'common.clearFilters' | transloco }}</button>
               }
             </div>
@@ -134,14 +172,12 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
 
           <!-- Empty state -->
           @if (!isLoading() && items().length === 0) {
-            <div class="flex flex-col items-center justify-center py-24 text-center">
-              <div class="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
-                <mat-icon svgIcon="activity" class="!w-8 !h-8 !text-[32px] text-neutral-400"></mat-icon>
-              </div>
-              <p class="text-lg font-semibold text-neutral-700 dark:text-neutral-300">Sin actividad registrada</p>
-              <p class="text-sm text-neutral-400 mt-1 max-w-xs">
-                Las acciones realizadas en productos, clientes y demás módulos aparecerán aquí automáticamente.
-              </p>
+            <div class="flex flex-auto justify-center p-6 sm:p-10">
+              <app-empty-state
+                icon="activity"
+                [title]="'activity.emptyTitle' | transloco"
+                [description]="'activity.emptyDescription' | transloco"
+              />
             </div>
           }
 
@@ -287,8 +323,20 @@ export default class ActivityComponent implements OnInit, OnDestroy {
   autoRefresh = false;
   private refreshInterval: any;
 
+  readonly MODULE_CONFIG = MODULE_CONFIG;
+  readonly ACTION_CONFIG = ACTION_CONFIG;
   readonly moduleEntries = Object.entries(MODULE_CONFIG);
   readonly actionEntries = Object.entries(ACTION_CONFIG);
+
+  setModuleFilter(modulo: string) {
+    this.selectedModule = modulo;
+    this.onFilterChange();
+  }
+
+  setActionFilter(action: string) {
+    this.selectedAction = action;
+    this.onFilterChange();
+  }
 
   getModule(modulo: string) {
     const module = MODULE_CONFIG[modulo] ?? { icon: 'activity', color: 'text-neutral-500', bgColor: 'bg-neutral-100 dark:bg-neutral-800', label: modulo };
@@ -296,7 +344,8 @@ export default class ActivityComponent implements OnInit, OnDestroy {
   }
 
   getAction(accion: string) {
-    return ACTION_CONFIG[accion] ?? { label: accion, verb: accion.toLowerCase(), bg: 'bg-neutral-100 dark:bg-neutral-700', text: 'text-neutral-600 dark:text-neutral-300' };
+    const action = ACTION_CONFIG[accion] ?? { label: accion, verb: accion.toLowerCase(), bg: 'bg-neutral-100 dark:bg-neutral-700', text: 'text-neutral-600 dark:text-neutral-300' };
+    return { ...action, label: this.transloco.translate(action.label) };
   }
 
   hasMetadata(meta: Record<string, any> | null): boolean {

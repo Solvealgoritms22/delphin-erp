@@ -92,7 +92,7 @@ export interface CreateInvoiceDto {
   clienteId?: string;
   almacenId?: string;
   sucursalId?: string;
-  tipoNcf: string;
+  tipoNcf?: string;
   tipoPago?: string;
   metodoPago?: string;
   ncfModificado?: string;
@@ -100,6 +100,8 @@ export interface CreateInvoiceDto {
   notas?: string;
   items: InvoiceItemDto[];
   moneda?: string;
+  esBorrador?: boolean;
+  estado?: string;
 }
 
 export interface CreateCreditNoteLineDto {
@@ -230,6 +232,16 @@ export class InvoicesService {
       tap((cancelled) => {
         this.invoices.update((list) =>
           list.map((inv) => (inv.id === id ? cancelled : inv))
+        );
+      })
+    );
+  }
+
+  emitDraft(id: string): Observable<FacturaVenta> {
+    return this.http.post<FacturaVenta>(`${this.apiUrl}/${id}/emit`, {}).pipe(
+      tap((emitted) => {
+        this.invoices.update((list) =>
+          list.map((inv) => (inv.id === id ? emitted : inv))
         );
       })
     );

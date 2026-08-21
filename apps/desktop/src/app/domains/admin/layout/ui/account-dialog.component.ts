@@ -45,7 +45,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
           <div class="relative group">
             <div class="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-bold text-2xl flex items-center justify-center border-2 border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
               @if (avatarUrl()) {
-                 <img [src]="avatarUrl()" [alt]="'account.avatar' | transloco" class="w-full h-full object-contain p-2 select-none" />
+                <img [src]="avatarUrl()" [alt]="'account.avatar' | transloco" class="w-full h-full object-cover select-none" />
               } @else {
                 {{ initials() }}
               }
@@ -202,7 +202,7 @@ export class AccountDialogComponent implements OnInit {
   form = this.fb.group({
     name: [this.user()?.name || '', [Validators.required]],
     email: [{ value: this.user()?.email || '', disabled: true }],
-    
+
     smtpEnabled: [false],
     smtpHost: [''],
     smtpPort: [587],
@@ -278,7 +278,7 @@ export class AccountDialogComponent implements OnInit {
       name: this.form.value.name,
       avatar: this.avatarUrl(),
     };
-    
+
     if (this.isOwner()) {
       updatedData.smtpEnabled = this.form.value.smtpEnabled;
       updatedData.smtpHost = this.form.value.smtpHost;
@@ -314,7 +314,7 @@ export class AccountDialogComponent implements OnInit {
       this.smtpTestResult.set({ success: false, message: 'Guarda los cambios antes de probar la conexión.' });
       return;
     }
-    
+
     this.testingSmtp.set(true);
     this.smtpTestResult.set(null);
     this.http.post<{ success: boolean; message: string; latencyMs?: number }>(
