@@ -496,9 +496,9 @@ export class Assistant {
     if (!items) return;
 
     const files: File[] = [];
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith('image/')) {
-        const file = items[i].getAsFile();
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
         if (file) files.push(file);
       }
     }
