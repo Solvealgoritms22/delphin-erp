@@ -21,7 +21,7 @@ import { CountryFlagComponent } from '@/app/shared/components/country-flag/count
 
 @Component({
   selector: 'auth-sign-up',
-  templateUrl: './sign-up.html',
+  templateUrl: './sign-up.component.html',
   imports: [
     RouterLink,
     MatFormFieldModule,

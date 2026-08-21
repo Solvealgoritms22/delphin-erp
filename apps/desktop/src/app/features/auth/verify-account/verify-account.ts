@@ -17,7 +17,7 @@ import { TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'auth-verify-account',
-  templateUrl: './verify-account.html',
+  templateUrl: './verify-account.component.html',
   imports: [
     MatFormFieldModule,
     MatInputModule,

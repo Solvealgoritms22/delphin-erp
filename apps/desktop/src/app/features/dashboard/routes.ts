@@ -9,7 +9,7 @@ const routes: Routes = [
   {
     path: 'general',
     loadComponent: () =>
-      import('./features/general/general').then(
+      import('./features/general/dashboard-general.component').then(
         (m) => m.DashboardGeneralComponent
       ),
   },

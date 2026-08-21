@@ -3,11 +3,11 @@ import { Routes } from '@angular/router';
 const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./features/ai-chat'),
+    loadComponent: () => import('./features/copilot-chat.component'),
     children: [
       {
         path: ':id',
-        loadComponent: () => import('./features/conversation'),
+        loadComponent: () => import('./features/copilot-conversation.component'),
       },
     ],
   },

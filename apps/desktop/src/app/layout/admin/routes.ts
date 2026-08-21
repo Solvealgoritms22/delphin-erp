@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { AdminLayout } from './layout';
+import { AdminLayout } from './admin-layout.component';
 
 const routes: Routes = [
   {
@@ -38,19 +38,19 @@ const routes: Routes = [
           },
           {
             path: 'clients',
-            loadComponent: () => import('../../features/sales/features/clients/clients').then((c) => c.Clients),
+            loadComponent: () => import('../../features/sales/features/clients/clients-list.component').then((c) => c.Clients),
           },
           {
             path: 'clients/:id',
-            loadComponent: () => import('../../features/sales/features/clients/client-form/client-form').then((c) => c.ClientForm),
+            loadComponent: () => import('../../features/sales/features/clients/client-form/client-form.component').then((c) => c.ClientForm),
           },
           {
             path: 'suppliers',
-            loadComponent: () => import('../../features/purchases/features/suppliers/suppliers').then((c) => c.Suppliers),
+            loadComponent: () => import('../../features/purchases/features/suppliers/suppliers-list.component').then((c) => c.Suppliers),
           },
           {
             path: 'suppliers/:id',
-            loadComponent: () => import('../../features/purchases/features/suppliers/supplier-form/supplier-form').then((c) => c.SupplierForm),
+            loadComponent: () => import('../../features/purchases/features/suppliers/supplier-form/supplier-form.component').then((c) => c.SupplierForm),
           },
         ],
       },

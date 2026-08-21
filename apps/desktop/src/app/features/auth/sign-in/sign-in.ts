@@ -21,7 +21,7 @@ import { EyeOffIcon } from 'ng-animated-icons';
 
 @Component({
   selector: 'auth-sign-in',
-  templateUrl: './sign-in.html',
+  templateUrl: './sign-in.component.html',
   imports: [
     RouterLink,
     MatFormFieldModule,

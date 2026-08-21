@@ -17,7 +17,7 @@ import { AuthService } from '@/app/core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 @Component({
   selector: 'auth-reset-password',
-  templateUrl: './reset-password.html',
+  templateUrl: './reset-password.component.html',
   imports: [
     MatFormFieldModule,
     MatInputModule,

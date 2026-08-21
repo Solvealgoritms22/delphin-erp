@@ -13,12 +13,12 @@ import {
 } from '@angular/material/sidenav';
 import { RouterOutlet, Router } from '@angular/router';
 import { Media } from '@/app/core/media';
-import { Assistant } from '@/app/layout/admin/ui/assistant';
-import { LanguageSwitcher } from '@/app/layout/admin/ui/language-switcher';
-import { Notifications } from '@/app/layout/admin/ui/notifications';
-import { SchemeSwitcher } from '@/app/layout/admin/ui/scheme-switcher';
-import { Shortcuts } from '@/app/layout/admin/ui/shortcuts';
-import { AdminSidebar } from '@/app/layout/admin/ui/sidebar';
+import { Assistant } from '@/app/layout/admin/ui/copilot-drawer.component';
+import { LanguageSwitcher } from '@/app/layout/admin/ui/locale-selector.component';
+import { Notifications } from '@/app/layout/admin/ui/notifications-panel.component';
+import { SchemeSwitcher } from '@/app/layout/admin/ui/theme-mode-toggle.component';
+import { Shortcuts } from '@/app/layout/admin/ui/quick-shortcuts.component';
+import { AdminSidebar } from '@/app/layout/admin/ui/admin-sidebar.component';
 import { routeAnimations } from '@/app/core/animations/animations';
 import { AuthService } from '@/app/core/auth/auth.service';
 import { AuthState } from '@/app/core/auth/auth.state';

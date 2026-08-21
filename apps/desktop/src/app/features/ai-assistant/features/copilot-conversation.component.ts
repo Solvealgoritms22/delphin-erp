@@ -27,7 +27,7 @@ import {
 } from 'ng-animated-icons';
 import { AiChatService } from '@/app/features/ai-assistant/data/ai-chat';
 import { Message } from '@/app/features/ai-assistant/data/model';
-import AiChat from '@/app/features/ai-assistant/features/ai-chat';
+import CopilotChat from '@/app/features/ai-assistant/features/copilot-chat.component';
 import { MarkdownRendererComponent } from '@/app/shared/components/markdown-renderer/markdown-renderer.component';
 import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/thinking-orb.component';
 import { ThinkingBlockComponent } from '@/app/shared/components/ai/thinking-block.component';

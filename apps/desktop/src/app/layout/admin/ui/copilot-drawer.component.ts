@@ -23,7 +23,7 @@ import { ThinkingBlockComponent } from '@/app/shared/components/ai/thinking-bloc
 import { ToolCallCardComponent } from '@/app/shared/components/ai/tool-call-card.component';
 import { ChatMessageActionsComponent } from '@/app/shared/components/ai/chat-message-actions.component';
 import { SpeechRecognitionService } from '@/app/shared/services/speech-recognition.service';
-import { AttachedFile } from '@/app/features/ai-assistant/features/conversation';
+import { AttachedFile } from '@/app/features/ai-assistant/features/copilot-conversation.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   ArrowUpRightIcon,

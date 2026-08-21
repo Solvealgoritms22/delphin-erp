@@ -18,7 +18,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'auth-forgot-password',
-  templateUrl: './forgot-password.html',
+  templateUrl: './forgot-password.component.html',
   imports: [
     MatFormFieldModule,
     MatInputModule,

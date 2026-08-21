@@ -6,8 +6,8 @@ import { environment } from '@/environments/environment';
 import { AuthState } from '@/app/core/auth/auth.state';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { Navigation } from '@/app/layout/admin/ui/navigation';
-import { User } from '@/app/layout/admin/ui/user';
+import { Navigation } from '@/app/layout/admin/ui/nav-tree.component';
+import { User } from '@/app/layout/admin/ui/user-profile-menu.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, SparklesIcon, ArrowUpRightIcon } from 'ng-animated-icons';
 

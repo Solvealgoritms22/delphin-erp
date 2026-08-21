@@ -22,7 +22,7 @@ import { AiChatService } from '@/app/features/ai-assistant/data/ai-chat';
 import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/thinking-orb.component';
 import { SpeechRecognitionService } from '@/app/shared/services/speech-recognition.service';
-import { AttachedFile } from '@/app/features/ai-assistant/features/conversation';
+import { AttachedFile } from '@/app/features/ai-assistant/features/copilot-conversation.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 @Component({
