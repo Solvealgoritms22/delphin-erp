@@ -5,12 +5,14 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <span
-      class="fi fi-{{ countryClass() }} inline-block shrink-0 shadow-2xs {{ roundedClass() }}"
+    <img
+      [src]="flagSrc()"
+      [alt]="code()"
+      class="inline-block shrink-0 shadow-2xs {{ roundedClass() }} object-cover select-none pointer-events-none"
       [style.width.px]="width()"
       [style.height.px]="height()"
-      [attr.aria-label]="code()"
-    ></span>
+      loading="lazy"
+    />
   `,
   styles: [`
     :host {
@@ -30,9 +32,9 @@ export class CountryFlagComponent {
   /** Shape: 'rounded' (default), 'circle', 'square' */
   readonly shape = input<'rounded' | 'circle' | 'square'>('rounded');
 
-  readonly countryClass = computed(() => {
-    const c = this.code() || 'do';
-    return c.toLowerCase().trim();
+  readonly flagSrc = computed(() => {
+    const c = (this.code() || 'do').toLowerCase().trim();
+    return `flags/${c}.svg`;
   });
 
   readonly height = computed(() => {
