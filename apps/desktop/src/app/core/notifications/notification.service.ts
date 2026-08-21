@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { environment } from '@/environments/environment';
 import { AuthState } from '../auth/auth.state';
 
 export interface AppNotification {

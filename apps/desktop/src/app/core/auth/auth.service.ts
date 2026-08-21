@@ -4,7 +4,7 @@ import { Observable, of, tap, map, catchError, finalize } from 'rxjs';
 import { AuthState } from './auth.state';
 import { AuthResponse, LoginCredentials, User } from './auth.types';
 import { SessionMonitorService } from './session-monitor.service';
-import { environment } from '../../../environments/environment';
+import { environment } from '@/environments/environment';
 
 @Injectable({
   providedIn: 'root',

@@ -7,7 +7,7 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./coming-soon'),
+        loadComponent: () => import('./coming-soon.component'),
       },
     ],
   },

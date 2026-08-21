@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { environment } from '../../../../../../environments/environment';
+import { environment } from '@/environments/environment';
 
 export interface SessionLog {
   id: string;

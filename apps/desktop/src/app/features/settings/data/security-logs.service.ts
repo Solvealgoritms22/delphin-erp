@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { environment } from '../../../../../../environments/environment';
+import { environment } from '@/environments/environment';
 
 export type SecuritySeverity = 'Low' | 'Medium' | 'High' | 'Critical';
 
