@@ -94,57 +94,52 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         </div>
 
         <div
-          class="relative hidden flex-auto items-center justify-center overflow-hidden rounded-r-xl border-l border-neutral-200/10 bg-slate-950 p-8 sm:p-16 md:flex"
+          class="relative hidden flex-auto items-center justify-center overflow-hidden rounded-r-xl border-l border-neutral-200/10 bg-neutral-950 p-8 sm:p-16 md:flex"
         >
-          <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-600/20 blur-3xl pointer-events-none"></div>
-          <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none"></div>
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none"></div>
-
-          <div class="absolute inset-0 bg-[linear-gradient(to_right,#33415518_1px,transparent_1px),linear-gradient(to_bottom,#33415518_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
-
-          <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25">
-            <div class="w-[360px] h-[360px] rounded-full border border-blue-500/30"></div>
-            <div class="absolute w-[540px] h-[540px] rounded-full border border-blue-400/20"></div>
-            <div class="absolute w-[720px] h-[720px] rounded-full border border-cyan-400/10"></div>
+          <div
+            class="absolute inset-0 pointer-events-none opacity-40 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_75%)]"
+            style="background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px); background-size: 24px 24px;">
           </div>
 
-          <div class="relative z-10 flex flex-col items-center justify-center text-center max-w-xl px-6 select-none">
+          <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-blue-600/[0.07] blur-[100px] pointer-events-none"></div>
+
+          <div class="relative z-10 flex flex-col items-center justify-center text-center max-w-lg w-full px-8 py-12 rounded-2xl border border-white/[0.07] bg-white/[0.015] backdrop-blur-xs select-none shadow-2xl">
             <div class="flex items-center justify-center gap-4 sm:gap-5 mb-8">
               <img
                 src="/images/logo/logo_dolphin_dark.png"
-                alt="Dolphin ERP"
-                class="h-16 sm:h-20 w-auto object-contain transition-transform duration-300 hover:scale-105 shrink-0"
+                alt="Dolphin logo"
+                class="h-14 sm:h-16 w-auto object-contain transition-transform duration-300 hover:scale-105 shrink-0"
               />
               <div class="flex flex-col items-start text-left justify-center">
-                <span class="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase leading-none font-sans">
+                <span class="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase leading-none font-sans">
                   DOLPHIN
                 </span>
-                <span class="text-[10px] sm:text-xs font-semibold tracking-[0.2em] text-neutral-400 uppercase mt-2 leading-none">
+                <span class="text-[10px] font-semibold tracking-[0.2em] text-neutral-400 uppercase mt-2 leading-none">
                   SISTEMA DE RECURSOS EMPRESARIALES
                 </span>
               </div>
             </div>
 
-            <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white">
               Tu operación, en un solo lugar
             </h2>
 
-            <p class="mt-3 text-sm sm:text-base text-neutral-400 max-w-md leading-relaxed">
+            <p class="mt-3 text-sm text-neutral-400 max-w-sm leading-relaxed">
               Dolphin ERP conecta la gestión de tus empresas, usuarios, catálogos y controles de seguridad en una experiencia clara y centralizada.
             </p>
 
-            <div class="mt-10 grid grid-cols-3 gap-4 w-full max-w-md pt-8 border-t border-white/10">
+            <div class="mt-8 grid grid-cols-3 gap-4 w-full max-w-sm pt-6 border-t border-white/[0.08]">
               <div class="flex flex-col items-center">
-                <span class="text-lg font-bold text-white tracking-tight">100%</span>
-                <span class="text-[11px] text-neutral-400">En la nube</span>
+                <span class="text-base font-semibold text-white tracking-tight">100%</span>
+                <span class="text-[11px] text-neutral-400 mt-0.5">En la nube</span>
               </div>
-              <div class="flex flex-col items-center border-x border-white/10">
-                <span class="text-lg font-bold text-white tracking-tight">DGII / e-CF</span>
-                <span class="text-[11px] text-neutral-400">Facturación</span>
+              <div class="flex flex-col items-center border-x border-white/[0.08]">
+                <span class="text-base font-semibold text-white tracking-tight">DGII / e-CF</span>
+                <span class="text-[11px] text-neutral-400 mt-0.5">Facturación</span>
               </div>
               <div class="flex flex-col items-center">
-                <span class="text-lg font-bold text-white tracking-tight">Multi-Empresa</span>
-                <span class="text-[11px] text-neutral-400">Centralizado</span>
+                <span class="text-base font-semibold text-white tracking-tight">Multi-Empresa</span>
+                <span class="text-[11px] text-neutral-400 mt-0.5">Centralizado</span>
               </div>
             </div>
           </div>
