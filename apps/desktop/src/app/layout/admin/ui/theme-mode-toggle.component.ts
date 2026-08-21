@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
-import { Theming } from '@/app/core/theming';
+import { Theming } from '@core/theming';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({

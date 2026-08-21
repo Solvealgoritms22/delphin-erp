@@ -9,7 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SecurityLog, SecurityLogsService } from '../../data/security-logs.service';
-import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwIcon, ClipboardListIcon, ChevronDownIcon } from 'ng-animated-icons';
 

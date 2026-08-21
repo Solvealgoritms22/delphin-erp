@@ -22,11 +22,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
-} from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
+} from '@shared/components/confirm-dialog/confirm-dialog.component';
 import {
   InvoicesService,
   CreateInvoiceDto,

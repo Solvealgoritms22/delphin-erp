@@ -1,5 +1,5 @@
 import { Directive, Input, TemplateRef, ViewContainerRef, inject, effect } from '@angular/core';
-import { AuthState } from '../../core/auth/auth.state';
+import { AuthState } from '@core/auth/auth.state';
 
 @Directive({
   selector: '[hasPermission]',

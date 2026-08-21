@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { DashboardService, DashboardSummary } from '../../data/dashboard.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { RotateCcwIcon, ActivityIcon, SparklesIcon, RefreshCwIcon } from 'ng-animated-icons';
-import { ExchangeRatesComponent } from '@/app/shared/components/exchange-rates/exchange-rates.component';
+import { ExchangeRatesComponent } from '@shared/components/exchange-rates/exchange-rates.component';
 
 interface DashboardMetric {
   label: string;

@@ -15,15 +15,15 @@ import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
-import { AiChatService } from '@/app/features/ai-assistant/data/ai-chat';
-import { Message } from '@/app/features/ai-assistant/data/model';
-import { MarkdownRendererComponent } from '@/app/shared/components/markdown-renderer/markdown-renderer.component';
-import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/thinking-orb.component';
-import { ThinkingBlockComponent } from '@/app/shared/components/ai/thinking-block.component';
-import { ToolCallCardComponent } from '@/app/shared/components/ai/tool-call-card.component';
-import { ChatMessageActionsComponent } from '@/app/shared/components/ai/chat-message-actions.component';
-import { SpeechRecognitionService } from '@/app/shared/services/speech-recognition.service';
-import { AttachedFile } from '@/app/features/ai-assistant/features/copilot-conversation.component';
+import { AiChatService } from '@features/ai-assistant/data/ai-chat';
+import { Message } from '@features/ai-assistant/data/model';
+import { MarkdownRendererComponent } from '@shared/components/markdown-renderer/markdown-renderer.component';
+import { ThinkingOrbComponent } from '@shared/components/thinking-orb/thinking-orb.component';
+import { ThinkingBlockComponent } from '@shared/components/ai/thinking-block.component';
+import { ToolCallCardComponent } from '@shared/components/ai/tool-call-card.component';
+import { ChatMessageActionsComponent } from '@shared/components/ai/chat-message-actions.component';
+import { SpeechRecognitionService } from '@shared/services/speech-recognition.service';
+import { AttachedFile } from '@features/ai-assistant/features/copilot-conversation.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   ArrowUpRightIcon,

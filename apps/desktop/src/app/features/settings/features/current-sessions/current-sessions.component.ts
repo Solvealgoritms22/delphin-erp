@@ -13,8 +13,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { CurrentSessionsService, SessionLog } from '../../data/current-sessions.service';
-import { ConfirmDialogComponent } from '../../../../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { AuthState } from '../../../../../../core/auth/auth.state';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { AuthState } from '@core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, MonitorCheckIcon, TrashIcon } from 'ng-animated-icons';
 

@@ -5,8 +5,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
-import { AuthService } from '@/app/core/auth/auth.service';
-import { AuthState } from '@/app/core/auth/auth.state';
+import { AuthService } from '@core/auth/auth.service';
+import { AuthState } from '@core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { KeyRoundIcon } from 'ng-animated-icons';
 

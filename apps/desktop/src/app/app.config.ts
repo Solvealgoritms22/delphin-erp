@@ -16,13 +16,13 @@ import {
   withInMemoryScrolling,
 } from '@angular/router';
 import { provideTransloco, TranslocoService } from '@jsverse/transloco';
-import { provideIcons } from '@/app/core/icons/provider';
-import { provideTheming } from '@/app/core/theming';
-import { TranslocoHttpLoader } from '@/app/core/transloco/transloco-http-loader';
+import { provideIcons } from '@core/icons/provider';
+import { provideTheming } from '@core/theming';
+import { TranslocoHttpLoader } from '@core/transloco/transloco-http-loader';
 import { routes } from './app.routes';
 
-import { authInterceptor } from '@/app/core/auth/auth.interceptor';
-import { errorInterceptor } from '@/app/core/http/error.interceptor';
+import { authInterceptor } from '@core/auth/auth.interceptor';
+import { errorInterceptor } from '@core/http/error.interceptor';
 import { provideAngularQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
 export const appConfig: ApplicationConfig = {

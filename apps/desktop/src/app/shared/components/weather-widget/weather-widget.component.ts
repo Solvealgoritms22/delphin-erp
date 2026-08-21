@@ -15,9 +15,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { WeatherService } from '@/app/core/weather/weather.service';
+import { WeatherService } from '@core/weather/weather.service';
 import { WeatherIconComponent } from './weather-icon.component';
-import { CitySearchResult, WeatherLocation } from '@/app/core/weather/weather.types';
+import { CitySearchResult, WeatherLocation } from '@core/weather/weather.types';
 import {
   RefreshCwIcon,
   SearchIcon,

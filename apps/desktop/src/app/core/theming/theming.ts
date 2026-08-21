@@ -7,9 +7,9 @@ import {
   PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { LocalStorage } from '@/app/core/local-storage/local-storage';
-import { Media } from '@/app/core/media/media';
-import { TonalPalette } from '@/app/core/theming/palette';
+import { LocalStorage } from '@core/local-storage/local-storage';
+import { Media } from '@core/media/media';
+import { TonalPalette } from '@core/theming/palette';
 import { Scheme, Colors, Theme } from './models/theming';
 import { THEME_CONFIG } from './provider';
 

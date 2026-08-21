@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ExchangeRateService } from '@/app/core/currency/exchange-rate.service';
+import { ExchangeRateService } from '@core/currency/exchange-rate.service';
 import { CurrencyFlagComponent } from './currency-flag.component';
 import {
   RefreshCwIcon,

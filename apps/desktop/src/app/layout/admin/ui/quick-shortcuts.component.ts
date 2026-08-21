@@ -13,13 +13,13 @@ import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
 import { MatTooltip } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { LocalStorage } from '@/app/core/local-storage';
-import { Media } from '@/app/core/media';
+import { LocalStorage } from '@core/local-storage';
+import { Media } from '@core/media';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   NAVIGATION,
   NavigationItem,
-} from '@/app/layout/admin/data/navigation';
+} from '@layout/admin/data/navigation';
 import { StarIcon, SearchIcon } from 'ng-animated-icons';
 
 const STORAGE_KEY = 'shortcuts';

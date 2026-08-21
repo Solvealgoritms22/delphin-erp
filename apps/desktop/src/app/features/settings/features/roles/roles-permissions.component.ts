@@ -9,7 +9,7 @@ import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dial
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { RolesService, Role } from '../../data/roles';
 import { UsersService, User } from '../../data/users';
-import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PlusIcon, ArrowRightIcon, SearchIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CheckIcon, AwardIcon, XIcon } from 'ng-animated-icons';
 

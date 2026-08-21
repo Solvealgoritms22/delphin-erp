@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { AuthService } from '@/app/core/auth/auth.service';
+import { AuthService } from '@core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 @Component({

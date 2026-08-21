@@ -6,8 +6,8 @@ import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
 import { format } from 'date-fns';
-import { NotificationService } from '../../../../core/notifications/notification.service';
-import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { NotificationService } from '@core/notifications/notification.service';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { BellIcon } from 'ng-animated-icons';

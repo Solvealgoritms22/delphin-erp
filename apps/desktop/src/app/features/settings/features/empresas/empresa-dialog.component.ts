@@ -28,7 +28,7 @@ import {
   RefreshCwIcon,
 } from 'ng-animated-icons';
 
-import { CountryFlagComponent } from '@/app/shared/components/country-flag/country-flag.component';
+import { CountryFlagComponent } from '@shared/components/country-flag/country-flag.component';
 
 @Component({
   selector: 'app-empresa-dialog',

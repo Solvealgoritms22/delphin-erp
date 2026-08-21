@@ -14,10 +14,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '@/app/core/auth/auth.service';
+import { AuthService } from '@core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EyeOffIcon } from 'ng-animated-icons';
-import { CountryFlagComponent } from '@/app/shared/components/country-flag/country-flag.component';
+import { CountryFlagComponent } from '@shared/components/country-flag/country-flag.component';
 
 @Component({
   selector: 'auth-sign-up',

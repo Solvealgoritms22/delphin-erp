@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
-import { AuthState } from '@/app/core/auth/auth.state';
+import { AuthState } from '@core/auth/auth.state';
 import { CheckoutDialogComponent, CheckoutDialogData, CheckoutResult } from './checkout-dialog.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 

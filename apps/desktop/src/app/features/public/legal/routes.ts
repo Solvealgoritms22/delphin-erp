@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 export default [
   {
     path: '',
-    loadComponent: () => import('../../layout/public/legal-layout.component'),
+    loadComponent: () => import('@layout/public/legal-layout.component'),
     children: [
       {
         path: '',

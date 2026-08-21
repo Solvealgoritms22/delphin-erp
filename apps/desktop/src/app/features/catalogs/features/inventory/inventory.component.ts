@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { InventoryService, TransferStockDto, AdjustStockDto } from '../../data/inventory.service';
 import { ProductsService } from '../../data/products.service';
 

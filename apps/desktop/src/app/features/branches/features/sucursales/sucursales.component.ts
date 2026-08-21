@@ -5,10 +5,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SucursalesService } from '../../data/sucursales.service';
-import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
-import { TableSkeletonComponent } from '@/app/shared/components/table-skeleton/table-skeleton.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { SucursalDialogComponent } from './sucursal-dialog.component';
-import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
 
 @Component({

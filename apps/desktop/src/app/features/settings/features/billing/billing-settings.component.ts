@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { SkeletonComponent } from '@/app/shared/components/skeleton/skeleton.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { environment } from '@/environments/environment';
 
 type BillingData = {

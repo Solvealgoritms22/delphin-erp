@@ -1,4 +1,4 @@
-import { TonalPalette } from '@/app/core/theming/palette';
+import { TonalPalette } from '@core/theming/palette';
 
 export type Scheme = 'light' | 'dark' | 'system';
 export type Colors = {

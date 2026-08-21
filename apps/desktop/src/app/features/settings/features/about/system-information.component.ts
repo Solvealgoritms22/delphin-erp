@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { UpdateService } from '@/app/shared/services/update.service';
+import { UpdateService } from '@shared/services/update.service';
 import { RefreshCwIcon, MonitorCheckIcon, CircleCheckBigIcon, CircleAlertIcon, DownloadIcon, RotateCwIcon } from 'ng-animated-icons';
 
 @Component({

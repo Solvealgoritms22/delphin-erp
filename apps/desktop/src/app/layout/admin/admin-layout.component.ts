@@ -12,19 +12,19 @@ import {
   MatSidenavContent,
 } from '@angular/material/sidenav';
 import { RouterOutlet, Router } from '@angular/router';
-import { Media } from '@/app/core/media';
-import { Assistant } from '@/app/layout/admin/ui/copilot-drawer.component';
-import { LanguageSwitcher } from '@/app/layout/admin/ui/locale-selector.component';
-import { Notifications } from '@/app/layout/admin/ui/notifications-panel.component';
-import { SchemeSwitcher } from '@/app/layout/admin/ui/theme-mode-toggle.component';
-import { Shortcuts } from '@/app/layout/admin/ui/quick-shortcuts.component';
-import { AdminSidebar } from '@/app/layout/admin/ui/admin-sidebar.component';
-import { routeAnimations } from '@/app/core/animations/animations';
-import { AuthService } from '@/app/core/auth/auth.service';
-import { AuthState } from '@/app/core/auth/auth.state';
-import { Empresa } from '@/app/core/auth/auth.types';
-import { UpdateService } from '@/app/shared/services/update.service';
-import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/weather-widget.component';
+import { Media } from '@core/media';
+import { Assistant } from '@layout/admin/ui/copilot-drawer.component';
+import { LanguageSwitcher } from '@layout/admin/ui/locale-selector.component';
+import { Notifications } from '@layout/admin/ui/notifications-panel.component';
+import { SchemeSwitcher } from '@layout/admin/ui/theme-mode-toggle.component';
+import { Shortcuts } from '@layout/admin/ui/quick-shortcuts.component';
+import { AdminSidebar } from '@layout/admin/ui/admin-sidebar.component';
+import { routeAnimations } from '@core/animations/animations';
+import { AuthService } from '@core/auth/auth.service';
+import { AuthState } from '@core/auth/auth.state';
+import { Empresa } from '@core/auth/auth.types';
+import { UpdateService } from '@shared/services/update.service';
+import { WeatherWidgetComponent } from '@shared/components/weather-widget/weather-widget.component';
 
 @Component({
   selector: 'admin-layout',

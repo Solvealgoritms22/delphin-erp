@@ -5,7 +5,7 @@ import { MatPseudoCheckbox } from '@angular/material/core';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { LangDefinition, TranslocoService } from '@jsverse/transloco';
 
-import { CountryFlagComponent } from '@/app/shared/components/country-flag/country-flag.component';
+import { CountryFlagComponent } from '@shared/components/country-flag/country-flag.component';
 
 @Component({
   selector: 'language-switcher',

@@ -17,8 +17,8 @@ import { filter, take } from 'rxjs';
 import {
   NAVIGATION,
   NavigationItem,
-} from '@/app/layout/admin/data/navigation';
-import { PermissionService } from '@/app/core/permissions/permission.service';
+} from '@layout/admin/data/navigation';
+import { PermissionService } from '@core/permissions/permission.service';
 
 @Component({
   selector: 'navigation',

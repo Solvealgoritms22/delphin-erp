@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { WebLayout } from '@/app/features/public/website/layout/layout';
+import { WebLayout } from '@features/public/website/layout/layout';
 
 const routes: Routes = [
   {

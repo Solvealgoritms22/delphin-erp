@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap, catchError } from 'rxjs';
 import { Conversation, Message } from './model';
 import { environment } from '@/environments/environment';
-import { AuthState } from '@/app/core/auth/auth.state';
+import { AuthState } from '@core/auth/auth.state';
 
 @Injectable({ providedIn: 'root' })
 export class AiChatService {

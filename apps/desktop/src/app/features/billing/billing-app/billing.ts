@@ -7,11 +7,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '@/environments/environment';
-import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { PaymentCardsService, PaymentCard } from './payment-cards.service';
 import { CardDialogComponent } from './card-dialog.component';
 import { ManageCardsDialogComponent } from './manage-cards-dialog.component';
-import { AuthState } from '@/app/core/auth/auth.state';
+import { AuthState } from '@core/auth/auth.state';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({

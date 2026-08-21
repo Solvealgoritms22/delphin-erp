@@ -12,10 +12,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { UsersService, User as Account } from '../../data/users';
 import { RolesService } from '../../data/roles';
-import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
-import { ConfirmDialogComponent, ConfirmDialogData } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { UserDialogComponent, UserDialogData } from './user-dialog.component';
-import { AuthState } from '@/app/core/auth/auth.state';
+import { AuthState } from '@core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleAlertIcon } from 'ng-animated-icons';
 

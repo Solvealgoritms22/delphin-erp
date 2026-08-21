@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChevronDownIcon, SparklesIcon } from 'ng-animated-icons';
-import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/thinking-orb.component';
+import { ThinkingOrbComponent } from '@shared/components/thinking-orb/thinking-orb.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({

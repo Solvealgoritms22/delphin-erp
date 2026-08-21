@@ -25,15 +25,15 @@ import {
   XIcon,
   ImagesIcon,
 } from 'ng-animated-icons';
-import { AiChatService } from '@/app/features/ai-assistant/data/ai-chat';
-import { Message } from '@/app/features/ai-assistant/data/model';
-import CopilotChat from '@/app/features/ai-assistant/features/copilot-chat.component';
-import { MarkdownRendererComponent } from '@/app/shared/components/markdown-renderer/markdown-renderer.component';
-import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/thinking-orb.component';
-import { ThinkingBlockComponent } from '@/app/shared/components/ai/thinking-block.component';
-import { ToolCallCardComponent } from '@/app/shared/components/ai/tool-call-card.component';
-import { ChatMessageActionsComponent } from '@/app/shared/components/ai/chat-message-actions.component';
-import { SpeechRecognitionService } from '@/app/shared/services/speech-recognition.service';
+import { AiChatService } from '@features/ai-assistant/data/ai-chat';
+import { Message } from '@features/ai-assistant/data/model';
+import CopilotChat from '@features/ai-assistant/features/copilot-chat.component';
+import { MarkdownRendererComponent } from '@shared/components/markdown-renderer/markdown-renderer.component';
+import { ThinkingOrbComponent } from '@shared/components/thinking-orb/thinking-orb.component';
+import { ThinkingBlockComponent } from '@shared/components/ai/thinking-block.component';
+import { ToolCallCardComponent } from '@shared/components/ai/tool-call-card.component';
+import { ChatMessageActionsComponent } from '@shared/components/ai/chat-message-actions.component';
+import { SpeechRecognitionService } from '@shared/services/speech-recognition.service';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 export interface AttachedFile {

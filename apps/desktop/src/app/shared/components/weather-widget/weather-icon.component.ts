@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { WeatherConditionType } from '@/app/core/weather/weather.types';
+import { WeatherConditionType } from '@core/weather/weather.types';
 
 @Component({
   selector: 'weather-icon',

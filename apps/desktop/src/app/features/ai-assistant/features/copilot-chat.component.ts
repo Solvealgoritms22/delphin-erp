@@ -17,12 +17,12 @@ import {
   XIcon,
   ImagesIcon,
 } from 'ng-animated-icons';
-import { Media } from '@/app/core/media';
-import { AiChatService } from '@/app/features/ai-assistant/data/ai-chat';
-import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
-import { ThinkingOrbComponent } from '@/app/shared/components/thinking-orb/thinking-orb.component';
-import { SpeechRecognitionService } from '@/app/shared/services/speech-recognition.service';
-import { AttachedFile } from '@/app/features/ai-assistant/features/copilot-conversation.component';
+import { Media } from '@core/media';
+import { AiChatService } from '@features/ai-assistant/data/ai-chat';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { ThinkingOrbComponent } from '@shared/components/thinking-orb/thinking-orb.component';
+import { SpeechRecognitionService } from '@shared/services/speech-recognition.service';
+import { AttachedFile } from '@features/ai-assistant/features/copilot-conversation.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 @Component({

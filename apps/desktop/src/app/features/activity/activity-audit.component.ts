@@ -9,8 +9,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { environment } from '@/environments/environment';
-import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
-import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SlidersHorizontalIcon, ChevronDownIcon, TrashIcon } from 'ng-animated-icons';
 

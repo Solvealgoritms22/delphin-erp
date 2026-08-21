@@ -8,7 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClientsService } from '../../../data/clients';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { CountryFlagComponent } from '@/app/shared/components/country-flag/country-flag.component';
+import { CountryFlagComponent } from '@shared/components/country-flag/country-flag.component';
 
 @Component({
   selector: 'app-client-form',

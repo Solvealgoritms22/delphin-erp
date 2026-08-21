@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
-import { AuthState } from '@/app/core/auth/auth.state';
+import { AuthState } from '@core/auth/auth.state';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({

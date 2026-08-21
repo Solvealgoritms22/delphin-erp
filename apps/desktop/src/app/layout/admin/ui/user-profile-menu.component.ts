@@ -7,10 +7,10 @@ import { MatDivider } from '@angular/material/list';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { RouterLink, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { Scheme, Theming } from '@/app/core/theming';
-import { AuthService } from '@/app/core/auth/auth.service';
-import { AuthState } from '@/app/core/auth/auth.state';
-import { ConfirmDialogComponent } from '@/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { Scheme, Theming } from '@core/theming';
+import { AuthService } from '@core/auth/auth.service';
+import { AuthState } from '@core/auth/auth.state';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { AccountDialogComponent } from './account-dialog.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
