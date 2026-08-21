@@ -255,7 +255,9 @@
   --mat-sys-pressed-state-layer-opacity: 0.12;
 
   [class^='mat-mdc-'][class$='-touch-target'] {
-    @apply sm:hidden;
+    @media (min-width: 640px) {
+      display: none;
+    }
   }
 
   --mat-badge-background-color: var(--color-primary-600);
