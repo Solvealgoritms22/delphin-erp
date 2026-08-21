@@ -5,12 +5,12 @@ export const routes: Route[] = [
 
   {
     path: 'home',
-    loadChildren: () => import('./domains/website/routes'),
+    loadChildren: () => import('./features/public/website/routes'),
   },
 
   {
     path: 'auth',
-    loadChildren: () => import('./domains/auth/routes'),
+    loadChildren: () => import('./features/auth/routes'),
   },
 
   {
@@ -22,22 +22,22 @@ export const routes: Route[] = [
     path: 'admin',
     canActivate: [authGuard],
     canActivateChild: [authGuard],
-    loadChildren: () => import('./domains/admin/routes'),
+    loadChildren: () => import('./layout/admin/routes'),
   },
 
   {
     path: 'coming-soon',
-    loadChildren: () => import('./domains/coming-soon/routes'),
+    loadChildren: () => import('./features/public/coming-soon/routes'),
   },
 
   {
     path: 'maintenance',
-    loadChildren: () => import('./domains/maintenance/routes'),
+    loadChildren: () => import('./features/public/maintenance/routes'),
   },
 
   {
     path: 'legal',
-    loadChildren: () => import('./domains/legal/routes'),
+    loadChildren: () => import('./features/public/legal/routes'),
   },
 
   { path: '**', redirectTo: '/admin/404' },

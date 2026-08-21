@@ -12,10 +12,11 @@ Este skill define los lineamientos obligatorios de arquitectura, diseño, estili
 ## 1. Arquitectura y Tecnología
 
 * **Framework**: Angular (versiones modernas con **Standalone Components**, **Control Flow nativo** `@if` / `@for` / `@switch`, y **Signals** o propiedades reactivas del componente).
-* **Organización del Proyecto**:
-  * `src/app/domains/admin/modules/apps/`: Módulos y aplicaciones principales (ej. `roles`, `activity`, `plans`, `profile`, `tasks`).
-  * `src/app/shared/components/`: Componentes reutilizables compartidos.
-  * `src/app/core/`: Servicios globales, animaciones y utilidades de la aplicación.
+* **Organización del Proyecto (Clean Layered Architecture)**:
+  * `src/app/core/`: Servicios transversales, autenticación, guards, interceptores HTTP e i18n (`@core/*`).
+  * `src/app/layout/`: Shells de navegación (`admin`, `auth`, `public`) (`@layout/*`).
+  * `src/app/features/`: Módulos de funcionalidad y negocio (`sales`, `purchases`, `billing`, `catalogs`, `branches`, `ai-assistant`, `dashboard`, `settings`, `auth`) (`@features/*`).
+  * `src/app/shared/`: Componentes reutilizables (`ui/`, `widgets/`, `feedback/`), directivas y pipes (`@shared/*`).
 * `public/`: Assets estáticos y multimedia.
 
 ---
