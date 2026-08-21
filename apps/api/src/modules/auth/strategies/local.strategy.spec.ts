@@ -11,7 +11,11 @@ describe('LocalStrategy', () => {
     await expect(strategy.validate('a@b.com', 'pass')).resolves.toEqual({
       id: 'u1',
     });
-    expect(authService.validateUser).toHaveBeenCalledWith('a@b.com', 'pass');
+    expect(authService.validateUser).toHaveBeenCalledWith(
+      'a@b.com',
+      'pass',
+      undefined,
+    );
   });
 
   it('lanza UnauthorizedException si las credenciales son inválidas', async () => {

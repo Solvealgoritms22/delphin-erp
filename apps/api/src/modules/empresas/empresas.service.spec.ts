@@ -55,11 +55,16 @@ describe('EmpresasService', () => {
 
   describe('updateCurrent', () => {
     it('actualiza los datos de la empresa', async () => {
-      prisma.empresa.update.mockResolvedValue({ id: 'e1' });
-      await service.updateCurrent('e1', { razonSocial: 'Nuevo' });
+      prisma.empresa.findUnique.mockResolvedValue({
+        id: 'e1',
+        propietarioId: 'u1',
+      });
+      prisma.empresa.update.mockResolvedValue({ id: 'e1', razonSocial: 'Nuevo' });
+      await service.updateCurrent('u1', 'e1', { razonSocial: 'Nuevo' });
       expect(prisma.empresa.update).toHaveBeenCalledWith({
         where: { id: 'e1' },
         data: { razonSocial: 'Nuevo' },
+        select: expect.any(Object),
       });
     });
   });

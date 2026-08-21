@@ -56,7 +56,7 @@ describe('AuthService', () => {
       expect(result).toBeDefined();
       expect(result.passwordHash).toBeUndefined();
       expect(prisma.usuario.findFirst).toHaveBeenCalledWith({
-        where: { email: 'a@b.com' },
+        where: { email: { equals: 'a@b.com', mode: 'insensitive' } },
         include: {
           membresias: { include: { role: true } },
           empresasPropiedad: true,
@@ -64,7 +64,7 @@ describe('AuthService', () => {
       });
     });
 
-    it('lanza UnauthorizedException si no hay membresía activa ni empresa propia', async () => {
+    it('retorna null si no hay membresía activa ni empresa propia', async () => {
       prisma.usuario.findFirst.mockResolvedValue({
         ...baseUser,
         empresasPropiedad: [],
@@ -72,9 +72,7 @@ describe('AuthService', () => {
       });
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-      await expect(service.validateUser('a@b.com', 'pass')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      expect(await service.validateUser('a@b.com', 'pass')).toBeNull();
     });
 
     it('retorna null si la contraseña no coincide', async () => {
@@ -286,7 +284,7 @@ describe('AuthService', () => {
 
   describe('forgotPassword / verifyOtp / resetPassword', () => {
     it('forgotPassword no filtra la existencia del usuario', async () => {
-      usersService.findOne.mockResolvedValue(null);
+      prisma.usuario.findFirst.mockResolvedValue(null);
       expect(await service.forgotPassword('ghost@x.com')).toEqual({
         success: true,
       });
@@ -294,7 +292,11 @@ describe('AuthService', () => {
     });
 
     it('forgotPassword genera OTP y envía email', async () => {
-      usersService.findOne.mockResolvedValue({ id: 'u1', email: 'a@b.com' });
+      prisma.usuario.findFirst.mockResolvedValue({
+        id: 'u1',
+        email: 'a@b.com',
+        empresasPropiedad: [{ id: 'e1' }],
+      });
       prisma.usuario.update.mockResolvedValue({});
 
       await service.forgotPassword('a@b.com');

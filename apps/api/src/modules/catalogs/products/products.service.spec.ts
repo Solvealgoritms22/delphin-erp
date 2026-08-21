@@ -35,7 +35,12 @@ describe('ProductsService', () => {
 
     expect(prisma.producto.findMany).toHaveBeenCalledWith({
       where: { empresaId: 'e1' },
-      include: { categoria: true, marca: true, unidadMedida: true },
+      include: {
+        categoria: true,
+        marca: true,
+        unidadMedida: true,
+        impuesto: true,
+      },
     });
   });
 

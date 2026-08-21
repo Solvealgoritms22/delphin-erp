@@ -16,44 +16,44 @@ describe('PermissionsGuard', () => {
     guard = new PermissionsGuard(reflector as any);
   });
 
-  it('permite cuando no hay permisos requeridos', () => {
+  it('permite cuando no hay permisos requeridos', async () => {
     reflector.getAllAndOverride.mockReturnValue(undefined);
 
-    expect(guard.canActivate(makeCtx({}) as any)).toBe(true);
+    await expect(guard.canActivate(makeCtx({}) as any)).resolves.toBe(true);
   });
 
-  it('lanza ForbiddenException si no hay usuario ni permisos', () => {
+  it('lanza ForbiddenException si no hay usuario ni permisos', async () => {
     reflector.getAllAndOverride.mockReturnValue(['facturas:leer']);
 
-    expect(() => guard.canActivate(makeCtx() as any)).toThrow(
+    await expect(guard.canActivate(makeCtx() as any)).rejects.toThrow(
       ForbiddenException,
     );
-    expect(() => guard.canActivate(makeCtx({}) as any)).toThrow(
+    await expect(guard.canActivate(makeCtx({}) as any)).rejects.toThrow(
       ForbiddenException,
     );
   });
 
-  it('permite con wildcard *', () => {
+  it('permite con wildcard *', async () => {
     reflector.getAllAndOverride.mockReturnValue(['facturas:leer']);
 
-    expect(guard.canActivate(makeCtx({ permissions: ['*'] }) as any)).toBe(
-      true,
-    );
+    await expect(
+      guard.canActivate(makeCtx({ permissions: ['*'] }) as any),
+    ).resolves.toBe(true);
   });
 
-  it('permite cuando el usuario tiene todos los permisos', () => {
+  it('permite cuando el usuario tiene todos los permisos', async () => {
     reflector.getAllAndOverride.mockReturnValue(['a', 'b']);
 
-    expect(guard.canActivate(makeCtx({ permissions: ['a', 'b'] }) as any)).toBe(
-      true,
-    );
+    await expect(
+      guard.canActivate(makeCtx({ permissions: ['a', 'b'] }) as any),
+    ).resolves.toBe(true);
   });
 
-  it('lanza ForbiddenException si falta un permiso', () => {
+  it('retorna false si falta un permiso', async () => {
     reflector.getAllAndOverride.mockReturnValue(['a', 'b']);
 
-    expect(() =>
+    await expect(
       guard.canActivate(makeCtx({ permissions: ['a'] }) as any),
-    ).toThrow(ForbiddenException);
+    ).resolves.toBe(false);
   });
 });
