@@ -122,34 +122,34 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
             </defs>
             <rect width="220" height="192" fill="url(#837c3e70-6c3a-44e6-8854-cc48c737b659)"></rect>
           </svg>
-          <!-- Content -->
-          <div class="relative z-10 w-full max-w-2xl">
-            <div class="text-5xl font-bold leading-tight text-white">
-              Tu operación,<br />
-              en un solo lugar
-            </div>
-            <div class="text-medium mt-6 max-w-xl text-xl leading-relaxed text-neutral-500">
-              Dolphin ERP conecta la gestión de tus empresas, usuarios, catálogos
-              y controles de seguridad en una experiencia clara y centralizada.
-            </div>
-            <div class="mt-12 grid max-w-xl grid-cols-2 gap-3">
-              <div class="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
-                <div class="text-sm font-semibold text-white">Gestión multiempresa</div>
-                <div class="mt-1 text-xs leading-5 text-neutral-500">Administra accesos y operaciones por empresa.</div>
-              </div>
-              <div class="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
-                <div class="text-sm font-semibold text-white">Catálogos conectados</div>
-                <div class="mt-1 text-xs leading-5 text-neutral-500">Productos, clientes, proveedores y más.</div>
-              </div>
-              <div class="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
-                <div class="text-sm font-semibold text-white">Accesos controlados</div>
-                <div class="mt-1 text-xs leading-5 text-neutral-500">Roles, permisos y sesiones bajo control.</div>
-              </div>
-              <div class="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
-                <div class="text-sm font-semibold text-white">Información accionable</div>
-                <div class="mt-1 text-xs leading-5 text-neutral-500">Resumen operativo para decidir mejor.</div>
+          <!-- Centered Brand Content (Logo + Brand Lockup + Tagline + Subtitle) -->
+          <div class="relative z-10 flex flex-col items-center justify-center text-center max-w-xl px-6 select-none">
+            <!-- Brand Lockup: Logo Icon + "DOLPHIN" + "SISTEMA DE RECURSOS EMPRESARIALES" -->
+            <div class="flex items-center justify-center gap-4 sm:gap-5 mb-8">
+              <img
+                src="/images/logo/logo_dolphin_dark.png"
+                alt="Dolphin ERP"
+                class="h-16 sm:h-20 w-auto object-contain transition-transform duration-300 hover:scale-105 shrink-0"
+              />
+              <div class="flex flex-col items-start text-left justify-center">
+                <span class="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase leading-none font-sans">
+                  DOLPHIN
+                </span>
+                <span class="text-[10px] sm:text-xs font-semibold tracking-[0.2em] text-neutral-400 uppercase mt-2 leading-none">
+                  SISTEMA DE RECURSOS EMPRESARIALES
+                </span>
               </div>
             </div>
+
+            <!-- Label / Tagline -->
+            <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              Tu operación, en un solo lugar
+            </h2>
+
+            <!-- Subtitle -->
+            <p class="mt-3 text-sm sm:text-base text-neutral-400 max-w-md leading-relaxed">
+              Dolphin ERP conecta la gestión de tus empresas, usuarios, catálogos y controles de seguridad en una experiencia clara y centralizada.
+            </p>
           </div>
         </div>
       </mat-card>

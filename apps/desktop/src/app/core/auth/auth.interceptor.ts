@@ -20,7 +20,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     req.url.includes('/auth/invitations/accept') ||
     req.url.includes('/auth/google');
 
-  if (token && !isAuthRequest) {
+  const isExternalRequest = (req.url.startsWith('http://') || req.url.startsWith('https://')) &&
+    !req.url.includes('/v1/') && !req.url.includes('localhost:3000');
+
+  if (token && !isAuthRequest && !isExternalRequest) {
     clonedReq = req.clone({
       headers: req.headers.set('Authorization', `Bearer ${token}`),
     });

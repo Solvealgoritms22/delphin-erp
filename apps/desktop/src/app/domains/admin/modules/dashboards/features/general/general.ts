@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { DashboardService, DashboardSummary } from '../../data/dashboard.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { RotateCcwIcon, ActivityIcon, SparklesIcon, RefreshCwIcon } from 'ng-animated-icons';
+import { ExchangeRatesComponent } from '@/app/shared/components/exchange-rates/exchange-rates.component';
 
 interface DashboardMetric {
   label: string;
@@ -29,6 +30,7 @@ interface DashboardMetric {
     ActivityIcon,
     SparklesIcon,
     RefreshCwIcon,
+    ExchangeRatesComponent,
   ],
   template: `
     <div class="flex h-full w-full flex-col min-h-0 bg-white dark:bg-neutral-950 overflow-hidden">
@@ -161,6 +163,16 @@ interface DashboardMetric {
               <p class="mt-5 text-xs text-neutral-400 dark:text-neutral-500">{{ 'dashboard.general.updatedOnOpen' | transloco }}</p>
             </div>
           </section>
+
+          <!-- Bottom 2-Column Responsive Section -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <!-- Left Column: Reference Exchange Rates -->
+            <app-exchange-rates class="w-full" />
+
+            <!-- Right Column Slot (Ready for next component) -->
+            <div class="flex flex-col gap-6 w-full">
+            </div>
+          </div>
         }
       </main>
     </div>

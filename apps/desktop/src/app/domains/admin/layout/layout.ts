@@ -24,6 +24,7 @@ import { AuthService } from '@/app/core/auth/auth.service';
 import { AuthState } from '@/app/core/auth/auth.state';
 import { Empresa } from '@/app/core/auth/auth.types';
 import { UpdateService } from '@/app/shared/services/update.service';
+import { WeatherWidgetComponent } from '@/app/shared/components/weather-widget/weather-widget.component';
 
 @Component({
   selector: 'admin-layout',
@@ -42,6 +43,7 @@ import { UpdateService } from '@/app/shared/services/update.service';
     MatSidenav,
     MatSidenavContent,
     AdminSidebar,
+    WeatherWidgetComponent,
     SchemeSwitcher,
     Notifications,
     LanguageSwitcher,
@@ -162,6 +164,11 @@ import { UpdateService } from '@/app/shared/services/update.service';
           <div class="flex-auto h-full self-stretch min-w-8" [style.-webkit-app-region]="isElectron ? 'drag' : null"></div>
 
           <div class="flex items-center gap-x-2" style="-webkit-app-region: no-drag">
+            <weather-widget />
+            <mat-divider
+              vertical
+              class="mx-1 h-5 hidden sm:block"
+            />
             <language-switcher />
             <scheme-switcher />
             <notifications />
