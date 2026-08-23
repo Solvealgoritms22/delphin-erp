@@ -1,0 +1,106 @@
+name: Desktop Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release v1.0.1'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build-and-release:
+    name: Build & Release Desktop
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Code signing (optional - add secrets when you have a certificate)
+      # CSC_LINK: ${{ secrets.CSC_LINK }}
+      # CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: Install dependencies (root)
+        run: npm ci
+        working-directory: ${{ github.workspace }}
+
+      - name: Install dependencies (desktop)
+        run: npm ci
+        working-directory: apps/desktop
+
+      - name: Lint desktop
+        run: npm run lint
+        working-directory: apps/desktop
+
+      - name: Test desktop
+        run: npm run test -- --watch=false
+        working-directory: apps/desktop
+
+      - name: Typecheck desktop
+        run: npx tsc --noEmit
+        working-directory: apps/desktop
+
+      - name: Build & package desktop (electron-builder --dir for validation)
+        run: npm run electron:pack
+        working-directory: apps/desktop
+
+      - name: Build & publish desktop
+        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
+        run: npm run electron:publish
+        working-directory: apps/desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release Notes
+        id: release_notes
+        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.version }}" ]; then
+            TAG="${{ inputs.version }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "name=Dolphin ERP $TAG" >> "$GITHUB_OUTPUT"
+          {
+            echo "body<<EOF"
+            echo "## Dolphin ERP $TAG"
+            echo ""
+            echo "**Auto-updater:** Esta versión se distribuye automáticamente a través del actualizador integrado. Los usuarios recibirán la notificación al iniciar la aplicación."
+            echo ""
+            echo "**Instalación manual:** Descarga el instalador \`Dolphin ERP Setup $TAG.exe\` desde los assets de este release."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update GitHub Release
+        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_notes.outputs.tag }}
+          name: ${{ steps.release_notes.outputs.name }}
+          body: ${{ steps.release_notes.outputs.body }}
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: false
+          files: |
+            apps/desktop/dist/electron/*.exe
+            apps/desktop/dist/electron/*.yml
+            apps/desktop/dist/electron/*.blockmap

@@ -1,0 +1,57 @@
+import { Component } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
+
+@Component({
+  selector: 'legal-layout',
+  standalone: true,
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoPipe],
+  host: {
+    class: 'flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden text-neutral-900 dark:text-neutral-100',
+  },
+  template: `
+    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden text-neutral-900 dark:text-neutral-100">
+
+      <header class="shrink-0 flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md z-50">
+        <a routerLink="/" class="flex items-center gap-3">
+          <img src="/images/logo/logo_dolphin_light.png" class="h-8 w-auto dark:hidden" alt="Dolphin ERP" />
+          <img src="/images/logo/logo_dolphin_dark.png" class="h-10 w-auto hidden dark:block" alt="Dolphin ERP" />
+        </a>
+        <div class="text-sm text-neutral-500 font-medium">{{ 'legalPages.layoutTitle' | transloco }}</div>
+      </header>
+
+      <div class="flex-auto min-h-0 overflow-y-auto bg-white dark:bg-neutral-900">
+        <div class="flex flex-col md:flex-row max-w-6xl w-full mx-auto min-h-full px-6 md:px-8">
+
+          <aside class="w-full md:w-64 shrink-0 py-8 px-3 md:px-6 border-r-0 md:border-r border-neutral-200 dark:border-neutral-800">
+            <nav class="flex flex-col space-y-1 sticky top-8">
+              <a routerLink="terms" routerLinkActive="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold" class="px-4 py-2.5 rounded-lg text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
+                 {{ 'legalPages.terms' | transloco }}
+              </a>
+              <a routerLink="privacy" routerLinkActive="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold" class="px-4 py-2.5 rounded-lg text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
+                 {{ 'legalPages.privacy' | transloco }}
+              </a>
+              <a routerLink="cookies" routerLinkActive="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold" class="px-4 py-2.5 rounded-lg text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
+                 {{ 'legalPages.cookies' | transloco }}
+              </a>
+              <a routerLink="subscription" routerLinkActive="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold" class="px-4 py-2.5 rounded-lg text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
+                 {{ 'legalPages.subscription' | transloco }}
+              </a>
+            </nav>
+          </aside>
+
+          <main class="flex-auto py-8 px-4 md:pl-10 md:pr-4">
+            <router-outlet></router-outlet>
+          </main>
+        </div>
+
+        <footer class="shrink-0 py-6 text-center text-sm text-neutral-500 border-t border-neutral-200 dark:border-neutral-800">
+          &copy; {{ currentYear }} Dolphin ERP. {{ 'legalPages.rights' | transloco }}
+        </footer>
+      </div>
+    </div>
+  `
+})
+export default class LegalLayoutComponent {
+  currentYear = new Date().getFullYear();
+}

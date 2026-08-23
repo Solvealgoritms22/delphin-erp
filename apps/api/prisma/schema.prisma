@@ -1,0 +1,888 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------
+// Fase 0 y Fase 1 - Modelo Central de Multi-Tenancy
+// ------------------------------------------------------
+
+model Empresa {
+  id           String      @id @default(uuid())
+  razonSocial  String      @map("razon_social")
+  rnc          String?     @unique
+  pais         String      @default("DO")
+  direccion    String?
+  telefono     String?
+  email        String?
+  paginaWeb    String?     @map("pagina_web")
+  descripcion  String?
+  redesSociales String?    @map("redes_sociales")
+  logo         String?
+  estado       String      @default("ACTIVA")
+  creadoEn     DateTime    @default(now()) @map("creado_en")
+
+  propietarioId String?    @map("propietario_id")
+  propietario  Usuario?    @relation("EmpresasPropiedad", fields: [propietarioId], references: [id], onDelete: SetNull)
+
+  // Integración FiscalBridge (e-CF República Dominicana - Ley 32-23)
+  fiscalbridgeUrl          String?   @map("fiscalbridge_url")
+  fiscalbridgeAuthMethod   String?   @default("TOKEN") @map("fiscalbridge_auth_method") // TOKEN | EMAIL | OAUTH2
+  fiscalbridgeToken        String?   @map("fiscalbridge_token")
+  fiscalbridgeEmail        String?   @map("fiscalbridge_email")
+  fiscalbridgePassword     String?   @map("fiscalbridge_password")
+  fiscalbridgeClientId     String?   @map("fiscalbridge_client_id")
+  fiscalbridgeClientSecret String?   @map("fiscalbridge_client_secret")
+  fiscalbridgeEnv          String?   @default("TEST") @map("fiscalbridge_env") // TEST | CERT | PROD
+  fiscalbridgeEnabled      Boolean   @default(false) @map("fiscalbridge_enabled")
+  fiscalbridgeWebhookSecret String?  @map("fiscalbridge_webhook_secret")
+
+  suscripcion  Suscripcion?
+  sucursales     Sucursal[]
+  almacenes      Almacen[]
+  inventarioStocks InventarioStock[]
+  movimientosInventario MovimientoInventario[]
+  membresias     Membresia[]
+  roles          Role[]
+  categorias     Categoria[]
+  marcas         Marca[]
+  unidadesMedida UnidadMedida[]
+  productos      Producto[]
+  clientes       Cliente[]
+  proveedores    Proveedor[]
+  notificaciones Notification[]
+  secuenciasNcf  SecuenciaNCF[]
+  facturasVenta  FacturaVenta[]
+  aiConversaciones AiConversation[]
+  backups        Backup[]
+  fiscalbridgeWebhookEvents FiscalbridgeWebhookEvent[]
+  configuracion  ConfiguracionEmpresa?
+  impuestos      Impuesto[]
+  terminosPago   TerminoPago[]
+  pagosCliente   PagoCliente[]
+
+  @@map("empresas")
+}
+
+model Sucursal {
+  id           String    @id @default(uuid())
+  empresaId    String    @map("empresa_id")
+  nombre       String
+  direccion    String?
+  telefono     String?
+  email        String?
+  ciudad       String?
+  estado       String    @default("ACTIVO")
+  creadoEn     DateTime  @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  empresa      Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  almacenes    Almacen[]
+  facturasVenta FacturaVenta[]
+
+  @@unique([empresaId, nombre])
+  @@map("sucursales")
+}
+
+model Usuario {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String    @map("password_hash")
+  debeCambiarPassword Boolean @default(false) @map("debe_cambiar_password")
+  googleSub      String?   @unique @map("google_sub")
+  politicasAceptadasEn DateTime? @map("politicas_aceptadas_en")
+  invitacionTokenHash String? @unique @map("invitacion_token_hash")
+  invitacionExpiraEn DateTime? @map("invitacion_expira_en")
+  nombre         String?
+  avatar         String?
+  mfaHabilitado  Boolean   @default(false) @map("mfa_habilitado")
+  
+  otpCode        String?   @map("otp_code")
+  otpExpiresAt   DateTime? @map("otp_expires_at")
+  isVerified     Boolean   @default(false) @map("is_verified")
+  ultimoAcceso   DateTime? @map("ultimo_acceso")
+
+  membresias     Membresia[]
+  sesiones       UserSession[]
+  notificaciones Notification[]
+  preferenciasNotificacion NotificationPreference[]
+  pushSubscriptions PushSubscription[]
+  empresasPropiedad Empresa[] @relation("EmpresasPropiedad")
+  facturasVenta  FacturaVenta[]
+  aiConversaciones AiConversation[]
+  backups              Backup[]             @relation("BackupsPropietario")
+  googleDriveConnection GoogleDriveConnection?
+
+  // SMTP del Propietario (para emails enviados desde sus empresas: invitaciones, recuperación de contraseña, etc.)
+  smtpHost      String?   @map("smtp_host")
+  smtpPort      Int?      @default(587) @map("smtp_port")
+  smtpUser      String?   @map("smtp_user")
+  smtpPass      String?   @map("smtp_pass")
+  smtpFrom      String?   @map("smtp_from")
+  smtpSecure    Boolean   @default(true) @map("smtp_secure")
+  smtpEnabled   Boolean   @default(false) @map("smtp_enabled")
+
+  @@map("usuarios")
+}
+
+model Backup {
+  id             String   @id @default(uuid())
+  propietarioId  String   @map("propietario_id")
+  empresaId      String   @map("empresa_id")
+  proveedor      String   @default("LOCAL") // LOCAL | GOOGLE_DRIVE
+  estado         String   @default("PENDING") // PENDING | COMPLETED | FAILED | DELETED
+  formato        String   @default("DOLPHIN_JSON_GZIP_AES256")
+  nombreArchivo  String   @map("nombre_archivo")
+  storageKey     String?  @map("storage_key")
+  externalFileId String?  @map("external_file_id")
+  tamanoBytes    BigInt?  @map("tamano_bytes")
+  sha256         String?
+  error          String?
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  iniciadoEn     DateTime? @map("iniciado_en")
+  completadoEn   DateTime? @map("completado_en")
+
+  propietario Usuario @relation("BackupsPropietario", fields: [propietarioId], references: [id], onDelete: Cascade)
+  empresa     Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([propietarioId, creadoEn(sort: Desc)])
+  @@index([empresaId, creadoEn(sort: Desc)])
+  @@index([estado])
+  @@map("backups")
+}
+
+model GoogleDriveConnection {
+  id             String   @id @default(uuid())
+  propietarioId  String   @unique @map("propietario_id")
+  googleEmail    String?  @map("google_email")
+  refreshToken   String   @map("refresh_token")
+  folderId       String?  @map("folder_id")
+  estado         String   @default("ACTIVE")
+  ultimoError    String?  @map("ultimo_error")
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  actualizadoEn  DateTime @updatedAt @map("actualizado_en")
+
+  propietario Usuario @relation(fields: [propietarioId], references: [id], onDelete: Cascade)
+
+  @@map("google_drive_connections")
+}
+
+model FiscalbridgeWebhookEvent {
+  id            String   @id @default(uuid())
+  empresaId     String   @map("empresa_id")
+  eventoId      String   @map("evento_id")
+  tipo          String
+  documentUuid  String?  @map("document_uuid")
+  rawBody       String   @map("raw_body") @db.Text
+  recibidoEn    DateTime @default(now()) @map("recibido_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, eventoId])
+  @@index([empresaId, documentUuid])
+  @@map("fiscalbridge_webhook_events")
+}
+
+model Membresia {
+  id             String    @id @default(uuid())
+  usuarioId      String    @map("usuario_id")
+  empresaId      String    @map("empresa_id")
+  roleId         String?   @map("role_id")
+  estado         String    @default("ACTIVO")
+
+  usuario        Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  empresa        Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  role           Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@unique([usuarioId, empresaId])
+  @@map("membresias")
+}
+
+model UserSession {
+  id              String    @id @default(uuid())
+  usuarioId       String    @map("usuario_id")
+  tokenHash       String    @unique @map("token_hash")
+  userAgent       String?   @map("user_agent")
+  ipAddress       String?   @map("ip_address")
+  browserName     String?   @map("browser_name")
+  osName          String?   @map("os_name")
+  locationCountry String?   @map("location_country")
+  creadoEn        DateTime  @default(now()) @map("creado_en")
+  ultimoAcceso    DateTime  @default(now()) @map("ultimo_acceso")
+  expiraEn        DateTime? @map("expira_en")
+  revokedAt       DateTime? @map("revoked_at")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, revokedAt])
+  @@map("user_sessions")
+}
+
+model Notification {
+  id          String    @id @default(uuid())
+  usuarioId   String?   @map("usuario_id")
+  empresaId   String?   @map("empresa_id")
+  audience    String    @default("USER")
+  tipo        String
+  titulo      String
+  mensaje     String
+  icono       String?
+  severidad   String    @default("INFO")
+  payload     String?
+  leidaEn     DateTime? @map("leida_en")
+  archivadaEn DateTime? @map("archivada_en")
+  creadaEn    DateTime  @default(now()) @map("creada_en")
+  expiraEn    DateTime? @map("expira_en")
+
+  usuario    Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  empresa    Empresa?  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  deliveries NotificationDelivery[]
+
+  @@index([usuarioId, leidaEn, creadaEn])
+  @@index([empresaId, leidaEn, creadaEn])
+  @@map("notifications")
+}
+
+model NotificationDelivery {
+  id                String    @id @default(uuid())
+  notificationId    String    @map("notification_id")
+  canal             String
+  estado            String    @default("PENDING")
+  intentos          Int       @default(0)
+  providerMessageId String?   @map("provider_message_id")
+  ultimoError       String?   @map("ultimo_error")
+  proximoIntentoEn  DateTime? @map("proximo_intento_en")
+  enviadaEn         DateTime? @map("enviada_en")
+  creadaEn          DateTime  @default(now()) @map("creada_en")
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, canal])
+  @@index([estado, proximoIntentoEn])
+  @@map("notification_deliveries")
+}
+
+model NotificationPreference {
+  id         String  @id @default(uuid())
+  usuarioId  String  @map("usuario_id")
+  tipo       String
+  canal      String
+  habilitado Boolean @default(true)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, tipo, canal])
+  @@map("notification_preferences")
+}
+
+model PushSubscription {
+  id          String   @id @default(uuid())
+  usuarioId   String   @map("usuario_id")
+  endpoint    String   @unique
+  p256dh      String
+  auth        String
+  userAgent   String?  @map("user_agent")
+  creadaEn    DateTime @default(now()) @map("creada_en")
+  ultimoUsoEn DateTime @default(now()) @map("ultimo_uso_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("push_subscriptions")
+}
+
+model OutboxEvent {
+  id              String    @id @default(uuid())
+  tipo            String
+  aggregateId     String?   @map("aggregate_id")
+  empresaId       String?   @map("empresa_id")
+  payload         String
+  estado          String    @default("PENDING")
+  intentos        Int       @default(0)
+  proximoIntentoEn DateTime? @map("proximo_intento_en")
+  procesadoEn     DateTime? @map("procesado_en")
+  creadoEn        DateTime  @default(now()) @map("creado_en")
+
+  @@unique([tipo, aggregateId])
+  @@index([estado, proximoIntentoEn, creadoEn])
+  @@index([empresaId])
+  @@map("outbox_events")
+}
+
+model Role {
+  id           String    @id @default(uuid())
+  empresaId    String    @map("empresa_id")
+  nombre       String
+  descripcion  String?
+  permissions  String?   // JSON stringified
+
+  empresa      Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  membresias   Membresia[]
+
+  @@unique([empresaId, nombre])
+  @@map("roles")
+}
+
+// ------------------------------------------------------
+// Fase 2 - Catálogos Maestros (Productos)
+// ------------------------------------------------------
+
+model Categoria {
+  id          String     @id @default(uuid())
+  empresaId   String     @map("empresa_id")
+  nombre      String
+  descripcion String?
+  estado      String     @default("ACTIVO")
+  
+  empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  productos   Producto[]
+
+  @@unique([empresaId, nombre])
+  @@map("categorias")
+}
+
+model Marca {
+  id          String     @id @default(uuid())
+  empresaId   String     @map("empresa_id")
+  nombre      String
+  descripcion String?
+  estado      String     @default("ACTIVO")
+
+  empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  productos   Producto[]
+
+  @@unique([empresaId, nombre])
+  @@map("marcas")
+}
+
+model UnidadMedida {
+  id          String     @id @default(uuid())
+  empresaId   String     @map("empresa_id")
+  nombre      String
+  abreviatura String
+  estado      String     @default("ACTIVO")
+
+  empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  productos   Producto[]
+
+  @@unique([empresaId, nombre])
+  @@map("unidades_medida")
+}
+
+model Producto {
+  id               String        @id @default(uuid())
+  empresaId        String        @map("empresa_id")
+  tipo             String        @default("PRODUCTO") // PRODUCTO o SERVICIO
+  codigo           String
+  codigoBarras     String?       @map("codigo_barras")
+  nombre           String
+  descripcion      String?       @db.Text
+  precioVenta      Decimal       @map("precio_venta") @db.Decimal(12, 2)
+  costo            Decimal?      @db.Decimal(12, 2)
+  taxRate          Decimal?      @default(0) @map("tax_rate") @db.Decimal(5, 2)
+  impuestoId       String?       @map("impuesto_id")
+  imagenes         String?       @db.Text // JSON stringified array of URLs / Base64
+  tags             String?       // Comma separated tags
+  
+  categoriaId      String?       @map("categoria_id")
+  marcaId          String?       @map("marca_id")
+  unidadMedidaId   String?       @map("unidad_medida_id")
+  
+  estado           String        @default("ACTIVO")
+  creadoEn         DateTime      @default(now()) @map("creado_en")
+  actualizadoEn    DateTime      @updatedAt @map("actualizado_en")
+
+  empresa          Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  categoria        Categoria?    @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  marca            Marca?        @relation(fields: [marcaId], references: [id], onDelete: SetNull)
+  unidadMedida     UnidadMedida? @relation(fields: [unidadMedidaId], references: [id], onDelete: SetNull)
+  impuesto         Impuesto?     @relation(fields: [impuestoId], references: [id], onDelete: SetNull)
+  stocks           InventarioStock[]
+  movimientosInventario MovimientoInventario[]
+  facturasDetalle  FacturaVentaDetalle[]
+
+  @@unique([empresaId, codigo])
+  @@map("productos")
+}
+
+model Almacen {
+  id          String    @id @default(uuid())
+  empresaId   String    @map("empresa_id")
+  sucursalId  String?   @map("sucursal_id")
+  nombre      String
+  codigo      String?
+  tipo        String    @default("VENTA") // "CENTRAL", "VENTA", "TRANSITO", "MERMAS"
+  esPrincipal Boolean   @default(false) @map("es_principal")
+  estado      String    @default("ACTIVO")
+  creadoEn    DateTime  @default(now()) @map("creado_en")
+
+  empresa     Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  sucursal    Sucursal? @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
+  stocks      InventarioStock[]
+  facturasVenta FacturaVenta[]
+
+  @@unique([empresaId, nombre])
+  @@map("almacenes")
+}
+
+model InventarioStock {
+  id            String   @id @default(uuid())
+  empresaId     String   @map("empresa_id")
+  productoId    String   @map("producto_id")
+  almacenId     String   @map("almacen_id")
+  cantidad      Decimal  @default(0) @db.Decimal(14, 4)
+  stockMinimo   Decimal  @default(0) @map("stock_minimo") @db.Decimal(14, 4)
+  stockMaximo   Decimal? @map("stock_maximo") @db.Decimal(14, 4)
+  costoPromedio Decimal? @map("costo_promedio") @db.Decimal(12, 2)
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  producto      Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  almacen       Almacen  @relation(fields: [almacenId], references: [id], onDelete: Cascade)
+
+  @@unique([productoId, almacenId])
+  @@unique([empresaId, productoId, almacenId])
+  @@index([empresaId, almacenId])
+  @@map("inventario_stocks")
+}
+
+model MovimientoInventario {
+  id               String   @id @default(uuid())
+  empresaId        String   @map("empresa_id")
+  productoId       String   @map("producto_id")
+  almacenOrigenId  String?  @map("almacen_origen_id")
+  almacenDestinoId String?  @map("almacen_destino_id")
+  usuarioId        String   @map("usuario_id")
+  tipo             String   // "COMPRA", "VENTA", "TRANSFERENCIA", "AJUSTE_POSITIVO", "AJUSTE_NEGATIVO"
+  cantidad         Decimal  @db.Decimal(14, 4)
+  costoUnitario    Decimal? @map("costo_unitario") @db.Decimal(12, 2)
+  referenciaDoc    String?  @map("referencia_doc")
+  motivo           String?
+  creadoEn         DateTime @default(now()) @map("creado_en")
+
+  empresa          Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  producto         Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, productoId, creadoEn])
+  @@map("movimientos_inventario")
+}
+
+model Cliente {
+  id                String    @id @default(uuid())
+  empresaId         String    @map("empresa_id")
+  tipoDocumento     String    @default("RUT") @map("tipo_documento")
+  numeroDocumento   String    @map("numero_documento")
+  nombreRazonSocial String    @map("nombre_razon_social")
+  pais              String    @default("DO")
+  logo              String?
+  email             String?
+  telefono          String?
+  direccion         String?
+  estado            String    @default("ACTIVO")
+  creadoEn          DateTime  @default(now()) @map("creado_en")
+  actualizadoEn     DateTime  @updatedAt @map("actualizado_en")
+
+  empresa           Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  facturasVenta     FacturaVenta[]
+  pagos             PagoCliente[]
+
+  @@unique([empresaId, numeroDocumento])
+  @@map("clientes")
+}
+
+model Proveedor {
+  id                String    @id @default(uuid())
+  empresaId         String    @map("empresa_id")
+  tipoDocumento     String    @default("RUT") @map("tipo_documento")
+  numeroDocumento   String    @map("numero_documento")
+  nombreRazonSocial String    @map("nombre_razon_social")
+  pais              String    @default("DO")
+  logo              String?
+  email             String?
+  telefono          String?
+  direccion         String?
+  estado            String    @default("ACTIVO")
+  creadoEn          DateTime  @default(now()) @map("creado_en")
+  actualizadoEn     DateTime  @updatedAt @map("actualizado_en")
+
+  empresa           Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, numeroDocumento])
+  @@map("proveedores")
+}
+
+// ------------------------------------------------------
+// Fase 3 - Facturación y Suscripciones (B2B SaaS)
+// ------------------------------------------------------
+
+model Plan {
+  id              String         @id
+  nombre          String
+  descripcion     String?
+  precioMensual   Decimal        @map("precio_mensual") @db.Decimal(12, 2)
+  precioAnual     Decimal        @map("precio_anual") @db.Decimal(12, 2)
+  estado          String         @default("ACTIVO") // ACTIVO, INACTIVO
+  
+  maxUsuarios     Int            @default(1) @map("max_usuarios")
+  maxSucursales   Int            @default(1) @map("max_sucursales")
+  maxProductos    Int            @default(100) @map("max_productos")
+  
+  caracteristicas String?        // JSON stringified array
+
+  suscripciones   Suscripcion[]
+
+  @@map("planes")
+}
+
+model Suscripcion {
+  id                      String    @id @default(uuid())
+  empresaId               String    @unique @map("empresa_id")
+  planId                  String    @map("plan_id")
+  
+  estado                  String    @default("ACTIVE") // ACTIVE, PAST_DUE, CANCELED
+  periodicidad            String    @default("MONTHLY") // MONTHLY, YEARLY
+  
+  fechaInicio             DateTime  @default(now()) @map("fecha_inicio")
+  fechaRenovacion         DateTime? @map("fecha_renovacion")
+  fechaCancelacion        DateTime? @map("fecha_cancelacion")
+  
+  // Azul Payment Vault
+  azulDataVaultToken      String?   @map("azul_data_vault_token")
+  azulDataVaultExpiration String?   @map("azul_data_vault_expiration")
+  azulCardLast4           String?   @map("azul_card_last4")
+  azulCardBrand           String?   @map("azul_card_brand")
+  azulCardHolder          String?   @map("azul_card_holder")
+
+  empresa                 Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  plan                    Plan      @relation(fields: [planId], references: [id])
+  
+  facturas                Factura[]
+
+  @@map("suscripciones")
+}
+
+model Factura {
+  id                String      @id @default(uuid())
+  suscripcionId     String      @map("suscripcion_id")
+  
+  monto             Decimal     @db.Decimal(12, 2)
+  moneda            String      @default("USD")
+  estado            String      @default("PAID") // PAID, FAILED, REFUNDED
+  
+  azulOrderId       String?     @map("azul_order_id")
+  azulAuthCode      String?     @map("azul_auth_code")
+  
+  creadoEn          DateTime    @default(now()) @map("creado_en")
+  
+  suscripcion       Suscripcion @relation(fields: [suscripcionId], references: [id], onDelete: Cascade)
+
+  @@map("facturas")
+}
+
+// ------------------------------------------------------
+// Fase 4 - Activity Log (Auditoría de Actividad)
+// ------------------------------------------------------
+
+model ActivityLog {
+  id            String    @id @default(uuid())
+  empresaId     String?   @map("empresa_id")
+  usuarioId     String?   @map("usuario_id")
+  usuarioNombre String?   @map("usuario_nombre") // snapshot del nombre para no requerir JOIN
+  usuarioEmail  String?   @map("usuario_email")  // snapshot del email
+
+  modulo        String    // 'products' | 'clients' | 'suppliers' | 'users' | 'billing' | 'auth' | ...
+  accion        String    // 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'EXPORT' | 'VIEW' | ...
+  
+  resourceId    String?   @map("resource_id")    // UUID del registro afectado
+  resourceName  String?   @map("resource_name")  // Nombre legible del recurso ("Producto ABC")
+  resourceType  String?   @map("resource_type")  // Tipo del recurso para UI ("Producto", "Cliente")
+  
+  metadata      String?   // JSON stringified — datos adicionales (campos antes/después, etc.)
+  
+  ipAddress     String?   @map("ip_address")
+  userAgent     String?   @map("user_agent")
+  
+  creadoEn      DateTime  @default(now()) @map("creado_en")
+
+  @@index([empresaId, creadoEn(sort: Desc)])
+  @@index([empresaId, modulo])
+  @@index([empresaId, usuarioId])
+  @@index([creadoEn(sort: Desc)])
+  @@map("activity_logs")
+}
+
+// ------------------------------------------------------
+// Fase 5 - Facturación Fiscal Dominicana (NCF & e-CF FiscalBridge)
+// ------------------------------------------------------
+
+model SecuenciaNCF {
+  id               String    @id @default(uuid())
+  empresaId        String    @map("empresa_id")
+  nombre           String
+  tipo             String    // E31, E32, E34, E44, E45, B01, B02, B04, B14, B15
+  prefijo          String    // E31, B01, etc.
+  numeroActual     Int       @default(1) @map("numero_actual")
+  numeroHasta      Int       @default(99999999) @map("numero_hasta")
+  fechaVencimiento DateTime? @map("fecha_vencimiento")
+  activa           Boolean   @default(true)
+  ambiente         String    @default("TEST") // TEST | CERT | PROD
+  creadoEn         DateTime  @default(now()) @map("creado_en")
+  actualizadoEn    DateTime  @updatedAt @map("actualizado_en")
+
+  empresa          Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, prefijo, ambiente])
+  @@index([empresaId, activa])
+  @@map("secuencias_ncf")
+}
+
+model FacturaVenta {
+  id                       String       @id @default(uuid())
+  empresaId                String       @map("empresa_id")
+  sucursalId               String?      @map("sucursal_id")
+  almacenId                String?      @map("almacen_id")
+  clienteId                String?      @map("cliente_id")
+  usuarioId                String?      @map("usuario_id")
+  
+  numeroFactura            String       @map("numero_factura") // ej: FAC-0001
+  ncf                      String?      // ej: E3100000001 o B0100000001
+  tipoNcf                  String?      @map("tipo_ncf") // E31, E32, B01, B02, etc.
+  fecha                    DateTime     @default(now())
+  fechaVencimiento         DateTime?    @map("fecha_vencimiento")
+  estado                   String       @default("EMITIDA") // EMITIDA, PAGADA, ANULADA
+  tipoPago                 String       @default("CONTADO") @map("tipo_pago") // CONTADO, CREDITO
+  metodoPago               String       @default("EFECTIVO") @map("metodo_pago") // EFECTIVO, TARJETA, TRANSFERENCIA, CHEQUE
+  
+  subtotal                 Decimal      @db.Decimal(12, 2)
+  descuento                Decimal      @default(0) @db.Decimal(12, 2)
+  itbis                    Decimal      @db.Decimal(12, 2)
+  total                    Decimal      @db.Decimal(12, 2)
+  montoPagado              Decimal      @default(0) @map("monto_pagado") @db.Decimal(12, 2)
+  balancePendiente         Decimal      @default(0) @map("balance_pendiente") @db.Decimal(12, 2)
+  moneda                   String       @default("DOP") @db.VarChar(3)
+  tasaCambio               Decimal      @default(1) @map("tasa_cambio") @db.Decimal(18, 8)
+  monedaBase               String       @default("DOP") @map("moneda_base") @db.VarChar(3)
+  redondeoAjuste           Decimal      @default(0) @map("redondeo_ajuste") @db.Decimal(12, 2)
+  terminoPagoId            String?      @map("termino_pago_id")
+
+  // Integración e-CF con FiscalBridge
+  fiscalbridgeStatus       String?      @default("NOT_TRANSMITTED") @map("fiscalbridge_status") // NOT_TRANSMITTED, PENDING, SENT, FAILED, ACCEPTED, REJECTED
+  fiscalbridgeDocId        String?      @map("fiscalbridge_doc_id") // UUID de FiscalBridge
+  fiscalbridgeTrackId      String?      @map("fiscalbridge_track_id")
+  fiscalbridgeError        String?      @map("fiscalbridge_error")
+  fiscalbridgeQrUrl        String?      @map("fiscalbridge_qr_url")
+  fiscalbridgeSecurityCode String?      @map("fiscalbridge_security_code")
+  fiscalbridgeSignDate     DateTime?    @map("fiscalbridge_sign_date")
+
+  // NCF Modificado (para Notas de Crédito E34 / B04)
+  ncfModificado            String?      @map("ncf_modificado")
+  motivoModificacion       String?      @map("motivo_modificacion")
+  facturaOriginalId        String?      @map("factura_original_id")
+  facturaOriginal          FacturaVenta?  @relation("NotasCredito", fields: [facturaOriginalId], references: [id], onDelete: SetNull)
+  notasCredito             FacturaVenta[] @relation("NotasCredito")
+
+  notas                    String?
+  creadoEn                 DateTime     @default(now()) @map("creado_en")
+  actualizadoEn            DateTime     @updatedAt @map("actualizado_en")
+
+  empresa                  Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  sucursal                 Sucursal?    @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
+  almacen                  Almacen?     @relation(fields: [almacenId], references: [id], onDelete: SetNull)
+  cliente                  Cliente?     @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  usuario                  Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  detalles                 FacturaVentaDetalle[]
+  impuestos                ImpuestoFactura[]
+  pagosAplicados           AplicacionPago[]
+  terminoPago              TerminoPago? @relation(fields: [terminoPagoId], references: [id], onDelete: SetNull)
+
+  @@unique([empresaId, numeroFactura])
+  @@index([empresaId, ncf])
+  @@index([empresaId, fecha(sort: Desc)])
+  @@index([empresaId, estado])
+  @@map("facturas_venta")
+}
+
+model FacturaVentaDetalle {
+  id             String       @id @default(uuid())
+  facturaId      String       @map("factura_id")
+  productoId     String       @map("producto_id")
+  cantidad       Decimal      @db.Decimal(12, 2)
+  precioUnitario Decimal      @map("precio_unitario") @db.Decimal(12, 2)
+  tasaItbis      Decimal      @default(18) @map("tasa_itbis") @db.Decimal(5, 2)
+  impuestoId     String?      @map("impuesto_id")
+  indicadorFacturacion String? @map("indicador_facturacion")
+  itbis          Decimal      @db.Decimal(12, 2)
+  subtotal       Decimal      @db.Decimal(12, 2)
+  total          Decimal      @db.Decimal(12, 2)
+  creadoEn       DateTime     @default(now()) @map("creado_en")
+  detalleOriginalId String?   @map("detalle_original_id")
+  detalleOriginal   FacturaVentaDetalle?  @relation("LineasCredito", fields: [detalleOriginalId], references: [id], onDelete: SetNull)
+  lineasCredito     FacturaVentaDetalle[] @relation("LineasCredito")
+
+  factura        FacturaVenta @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  producto       Producto     @relation(fields: [productoId], references: [id], onDelete: Restrict)
+  impuesto       Impuesto?    @relation(fields: [impuestoId], references: [id], onDelete: SetNull)
+  impuestos      ImpuestoFactura[]
+
+  @@index([facturaId])
+  @@map("facturas_venta_detalles")
+}
+
+model ConfiguracionEmpresa {
+  id                 String   @id @default(uuid())
+  empresaId          String   @unique @map("empresa_id")
+  monedaBase         String   @default("DOP") @map("moneda_base") @db.VarChar(3)
+  zonaHoraria        String   @default("America/Santo_Domingo") @map("zona_horaria")
+  locale             String   @default("es-DO")
+  precisionMoneda    Int      @default(2) @map("precision_moneda")
+  precisionCantidad  Int      @default(4) @map("precision_cantidad")
+  metodoRedondeo     String   @default("HALF_UP") @map("metodo_redondeo")
+  redondeoPor        String   @default("LINEA") @map("redondeo_por")
+  preciosIncluyenImpuesto Boolean @default(false) @map("precios_incluyen_impuesto")
+  diasGracia         Int      @default(0) @map("dias_gracia")
+  
+  // Configuración de Backups Automáticos
+  backupAutoEnabled    Boolean   @default(false) @map("backup_auto_enabled")
+  backupFrecuencia     String    @default("DAILY") @map("backup_frecuencia") // "DAILY", "WEEKLY", "MONTHLY"
+  backupHora           String    @default("02:00") @map("backup_hora")
+  backupDestino        String    @default("LOCAL") @map("backup_destino") // "LOCAL", "GOOGLE_DRIVE"
+  backupRetencionDias  Int       @default(7) @map("backup_retencion_dias")
+  ultimoBackupAuto     DateTime? @map("ultimo_backup_auto")
+
+  creadoEn           DateTime @default(now()) @map("creado_en")
+  actualizadoEn      DateTime @updatedAt @map("actualizado_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  @@map("configuraciones_empresa")
+}
+
+model Impuesto {
+  id                 String   @id @default(uuid())
+  empresaId          String   @map("empresa_id")
+  codigo             String
+  nombre             String
+  tasa               Decimal  @db.Decimal(5, 2)
+  tipo               String   @default("ITBIS")
+  indicadorFacturacion String @default("1") @map("indicador_facturacion")
+  incluidoEnPrecio   Boolean  @default(false) @map("incluido_en_precio")
+  vigenteDesde      DateTime @default(now()) @map("vigente_desde")
+  vigenteHasta      DateTime? @map("vigente_hasta")
+  activo             Boolean  @default(true)
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  productos Producto[]
+  detalles FacturaVentaDetalle[]
+  facturas ImpuestoFactura[]
+
+  @@unique([empresaId, codigo])
+  @@index([empresaId, activo])
+  @@map("impuestos")
+}
+
+model ImpuestoFactura {
+  id             String   @id @default(uuid())
+  facturaId      String   @map("factura_id")
+  detalleId      String?  @map("detalle_id")
+  impuestoId     String   @map("impuesto_id")
+  baseImponible  Decimal  @map("base_imponible") @db.Decimal(12, 2)
+  tasa           Decimal  @db.Decimal(5, 2)
+  monto          Decimal  @db.Decimal(12, 2)
+  indicadorFacturacion String @map("indicador_facturacion")
+  creadoEn       DateTime @default(now()) @map("creado_en")
+
+  factura  FacturaVenta @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  detalle  FacturaVentaDetalle? @relation(fields: [detalleId], references: [id], onDelete: SetNull)
+  impuesto Impuesto @relation(fields: [impuestoId], references: [id], onDelete: Restrict)
+  @@index([facturaId])
+  @@map("impuestos_factura")
+}
+
+model TerminoPago {
+  id              String   @id @default(uuid())
+  empresaId       String   @map("empresa_id")
+  codigo          String
+  nombre          String
+  tipo            String   @default("CONTADO")
+  diasCredito     Int      @default(0) @map("dias_credito")
+  porcentajeAnticipo Decimal @default(0) @map("porcentaje_anticipo") @db.Decimal(5, 2)
+  activo          Boolean  @default(true)
+  creadoEn        DateTime @default(now()) @map("creado_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  facturas FacturaVenta[]
+  @@unique([empresaId, codigo])
+  @@map("terminos_pago")
+}
+
+model PagoCliente {
+  id             String   @id @default(uuid())
+  empresaId      String   @map("empresa_id")
+  clienteId      String   @map("cliente_id")
+  moneda         String   @default("DOP") @db.VarChar(3)
+  monto          Decimal  @db.Decimal(12, 2)
+  tasaCambio     Decimal  @default(1) @map("tasa_cambio") @db.Decimal(18, 8)
+  metodo         String
+  referencia     String?
+  fechaPago      DateTime @default(now()) @map("fecha_pago")
+  estado         String   @default("REGISTRADO")
+  usuarioId      String   @map("usuario_id")
+  notas          String?
+  creadoEn       DateTime @default(now()) @map("creado_en")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  aplicaciones AplicacionPago[]
+  @@index([empresaId, clienteId, fechaPago])
+  @@map("pagos_clientes")
+}
+
+model AplicacionPago {
+  id          String   @id @default(uuid())
+  pagoId      String   @map("pago_id")
+  facturaId   String   @map("factura_id")
+  monto       Decimal  @db.Decimal(12, 2)
+  creadoEn    DateTime @default(now()) @map("creado_en")
+
+  pago    PagoCliente @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+  factura FacturaVenta @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  @@unique([pagoId, facturaId])
+  @@index([facturaId])
+  @@map("aplicaciones_pago")
+}
+
+// Fase AI Agent & Chat Multi-Tenant
+model AiConversation {
+  id            String      @id @default(uuid())
+  titulo        String      @default("Nueva conversación")
+  empresaId     String      @map("empresa_id")
+  empresa       Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  usuarioId     String      @map("usuario_id")
+  usuario       Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  mensajes      AiMessage[]
+  creadoEn      DateTime    @default(now()) @map("creado_en")
+  actualizadoEn DateTime    @updatedAt @map("actualizado_en")
+
+  @@index([empresaId, usuarioId])
+  @@map("ai_conversaciones")
+}
+
+model AiMessage {
+  id             String         @id @default(uuid())
+  conversacionId String         @map("conversacion_id")
+  conversacion   AiConversation @relation(fields: [conversacionId], references: [id], onDelete: Cascade)
+  role           String         // "user" | "assistant" | "system"
+  content        String         @db.Text
+  toolsUsed      String[]       @default([]) @map("tools_used")
+  creadoEn       DateTime       @default(now()) @map("creado_en")
+
+  @@index([conversacionId])
+  @@map("ai_mensajes")
+}

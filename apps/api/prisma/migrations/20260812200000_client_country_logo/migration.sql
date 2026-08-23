@@ -1,0 +1,2 @@
+ALTER TABLE "clientes" ADD COLUMN "pais" TEXT NOT NULL DEFAULT 'DO';
+ALTER TABLE "clientes" ADD COLUMN "logo" TEXT;

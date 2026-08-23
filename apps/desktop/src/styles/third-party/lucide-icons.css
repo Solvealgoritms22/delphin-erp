@@ -1,0 +1,20 @@
+#dolphin {
+
+  mat-icon svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  mat-icon[svgicon="google-drive"] svg,
+  mat-icon[ng-reflect-svg-icon="google-drive"] svg,
+  mat-icon[data-mat-icon-name="google-drive"] svg,
+  mat-icon.multicolor-icon svg,
+  mat-icon.google-drive-icon svg {
+    fill: initial !important;
+    stroke: none !important;
+    stroke-width: 0 !important;
+  }
+}

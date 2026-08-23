@@ -1,0 +1,89 @@
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { environment } from '@/environments/environment';
+
+export type SecuenciaNCF = {
+  id: string;
+  empresaId: string;
+  nombre: string;
+  tipo: string;
+  prefijo: string;
+  numeroActual: number;
+  numeroHasta: number;
+  fechaVencimiento?: string | null;
+  activa: boolean;
+  ambiente: string;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export type CreateSequenceDto = {
+  nombre: string;
+  tipo: string;
+  prefijo: string;
+  numeroActual?: number;
+  numeroHasta?: number;
+  fechaVencimiento?: string;
+  activa?: boolean;
+  ambiente?: string;
+}
+
+export type UpdateSequenceDto = {
+  nombre?: string;
+  numeroActual?: number;
+  numeroHasta?: number;
+  fechaVencimiento?: string;
+  activa?: boolean;
+  ambiente?: string;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class SequencesService {
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/sequences`;
+
+  sequences = signal<SecuenciaNCF[]>([]);
+  loading = signal<boolean>(false);
+
+  findAll(): Observable<SecuenciaNCF[]> {
+    this.loading.set(true);
+    return this.http.get<SecuenciaNCF[]>(this.apiUrl).pipe(
+      tap({
+        next: (res) => {
+          this.sequences.set(res);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      }),
+    );
+  }
+
+  create(dto: CreateSequenceDto): Observable<SecuenciaNCF> {
+    return this.http.post<SecuenciaNCF>(this.apiUrl, dto).pipe(
+      tap((created) => {
+        this.sequences.update((list) => [...list, created]);
+      }),
+    );
+  }
+
+  update(id: string, dto: UpdateSequenceDto): Observable<SecuenciaNCF> {
+    return this.http.put<SecuenciaNCF>(`${this.apiUrl}/${id}`, dto).pipe(
+      tap((updated) => {
+        this.sequences.update((list) =>
+          list.map((item) => (item.id === id ? updated : item)),
+        );
+      }),
+    );
+  }
+
+  delete(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+      tap(() => {
+        this.sequences.update((list) => list.filter((item) => item.id !== id));
+      }),
+    );
+  }
+}

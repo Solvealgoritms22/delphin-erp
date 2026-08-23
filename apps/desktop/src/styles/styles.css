@@ -1,0 +1,318 @@
+
+@import 'tailwindcss' important;
+@import './tailwind/variants.css';
+@import './tailwind/theme.css';
+@import './tailwind/utilities.css';
+
+@import '@angular/cdk/overlay-prebuilt.css';
+
+.cdk-overlay-container {
+  z-index: 9999 !important;
+}
+
+@import './base/base.css';
+@import './base/typography.css';
+
+@import './components/a.css';
+@import './components/input.css';
+@import './components/kbd.css';
+@import './components/material.css';
+@import './components/scrollbar.css';
+@import './components/markdown.css';
+
+@import './third-party/lucide-icons.css';
+
+:root {
+  --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::view-transition-group(root) {
+  animation-timing-function: var(--expo-out);
+}
+
+::view-transition-new(root) {
+  -webkit-mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="blur"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="0" cy="0" r="18" fill="white" filter="url(%23blur)"/></svg>') top left / 0 no-repeat;
+  mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="blur"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="0" cy="0" r="18" fill="white" filter="url(%23blur)"/></svg>') top left / 0 no-repeat;
+  mask-origin: content-box;
+  -webkit-mask-origin: content-box;
+  animation: scale 1s;
+  animation-fill-mode: both;
+  transform-origin: top left;
+}
+
+::view-transition-old(root),
+.scheme-dark::view-transition-old(root),
+.dark::view-transition-old(root) {
+  animation: scale 1s;
+  animation-fill-mode: both;
+  transform-origin: top left;
+  z-index: -1;
+}
+
+@keyframes scale {
+  to {
+    -webkit-mask-size: 350vmax;
+    mask-size: 350vmax;
+  }
+}
+
+.cdk-overlay-pane.update-snackbar,
+.update-snackbar.cdk-overlay-pane,
+.update-snackbar {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  max-width: 440px !important;
+  width: auto !important;
+  pointer-events: auto !important;
+}
+
+.update-snackbar .mat-mdc-snack-bar-container,
+.update-snackbar.mat-mdc-snack-bar-container,
+.mat-mdc-snack-bar-container.update-snackbar {
+  --mdc-snackbar-container-color: transparent !important;
+  --mdc-snackbar-container-elevation-shadow: none !important;
+  --mat-snack-bar-button-color: inherit !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+.update-snackbar .mdc-snackbar,
+.update-snackbar .mdc-snackbar__surface,
+.update-snackbar .mdc-snackbar__label,
+.update-snackbar .mat-mdc-snackbar-surface-wrapper {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.cdk-overlay-backdrop.cdk-overlay-dark-backdrop,
+.cdk-overlay-dark-backdrop {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(140%) !important;
+  transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.dark .cdk-overlay-backdrop.cdk-overlay-dark-backdrop,
+.dark .cdk-overlay-dark-backdrop {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+}
+
+::backdrop {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(140%) !important;
+}
+
+.dark ::backdrop {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+}
+
+.cdk-overlay-transparent-backdrop,
+.cdk-overlay-backdrop.cdk-overlay-transparent-backdrop,
+.cdk-overlay-backdrop.transparent {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+@keyframes modalZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modalZoomOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+}
+
+dialog {
+  opacity: 0;
+  transform: scale(0.65);
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    display 0.28s allow-discrete,
+    overlay 0.28s allow-discrete;
+}
+
+dialog[open] {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+}
+
+dialog::backdrop {
+  opacity: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  transition:
+    opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    display 0.28s allow-discrete,
+    overlay 0.28s allow-discrete;
+}
+
+dialog[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+.cdk-overlay-pane:has(.mat-mdc-dialog-container),
+.mat-mdc-dialog-container,
+.cdk-dialog-container {
+  transform-origin: center center !important;
+}
+
+.mat-mdc-dialog-container .mdc-dialog__surface,
+.mat-mdc-dialog-container .mat-mdc-dialog-surface,
+.mat-mdc-dialog-surface,
+.cdk-dialog-container {
+  transform-origin: center center !important;
+  animation: modalZoomIn 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: transform, opacity !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .mat-mdc-dialog-container .mdc-dialog__surface,
+.dark .mat-mdc-dialog-container .mat-mdc-dialog-surface,
+.dark .mat-mdc-dialog-surface,
+.dark .cdk-dialog-container {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+.mat-mdc-dialog-container.mdc-dialog--closing .mdc-dialog__surface,
+.mat-mdc-dialog-container.mdc-dialog--closing .mat-mdc-dialog-surface,
+.mat-mdc-dialog-container.mdc-dialog--closing,
+.mat-mdc-dialog-container.mat-mdc-dialog-container-exit .mdc-dialog__surface,
+.mat-mdc-dialog-container.mat-mdc-dialog-container-exit .mat-mdc-dialog-surface,
+.mat-mdc-dialog-container.mat-mdc-dialog-container-exit,
+.cdk-overlay-pane.mat-mdc-dialog-exit .mdc-dialog__surface,
+.cdk-overlay-pane.mat-mdc-dialog-exit .mat-mdc-dialog-surface,
+.cdk-overlay-pane.mat-mdc-dialog-exit,
+.cdk-overlay-pane:has(.mat-mdc-dialog-container-exit) .mdc-dialog__surface,
+.cdk-overlay-pane:has(.mdc-dialog--closing) .mdc-dialog__surface {
+  animation: modalZoomOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
+}
+
+.cdk-overlay-backdrop.cdk-overlay-backdrop-hiding {
+  opacity: 0 !important;
+  transition: opacity 220ms cubic-bezier(0.4, 0, 1, 1), backdrop-filter 220ms cubic-bezier(0.4, 0, 1, 1) !important;
+}
+
+@keyframes dolphin-gradient-flow {
+  from {
+    background-position: 0% 100%;
+  }
+  to {
+    background-position: 100% 0%;
+  }
+}
+
+:root {
+  --dolphin-primary: oklch(50% 0.134 242.749);
+  --dolphin-primary-light: oklch(62% 0.145 235);
+  --dolphin-primary-dark: oklch(42% 0.125 250);
+  --dolphin-primary-glow: oklch(50% 0.134 242.749 / 0.45);
+}
+
+.bg-gradient-animated,
+.bg-animated-primary,
+.btn-gradient-animated,
+.bg-blue-600 {
+  background: linear-gradient(
+    45deg,
+    oklch(48% 0.134 242.749),
+    oklch(62% 0.145 235),
+    oklch(42% 0.125 250),
+    oklch(58% 0.140 238),
+    oklch(48% 0.134 242.749)
+  ) !important;
+  background-size: 250% 250% !important;
+  background-position: 0% 100% !important;
+  animation: dolphin-gradient-flow 4s linear infinite alternate !important;
+  color: #ffffff !important;
+  transition: box-shadow 0.25s ease, filter 0.25s ease, transform 0.15s ease;
+}
+
+.bg-gradient-animated:hover:not(:disabled):not([disabled]),
+.bg-animated-primary:hover:not(:disabled):not([disabled]),
+.btn-gradient-animated:hover:not(:disabled):not([disabled]),
+.bg-blue-600:hover:not(:disabled):not([disabled]),
+.hover\:bg-blue-700:hover:not(:disabled):not([disabled]) {
+  animation-duration: 2.5s !important;
+  filter: brightness(1.08);
+  box-shadow: 0 4px 18px -2px oklch(50% 0.134 242.749 / 0.45) !important;
+}
+
+.bg-gradient-animated:active:not(:disabled):not([disabled]),
+.bg-animated-primary:active:not(:disabled):not([disabled]),
+.btn-gradient-animated:active:not(:disabled):not([disabled]),
+.bg-blue-600:active:not(:disabled):not([disabled]) {
+  transform: scale(0.98);
+}
+
+.bg-gradient-animated:disabled,
+.bg-gradient-animated[disabled],
+.bg-animated-primary:disabled,
+.bg-animated-primary[disabled],
+.btn-gradient-animated:disabled,
+.btn-gradient-animated[disabled],
+.bg-blue-600:disabled,
+.bg-blue-600[disabled],
+button.bg-blue-600:disabled,
+button.bg-blue-600[disabled] {
+  animation: none !important;
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}

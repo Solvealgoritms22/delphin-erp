@@ -1,0 +1,13 @@
+#dolphin {
+
+  a {
+    &:focus-visible {
+      outline-color: var(--link-outline-color);
+    }
+  }
+
+  a {
+
+    --link-outline-color: var(--color-primary-600);
+  }
+}
