@@ -37,7 +37,8 @@ export class BrandsService {
   async update(id: string, empresaId: string, data: any) {
     const updateData: any = {};
     if (data.nombre !== undefined) updateData.nombre = data.nombre;
-    if (data.descripcion !== undefined) updateData.descripcion = data.descripcion;
+    if (data.descripcion !== undefined)
+      updateData.descripcion = data.descripcion;
     if (data.estado !== undefined) updateData.estado = data.estado;
 
     return this.prisma.marca.update({

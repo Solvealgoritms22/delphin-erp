@@ -111,7 +111,8 @@ export class InvoicesService {
       throw new BadRequestException('El cliente no pertenece a la empresa.');
 
     const isDraft = dto.esBorrador === true || dto.estado === 'BORRADOR';
-    const tipoNcf = dto.tipoNcf || (empresa.fiscalbridgeEnabled ? 'E31' : 'B02');
+    const tipoNcf =
+      dto.tipoNcf || (empresa.fiscalbridgeEnabled ? 'E31' : 'B02');
 
     if (tipoNcf.toUpperCase().startsWith('E') && !empresa.fiscalbridgeEnabled) {
       throw new BadRequestException(
@@ -189,7 +190,8 @@ export class InvoicesService {
       itbisAcc = itbisAcc.add(itemItbis);
 
       const rawTaxId = item.impuestoId || configuredTax?.id;
-      const validTaxId = rawTaxId && existingTaxIds.has(rawTaxId) ? rawTaxId : null;
+      const validTaxId =
+        rawTaxId && existingTaxIds.has(rawTaxId) ? rawTaxId : null;
 
       calculatedItems.push({
         productoId: item.productoId,
@@ -536,7 +538,8 @@ export class InvoicesService {
       throw new NotFoundException('Empresa no encontrada.');
     }
 
-    const tipoNcf = invoice.tipoNcf || (empresa.fiscalbridgeEnabled ? 'E31' : 'B02');
+    const tipoNcf =
+      invoice.tipoNcf || (empresa.fiscalbridgeEnabled ? 'E31' : 'B02');
     if (tipoNcf.toUpperCase().startsWith('E') && !empresa.fiscalbridgeEnabled) {
       throw new BadRequestException(
         'La facturación electrónica con DGII (e-CF) no está habilitada para esta empresa.',
@@ -552,7 +555,8 @@ export class InvoicesService {
     );
 
     const needsFiscal =
-      empresa.fiscalbridgeEnabled && Boolean(tipoNcf?.toUpperCase().startsWith('E'));
+      empresa.fiscalbridgeEnabled &&
+      Boolean(tipoNcf?.toUpperCase().startsWith('E'));
 
     // 2. Transacción de emisión y descuento de inventario
     const emitted = await this.prisma.$transaction(async (tx) => {

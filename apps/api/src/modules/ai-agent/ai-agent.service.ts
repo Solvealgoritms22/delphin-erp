@@ -311,7 +311,6 @@ export class AiAgentService {
       }
     }
 
-    const hasImages = Array.isArray(dto.images) && dto.images.length > 0;
     const isThinking = !!dto.thinking;
 
     // 3. Try OpenRouter / Groq streaming
@@ -771,13 +770,12 @@ ${JSON.stringify(dbContext, null, 2)}
     thinking?: boolean,
     images?: string[],
   ): string {
-    const q = query.toLowerCase();
-
     let prefix = '';
     if (thinking) {
-      const activeModules = Object.keys(data)
-        .map((k) => k.toUpperCase())
-        .join(', ') || 'GENERAL';
+      const activeModules =
+        Object.keys(data)
+          .map((k) => k.toUpperCase())
+          .join(', ') || 'GENERAL';
       prefix += `<think>\n1. Interpretación de consulta: "${query.slice(0, 100)}"\n2. Verificación de permisos: Lectura autorizada para ${userName}\n3. Módulos de datos examinados: [${activeModules}]\n4. Estructuración analítica de la respuesta en tablas Markdown.\n</think>\n\n`;
     }
 
@@ -789,10 +787,15 @@ ${JSON.stringify(dbContext, null, 2)}
     if (data.productos) {
       const list = data.productos.productos || [];
       if (list.length === 0) {
-        return prefix + `### 📦 Catálogo de Productos\n\n> [!NOTE]\n> Actualmente **no hay productos registrados** en esta empresa. Puedes agregar nuevos productos desde el módulo de [Catálogos > Productos](/admin/catalogs/products).\n\n¿Deseas que te ayude con información sobre cómo importar o categorizar tus productos?`;
+        return (
+          prefix +
+          `### 📦 Catálogo de Productos\n\n> [!NOTE]\n> Actualmente **no hay productos registrados** en esta empresa. Puedes agregar nuevos productos desde el módulo de [Catálogos > Productos](/admin/catalogs/products).\n\n¿Deseas que te ayude con información sobre cómo importar o categorizar tus productos?`
+        );
       }
 
-      let table = prefix + `### 📦 Catálogo de Productos (${data.productos.totalEncontrados} registros encontrados)\n\n`;
+      let table =
+        prefix +
+        `### 📦 Catálogo de Productos (${data.productos.totalEncontrados} registros encontrados)\n\n`;
       table += `Aquí tienes el detalle de los productos registrados en la base de datos:\n\n`;
       table += `| Código | Nombre del Producto | Categoría | Marca | Precio Venta | Costo | Estado |\n`;
       table += `| :--- | :--- | :--- | :--- | :---: | :---: | :---: |\n`;
@@ -997,7 +1000,7 @@ ${JSON.stringify(dbContext, null, 2)}
     usuarioId: string,
     conversationId: string,
   ) {
-    return (this.prisma as any).aiConversation.deleteMany({
+    return await (this.prisma as any).aiConversation.deleteMany({
       where: { id: conversationId, empresaId, usuarioId },
     });
   }
@@ -1053,7 +1056,7 @@ ${JSON.stringify(dbContext, null, 2)}
     content: string,
     toolsUsed: string[] = [],
   ) {
-    return (this.prisma as any).aiMessage.create({
+    return await (this.prisma as any).aiMessage.create({
       data: {
         conversacionId,
         role,

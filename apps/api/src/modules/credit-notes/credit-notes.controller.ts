@@ -21,7 +21,9 @@ export class CreditNotesController {
   constructor(private readonly creditNotes: CreditNotesService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Emitir nota de crédito (E34/B04) sobre una factura' })
+  @ApiOperation({
+    summary: 'Emitir nota de crédito (E34/B04) sobre una factura',
+  })
   create(@CurrentUser() user: any, @Body() dto: CreateCreditNoteDto) {
     return this.creditNotes.create(user.empresaId, user.id, dto);
   }

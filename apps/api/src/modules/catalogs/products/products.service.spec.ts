@@ -41,6 +41,17 @@ describe('ProductsService', () => {
         marca: true,
         unidadMedida: true,
         impuesto: true,
+        insumos: {
+          include: {
+            insumoProducto: {
+              include: {
+                categoria: true,
+                unidadMedida: true,
+              },
+            },
+            unidadMedida: true,
+          },
+        },
         stocks: {
           include: {
             almacen: true,

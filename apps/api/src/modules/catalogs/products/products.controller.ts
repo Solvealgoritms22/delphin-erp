@@ -59,11 +59,10 @@ export class ProductsController {
 
   @Get('next-code')
   @RequirePermissions('catalogs:read')
-  @ApiOperation({ summary: 'Generar siguiente código correlativo de producto o servicio' })
-  async getNextCode(
-    @CurrentUser() user: any,
-    @Query('tipo') tipo?: string,
-  ) {
+  @ApiOperation({
+    summary: 'Generar siguiente código correlativo de producto o servicio',
+  })
+  async getNextCode(@CurrentUser() user: any, @Query('tipo') tipo?: string) {
     const code = await this.productsService.generateNextCode(
       user.empresaId,
       tipo || 'PRODUCTO',

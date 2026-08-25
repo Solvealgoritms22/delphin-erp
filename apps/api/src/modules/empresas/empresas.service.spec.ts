@@ -59,7 +59,10 @@ describe('EmpresasService', () => {
         id: 'e1',
         propietarioId: 'u1',
       });
-      prisma.empresa.update.mockResolvedValue({ id: 'e1', razonSocial: 'Nuevo' });
+      prisma.empresa.update.mockResolvedValue({
+        id: 'e1',
+        razonSocial: 'Nuevo',
+      });
       await service.updateCurrent('u1', 'e1', { razonSocial: 'Nuevo' });
       expect(prisma.empresa.update).toHaveBeenCalledWith({
         where: { id: 'e1' },

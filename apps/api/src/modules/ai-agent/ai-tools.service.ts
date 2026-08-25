@@ -181,7 +181,7 @@ export class AiToolsService {
         tipo: p.tipo,
         precioVenta: p.precioVenta,
         costo: p.costo,
-        impuesto: p.taxRate ? `${p.taxRate}%` : '0%',
+        impuesto: p.taxRate ? `${p.taxRate.toString()}%` : '0%',
         categoria: p.categoria?.nombre || 'Sin categoría',
         marca: p.marca?.nombre || 'Sin marca',
         unidad: p.unidadMedida?.abreviatura || 'Und',

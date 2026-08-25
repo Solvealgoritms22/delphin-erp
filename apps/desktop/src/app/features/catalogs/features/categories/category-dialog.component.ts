@@ -243,8 +243,11 @@ export const COLOR_OPTIONS = [
                     col.dotClass,
                     selectedColor() === col.id ? 'border-neutral-900 dark:border-white scale-110 shadow-xs' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-105'
                   ]"
+                  [attr.aria-label]="col.label"
                   [matTooltip]="col.label"
-                ></button>
+                >
+                  <span class="sr-only">{{ col.label }}</span>
+                </button>
               }
             </div>
           </div>

@@ -54,12 +54,16 @@ export class CreditNotesService {
       where: { id: dto.facturaOriginalId, empresaId },
       include: {
         detalles: {
-          include: { producto: true, lineasCredito: { select: { cantidad: true } } },
+          include: {
+            producto: true,
+            lineasCredito: { select: { cantidad: true } },
+          },
         },
         cliente: true,
       },
     });
-    if (!original) throw new NotFoundException('Factura original no encontrada.');
+    if (!original)
+      throw new NotFoundException('Factura original no encontrada.');
     if (original.estado === 'ANULADA')
       throw new BadRequestException(
         'No se puede emitir una nota de crédito sobre una factura anulada.',
@@ -126,8 +130,7 @@ export class CreditNotesService {
         total,
         impuestoId: detalle.impuestoId || undefined,
         indicadorFacturacion:
-          detalle.indicadorFacturacion ||
-          (detalle.tasaItbis.eq(0) ? '2' : '1'),
+          detalle.indicadorFacturacion || (detalle.tasaItbis.eq(0) ? '2' : '1'),
         afectaInventario: detalle.producto?.tipo !== 'SERVICIO',
       });
     }
@@ -160,13 +163,13 @@ export class CreditNotesService {
             where: {
               productoId_almacenId: {
                 productoId: line.productoId,
-                almacenId: original.almacenId!,
+                almacenId: original.almacenId,
               },
             },
             create: {
               empresaId,
               productoId: line.productoId,
-              almacenId: original.almacenId!,
+              almacenId: original.almacenId,
               cantidad: line.cantidad,
             },
             update: { cantidad: { increment: line.cantidad } },
@@ -175,7 +178,7 @@ export class CreditNotesService {
             data: {
               empresaId,
               productoId: line.productoId,
-              almacenDestinoId: original.almacenId!,
+              almacenDestinoId: original.almacenId,
               usuarioId,
               tipo: 'AJUSTE_POSITIVO',
               cantidad: line.cantidad,
@@ -318,7 +321,9 @@ export class CreditNotesService {
       },
       include: {
         cliente: true,
-        facturaOriginal: { select: { id: true, numeroFactura: true, ncf: true } },
+        facturaOriginal: {
+          select: { id: true, numeroFactura: true, ncf: true },
+        },
         detalles: { include: { producto: true } },
       },
       orderBy: { fecha: 'desc' },
@@ -330,7 +335,9 @@ export class CreditNotesService {
       where: { id, empresaId, facturaOriginalId: { not: null } },
       include: {
         cliente: true,
-        facturaOriginal: { select: { id: true, numeroFactura: true, ncf: true } },
+        facturaOriginal: {
+          select: { id: true, numeroFactura: true, ncf: true },
+        },
         detalles: { include: { producto: true } },
       },
     });

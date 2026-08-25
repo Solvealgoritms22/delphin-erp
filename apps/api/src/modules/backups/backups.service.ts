@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -50,6 +51,7 @@ type Provider = 'LOCAL' | 'GOOGLE_DRIVE';
 
 @Injectable()
 export class BackupsService {
+  private readonly logger = new Logger(BackupsService.name);
   private readonly oauthStates = new Map<
     string,
     { userId: string; expiresAt: number }
@@ -505,7 +507,11 @@ export class BackupsService {
           where: { id: b.id },
           data: { estado: 'DELETED', storageKey: null },
         });
-      } catch {}
+      } catch (err: any) {
+        this.logger.warn(
+          `Failed to cleanup expired backup ${b.id}: ${err.message}`,
+        );
+      }
     }
   }
 

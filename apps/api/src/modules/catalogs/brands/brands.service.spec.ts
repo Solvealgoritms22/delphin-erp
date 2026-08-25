@@ -24,7 +24,7 @@ describe('BrandsService', () => {
     await service.create('e1', { nombre: 'Nestlé' });
 
     expect(prisma.marca.create).toHaveBeenCalledWith({
-      data: { nombre: 'Nestlé', empresaId: 'e1' },
+      data: { nombre: 'Nestlé', estado: 'ACTIVO', empresaId: 'e1' },
     });
   });
 
@@ -33,6 +33,7 @@ describe('BrandsService', () => {
     await service.findAll('e1');
     expect(prisma.marca.findMany).toHaveBeenCalledWith({
       where: { empresaId: 'e1' },
+      orderBy: { nombre: 'asc' },
     });
   });
 
@@ -52,13 +53,15 @@ describe('BrandsService', () => {
     });
   });
 
-  it('actualiza con fallback al where por id', async () => {
-    prisma.marca.update.mockRejectedValueOnce(new Error('constraint'));
-    prisma.marca.update.mockResolvedValueOnce({ id: 'b1' });
+  it('actualiza una marca', async () => {
+    prisma.marca.update.mockResolvedValue({ id: 'b1', nombre: 'X' });
 
     await service.update('b1', 'e1', { nombre: 'X' });
 
-    expect(prisma.marca.update).toHaveBeenCalledTimes(2);
+    expect(prisma.marca.update).toHaveBeenCalledWith({
+      where: { id: 'b1' },
+      data: { nombre: 'X' },
+    });
   });
 
   it('elimina una marca', async () => {

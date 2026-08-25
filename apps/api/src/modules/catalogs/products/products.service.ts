@@ -48,8 +48,10 @@ export class ProductsService {
         targetAlmacenId = defaultWarehouse.id;
       }
 
-      const initialQty = !isNaN(parsedStock) && parsedStock > 0 ? parsedStock : 0;
-      const minQty = !isNaN(parsedMinimo) && parsedMinimo > 0 ? parsedMinimo : 0;
+      const initialQty =
+        !isNaN(parsedStock) && parsedStock > 0 ? parsedStock : 0;
+      const minQty =
+        !isNaN(parsedMinimo) && parsedMinimo > 0 ? parsedMinimo : 0;
 
       await this.prisma.inventarioStock.create({
         data: {
@@ -376,7 +378,8 @@ export class ProductsService {
 
     const result: any = {};
 
-    if (nombre !== undefined) result.nombre = typeof nombre === 'string' ? nombre.trim() : nombre;
+    if (nombre !== undefined)
+      result.nombre = typeof nombre === 'string' ? nombre.trim() : nombre;
     if (tipo !== undefined) result.tipo = cleanString(tipo) || 'PRODUCTO';
 
     const cleanedCodigo = cleanString(codigo);
@@ -384,19 +387,26 @@ export class ProductsService {
       result.codigo = cleanedCodigo;
     } else if (codigo !== undefined) {
       // If codigo was explicitly sent as empty/blank, generate one automatically
-      result.codigo = await this.generateNextCode(empresaId, result.tipo || tipo);
+      result.codigo = await this.generateNextCode(
+        empresaId,
+        result.tipo || tipo,
+      );
     }
 
-    if (codigoBarras !== undefined) result.codigoBarras = cleanString(codigoBarras);
-    if (descripcion !== undefined) result.descripcion = cleanString(descripcion);
-    if (precioVenta !== undefined) result.precioVenta = Number(precioVenta ?? 0);
+    if (codigoBarras !== undefined)
+      result.codigoBarras = cleanString(codigoBarras);
+    if (descripcion !== undefined)
+      result.descripcion = cleanString(descripcion);
+    if (precioVenta !== undefined)
+      result.precioVenta = Number(precioVenta ?? 0);
     if (costo !== undefined) {
       result.costo =
         costo !== null && costo !== '' && !isNaN(Number(costo))
           ? Number(costo)
           : null;
     }
-    if (categoriaId !== undefined) result.categoriaId = cleanString(categoriaId);
+    if (categoriaId !== undefined)
+      result.categoriaId = cleanString(categoriaId);
     if (marcaId !== undefined) result.marcaId = cleanString(marcaId);
     if (unidadMedidaId !== undefined)
       result.unidadMedidaId = cleanString(unidadMedidaId);
@@ -405,7 +415,8 @@ export class ProductsService {
       result.taxRate = tax ? tax.tasa : 0;
     }
     if (tags !== undefined) result.tags = cleanString(tags);
-    if (imagenes !== undefined) result.imagenes = this.normalizeImages(imagenes);
+    if (imagenes !== undefined)
+      result.imagenes = this.normalizeImages(imagenes);
     if (estado !== undefined) result.estado = cleanString(estado) || 'ACTIVO';
 
     return result;

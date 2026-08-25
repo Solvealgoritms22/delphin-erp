@@ -16,7 +16,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ProductsService, Product } from '../../data/products.service';
+import { ProductsService } from '../../data/products.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
@@ -625,7 +625,7 @@ export type InsumoRow = {
                   <mat-option [value]="cat.id">
                     <div class="flex items-center gap-2">
                       @if (cat.icono) {
-                        <img [src]="getCatImg(cat.icono)" class="size-4 object-contain" />
+                        <img [src]="getCatImg(cat.icono)" alt="" class="size-4 object-contain" />
                       }
                       <span>{{ cat.nombre }}</span>
                     </div>
@@ -961,7 +961,7 @@ export default class ProductFormComponent implements OnInit {
     });
   }
 
-  updateInsumoRow(index: number) {
+  updateInsumoRow(_index: number) {
     this.insumosList.update((rows) => [...rows]);
   }
 

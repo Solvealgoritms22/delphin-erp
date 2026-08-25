@@ -71,8 +71,9 @@ export class BillingConfigService {
     for (const field of allowed)
       if (data[field] !== undefined) updateData[field] = data[field];
     if (
-      updateData.monedaBase &&
-      !/^[A-Z]{3}$/.test(String(updateData.monedaBase))
+      updateData.monedaBase !== undefined &&
+      (typeof updateData.monedaBase !== 'string' ||
+        !/^[A-Z]{3}$/.test(updateData.monedaBase))
     )
       throw new BadRequestException(
         'La moneda debe ser un código ISO de 3 letras',
