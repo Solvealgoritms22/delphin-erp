@@ -339,6 +339,8 @@ model Categoria {
   empresaId   String     @map("empresa_id")
   nombre      String
   descripcion String?
+  icono       String?
+  color       String?
   estado      String     @default("ACTIVO")
   
   empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)

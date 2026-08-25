@@ -13,6 +13,8 @@ import { ThinkingOrbComponent } from '@shared/components/thinking-orb/thinking-o
 import { MarkdownRendererComponent } from '@shared/components/markdown-renderer/markdown-renderer.component';
 import { environment } from '@/environments/environment';
 
+import { StatCardComponent } from '@shared/components/stat-card/stat-card.component';
+
 type DashboardMetric = {
   key: string;
   labelKey: string;
@@ -40,6 +42,7 @@ type DashboardMetric = {
     ExchangeRatesComponent,
     ThinkingOrbComponent,
     MarkdownRendererComponent,
+    StatCardComponent,
   ],
   template: `
     <div class="flex h-full w-full flex-col min-h-0 bg-white dark:bg-neutral-950 overflow-hidden">
@@ -55,7 +58,7 @@ type DashboardMetric = {
         @if (loading()) {
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             @for (_ of [1, 2, 3, 4]; track _) {
-              <div class="h-36 animate-pulse rounded-2xl bg-neutral-100 dark:bg-neutral-900"></div>
+              <div class="h-44 animate-pulse rounded-2xl bg-neutral-100 dark:bg-neutral-900"></div>
             }
           </div>
           <div class="h-[430px] animate-pulse rounded-3xl bg-neutral-100 dark:bg-neutral-900"></div>
@@ -87,16 +90,20 @@ type DashboardMetric = {
         } @else {
 
           <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            @for (metric of metrics(); track metric.key) {
-              <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-                <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-                  <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ metric.labelKey | transloco }}</p>
-                  <div>
-                    <p class="mt-5 text-4xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ metric.value | number }}</p>
-                    <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">{{ percentageOfTotal(metric.value) }}% {{ 'dashboard.general.ofTotal' | transloco }}</p>
-                  </div>
-                </div>
-              </article>
+            @for (card of cardMetrics(); track card.key) {
+              <app-stat-card
+                [title]="card.titleKey | transloco"
+                [subtitle]="card.subtitleKey | transloco"
+                [value]="card.value"
+                [icon]="card.icon"
+                [trend]="card.trend"
+                [trendValue]="card.trendValue"
+                [curvePreset]="card.curvePreset"
+                [actionLabel]="card.actionKey | transloco"
+                [route]="card.route"
+                [newRoute]="card.newRoute"
+                (refresh)="loadSummary()"
+              />
             }
           </section>
 
@@ -269,6 +276,64 @@ export class DashboardGeneralComponent implements OnInit {
       ...item,
       share: item.value > 0 ? Math.max((item.value / max) * 100, 4) : 0,
     }));
+  });
+
+  cardMetrics = computed(() => {
+    const summary = this.summary();
+    return [
+      {
+        key: 'clients',
+        titleKey: 'dashboard.general.clientsShort',
+        subtitleKey: 'dashboard.general.clients',
+        actionKey: 'dashboard.general.reviewClients',
+        value: summary?.totalClients ?? 0,
+        icon: 'users',
+        trend: 'up' as const,
+        trendValue: '15.2%',
+        curvePreset: 'asc-sigmoid' as const,
+        route: '/admin/commercial/clients',
+        newRoute: '/admin/commercial/clients',
+      },
+      {
+        key: 'products',
+        titleKey: 'dashboard.general.productsShort',
+        subtitleKey: 'dashboard.general.products',
+        actionKey: 'dashboard.general.reviewProducts',
+        value: summary?.totalProducts ?? 0,
+        icon: 'package',
+        trend: 'down' as const,
+        trendValue: '3.1%',
+        curvePreset: 'trough-wave' as const,
+        route: '/admin/catalogs/products',
+        newRoute: '/admin/catalogs/products',
+      },
+      {
+        key: 'suppliers',
+        titleKey: 'dashboard.general.suppliersShort',
+        subtitleKey: 'dashboard.general.suppliers',
+        actionKey: 'dashboard.general.reviewSuppliers',
+        value: summary?.totalSuppliers ?? 0,
+        icon: 'truck',
+        trend: 'down' as const,
+        trendValue: '18.4%',
+        curvePreset: 'peak-wave' as const,
+        route: '/admin/commercial/suppliers',
+        newRoute: '/admin/commercial/suppliers',
+      },
+      {
+        key: 'users',
+        titleKey: 'dashboard.general.usersShort',
+        subtitleKey: 'dashboard.general.users',
+        actionKey: 'dashboard.general.reviewUsers',
+        value: summary?.totalUsers ?? 0,
+        icon: 'users',
+        trend: 'up' as const,
+        trendValue: '5.8%',
+        curvePreset: 's-curve' as const,
+        route: '/admin/settings/users',
+        newRoute: '/admin/settings/users',
+      },
+    ];
   });
 
   totalRecords = computed(() => this.metrics().reduce((total, item) => total + item.value, 0));

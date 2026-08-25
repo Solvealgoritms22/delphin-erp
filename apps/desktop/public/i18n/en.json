@@ -203,7 +203,11 @@
       "reviewClients": "Review clients",
       "reviewProducts": "Review products",
       "reviewSuppliers": "Review suppliers",
-      "updatedOnOpen": "Updated upon opening this panel"
+      "reviewUsers": "Review users",
+      "viewRecords": "View records",
+      "addNew": "Add new",
+      "updatedOnOpen": "Updated upon opening this panel",
+      "viewReport": "View full report"
     },
     "exchange": {
       "title": "Exchange Rates",
@@ -663,6 +667,16 @@
       "description": "Organize your products into easy-to-find groups.",
       "new": "New category",
       "edit": "Edit category",
+      "icon": "Representative illustration",
+      "color": "Background color",
+      "searchIcon": "Search illustration...",
+      "noIllustration": "No illustration (Default)",
+      "noIllustrationShort": "Default",
+      "freshFoodGroup": "Fresh & Grocery",
+      "drinksBakeryGroup": "Drinks, Bakery & Snacks",
+      "homeCareGroup": "Home, Cleaning & Care",
+      "fashionBeautyGroup": "Fashion, Footwear & Beauty",
+      "techCommercialGroup": "Technology, Office & Others",
       "emptyTitle": "No categories registered",
       "emptyDescription": "Create categories to better organize your product inventory."
     },

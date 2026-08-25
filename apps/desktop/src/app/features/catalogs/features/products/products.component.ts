@@ -111,7 +111,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                       <img
                         [src]="getProductMainImage(product)"
                         [alt]="product.nombre"
-                        class="w-full h-full object-cover"
+                        class="w-full h-full object-fill"
                       />
                     } @else {
                       <mat-icon

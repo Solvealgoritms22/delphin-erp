@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <linearGradient id="boxFront" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#93C5FD"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="boxSide" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="boxTop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#BFDBFE"/>
+      <stop offset="100%" stop-color="#93C5FD"/>
+    </linearGradient>
+    <linearGradient id="folderBack" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#CBD5E1"/>
+      <stop offset="100%" stop-color="#94A3B8"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#1E293B" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Base Soft Shadow -->
+  <ellipse cx="64" cy="112" rx="42" ry="10" fill="#64748B" opacity="0.16"/>
+
+  <!-- Isometric Empty 3D Cube / Container Group -->
+  <g filter="url(#softShadow)">
+    <!-- Back Glow Plate -->
+    <rect x="28" y="24" width="72" height="72" rx="20" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="2"/>
+
+    <!-- Dotted Inner Empty Outline -->
+    <rect x="36" y="32" width="56" height="56" rx="14" fill="none" stroke="#94A3B8" stroke-width="2" stroke-dasharray="4 4" stroke-opacity="0.6"/>
+
+    <!-- Subtle Central Geometric Cube Shape -->
+    <!-- Top Face -->
+    <polygon points="64,42 84,52 64,62 44,52" fill="url(#boxTop)"/>
+    <!-- Left Face -->
+    <polygon points="44,52 64,62 64,84 44,74" fill="url(#boxFront)"/>
+    <!-- Right Face -->
+    <polygon points="64,62 84,52 84,74 64,84" fill="url(#boxSide)"/>
+
+    <!-- Sparkling Plus Accent -->
+    <circle cx="86" cy="38" r="7" fill="#3B82F6"/>
+    <path d="M86 34 V42 M82 38 H90" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="42" cy="78" r="4" fill="#60A5FA" opacity="0.8"/>
+  </g>
+</svg>

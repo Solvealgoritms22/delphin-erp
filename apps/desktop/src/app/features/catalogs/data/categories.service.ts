@@ -7,6 +7,8 @@ export type Category = {
   id: string;
   nombre: string;
   descripcion?: string;
+  icono?: string;
+  color?: string;
   estado: string;
 }
 
