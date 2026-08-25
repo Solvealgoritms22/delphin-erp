@@ -1,9 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
   Validators,
+  FormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,17 +14,31 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ProductsService } from '../../data/products.service';
+import { ProductsService, Product } from '../../data/products.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
+import { CommonModule } from '@angular/common';
+
+export type InsumoRow = {
+  insumoProductoId: string;
+  cantidad: number;
+  costoUnitario: number;
+  unidadMedidaId?: string | null;
+  notas?: string;
+  nombre?: string;
+  unidadNombre?: string;
+};
 
 @Component({
   selector: 'app-product-form',
   standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     MatButtonModule,
     MatIconModule,
     MatInputModule,
@@ -31,6 +46,7 @@ import { environment } from '@/environments/environment';
     MatSelectModule,
     MatChipsModule,
     MatTooltipModule,
+    MatSlideToggleModule,
     MatSnackBarModule,
     TranslocoPipe,
   ],
@@ -38,31 +54,52 @@ import { environment } from '@/environments/environment';
     <div
       class="flex h-full w-full flex-auto flex-col overflow-x-hidden overflow-y-auto px-4 py-8 sm:px-6 md:px-8"
     >
+      <!-- Header -->
       <div class="mb-8 flex items-center justify-between">
         <div class="flex items-center gap-4">
           <button
             mat-icon-button
             (click)="goBack()"
-            class="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+            class="text-neutral-500 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
           >
-            <mat-icon
-              svgIcon="arrow-left"
-              class="icon-size-5"
-            ></mat-icon>
+            <mat-icon svgIcon="arrow-left" class="icon-size-5"></mat-icon>
           </button>
           <div>
-            <h1
-              class="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white"
-            >
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
               {{
-                (isEdit ? 'catalogs.products.edit' : 'catalogs.products.create')
-                  | transloco
+                isEdit
+                  ? (isService()
+                    ? ('catalogs.products.editService' | transloco)
+                    : ('catalogs.products.edit' | transloco))
+                  : (isService()
+                    ? ('catalogs.products.createService' | transloco)
+                    : ('catalogs.products.create' | transloco))
               }}
             </h1>
             <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-              {{ isEdit ? 'Modifica los detalles y atributos del producto.' : 'Completa la información básica, precios y atributos para registrar el producto.' }}
+              {{
+                isEdit
+                  ? (isService()
+                    ? ('catalogs.products.editServiceSubtitle' | transloco)
+                    : ('catalogs.products.editProductSubtitle' | transloco))
+                  : (isService()
+                    ? ('catalogs.products.createServiceSubtitle' | transloco)
+                    : ('catalogs.products.createProductSubtitle' | transloco))
+              }}
             </p>
           </div>
+        </div>
+
+        <!-- Visual Type Badge -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold"
+          [ngClass]="
+            isService()
+              ? 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+              : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-950/40 dark:text-gray-300 dark:border-gray-800/50'
+          "
+        >
+          <mat-icon [svgIcon]="isService() ? 'wrench' : 'package'" class="icon-size-4"></mat-icon>
+          <span>{{ isService() ? ('catalogs.products.typeService' | transloco) : ('catalogs.products.typePhysical' | transloco) }}</span>
         </div>
       </div>
 
@@ -77,28 +114,55 @@ import { environment } from '@/environments/environment';
             class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
           >
             <h2 class="mb-5 text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+              <mat-icon [svgIcon]="isService() ? 'wrench' : 'package'" class="icon-size-5 text-neutral-500"></mat-icon>
               {{ 'common.basicInformation' | transloco }}
             </h2>
 
+            <!-- Tipo de Ítem Selector -->
+            <div class="mb-4">
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'catalogs.products.itemType' | transloco }}</mat-label>
+                <mat-select formControlName="tipo" (selectionChange)="onTipoChange($event.value)">
+                  <mat-option value="PRODUCTO">
+                    <div class="flex items-center gap-2">
+                      <mat-icon svgIcon="package" class="icon-size-4 text-gray-600"></mat-icon>
+                      <span>{{ 'catalogs.products.typePhysical' | transloco }}</span>
+                    </div>
+                  </mat-option>
+                  <mat-option value="SERVICIO">
+                    <div class="flex items-center gap-2">
+                      <mat-icon svgIcon="wrench" class="icon-size-4 text-slate-600 dark:text-slate-300"></mat-icon>
+                      <span>{{ 'catalogs.products.typeService' | transloco }}</span>
+                    </div>
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <!-- Name & Code -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <mat-form-field class="w-full">
-                <mat-label>{{ 'catalogs.products.name' | transloco }}</mat-label>
+                <mat-label>
+                  {{ isService() ? ('catalogs.products.serviceName' | transloco) : ('catalogs.products.name' | transloco) }}
+                </mat-label>
                 <input
                   matInput
                   formControlName="nombre"
-                  [placeholder]="'catalogs.products.namePlaceholder' | transloco"
+                  [placeholder]="isService() ? ('catalogs.products.serviceNamePlaceholder' | transloco) : ('catalogs.products.namePlaceholder' | transloco)"
                 />
                 @if (form.get('nombre')?.touched && form.get('nombre')?.invalid) {
-                  <mat-error>El nombre del producto es obligatorio</mat-error>
+                  <mat-error>El nombre es obligatorio</mat-error>
                 }
               </mat-form-field>
 
               <mat-form-field class="w-full">
-                <mat-label>{{ 'catalogs.products.code' | transloco }}</mat-label>
+                <mat-label>
+                  {{ isService() ? ('catalogs.products.serviceCode' | transloco) : ('catalogs.products.code' | transloco) }}
+                </mat-label>
                 <input
                   matInput
                   formControlName="codigo"
-                  placeholder="PRD-00001"
+                  [placeholder]="isService() ? 'SRV-00001' : 'PRD-00001'"
                 />
                 <button
                   mat-icon-button
@@ -114,38 +178,36 @@ import { environment } from '@/environments/environment';
                   {{ 'catalogs.products.codeHint' | transloco }}
                 </mat-hint>
                 @if (form.get('codigo')?.touched && form.get('codigo')?.invalid) {
-                  <mat-error>El código del producto es obligatorio</mat-error>
+                  <mat-error>El código es obligatorio</mat-error>
                 }
               </mat-form-field>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <mat-form-field class="w-full">
-                <mat-label>Tipo de ítem</mat-label>
-                <mat-select formControlName="tipo">
-                  <mat-option value="PRODUCTO">Producto Físico</mat-option>
-                  <mat-option value="SERVICIO">Servicio</mat-option>
-                </mat-select>
-              </mat-form-field>
+            <!-- Código de barras (Solo para productos físicos) -->
+            @if (!isService()) {
+              <div class="mb-4">
+                <mat-form-field class="w-full">
+                  <mat-label>{{ 'catalogs.products.barcode' | transloco }}</mat-label>
+                  <input
+                    matInput
+                    formControlName="codigoBarras"
+                    [placeholder]="'catalogs.products.barcodePlaceholder' | transloco"
+                  />
+                </mat-form-field>
+              </div>
+            }
 
-              <mat-form-field class="w-full">
-                <mat-label>Código de barras</mat-label>
-                <input
-                  matInput
-                  formControlName="codigoBarras"
-                  placeholder="742100023412"
-                />
-              </mat-form-field>
-            </div>
-
+            <!-- Descripción -->
             <mat-form-field class="w-full">
               <mat-label>{{ 'common.description' | transloco }}</mat-label>
               <textarea
                 matInput
                 formControlName="descripcion"
-                rows="4"
+                rows="3"
                 [placeholder]="
-                  'catalogs.products.descriptionPlaceholder' | transloco
+                  isService()
+                    ? ('catalogs.products.serviceDescriptionPlaceholder' | transloco)
+                    : ('catalogs.products.descriptionPlaceholder' | transloco)
                 "
               ></textarea>
             </mat-form-field>
@@ -155,7 +217,8 @@ import { environment } from '@/environments/environment';
           <div
             class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
           >
-            <h2 class="mb-5 text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">   
+            <h2 class="mb-5 text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+              <mat-icon svgIcon="circle-dollar-sign" class="icon-size-5 text-neutral-500"></mat-icon>
               {{ 'catalogs.products.pricing' | transloco }}
             </h2>
 
@@ -174,7 +237,9 @@ import { environment } from '@/environments/environment';
               </mat-form-field>
 
               <mat-form-field class="w-full">
-                <mat-label>{{ 'catalogs.products.costPrice' | transloco }}</mat-label>
+                <mat-label>
+                  {{ isService() ? ('catalogs.products.laborOrBaseCost' | transloco) : ('catalogs.products.costPrice' | transloco) }}
+                </mat-label>
                 <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">$</span>
                 <input
                   matInput
@@ -204,21 +269,22 @@ import { environment } from '@/environments/environment';
               </mat-form-field>
 
               <mat-form-field class="w-full">
-                <mat-label>Estado</mat-label>
+                <mat-label>{{ 'common.status' | transloco }}</mat-label>
                 <mat-select formControlName="estado">
-                  <mat-option value="ACTIVO">Activo</mat-option>
-                  <mat-option value="INACTIVO">Inactivo</mat-option>
+                  <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
+                  <mat-option value="INACTIVO">{{ 'common.inactive' | transloco }}</mat-option>
                 </mat-select>
               </mat-form-field>
             </div>
           </div>
 
-          <!-- Inventario y Stock (Solo productos físicos) -->
-          @if (form.get('tipo')?.value !== 'SERVICIO') {
+          <!-- SECCIÓN DE INVENTARIO PARA PRODUCTOS FÍSICOS -->
+          @if (!isService()) {
             <div
               class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
             >
               <h2 class="mb-1 text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <mat-icon svgIcon="boxes" class="icon-size-5 text-neutral-500"></mat-icon>
                 {{ isEdit ? 'Inventario y Existencias' : 'Inventario y Stock Inicial' }}
               </h2>
               <p class="text-xs text-neutral-500 dark:text-neutral-400 mb-5">
@@ -271,18 +337,190 @@ import { environment } from '@/environments/environment';
               </p>
             </div>
           }
+
+          <!-- SECCIÓN DE INSUMOS / RECETA PARA SERVICIOS (BOM) -->
+          @if (isService()) {
+            <div
+              class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
+            >
+              <div class="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <h2 class="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                    <mat-icon svgIcon="layers" class="icon-size-5 text-gray-600 dark:text-gray-400"></mat-icon>
+                    {{ 'catalogs.products.recipeTitle' | transloco }}
+                  </h2>
+                  <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                    {{ 'catalogs.products.recipeDescription' | transloco }}
+                  </p>
+                </div>
+
+                <!-- Toggle para activar insumos -->
+                <mat-slide-toggle
+                  [checked]="consumesInsumos()"
+                  (change)="consumesInsumos.set($event.checked)"
+                  color="primary"
+                >
+                  <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                    {{ 'catalogs.products.consumesInventory' | transloco }}
+                  </span>
+                </mat-slide-toggle>
+              </div>
+
+              @if (consumesInsumos()) {
+                <div class="flex flex-col gap-4 mt-2">
+                  <!-- Insumos Table / List -->
+                  @if (insumosList().length === 0) {
+                    <div class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-xl text-center">
+                      <mat-icon svgIcon="layers" class="icon-size-8 text-neutral-400 mb-2"></mat-icon>
+                      <p class="text-xs text-neutral-500 dark:text-neutral-400 max-w-md">
+                        {{ 'catalogs.products.noInsumosYet' | transloco }}
+                      </p>
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="addInsumoRow()"
+                        class="mt-3 text-xs cursor-pointer"
+                      >
+                        <mat-icon svgIcon="plus" class="icon-size-4 mr-1"></mat-icon>
+                        {{ 'catalogs.products.addInsumo' | transloco }}
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="flex flex-col gap-3">
+                      @for (row of insumosList(); track $index) {
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3.5 rounded-xl border border-neutral-200/80 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-800/40">
+                          <!-- Insumo Product Selector -->
+                          <div class="flex-1 min-w-[200px]">
+                            <mat-form-field class="w-full !mb-0" subscriptSizing="dynamic">
+                              <mat-label>{{ 'catalogs.products.selectInsumo' | transloco }}</mat-label>
+                              <mat-select
+                                [value]="row.insumoProductoId"
+                                (selectionChange)="onInsumoSelected($index, $event.value)"
+                              >
+                                @for (prod of availablePhysicalProducts(); track prod.id) {
+                                  <mat-option [value]="prod.id">
+                                    {{ prod.nombre }} ({{ prod.codigo }}) - Costo: {{ prod.costo || 0 | currency }}
+                                  </mat-option>
+                                }
+                              </mat-select>
+                            </mat-form-field>
+                          </div>
+
+                          <!-- Cantidad -->
+                          <div class="w-full sm:w-28">
+                            <mat-form-field class="w-full !mb-0" subscriptSizing="dynamic">
+                              <mat-label>{{ 'catalogs.products.quantity' | transloco }}</mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                min="0.01"
+                                step="0.5"
+                                [(ngModel)]="row.cantidad"
+                                [ngModelOptions]="{ standalone: true }"
+                                (ngModelChange)="updateInsumoRow($index)"
+                              />
+                            </mat-form-field>
+                          </div>
+
+                          <!-- Costo Unitario -->
+                          <div class="w-full sm:w-28">
+                            <mat-form-field class="w-full !mb-0" subscriptSizing="dynamic">
+                              <mat-label>{{ 'catalogs.products.unitCost' | transloco }}</mat-label>
+                              <span matTextPrefix class="mr-1 text-neutral-400">$</span>
+                              <input
+                                matInput
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                [(ngModel)]="row.costoUnitario"
+                                [ngModelOptions]="{ standalone: true }"
+                                (ngModelChange)="updateInsumoRow($index)"
+                              />
+                            </mat-form-field>
+                          </div>
+
+                          <!-- Subtotal Cost Field (Alineado perfectamente con mat-form-field) -->
+                          <div class="w-full sm:w-32">
+                            <mat-form-field class="w-full !mb-0" subscriptSizing="dynamic">
+                              <mat-label>{{ 'catalogs.products.subtotalCost' | transloco }}</mat-label>
+                              <input
+                                matInput
+                                [value]="(row.cantidad * row.costoUnitario) | currency"
+                                readonly
+                                class="!font-bold !text-neutral-900 dark:!text-white"
+                              />
+                            </mat-form-field>
+                          </div>
+
+                          <!-- Delete button (centrado verticalmente con los inputs) -->
+                          <button
+                            mat-icon-button
+                            type="button"
+                            (click)="removeInsumoRow($index)"
+                            class="text-neutral-400 hover:text-red-600 dark:hover:text-red-400 self-center shrink-0 cursor-pointer -mt-1"
+                          >
+                            <mat-icon svgIcon="trash" class="icon-size-4.5"></mat-icon>
+                          </button>
+                        </div>
+                      }
+
+                      <div class="flex justify-start pt-1">
+                        <button
+                          mat-button
+                          type="button"
+                          (click)="addInsumoRow()"
+                          class="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs font-semibold !rounded-xl cursor-pointer"
+                        >
+                          <mat-icon svgIcon="plus" class="icon-size-4 mr-1"></mat-icon>
+                          {{ 'catalogs.products.addInsumo' | transloco }}
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Cost Summary Card for Service (Neutral & Blue) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-800 mt-3">
+                      <div>
+                        <span class="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider block">
+                          {{ 'catalogs.products.estimatedMaterialsCost' | transloco }}
+                        </span>
+                        <span class="text-base font-extrabold text-neutral-900 dark:text-white">
+                          {{ totalMaterialsCost() | currency }}
+                        </span>
+                      </div>
+                      <div>
+                        <span class="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider block">
+                          {{ 'catalogs.products.laborOrBaseCost' | transloco }}
+                        </span>
+                        <span class="text-base font-extrabold text-neutral-900 dark:text-white">
+                          {{ (form.get('costo')?.value || 0) | currency }}
+                        </span>
+                      </div>
+                      <div>
+                        <span class="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider block">
+                          {{ 'catalogs.products.totalEstimatedCost' | transloco }}
+                        </span>
+                        <span class="text-base font-extrabold text-blue-600 dark:text-blue-400">
+                          {{ (totalMaterialsCost() + (form.get('costo')?.value || 0)) | currency }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
         </div>
 
         <div class="flex w-full flex-col gap-6 md:w-1/3">
-          <!-- Imágenes -->
+          <!-- Imágenes o Portada -->
           <div
             class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
           >
             <h2 class="mb-1 text-lg font-bold text-neutral-900 dark:text-white">
-              {{ 'catalogs.products.image' | transloco }}
+              {{ isService() ? ('catalogs.products.serviceImage' | transloco) : ('catalogs.products.image' | transloco) }}
             </h2>
             <p class="mb-4 text-xs text-neutral-500">
-              {{ 'catalogs.products.imageDescription' | transloco }}
+              {{ isService() ? ('catalogs.products.serviceImageDescription' | transloco) : ('catalogs.products.imageDescription' | transloco) }}
             </p>
 
             <input
@@ -311,19 +549,15 @@ import { environment } from '@/environments/environment';
                     >
                       <img
                         [src]="image"
-                        alt="Product preview"
+                        alt="Preview"
                         class="h-full w-full object-contain p-1"
                       />
                       <button
                         type="button"
                         (click)="removeImage($event, $index)"
-                        [attr.aria-label]="'Remove image ' + ($index + 1)"
-                        class="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow transition group-hover:opacity-100 hover:bg-red-600"
+                        class="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow transition group-hover:opacity-100 hover:bg-red-600 cursor-pointer"
                       >
-                        <mat-icon
-                          svgIcon="x"
-                          class="icon-size-3"
-                        ></mat-icon>
+                        <mat-icon svgIcon="x" class="icon-size-3"></mat-icon>
                       </button>
                     </div>
                   }
@@ -372,13 +606,33 @@ import { environment } from '@/environments/environment';
             </p>
           </div>
 
-          <!-- Atributos y Clasificación (Unidad de Medida, Categoría, Marca) -->
+          <!-- Atributos y Clasificación -->
           <div
             class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
           >
             <h2 class="mb-5 text-lg font-bold text-neutral-900 dark:text-white">
               {{ 'catalogs.products.attributes' | transloco }}
             </h2>
+
+            <!-- Categoría -->
+            <mat-form-field class="mb-4 w-full">
+              <mat-label>{{ 'common.category' | transloco }}</mat-label>
+              <mat-select formControlName="categoriaId">
+                <mat-option [value]="null">{{
+                  'common.select' | transloco
+                }}</mat-option>
+                @for (cat of productsService.categories(); track cat.id) {
+                  <mat-option [value]="cat.id">
+                    <div class="flex items-center gap-2">
+                      @if (cat.icono) {
+                        <img [src]="getCatImg(cat.icono)" class="size-4 object-contain" />
+                      }
+                      <span>{{ cat.nombre }}</span>
+                    </div>
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
 
             <!-- Unidad de Medida -->
             <mat-form-field class="mb-4 w-full">
@@ -393,31 +647,20 @@ import { environment } from '@/environments/environment';
               </mat-select>
             </mat-form-field>
 
-            <!-- Categoría -->
-            <mat-form-field class="mb-4 w-full">
-              <mat-label>{{ 'common.category' | transloco }}</mat-label>
-              <mat-select formControlName="categoriaId">
-                <mat-option [value]="null">{{
-                  'common.select' | transloco
-                }}</mat-option>
-                @for (cat of productsService.categories(); track cat.id) {
-                  <mat-option [value]="cat.id">{{ cat.nombre }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-
-            <!-- Marca -->
-            <mat-form-field class="mb-4 w-full">
-              <mat-label>{{ 'common.brand' | transloco }}</mat-label>
-              <mat-select formControlName="marcaId">
-                <mat-option [value]="null">{{
-                  'catalogs.products.brandPlaceholder' | transloco
-                }}</mat-option>
-                @for (marca of productsService.brands(); track marca.id) {
-                  <mat-option [value]="marca.id">{{ marca.nombre }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
+            <!-- Marca (Solo visible para productos físicos) -->
+            @if (!isService()) {
+              <mat-form-field class="mb-4 w-full">
+                <mat-label>{{ 'common.brand' | transloco }}</mat-label>
+                <mat-select formControlName="marcaId">
+                  <mat-option [value]="null">{{
+                    'catalogs.products.brandPlaceholder' | transloco
+                  }}</mat-option>
+                  @for (marca of productsService.brands(); track marca.id) {
+                    <mat-option [value]="marca.id">{{ marca.nombre }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
 
             <!-- Etiquetas -->
             <mat-form-field class="w-full">
@@ -441,23 +684,21 @@ import { environment } from '@/environments/environment';
           type="button"
           (click)="goBack()"
           [disabled]="isLoading()"
-          class="!rounded-xl"
+          class="!rounded-xl cursor-pointer"
         >
           {{ 'common.discard' | transloco }}
         </button>
         <button
           mat-flat-button
-          [color]="'primary'"
           type="button"
-          class="ml-4 !rounded-xl !px-6 !font-semibold"
           (click)="submit()"
           [disabled]="form.invalid || isLoading()"
+          class="!rounded-xl ml-3 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
         >
-          @if (isLoading()) {
-            Guardando...
-          } @else {
-            {{ (isEdit ? 'common.save' : 'common.create') | transloco }}
-          }
+          {{
+            (isEdit ? 'common.saveChanges' : (isService() ? 'catalogs.products.createService' : 'catalogs.products.create'))
+              | transloco
+          }}
         </button>
       </div>
     </div>
@@ -467,22 +708,29 @@ export default class ProductFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  protected productsService = inject(ProductsService);
+  public productsService = inject(ProductsService);
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
   private http = inject(HttpClient);
 
+  form!: FormGroup;
   isEdit = false;
   productId: string | null = null;
-  form!: FormGroup;
   isLoading = signal(false);
-  productStocks: any[] = [];
 
-  isDragging = false;
+  // Insumos / Recipe for Services
+  consumesInsumos = signal(false);
+  insumosList = signal<InsumoRow[]>([]);
+
+  isService = signal(false);
+
+  // Image Upload Handling
   imagePreviews: string[] = [];
-  imageError = '';
+  isDragging = false;
+  imageError: string | null = null;
   readonly maxImages = 5;
-  readonly taxes = signal<
+
+  taxes = signal<
     Array<{
       id: string;
       codigo: string;
@@ -492,8 +740,24 @@ export default class ProductFormComponent implements OnInit {
     }>
   >([]);
 
-  ngOnInit() {
+  productStocks: any[] = [];
+
+  availablePhysicalProducts = computed(() => {
+    return this.productsService
+      .products()
+      .filter((p) => p.tipo !== 'SERVICIO' && p.id !== this.productId);
+  });
+
+  totalMaterialsCost = computed(() => {
+    return this.insumosList().reduce((acc, item) => {
+      return acc + (Number(item.cantidad) || 0) * (Number(item.costoUnitario) || 0);
+    }, 0);
+  });
+
+  ngOnInit(): void {
     this.productsService.loadCatalogs();
+    this.productsService.findAll().subscribe();
+
     this.http
       .get<
         Array<{
@@ -536,6 +800,9 @@ export default class ProductFormComponent implements OnInit {
     if (this.isEdit && this.productId) {
       this.productsService.findOne(this.productId).subscribe({
         next: (data) => {
+          const isServ = (data.tipo || 'PRODUCTO').toUpperCase() === 'SERVICIO';
+          this.isService.set(isServ);
+
           this.form.patchValue({
             nombre: data.nombre,
             codigo: data.codigo,
@@ -555,6 +822,22 @@ export default class ProductFormComponent implements OnInit {
             imagenes: data.imagenes || null,
             estado: data.estado || 'ACTIVO',
           });
+
+          // Insumos if any
+          if (data.insumos && data.insumos.length > 0) {
+            this.consumesInsumos.set(true);
+            this.insumosList.set(
+              data.insumos.map((i: any) => ({
+                insumoProductoId: i.insumoProductoId,
+                cantidad: Number(i.cantidad || 1),
+                costoUnitario: Number(i.costoUnitario || i.insumoProducto?.costo || 0),
+                unidadMedidaId: i.unidadMedidaId || i.insumoProducto?.unidadMedidaId || null,
+                notas: i.notas || '',
+                nombre: i.insumoProducto?.nombre || '',
+                unidadNombre: i.insumoProducto?.unidadMedida?.abreviatura || '',
+              }))
+            );
+          }
 
           this.productStocks = data.stocks || [];
           if (this.productStocks.length > 0) {
@@ -616,17 +899,74 @@ export default class ProductFormComponent implements OnInit {
         }
       });
     } else {
-      // Auto-generate initial SKU for new product
+      // Auto-detect if creating from /services route
+      if (this.router.url.includes('/services')) {
+        this.form.patchValue({ tipo: 'SERVICIO' });
+        this.isService.set(true);
+      }
+      // Auto-generate initial SKU for new item
       this.generateCode(false);
-
-      // Regenerate prefix when switching between PRODUCTO and SERVICIO if code was default/empty
-      this.form.get('tipo')?.valueChanges.subscribe((_tipo) => {
-        const currentCode = this.form.get('codigo')?.value || '';
-        if (!currentCode || currentCode.startsWith('PRD-') || currentCode.startsWith('SRV-')) {
-          this.generateCode(false);
-        }
-      });
     }
+  }
+
+  onTipoChange(newTipo: string) {
+    const isServ = (newTipo || 'PRODUCTO').toUpperCase() === 'SERVICIO';
+    this.isService.set(isServ);
+
+    const currentCode = this.form.get('codigo')?.value || '';
+    if (!currentCode || currentCode.startsWith('PRD-') || currentCode.startsWith('SRV-')) {
+      this.generateCode(false);
+    }
+  }
+
+  getCatImg(icono?: string): string {
+    if (!icono) return 'category/default_category.svg';
+    if (icono.startsWith('category/') || icono.startsWith('/category/')) return icono;
+    if (icono.endsWith('.png') || icono.endsWith('.svg')) return `category/${icono}`;
+    return `category/${icono}.png`;
+  }
+
+  addInsumoRow() {
+    const available = this.availablePhysicalProducts();
+    const first = available.length > 0 ? available[0] : null;
+
+    const newRow: InsumoRow = {
+      insumoProductoId: first ? first.id : '',
+      cantidad: 1,
+      costoUnitario: first ? Number(first.costo || 0) : 0,
+      unidadMedidaId: first ? first.unidadMedidaId : null,
+      nombre: first ? first.nombre : '',
+      unidadNombre: first?.unidadMedida?.abreviatura || '',
+      notas: '',
+    };
+
+    this.insumosList.update((prev) => [...prev, newRow]);
+  }
+
+  onInsumoSelected(index: number, productoId: string) {
+    const prod = this.productsService.products().find((p) => p.id === productoId);
+    this.insumosList.update((rows) => {
+      const copy = [...rows];
+      if (copy[index]) {
+        copy[index] = {
+          ...copy[index],
+          insumoProductoId: productoId,
+          costoUnitario: prod ? Number(prod.costo || 0) : copy[index].costoUnitario,
+          unidadMedidaId: prod?.unidadMedidaId || null,
+          nombre: prod?.nombre || '',
+          unidadNombre: prod?.unidadMedida?.abreviatura || '',
+        };
+      }
+      return copy;
+    });
+  }
+
+  updateInsumoRow(index: number) {
+    this.insumosList.update((rows) => [...rows]);
+  }
+
+  removeInsumoRow(index: number) {
+    this.insumosList.update((prev) => prev.filter((_, idx) => idx !== index));
   }
 
   generateCode(showNotification = true) {
@@ -637,227 +977,182 @@ export default class ProductFormComponent implements OnInit {
           this.form.patchValue({ codigo: res.code });
           if (showNotification) {
             this.snackBar.open(
-              `${this.transloco.translate('catalogs.products.codeGenerated')}: ${res.code}`,
+              this.transloco.translate('catalogs.products.codeGenerated') + ': ' + res.code,
               this.transloco.translate('common.close') || 'Cerrar',
               { duration: 2500 },
             );
           }
         }
       },
-      error: () => {},
+      error: () => { },
     });
   }
 
-  getTaxLabel(tax: { codigo: string; nombre: string; tasa: number }): string {
-    if (tax.codigo.startsWith('ITBIS')) return `ITBIS ${tax.tasa}%`;
-    return `${tax.nombre} · ${tax.tasa}%`;
+  getTaxLabel(tax: { nombre: string; tasa: number; codigo?: string }): string {
+    return tax.nombre + ' (' + tax.tasa + '%)';
   }
 
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.handleFiles(Array.from(input.files || []));
-    input.value = '';
+  onFileSelected(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (target.files) {
+      this.handleFiles(Array.from(target.files));
+    }
   }
 
-  onDragOver(event: DragEvent) {
+  onDragOver(event: DragEvent): void {
     event.preventDefault();
+    event.stopPropagation();
     this.isDragging = true;
   }
 
-  onDragLeave(event: DragEvent) {
+  onDragLeave(event: DragEvent): void {
     event.preventDefault();
+    event.stopPropagation();
     this.isDragging = false;
   }
 
-  onDrop(event: DragEvent) {
+  onDrop(event: DragEvent): void {
     event.preventDefault();
+    event.stopPropagation();
     this.isDragging = false;
-    this.handleFiles(Array.from(event.dataTransfer?.files || []));
+
+    if (event.dataTransfer?.files) {
+      this.handleFiles(Array.from(event.dataTransfer.files));
+    }
   }
 
-  async handleFiles(files: File[]) {
-    this.imageError = '';
-    const availableSlots = this.maxImages - this.imagePreviews.length;
-    if (availableSlots <= 0) {
-      this.imageError = `Solo puedes cargar hasta ${this.maxImages} imágenes.`;
+  private handleFiles(files: File[]): void {
+    this.imageError = null;
+
+    if (this.imagePreviews.length + files.length > this.maxImages) {
+      this.imageError = 'Solo puedes subir hasta ' + this.maxImages + ' imágenes en total.';
       return;
     }
 
-    const selectedFiles = files.slice(0, availableSlots);
-    if (files.length > availableSlots) {
-      this.imageError = `Solo se agregaron ${availableSlots} imágenes. El máximo es ${this.maxImages}.`;
-    }
-
-    for (const file of selectedFiles) {
-      if (!file.type.startsWith('image/')) {
-        this.imageError = 'Solo puedes cargar archivos de imagen.';
-        continue;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        this.imageError = 'Cada imagen debe pesar como máximo 5 MB.';
-        continue;
+    files.forEach((file) => {
+      if (!file.type.match(/image\/(png|jpeg|jpg|webp)/)) {
+        this.imageError = 'Solo se permiten imágenes (.png, .jpg, .jpeg, .webp).';
+        return;
       }
 
-      try {
-        const optimized = await this.optimizeImage(file);
-        this.imagePreviews = [...this.imagePreviews, optimized].slice(
-          0,
-          this.maxImages,
-        );
-        this.form.patchValue({
-          imagenes: JSON.stringify(this.imagePreviews),
-        });
-      } catch {
-        this.imageError = 'No se pudo procesar la imagen seleccionada.';
+      if (file.size > 500 * 1024) {
+        this.imageError = 'Cada imagen debe ser menor a 500 KB.';
+        return;
       }
-    }
-  }
 
-  private async optimizeImage(file: File): Promise<string> {
-    try {
-      if (typeof createImageBitmap === 'function') {
-        const bmp = await createImageBitmap(file);
-        const maxDim = 700;
-        let width = bmp.width;
-        let height = bmp.height;
-
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(bmp, 0, 0, width, height);
-          bmp.close?.();
-          return canvas.toDataURL('image/jpeg', 0.82);
-        }
-      }
-    } catch {}
-
-    return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const maxDim = 700;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.82));
-            return;
-          }
-          resolve(e.target?.result as string);
-        };
-        img.onerror = () => resolve(e.target?.result as string);
-        img.src = e.target?.result as string;
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        if (
+          e.target?.result &&
+          this.imagePreviews.length < this.maxImages
+        ) {
+          this.imagePreviews.push(e.target.result as string);
+          this.form.patchValue({
+            imagenes: JSON.stringify(this.imagePreviews),
+          });
+        }
       };
-      reader.onerror = () => resolve('');
       reader.readAsDataURL(file);
     });
   }
 
-  removeImage(event: Event, index: number) {
+  removeImage(event: Event, index: number): void {
     event.stopPropagation();
-    this.imagePreviews = this.imagePreviews.filter(
-      (_, imageIndex) => imageIndex !== index,
-    );
+    this.imagePreviews.splice(index, 1);
     this.form.patchValue({
-      imagenes: this.imagePreviews.length
-        ? JSON.stringify(this.imagePreviews)
-        : null,
+      imagenes:
+        this.imagePreviews.length > 0
+          ? JSON.stringify(this.imagePreviews)
+          : null,
     });
   }
 
-  goBack() {
-    this.router.navigate(['/admin/catalogs/products']);
-  }
-
-  submit() {
-    if (this.form.invalid || this.isLoading()) return;
+  submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     this.isLoading.set(true);
-    const formRaw = this.form.value;
+
+    const isServ = (this.form.value.tipo || 'PRODUCTO').toUpperCase() === 'SERVICIO';
+
+    // Build payload
     const payload: any = {
-      ...formRaw,
-      categoriaId: formRaw.categoriaId ? formRaw.categoriaId : null,
-      marcaId: formRaw.marcaId ? formRaw.marcaId : null,
-      unidadMedidaId: formRaw.unidadMedidaId ? formRaw.unidadMedidaId : null,
-      impuestoId: formRaw.impuestoId ? formRaw.impuestoId : null,
-      almacenId: formRaw.almacenId ? formRaw.almacenId : null,
-      stockInicial:
-        formRaw.stockInicial !== null &&
-        formRaw.stockInicial !== '' &&
-        !isNaN(Number(formRaw.stockInicial))
-          ? Number(formRaw.stockInicial)
-          : 0,
-      stockMinimo:
-        formRaw.stockMinimo !== null &&
-        formRaw.stockMinimo !== '' &&
-        !isNaN(Number(formRaw.stockMinimo))
-          ? Number(formRaw.stockMinimo)
-          : 0,
-      precioVenta: Number(formRaw.precioVenta ?? 0),
-      costo:
-        formRaw.costo !== null &&
-          formRaw.costo !== '' &&
-          !isNaN(Number(formRaw.costo))
-          ? Number(formRaw.costo)
-          : null,
+      ...this.form.value,
+      codigoBarras: isServ ? null : this.form.value.codigoBarras,
+      marcaId: isServ ? null : this.form.value.marcaId,
     };
 
-    const request$ =
-      this.isEdit && this.productId
-        ? this.productsService.update(this.productId, payload)
-        : this.productsService.create(payload);
+    // If service and consumes insumos, attach insumos array
+    if (isServ) {
+      if (this.consumesInsumos() && this.insumosList().length > 0) {
+        payload.insumos = this.insumosList().map((item) => ({
+          insumoProductoId: item.insumoProductoId,
+          cantidad: Number(item.cantidad || 1),
+          costoUnitario: Number(item.costoUnitario || 0),
+          unidadMedidaId: item.unidadMedidaId || null,
+          notas: item.notas || null,
+        }));
+      } else {
+        payload.insumos = [];
+      }
+    }
 
-    request$.subscribe({
-      next: () => {
-        this.isLoading.set(false);
-        this.snackBar.open(
-          this.isEdit
-            ? 'Producto actualizado con éxito'
-            : 'Producto creado con éxito',
-          this.transloco.translate('common.close') || 'Cerrar',
-          { duration: 3000 },
-        );
-        this.goBack();
-      },
-      error: (err) => {
-        this.isLoading.set(false);
-        const errorMsg =
-          err?.error?.message ||
-          'Error al guardar el producto. Verifica los campos requeridos.';
-        this.snackBar.open(
-          errorMsg,
-          this.transloco.translate('common.close') || 'Cerrar',
-          { duration: 4000 },
-        );
-      },
-    });
+    if (this.isEdit && this.productId) {
+      this.productsService.update(this.productId, payload).subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.snackBar.open(
+            isServ ? 'Servicio actualizado con éxito' : 'Producto actualizado con éxito',
+            this.transloco.translate('common.close') || 'Cerrar',
+            { duration: 3000 },
+          );
+          this.goBack();
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          const msg =
+            err.error?.message ||
+            'Ocurrió un error al intentar actualizar.';
+          this.snackBar.open(
+            msg,
+            this.transloco.translate('common.close') || 'Cerrar',
+            { duration: 4000 },
+          );
+        },
+      });
+    } else {
+      this.productsService.create(payload).subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.snackBar.open(
+            isServ ? 'Servicio creado con éxito' : 'Producto creado con éxito',
+            this.transloco.translate('common.close') || 'Cerrar',
+            { duration: 3000 },
+          );
+          this.goBack();
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          const msg =
+            err.error?.message ||
+            'Ocurrió un error al intentar registrar.';
+          this.snackBar.open(
+            msg,
+            this.transloco.translate('common.close') || 'Cerrar',
+            { duration: 4000 },
+          );
+        },
+      });
+    }
+  }
+
+  goBack(): void {
+    if (this.isService() || this.router.url.includes('/services')) {
+      this.router.navigate(['/admin/catalogs/services']);
+    } else {
+      this.router.navigate(['/admin/catalogs/products']);
+    }
   }
 }

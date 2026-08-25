@@ -12,12 +12,14 @@ import {
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../auth/guards/permissions.guard';
+import { RequirePermissions } from '../../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { ActivityLogService } from '../../activity-log/activity-log.service';
 
 @ApiTags('Catálogos: Productos')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('v1/catalogs/products')
 export class ProductsController {
   constructor(
@@ -26,6 +28,7 @@ export class ProductsController {
   ) {}
 
   @Post()
+  @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Crear producto o servicio' })
   async create(@CurrentUser() user: any, @Body() data: any) {
     const result = await this.productsService.create(
@@ -48,12 +51,14 @@ export class ProductsController {
   }
 
   @Get()
+  @RequirePermissions('catalogs:read')
   @ApiOperation({ summary: 'Listar productos de la empresa activa' })
   findAll(@CurrentUser() user: any) {
     return this.productsService.findAll(user.empresaId);
   }
 
   @Get('next-code')
+  @RequirePermissions('catalogs:read')
   @ApiOperation({ summary: 'Generar siguiente código correlativo de producto o servicio' })
   async getNextCode(
     @CurrentUser() user: any,
@@ -67,12 +72,14 @@ export class ProductsController {
   }
 
   @Get(':id')
+  @RequirePermissions('catalogs:read')
   @ApiOperation({ summary: 'Obtener producto por id' })
   findOne(@CurrentUser() user: any, @Param('id') id: string) {
     return this.productsService.findOne(user.empresaId, id);
   }
 
   @Patch(':id')
+  @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Actualizar producto' })
   async update(
     @CurrentUser() user: any,
@@ -100,6 +107,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @RequirePermissions('catalogs:delete')
   @ApiOperation({ summary: 'Eliminar producto' })
   async remove(@CurrentUser() user: any, @Param('id') id: string) {
     const existing = await this.productsService.findOne(user.empresaId, id);

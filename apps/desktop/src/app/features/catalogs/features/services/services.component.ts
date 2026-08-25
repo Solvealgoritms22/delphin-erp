@@ -7,14 +7,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ProductsService, Product } from '../../data/products.service';
-import { ProductDetailDialogComponent } from './product-detail-dialog.component';
+import { ProductDetailDialogComponent } from '../products/product-detail-dialog.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 @Component({
-  selector: 'app-products',
+  selector: 'app-services',
   standalone: true,
   host: {
     class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
@@ -39,10 +39,10 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
           <div
             class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-3"
           >
-            {{ 'catalogs.products.title' | transloco }}
+            {{ 'catalogs.services.title' | transloco }}
           </div>
           <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {{ 'catalogs.products.description' | transloco }}
+            {{ 'catalogs.services.description' | transloco }}
           </p>
         </div>
 
@@ -53,7 +53,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
             class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl cursor-pointer"
           >
             <mat-icon svgIcon="plus" class="icon-size-5 mr-2"></mat-icon>
-            {{ 'catalogs.products.new' | transloco }}
+            {{ 'catalogs.services.new' | transloco }}
           </button>
         </div>
       </div>
@@ -63,17 +63,19 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
         <div class="grid">
           <!-- Table Header -->
           <div
-            class="inventory-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700"
+            class="services-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700"
           >
-            <div class="text-center">Foto</div>
+            <div class="text-center">Portada</div>
             <div>{{ 'common.code' | transloco }}</div>
             <div>{{ 'common.name' | transloco }}</div>
             <div class="hidden sm:block">
               {{ 'common.category' | transloco }}
             </div>
-            <div class="hidden md:block">Unidad</div>
+            <div class="hidden md:block">
+              {{ 'catalogs.services.materialsConsumed' | transloco }}
+            </div>
             <div class="hidden lg:block text-right">
-              {{ 'common.cost' | transloco }}
+              {{ 'catalogs.services.totalCost' | transloco }}
             </div>
             <div class="hidden lg:block text-right">
               {{ 'common.price' | transloco }}
@@ -83,94 +85,101 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
           @if (productsService.isLoading()) {
             <app-table-skeleton
-              [gridClass]="'inventory-grid'"
+              [gridClass]="'services-grid'"
               [rows]="6"
               [cells]="cells8"
             />
-          } @else if (productsList().length === 0) {
+          } @else if (servicesList().length === 0) {
             <div class="flex flex-auto justify-center p-6 sm:p-10">
               <app-empty-state
                 type="no-data"
-                [title]="'catalogs.products.emptyTitle' | transloco"
-                [description]="'catalogs.products.emptyDescription' | transloco"
-                [actionLabel]="'catalogs.products.new' | transloco"
+                [title]="'catalogs.services.emptyTitle' | transloco"
+                [description]="'catalogs.services.emptyDescription' | transloco"
+                [actionLabel]="'catalogs.services.new' | transloco"
                 actionIcon="plus"
                 (action)="openForm()"
               />
             </div>
           } @else {
-            @for (product of productsList(); track product.id) {
+            @for (service of servicesList(); track service.id) {
               <div
-                class="inventory-grid grid items-center gap-4 py-3 px-6 md:px-8 border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors"
+                class="services-grid grid items-center gap-4 py-3.5 px-6 md:px-8 border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors"
               >
-                <!-- Foto Thumbnail -->
+                <!-- Foto / Portada -->
                 <div class="flex items-center justify-center">
                   <div
-                    (click)="openDetail(product)"
+                    (click)="openDetail(service)"
                     class="w-11 h-11 rounded-xl shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-blue-600/50 transition-all shadow-sm"
                     [matTooltip]="'catalogs.products.viewDetail' | transloco"
                   >
-                    @if (getProductMainImage(product)) {
+                    @if (getServiceImage(service)) {
                       <img
-                        [src]="getProductMainImage(product)"
-                        [alt]="product.nombre"
+                        [src]="getServiceImage(service)"
+                        [alt]="service.nombre"
                         class="w-full h-full object-fill"
                       />
                     } @else {
                       <mat-icon
-                        svgIcon="package"
+                        svgIcon="wrench"
                         class="icon-size-5 text-neutral-400 dark:text-neutral-500"
                       ></mat-icon>
                     }
                   </div>
                 </div>
 
-                <!-- Código -->
+                <!-- Código SRV -->
                 <div class="text-sm font-semibold font-mono text-neutral-700 dark:text-neutral-300">
-                  {{ product.codigo }}
+                  {{ service.codigo }}
                 </div>
 
-                <!-- Nombre del Producto (Sin badge de producto/servicio) -->
+                <!-- Nombre del Servicio -->
                 <div class="flex flex-col min-w-0 pr-2">
                   <div
-                    (click)="openDetail(product)"
+                    (click)="openDetail(service)"
                     class="font-semibold text-neutral-900 dark:text-white truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     [matTooltip]="'catalogs.products.viewDetail' | transloco"
                   >
-                    {{ product.nombre }}
+                    {{ service.nombre }}
                   </div>
-                  @if (product.marca?.nombre) {
-                    <span class="text-xs text-neutral-400 truncate mt-0.5">{{ product.marca?.nombre }}</span>
+                  @if (service.descripcion) {
+                    <span class="text-xs text-neutral-400 truncate mt-0.5">{{ service.descripcion }}</span>
                   }
                 </div>
 
                 <!-- Categoría -->
                 <div class="hidden sm:block text-sm text-neutral-600 dark:text-neutral-300 truncate">
-                  {{ product.categoria?.nombre || '-' }}
+                  {{ service.categoria?.nombre || '-' }}
                 </div>
 
-                <!-- Unidad -->
-                <div class="hidden md:block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800">
-                    {{ product.unidadMedida?.abreviatura || product.unidadMedida?.nombre || '-' }}
-                  </span>
+                <!-- Insumos / Materiales Vinculados -->
+                <div class="hidden md:block">
+                  @if (service.insumos && service.insumos.length > 0) {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/50">
+                      <mat-icon svgIcon="layers" class="icon-size-3.5"></mat-icon>
+                      {{ service.insumos.length }} {{ service.insumos.length === 1 ? 'insumo' : 'insumos' }}
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium text-neutral-400 bg-neutral-100 dark:bg-neutral-800">
+                      {{ 'catalogs.services.noMaterials' | transloco }}
+                    </span>
+                  }
                 </div>
 
-                <!-- Costo -->
-                <div class="hidden lg:block text-right font-medium text-neutral-500">
-                  {{ (product.costo !== null && product.costo !== undefined) ? (product.costo | currency) : '-' }}
+                <!-- Costo Total Calculado -->
+                <div class="hidden lg:block text-right font-medium text-neutral-600 dark:text-neutral-400">
+                  {{ calculateTotalCost(service) | currency }}
                 </div>
 
-                <!-- Precio -->
+                <!-- Precio de Venta -->
                 <div class="hidden lg:block text-right font-bold text-neutral-900 dark:text-white">
-                  {{ product.precioVenta | currency }}
+                  {{ service.precioVenta | currency }}
                 </div>
 
                 <!-- Acciones -->
                 <div class="flex items-center gap-1">
                   <button
                     mat-icon-button
-                    (click)="openDetail(product)"
+                    (click)="openDetail(service)"
                     class="text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
                     [matTooltip]="'catalogs.products.viewDetail' | transloco"
                   >
@@ -178,7 +187,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                   </button>
                   <button
                     mat-icon-button
-                    (click)="openForm(product.id)"
+                    (click)="openForm(service.id)"
                     class="text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
                     [matTooltip]="'common.edit' | transloco"
                   >
@@ -186,7 +195,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                   </button>
                   <button
                     mat-icon-button
-                    (click)="deleteProduct(product)"
+                    (click)="deleteService(service)"
                     class="text-red-500 hover:text-red-700 dark:hover:text-red-400 cursor-pointer"
                     [matTooltip]="'common.delete' | transloco"
                   >
@@ -202,28 +211,28 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
   `,
   styles: [
     `
-      .inventory-grid {
-        grid-template-columns: 56px 110px auto 130px 100px 100px 100px 120px;
+      .services-grid {
+        grid-template-columns: 56px 110px auto 130px 140px 110px 110px 120px;
       }
       @media (max-width: 1024px) {
-        .inventory-grid {
-          grid-template-columns: 56px 110px auto 130px 100px 120px;
+        .services-grid {
+          grid-template-columns: 56px 110px auto 130px 140px 120px;
         }
       }
       @media (max-width: 768px) {
-        .inventory-grid {
+        .services-grid {
           grid-template-columns: 56px 100px auto 120px 120px;
         }
       }
       @media (max-width: 640px) {
-        .inventory-grid {
+        .services-grid {
           grid-template-columns: 56px auto 100px;
         }
       }
     `,
   ],
 })
-export default class ProductsComponent implements OnInit {
+export default class ServicesComponent implements OnInit {
   protected productsService = inject(ProductsService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
@@ -232,8 +241,8 @@ export default class ProductsComponent implements OnInit {
 
   cells8 = ['50px', '70%', '90%', '60%', '40%', '40%', '40%', '40%'];
 
-  productsList = computed(() => {
-    return this.productsService.products().filter((p) => p.tipo !== 'SERVICIO');
+  servicesList = computed(() => {
+    return this.productsService.products().filter((p) => p.tipo === 'SERVICIO');
   });
 
   ngOnInit() {
@@ -241,13 +250,13 @@ export default class ProductsComponent implements OnInit {
     this.productsService.loadCatalogs();
   }
 
-  getProductMainImage(product: Product): string | null {
-    if (!product.imagenes) return null;
+  getServiceImage(service: Product): string | null {
+    if (!service.imagenes) return null;
     try {
       const parsed =
-        typeof product.imagenes === 'string'
-          ? JSON.parse(product.imagenes)
-          : product.imagenes;
+        typeof service.imagenes === 'string'
+          ? JSON.parse(service.imagenes)
+          : service.imagenes;
       if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed[0];
       }
@@ -255,16 +264,24 @@ export default class ProductsComponent implements OnInit {
         return parsed;
       }
     } catch {
-      if (typeof product.imagenes === 'string' && product.imagenes.trim() !== '') {
-        return product.imagenes;
+      if (typeof service.imagenes === 'string' && service.imagenes.trim() !== '') {
+        return service.imagenes;
       }
     }
     return null;
   }
 
-  openDetail(product: Product) {
+  calculateTotalCost(service: Product): number {
+    const laborCost = Number(service.costo) || 0;
+    const materialsCost = (service.insumos || []).reduce((acc, item) => {
+      return acc + (Number(item.cantidad) || 0) * (Number(item.costoUnitario) || 0);
+    }, 0);
+    return laborCost + materialsCost;
+  }
+
+  openDetail(service: Product) {
     const dialogRef = this.dialog.open(ProductDetailDialogComponent, {
-      data: product,
+      data: service,
       autoFocus: false,
       width: '740px',
       maxWidth: '95vw',
@@ -280,19 +297,17 @@ export default class ProductsComponent implements OnInit {
 
   openForm(id?: string) {
     if (id) {
-      this.router.navigate(['/admin/catalogs/products', id]);
+      this.router.navigate(['/admin/catalogs/services', id]);
     } else {
-      this.router.navigate(['/admin/catalogs/products/new']);
+      this.router.navigate(['/admin/catalogs/services/new']);
     }
   }
 
-  deleteProduct(product: Product) {
+  deleteService(service: Product) {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: this.transloco.translate('common.confirm'),
-        message: this.transloco.translate('catalogs.products.deleteConfirm', {
-          name: product.nombre,
-        }) || `¿Estás seguro de que deseas eliminar el producto "${product.nombre}"?`,
+        message: '¿Estás seguro de que deseas eliminar el servicio "' + service.nombre + '"?',
         confirmText: this.transloco.translate('common.delete'),
         cancelText: this.transloco.translate('common.cancel'),
         isDestructive: true,
@@ -301,17 +316,17 @@ export default class ProductsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
-        this.productsService.delete(product.id).subscribe({
+        this.productsService.delete(service.id).subscribe({
           next: () => {
             this.snackBar.open(
-              'Producto eliminado correctamente',
+              'Servicio eliminado correctamente',
               this.transloco.translate('common.close') || 'Cerrar',
               { duration: 3000 }
             );
           },
           error: (_err: any) => {
             this.snackBar.open(
-              'No se pudo eliminar el producto',
+              'No se pudo eliminar el servicio',
               this.transloco.translate('common.close') || 'Cerrar',
               { duration: 3000 }
             );

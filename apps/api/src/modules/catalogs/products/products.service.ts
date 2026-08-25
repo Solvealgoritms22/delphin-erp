@@ -88,6 +88,10 @@ export class ProductsService {
       }
     }
 
+    if (data.insumos && Array.isArray(data.insumos)) {
+      await this.syncInsumos(empresaId, producto.id, data.insumos);
+    }
+
     return this.findOne(empresaId, producto.id);
   }
 
@@ -102,6 +106,17 @@ export class ProductsService {
         stocks: {
           include: {
             almacen: true,
+          },
+        },
+        insumos: {
+          include: {
+            insumoProducto: {
+              include: {
+                unidadMedida: true,
+                categoria: true,
+              },
+            },
+            unidadMedida: true,
           },
         },
       },
@@ -120,6 +135,17 @@ export class ProductsService {
         stocks: {
           include: {
             almacen: true,
+          },
+        },
+        insumos: {
+          include: {
+            insumoProducto: {
+              include: {
+                unidadMedida: true,
+                categoria: true,
+              },
+            },
+            unidadMedida: true,
           },
         },
       },
@@ -261,6 +287,10 @@ export class ProductsService {
           });
         }
       }
+    }
+
+    if (data.insumos !== undefined && Array.isArray(data.insumos)) {
+      await this.syncInsumos(empresaId, id, data.insumos);
     }
 
     return this.findOne(empresaId, id);
@@ -415,5 +445,46 @@ export class ProductsService {
         'El impuesto no pertenece a la empresa o está inactivo',
       );
     return tax;
+  }
+
+  private async syncInsumos(
+    empresaId: string,
+    productoPadreId: string,
+    insumos: any[],
+  ) {
+    if (!Array.isArray(insumos)) return;
+
+    await this.prisma.productoInsumo.deleteMany({
+      where: { productoPadreId },
+    });
+
+    const validInsumos = insumos.filter(
+      (item) =>
+        item &&
+        item.insumoProductoId &&
+        item.insumoProductoId !== productoPadreId,
+    );
+
+    for (const item of validInsumos) {
+      const qty = Number(item.cantidad) > 0 ? Number(item.cantidad) : 1;
+      const cost =
+        item.costoUnitario !== undefined &&
+        item.costoUnitario !== null &&
+        !isNaN(Number(item.costoUnitario))
+          ? Number(item.costoUnitario)
+          : null;
+
+      await this.prisma.productoInsumo.create({
+        data: {
+          empresaId,
+          productoPadreId,
+          insumoProductoId: item.insumoProductoId,
+          cantidad: qty,
+          costoUnitario: cost,
+          unidadMedidaId: item.unidadMedidaId || null,
+          notas: typeof item.notas === 'string' ? item.notas.trim() : null,
+        },
+      });
+    }
   }
 }

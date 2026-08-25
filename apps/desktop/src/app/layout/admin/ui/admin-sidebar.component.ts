@@ -182,33 +182,53 @@ export class AdminSidebar implements OnInit {
   trialExpired = signal(false);
 
   ngOnInit() {
+    const cachedSubStr = localStorage.getItem('cached_company_subscription');
+    if (cachedSubStr) {
+      try {
+        const cachedSub = JSON.parse(cachedSubStr);
+        this.processSubscription(cachedSub);
+      } catch {}
+    }
+
     this.http.get<any>(`${environment.apiUrl}/empresas/subscription`)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (sub) => {
-          const planName = String(sub?.plan?.nombre || this.authState.user()?.plan || '').toLowerCase();
-          if (sub?.estado === 'TRIAL') {
-            this.isTrial.set(true);
-            const expiry = sub.fechaRenovacion ? new Date(sub.fechaRenovacion) : null;
-            if (expiry) {
-              const diffMs = expiry.getTime() - Date.now();
-              const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-              if (diffDays <= 0) {
-                this.trialDaysLeft.set(0);
-                this.trialExpired.set(true);
-              } else {
-                this.trialDaysLeft.set(diffDays);
-                this.trialExpired.set(false);
-              }
-            } else {
-              this.trialExpired.set(true);
-            }
-          } else if (planName === 'free' || planName.includes('gratuito')) {
-            this.isFree.set(true);
+          if (sub) {
+            localStorage.setItem('cached_company_subscription', JSON.stringify(sub));
+            this.processSubscription(sub);
           }
         },
-        error: () => { } // Silently ignore
+        error: () => { } // Silently ignore offline errors, maintain cached state
       });
+  }
+
+  private processSubscription(sub: any) {
+    const planName = String(sub?.plan?.nombre || this.authState.user()?.plan || '').toLowerCase();
+    if (sub?.estado === 'TRIAL') {
+      this.isTrial.set(true);
+      this.isFree.set(false);
+      const expiry = sub.fechaRenovacion ? new Date(sub.fechaRenovacion) : null;
+      if (expiry) {
+        const diffMs = expiry.getTime() - Date.now();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        if (diffDays <= 0) {
+          this.trialDaysLeft.set(0);
+          this.trialExpired.set(true);
+        } else {
+          this.trialDaysLeft.set(diffDays);
+          this.trialExpired.set(false);
+        }
+      } else {
+        this.trialExpired.set(true);
+      }
+    } else if (planName === 'free' || planName.includes('gratuito')) {
+      this.isFree.set(true);
+      this.isTrial.set(false);
+    } else {
+      this.isFree.set(false);
+      this.isTrial.set(false);
+    }
   }
 
   onSearch(event: Event) {

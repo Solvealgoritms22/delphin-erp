@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AdminLayout } from './admin-layout.component';
+import { permissionGuard } from '@core/auth/auth.guards';
 
 const routes: Routes = [
   {
@@ -30,32 +31,64 @@ const routes: Routes = [
         children: [
           {
             path: 'invoices',
-            loadComponent: () => import('@features/sales/features/invoices/invoices.component').then((c) => c.InvoicesComponent),
+            canActivate: [permissionGuard],
+            data: { permissions: ['invoices:read'] },
+            loadComponent: () =>
+              import('@features/sales/features/invoices/invoices.component').then(
+                (c) => c.InvoicesComponent
+              ),
           },
           {
             path: 'sequences',
-            loadComponent: () => import('@features/sales/features/sequences/sequences.component').then((c) => c.SequencesComponent),
+            canActivate: [permissionGuard],
+            data: { permissions: ['sequences:read'] },
+            loadComponent: () =>
+              import(
+                '@features/sales/features/sequences/sequences.component'
+              ).then((c) => c.SequencesComponent),
           },
           {
             path: 'clients',
-            loadComponent: () => import('@features/sales/features/clients/clients-list.component').then((c) => c.Clients),
+            canActivate: [permissionGuard],
+            data: { permissions: ['commercial:read'] },
+            loadComponent: () =>
+              import('@features/sales/features/clients/clients-list.component').then(
+                (c) => c.Clients
+              ),
           },
           {
             path: 'clients/:id',
-            loadComponent: () => import('@features/sales/features/clients/client-form/client-form.component').then((c) => c.ClientForm),
+            canActivate: [permissionGuard],
+            data: { permissions: ['commercial:write'] },
+            loadComponent: () =>
+              import(
+                '@features/sales/features/clients/client-form/client-form.component'
+              ).then((c) => c.ClientForm),
           },
           {
             path: 'suppliers',
-            loadComponent: () => import('@features/purchases/features/suppliers/suppliers-list.component').then((c) => c.Suppliers),
+            canActivate: [permissionGuard],
+            data: { permissions: ['commercial:read'] },
+            loadComponent: () =>
+              import(
+                '@features/purchases/features/suppliers/suppliers-list.component'
+              ).then((c) => c.Suppliers),
           },
           {
             path: 'suppliers/:id',
-            loadComponent: () => import('@features/purchases/features/suppliers/supplier-form/supplier-form.component').then((c) => c.SupplierForm),
+            canActivate: [permissionGuard],
+            data: { permissions: ['commercial:write'] },
+            loadComponent: () =>
+              import(
+                '@features/purchases/features/suppliers/supplier-form/supplier-form.component'
+              ).then((c) => c.SupplierForm),
           },
         ],
       },
       {
         path: 'sucursales',
+        canActivate: [permissionGuard],
+        data: { permissions: ['sucursales:read'] },
         loadChildren: () => import('@features/branches/routes'),
       },
       {
@@ -64,6 +97,8 @@ const routes: Routes = [
       },
       {
         path: 'ai-chat',
+        canActivate: [permissionGuard],
+        data: { permissions: ['ai_chat:read'] },
         loadChildren: () => import('@features/ai-assistant/routes'),
       },
       {
@@ -72,6 +107,8 @@ const routes: Routes = [
       },
       {
         path: 'billing',
+        canActivate: [permissionGuard],
+        data: { permissions: ['billing:read'] },
         loadChildren: () => import('@features/billing/billing-app/routes'),
       },
       {
@@ -80,6 +117,8 @@ const routes: Routes = [
       },
       {
         path: 'activity',
+        canActivate: [permissionGuard],
+        data: { permissions: ['activity:read'] },
         loadChildren: () => import('@features/activity/routes'),
       },
       {

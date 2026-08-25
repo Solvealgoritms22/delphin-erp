@@ -21,11 +21,13 @@ import { SchemeSwitcher } from '@layout/admin/ui/theme-mode-toggle.component';
 import { Shortcuts } from '@layout/admin/ui/quick-shortcuts.component';
 import { AdminSidebar } from '@layout/admin/ui/admin-sidebar.component';
 import { routeAnimations } from '@core/animations/animations';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '@core/auth/auth.service';
 import { AuthState } from '@core/auth/auth.state';
 import { Empresa } from '@core/auth/auth.types';
 import { UpdateService } from '@shared/services/update.service';
 import { WeatherWidgetComponent } from '@shared/components/weather-widget/weather-widget.component';
+import { environment } from '@/environments/environment';
 
 @Component({
   selector: 'admin-layout',
@@ -237,6 +239,7 @@ export class AdminLayout implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private media = inject(Media);
   private router = inject(Router);
+  private http = inject(HttpClient);
   private authService = inject(AuthService);
   private authState = inject(AuthState);
   private updateService = inject(UpdateService);
@@ -250,6 +253,7 @@ export class AdminLayout implements OnInit, OnDestroy {
   readonly isAiChatRoute = signal(false);
 
   empresas = signal<Empresa[]>([]);
+  companyPlan = signal<string | null>(null);
   loadingSwitch = signal(false);
 
   currentEmpresaId = this.authState.empresaId;
@@ -263,7 +267,14 @@ export class AdminLayout implements OnInit, OnDestroy {
   currentEmpresaRnc = computed(() => {
     const id = this.currentEmpresaId();
     const found = this.empresas().find(e => e.id === id);
-    return found?.rnc ? `RNC: ${found.rnc}` : this.authState.user()?.plan ?? '';
+    if (found?.rnc) {
+      return `RNC: ${found.rnc}`;
+    }
+    const plan = this.companyPlan() || this.authState.user()?.plan;
+    if (!plan || plan.toLowerCase() === 'free' || plan.toLowerCase().includes('gratuito')) {
+      return 'N/A';
+    }
+    return plan;
   });
 
   currentEmpresaLogo = computed(() => {
@@ -277,12 +288,38 @@ export class AdminLayout implements OnInit, OnDestroy {
   );
 
   ngOnInit() {
+    // 1. Cargar caché inmediatamente para evitar parpadeos o "Free" si el backend no está activo
+    if (isPlatformBrowser(this.platformId)) {
+      const cachedEmpresas = localStorage.getItem('cached_my_empresas');
+      if (cachedEmpresas) {
+        try {
+          const list = JSON.parse(cachedEmpresas);
+          if (Array.isArray(list) && list.length > 0) {
+            this.empresas.set(list);
+          }
+        } catch {}
+      }
+
+      const cachedSub = localStorage.getItem('cached_company_subscription');
+      if (cachedSub) {
+        try {
+          const sub = JSON.parse(cachedSub);
+          const planName = sub?.plan?.nombre;
+          if (planName && planName.toLowerCase() !== 'free') {
+            this.companyPlan.set(planName);
+          }
+        } catch {}
+      }
+    }
+
+    // 2. Consultar empresas activas
     this.authService.getMyEmpresas()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (list) => {
           this.empresas.set(list);
           if (list.length > 0 && isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('cached_my_empresas', JSON.stringify(list));
             const savedEmpresaId = localStorage.getItem('active_empresa_id');
             const currentId = this.currentEmpresaId();
 
@@ -295,7 +332,34 @@ export class AdminLayout implements OnInit, OnDestroy {
             }
           }
         },
-        error: () => { } // silently fail if not connected
+        error: () => {
+          if (this.empresas().length === 0 && isPlatformBrowser(this.platformId)) {
+            const cached = localStorage.getItem('cached_my_empresas');
+            if (cached) {
+              try {
+                this.empresas.set(JSON.parse(cached));
+              } catch {}
+            }
+          }
+        }
+      });
+
+    // 3. Consultar y cachear suscripción real
+    this.http.get<any>(`${environment.apiUrl}/empresas/subscription`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (sub) => {
+          if (sub && isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('cached_company_subscription', JSON.stringify(sub));
+            const planName = sub?.plan?.nombre;
+            if (planName && planName.toLowerCase() !== 'free') {
+              this.companyPlan.set(planName);
+            } else {
+              this.companyPlan.set(null);
+            }
+          }
+        },
+        error: () => {}
       });
 
     if (this.updateService.isElectron()) {

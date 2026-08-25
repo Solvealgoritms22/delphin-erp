@@ -14,18 +14,21 @@ import {
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AiAgentService } from './ai-agent.service';
 import { ChatRequestDto, ChatResponseDto } from './ai-agent.dto';
 
 @ApiTags('AI Agent')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('v1/ai')
 export class AiAgentController {
   constructor(private readonly aiAgentService: AiAgentService) {}
 
   @Get('conversations')
+  @RequirePermissions('ai_chat:read')
   @ApiOperation({
     summary: 'Get all AI conversations for current user and company',
   })
@@ -39,6 +42,7 @@ export class AiAgentController {
   }
 
   @Get('conversations/:id')
+  @RequirePermissions('ai_chat:read')
   @ApiOperation({ summary: 'Get a specific conversation with all messages' })
   async getConversation(@CurrentUser() user: any, @Param('id') id: string) {
     const empresaId = user?.empresaId;
@@ -50,6 +54,7 @@ export class AiAgentController {
   }
 
   @Post('conversations')
+  @RequirePermissions('ai_chat:write')
   @ApiOperation({ summary: 'Create a new AI conversation thread' })
   async createConversation(
     @CurrentUser() user: any,
@@ -68,6 +73,7 @@ export class AiAgentController {
   }
 
   @Delete('conversations/:id')
+  @RequirePermissions('ai_chat:write')
   @ApiOperation({ summary: 'Delete an AI conversation thread' })
   async deleteConversation(@CurrentUser() user: any, @Param('id') id: string) {
     const empresaId = user?.empresaId;
@@ -80,6 +86,7 @@ export class AiAgentController {
 
   @Post('chat')
   @HttpCode(HttpStatus.OK)
+  @RequirePermissions('ai_chat:write')
   @ApiOperation({
     summary: 'Interact with ERP AI Assistant with read-only database tools',
   })
@@ -107,6 +114,7 @@ export class AiAgentController {
 
   @Post('chat/stream')
   @HttpCode(HttpStatus.OK)
+  @RequirePermissions('ai_chat:write')
   @ApiOperation({
     summary: 'Stream AI assistant tokens in real-time (SSE / Token by token)',
   })
@@ -150,6 +158,7 @@ export class AiAgentController {
   }
 
   @Get('status')
+  @RequirePermissions('ai_chat:read')
   @ApiOperation({ summary: 'Check AI Agent status and enabled features' })
   getStatus(@CurrentUser() user: any) {
     const hasExternalKey = !!(

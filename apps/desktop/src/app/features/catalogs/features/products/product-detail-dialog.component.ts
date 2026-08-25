@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,6 +10,7 @@ import { Product } from '../../data/products.service';
   selector: 'app-product-detail-dialog',
   standalone: true,
   imports: [
+    CommonModule,
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
@@ -41,7 +42,7 @@ import { Product } from '../../data/products.service';
           <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2 flex-wrap">
             <span>SKU: <strong class="font-mono text-neutral-800 dark:text-neutral-200">{{ product.codigo }}</strong></span>
             <span>·</span>
-            <span class="capitalize font-medium">{{ product.tipo === 'SERVICIO' ? 'Servicio' : 'Producto Físico' }}</span>
+            <span class="capitalize font-medium">{{ product.tipo === 'SERVICIO' ? 'Servicio Intangible' : 'Producto Físico' }}</span>
             @if (product.categoria?.nombre) {
               <span>·</span>
               <span class="text-neutral-600 dark:text-neutral-300 font-medium">{{ product.categoria?.nombre }}</span>
@@ -107,7 +108,9 @@ import { Product } from '../../data/products.service';
                   </div>
                 </div>
                 <div>
-                  <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">Costo</span>
+                  <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">
+                    {{ product.tipo === 'SERVICIO' ? 'Costo Base' : 'Costo' }}
+                  </span>
                   <div class="text-lg font-bold text-neutral-700 dark:text-neutral-300 mt-0.5">
                     {{ (product.costo !== null && product.costo !== undefined) ? (product.costo | currency) : '-' }}
                   </div>
@@ -129,12 +132,14 @@ import { Product } from '../../data/products.service';
                   </span>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
-                  <span class="text-xs text-neutral-500 font-medium block">Marca</span>
-                  <span class="font-semibold text-neutral-900 dark:text-white mt-0.5 block truncate">
-                    {{ product.marca?.nombre || 'Sin marca' }}
-                  </span>
-                </div>
+                @if (product.tipo !== 'SERVICIO') {
+                  <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
+                    <span class="text-xs text-neutral-500 font-medium block">Marca</span>
+                    <span class="font-semibold text-neutral-900 dark:text-white mt-0.5 block truncate">
+                      {{ product.marca?.nombre || 'Sin marca' }}
+                    </span>
+                  </div>
+                }
 
                 <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
                   <span class="text-xs text-neutral-500 font-medium block">Unidad de Medida</span>
@@ -143,15 +148,17 @@ import { Product } from '../../data/products.service';
                   </span>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
-                  <span class="text-xs text-neutral-500 font-medium block">Código de Barras</span>
-                  <span class="font-mono font-medium text-neutral-900 dark:text-white mt-0.5 block truncate">
-                    {{ product.codigoBarras || '-' }}
-                  </span>
-                </div>
+                @if (product.tipo !== 'SERVICIO') {
+                  <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
+                    <span class="text-xs text-neutral-500 font-medium block">Código de Barras</span>
+                    <span class="font-mono font-medium text-neutral-900 dark:text-white mt-0.5 block truncate">
+                      {{ product.codigoBarras || '-' }}
+                    </span>
+                  </div>
+                }
               </div>
 
-              <!-- Existencias en Inventario -->
+              <!-- Existencias en Inventario (Solo productos físicos) -->
               @if (product.tipo !== 'SERVICIO') {
                 <div class="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
                   <div class="flex items-center justify-between mb-3">
@@ -192,10 +199,53 @@ import { Product } from '../../data/products.service';
                 </div>
               }
 
+              <!-- Insumos y Receta (Servicios) -->
+              @if (product.tipo === 'SERVICIO' && product.insumos && product.insumos.length > 0) {
+                <div class="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <mat-icon svgIcon="layers" class="icon-size-4 text-blue-600 dark:text-blue-400"></mat-icon>
+                      Insumos / Materiales Requeridos
+                    </span>
+                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                      {{ product.insumos.length }} materiales
+                    </span>
+                  </div>
+
+                  <div class="space-y-2">
+                    @for (item of product.insumos; track item.id || $index) {
+                      <div class="flex items-center justify-between gap-3 p-2.5 px-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-100 dark:border-neutral-800">
+                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                          <mat-icon svgIcon="package" class="icon-size-4 text-neutral-400 dark:text-neutral-500 shrink-0"></mat-icon>
+                          <div class="min-w-0">
+                            <div class="font-semibold text-neutral-800 dark:text-neutral-200 truncate text-xs sm:text-sm">
+                              {{ item.insumoProducto?.nombre || 'Insumo' }}
+                            </div>
+                            <div class="text-[11px] text-neutral-400 font-mono">
+                              {{ item.insumoProducto?.codigo }}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                          <div class="font-bold font-mono text-neutral-900 dark:text-white text-xs sm:text-sm">
+                            {{ item.cantidad }} {{ item.insumoProducto?.unidadMedida?.abreviatura || 'UND' }}
+                          </div>
+                          @if (item.costoUnitario) {
+                            <div class="text-[10px] text-neutral-400">
+                              {{ item.costoUnitario | currency }} c/u
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
             </div>
           </div>
         } @else {
-          <!-- Layout WITHOUT images: Clean horizontal flow without wasting space -->
+          <!-- Layout WITHOUT images -->
           
           <!-- Precios e Indicadores Financieros -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
@@ -206,7 +256,9 @@ import { Product } from '../../data/products.service';
               </div>
             </div>
             <div>
-              <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">Costo Unitario</span>
+              <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">
+                {{ product.tipo === 'SERVICIO' ? 'Costo Base' : 'Costo Unitario' }}
+              </span>
               <div class="text-xl font-bold text-neutral-700 dark:text-neutral-300 mt-0.5">
                 {{ (product.costo !== null && product.costo !== undefined) ? (product.costo | currency) : '-' }}
               </div>
@@ -219,7 +271,7 @@ import { Product } from '../../data/products.service';
             </div>
           </div>
 
-          <!-- Ficha Técnica (4 Columns on Desktop) -->
+          <!-- Ficha Técnica -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
               <span class="text-xs text-neutral-500 font-medium block">Categoría</span>
@@ -228,12 +280,14 @@ import { Product } from '../../data/products.service';
               </span>
             </div>
 
-            <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
-              <span class="text-xs text-neutral-500 font-medium block">Marca</span>
-              <span class="font-semibold text-neutral-900 dark:text-white mt-0.5 block truncate">
-                {{ product.marca?.nombre || 'Sin marca' }}
-              </span>
-            </div>
+            @if (product.tipo !== 'SERVICIO') {
+              <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
+                <span class="text-xs text-neutral-500 font-medium block">Marca</span>
+                <span class="font-semibold text-neutral-900 dark:text-white mt-0.5 block truncate">
+                  {{ product.marca?.nombre || 'Sin marca' }}
+                </span>
+              </div>
+            }
 
             <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
               <span class="text-xs text-neutral-500 font-medium block">Unidad de Medida</span>
@@ -242,15 +296,17 @@ import { Product } from '../../data/products.service';
               </span>
             </div>
 
-            <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
-              <span class="text-xs text-neutral-500 font-medium block">Código de Barras</span>
-              <span class="font-mono font-medium text-neutral-900 dark:text-white mt-0.5 block truncate">
-                {{ product.codigoBarras || '-' }}
-              </span>
-            </div>
+            @if (product.tipo !== 'SERVICIO') {
+              <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
+                <span class="text-xs text-neutral-500 font-medium block">Código de Barras</span>
+                <span class="font-mono font-medium text-neutral-900 dark:text-white mt-0.5 block truncate">
+                  {{ product.codigoBarras || '-' }}
+                </span>
+              </div>
+            }
           </div>
 
-          <!-- Existencias en Inventario por Almacén -->
+          <!-- Existencias en Inventario por Almacén (Productos físicos) -->
           @if (product.tipo !== 'SERVICIO') {
             <div class="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
               <div class="flex items-center justify-between mb-3.5">
@@ -295,6 +351,51 @@ import { Product } from '../../data/products.service';
             </div>
           }
 
+          <!-- Insumos y Receta (Servicios) -->
+          @if (product.tipo === 'SERVICIO' && product.insumos && product.insumos.length > 0) {
+            <div class="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
+              <div class="flex items-center justify-between mb-3.5">
+                <span class="text-xs font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <mat-icon svgIcon="layers" class="icon-size-4 text-blue-600 dark:text-blue-400"></mat-icon>
+                  Insumos / Materiales Requeridos
+                </span>
+                <span class="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                  {{ product.insumos.length }} materiales vinculados
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                @for (item of product.insumos; track item.id || $index) {
+                  <div class="flex items-center justify-between gap-3 p-3 px-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-100 dark:border-neutral-800">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div class="size-8 rounded-lg bg-white dark:bg-neutral-700/60 border border-neutral-200/60 dark:border-neutral-600/60 flex items-center justify-center shrink-0 text-neutral-500 dark:text-neutral-300">
+                        <mat-icon svgIcon="package" class="icon-size-4"></mat-icon>
+                      </div>
+                      <div class="min-w-0">
+                        <div class="font-semibold text-neutral-800 dark:text-neutral-200 truncate text-sm">
+                          {{ item.insumoProducto?.nombre || 'Insumo' }}
+                        </div>
+                        <div class="text-[11px] text-neutral-400 font-mono">
+                          {{ item.insumoProducto?.codigo }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <span class="font-bold font-mono text-neutral-900 dark:text-white shrink-0 text-sm block">
+                        {{ item.cantidad }} {{ item.insumoProducto?.unidadMedida?.abreviatura || 'UND' }}
+                      </span>
+                      @if (item.costoUnitario) {
+                        <span class="text-[11px] text-neutral-400">
+                          {{ item.costoUnitario | currency }} c/u
+                        </span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
         }
 
         <!-- Descripción -->
@@ -333,7 +434,7 @@ import { Product } from '../../data/products.service';
           mat-stroked-button
           type="button"
           (click)="dialogRef.close()"
-          class="!rounded-xl !px-5"
+          class="!rounded-xl !px-5 cursor-pointer"
         >
           {{ 'common.close' | transloco }}
         </button>
@@ -342,7 +443,7 @@ import { Product } from '../../data/products.service';
           type="button"
           color="primary"
           (click)="editProduct()"
-          class="bg-blue-600 hover:bg-blue-700 text-white !rounded-xl !px-6 font-semibold"
+          class="bg-blue-600 hover:bg-blue-700 text-white !rounded-xl !px-6 font-semibold cursor-pointer"
         >
           <mat-icon svgIcon="pencil" class="icon-size-4 mr-1.5"></mat-icon>
           {{ 'catalogs.products.edit' | transloco }}

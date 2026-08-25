@@ -3,6 +3,18 @@ import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '@/environments/environment';
 import { tap, catchError, of, switchMap } from 'rxjs';
 
+export type ProductInsumo = {
+  id?: string;
+  productoPadreId?: string;
+  insumoProductoId: string;
+  cantidad: number;
+  costoUnitario?: number | null;
+  unidadMedidaId?: string | null;
+  notas?: string | null;
+  insumoProducto?: Product;
+  unidadMedida?: any;
+};
+
 export type Product = {
   id: string;
   tipo: string;
@@ -40,6 +52,7 @@ export type Product = {
       esPrincipal?: boolean;
     };
   }>;
+  insumos?: ProductInsumo[];
 };
 
 @Injectable({ providedIn: 'root' })
@@ -103,13 +116,13 @@ export class ProductsService {
       });
   }
 
-  create(product: Partial<Product>) {
+  create(product: Partial<Product> & { insumos?: any[] }) {
     return this.http.post<Product>(this.apiUrl, product).pipe(
       switchMap(() => this.findAll())
     );
   }
 
-  update(id: string, product: Partial<Product>) {
+  update(id: string, product: Partial<Product> & { insumos?: any[] }) {
     return this.http.patch<Product>(`${this.apiUrl}/${id}`, product).pipe(
       switchMap(() => this.findAll())
     );
@@ -119,5 +132,9 @@ export class ProductsService {
     return this.http.delete(`${this.apiUrl}/${id}`).pipe(
       switchMap(() => this.findAll())
     );
+  }
+
+  delete(id: string) {
+    return this.remove(id);
   }
 }

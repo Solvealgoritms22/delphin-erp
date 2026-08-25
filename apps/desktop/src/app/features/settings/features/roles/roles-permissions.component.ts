@@ -519,6 +519,13 @@ export class RolesComponent implements OnInit {
       icon: 'credit-card'
     },
     {
+      id: 'mod-backups',
+      name: 'Copias de Seguridad',
+      slug: 'backups',
+      description: 'Creación y restauración de copias de seguridad cifradas y en Google Drive',
+      icon: 'archive'
+    },
+    {
       id: 'mod-about',
       name: 'Acerca del Sistema',
       slug: 'about',

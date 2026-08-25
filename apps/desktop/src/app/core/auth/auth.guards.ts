@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { Router, type CanActivateFn } from '@angular/router';
 import { AuthState } from './auth.state';
+import { PermissionService } from '../permissions/permission.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const authState = inject(AuthState);
@@ -38,6 +39,7 @@ export const guestGuard: CanActivateFn = (route) => {
 
 export const permissionGuard: CanActivateFn = (route, state) => {
   const authState = inject(AuthState);
+  const permissionService = inject(PermissionService);
   const router = inject(Router);
 
   if (!authState.isAuthenticated()) {
@@ -46,25 +48,17 @@ export const permissionGuard: CanActivateFn = (route, state) => {
     });
   }
 
-  const requiredPermissions = route.data['permissions'] as string[];
+  const requiredPermissions = route.data?.['permissions'] as string[] | undefined;
   if (!requiredPermissions || requiredPermissions.length === 0) {
     return true;
   }
 
-  const user = authState.user();
-  if (!user || !user.permissions) {
-    return router.createUrlTree(['/admin']);
-  }
-
-  if (user.permissions.includes('*')) {
-    return true;
-  }
-
-  const hasPermission = requiredPermissions.every(p => user.permissions!.includes(p));
+  const hasPermission = requiredPermissions.every((p) =>
+    permissionService.hasPermission(p)
+  );
 
   if (!hasPermission) {
-
-    return router.createUrlTree(['/admin/404']);
+    return router.createUrlTree(['/admin/dashboards/general']);
   }
 
   return true;

@@ -67,6 +67,7 @@ model Empresa {
   impuestos      Impuesto[]
   terminosPago   TerminoPago[]
   pagosCliente   PagoCliente[]
+  productosInsumos ProductoInsumo[]
 
   @@map("empresas")
 }
@@ -373,6 +374,7 @@ model UnidadMedida {
 
   empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   productos   Producto[]
+  insumos     ProductoInsumo[]
 
   @@unique([empresaId, nombre])
   @@map("unidades_medida")
@@ -409,9 +411,32 @@ model Producto {
   stocks           InventarioStock[]
   movimientosInventario MovimientoInventario[]
   facturasDetalle  FacturaVentaDetalle[]
+  insumos          ProductoInsumo[] @relation("InsumosDelProducto")
+  usadoComoInsumo  ProductoInsumo[] @relation("ProductoComoInsumo")
 
   @@unique([empresaId, codigo])
   @@map("productos")
+}
+
+model ProductoInsumo {
+  id                String        @id @default(uuid())
+  empresaId         String        @map("empresa_id")
+  productoPadreId   String        @map("producto_padre_id")
+  insumoProductoId  String        @map("insumo_producto_id")
+  cantidad          Decimal       @default(1) @db.Decimal(14, 4)
+  costoUnitario     Decimal?      @map("costo_unitario") @db.Decimal(12, 2)
+  unidadMedidaId    String?       @map("unidad_medida_id")
+  notas             String?
+  creadoEn          DateTime      @default(now()) @map("creado_en")
+
+  empresa           Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  productoPadre     Producto      @relation("InsumosDelProducto", fields: [productoPadreId], references: [id], onDelete: Cascade)
+  insumoProducto    Producto      @relation("ProductoComoInsumo", fields: [insumoProductoId], references: [id], onDelete: Cascade)
+  unidadMedida      UnidadMedida? @relation(fields: [unidadMedidaId], references: [id], onDelete: SetNull)
+
+  @@unique([productoPadreId, insumoProductoId])
+  @@index([empresaId])
+  @@map("productos_insumos")
 }
 
 model Almacen {
