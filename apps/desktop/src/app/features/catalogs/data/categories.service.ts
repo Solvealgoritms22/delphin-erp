@@ -9,6 +9,7 @@ export type Category = {
   descripcion?: string;
   icono?: string;
   color?: string;
+  tipo?: 'PRODUCTO' | 'SERVICIO' | 'AMBOS' | string;
   estado: string;
 }
 

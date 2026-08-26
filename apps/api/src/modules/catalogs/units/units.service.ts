@@ -9,14 +9,20 @@ export class UnitsService {
     return this.prisma.unidadMedida.create({
       data: {
         ...data,
+        tipo: data.tipo || 'PRODUCTO',
         empresaId,
       },
     });
   }
 
-  async findAll(empresaId: string) {
+  async findAll(empresaId: string, tipo?: string) {
+    const where: any = { empresaId };
+    if (tipo) {
+      where.tipo = tipo;
+    }
     return this.prisma.unidadMedida.findMany({
-      where: { empresaId },
+      where,
+      orderBy: { nombre: 'asc' },
     });
   }
 

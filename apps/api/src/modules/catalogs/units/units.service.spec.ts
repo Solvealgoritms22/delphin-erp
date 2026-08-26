@@ -24,7 +24,12 @@ describe('UnitsService', () => {
     await service.create('e1', { nombre: 'Kilogramo', abreviatura: 'kg' });
 
     expect(prisma.unidadMedida.create).toHaveBeenCalledWith({
-      data: { nombre: 'Kilogramo', abreviatura: 'kg', empresaId: 'e1' },
+      data: {
+        nombre: 'Kilogramo',
+        abreviatura: 'kg',
+        tipo: 'PRODUCTO',
+        empresaId: 'e1',
+      },
     });
   });
 
@@ -33,6 +38,7 @@ describe('UnitsService', () => {
     await service.findAll('e1');
     expect(prisma.unidadMedida.findMany).toHaveBeenCalledWith({
       where: { empresaId: 'e1' },
+      orderBy: { nombre: 'asc' },
     });
   });
 

@@ -123,6 +123,7 @@ const KNOWN_ILLUSTRATIONS_MAP: Record<string, string> = {
             class="inventory-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700"
           >
             <div>{{ 'common.name' | transloco }}</div>
+            <div>{{ 'catalogs.categories.appliesTo' | transloco }}</div>
             <div class="hidden sm:block">{{ 'common.description' | transloco }}</div>
             <div>{{ 'common.status' | transloco }}</div>
             <div>{{ 'common.actions' | transloco }}</div>
@@ -173,6 +174,23 @@ const KNOWN_ILLUSTRATIONS_MAP: Record<string, string> = {
                   </div>
                 </div>
 
+                <!-- Tipo / Aplica a -->
+                <div>
+                  @if (cat.tipo === 'PRODUCTO') {
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40">
+                      {{ 'catalogs.categories.typeProductsShort' | transloco }}
+                    </span>
+                  } @else if (cat.tipo === 'SERVICIO') {
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40">
+                      {{ 'catalogs.categories.typeServicesShort' | transloco }}
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                      {{ 'catalogs.categories.typeAllShort' | transloco }}
+                    </span>
+                  }
+                </div>
+
                 <!-- Description -->
                 <div class="hidden sm:block text-sm text-neutral-500 dark:text-neutral-400 truncate">
                   {{ cat.descripcion || '-' }}
@@ -213,11 +231,11 @@ const KNOWN_ILLUSTRATIONS_MAP: Record<string, string> = {
   styles: [
     `
       .inventory-grid {
-        grid-template-columns: auto 40% 100px 96px;
+        grid-template-columns: auto 130px 30% 100px 96px;
       }
       @media (max-width: 640px) {
         .inventory-grid {
-          grid-template-columns: auto 100px 96px;
+          grid-template-columns: auto 100px 100px 96px;
         }
       }
     `,

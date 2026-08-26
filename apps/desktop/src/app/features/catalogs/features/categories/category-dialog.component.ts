@@ -266,6 +266,15 @@ export const COLOR_OPTIONS = [
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-full">
+            <mat-label>{{ 'catalogs.categories.appliesTo' | transloco }}</mat-label>
+            <mat-select formControlName="tipo">
+              <mat-option value="AMBOS">{{ 'catalogs.categories.typeAll' | transloco }}</mat-option>
+              <mat-option value="PRODUCTO">{{ 'catalogs.categories.typeProducts' | transloco }}</mat-option>
+              <mat-option value="SERVICIO">{{ 'catalogs.categories.typeServices' | transloco }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
             <mat-label>{{ 'common.status' | transloco }}</mat-label>
             <mat-select formControlName="estado">
               <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
@@ -452,6 +461,7 @@ export class CategoryDialogComponent implements OnInit {
       descripcion: [cat?.descripcion || ''],
       icono: [this.selectedFile()],
       color: [this.selectedColor()],
+      tipo: [cat?.tipo || 'AMBOS'],
       estado: [cat?.estado || 'ACTIVO'],
     });
   }

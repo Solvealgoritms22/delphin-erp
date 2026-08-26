@@ -43,7 +43,7 @@ describe('UnitsController', () => {
     controller.remove('u1', user);
 
     expect(service.create).toHaveBeenCalledWith('e1', { nombre: 'Kilogramo' });
-    expect(service.findAll).toHaveBeenCalledWith('e1');
+    expect(service.findAll).toHaveBeenCalledWith('e1', undefined);
     expect(service.findOne).toHaveBeenCalledWith('u1', 'e1');
     expect(service.update).toHaveBeenCalledWith('u1', 'e1', { nombre: 'X' });
     expect(service.remove).toHaveBeenCalledWith('u1', 'e1');

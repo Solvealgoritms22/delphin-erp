@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { UnitsService } from '../../data/units.service';
+import { UnitsService, Unit } from '../../data/units.service';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { UnitDialogComponent } from './unit-dialog.component';
@@ -38,6 +38,7 @@ import { PlusIcon, PencilIcon } from 'ng-animated-icons';
             <div class="inventory-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
                <div>{{ 'common.name' | transloco }}</div>
                <div>{{ 'catalogs.units.abbreviation' | transloco }}</div>
+               <div>{{ 'catalogs.units.type' | transloco }}</div>
                <div>{{ 'common.status' | transloco }}</div>
                <div>{{ 'common.actions' | transloco }}</div>
             </div>
@@ -61,6 +62,17 @@ import { PlusIcon, PencilIcon } from 'ng-animated-icons';
                   <div class="font-medium text-neutral-900 dark:text-white truncate">{{ unidad.nombre }}</div>
                   <div class="text-sm text-neutral-500">{{ unidad.abreviatura }}</div>
                   <div>
+                    @if (unidad.tipo === 'SERVICIO') {
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40">
+                        {{ 'catalogs.units.typeService' | transloco }}
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40">
+                        {{ 'catalogs.units.typeProduct' | transloco }}
+                      </span>
+                    }
+                  </div>
+                  <div>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400">
                       {{ unidad.estado }}
                     </span>
@@ -79,7 +91,7 @@ import { PlusIcon, PencilIcon } from 'ng-animated-icons';
   `,
   styles: [`
     .inventory-grid {
-      grid-template-columns: auto 120px 100px 96px;
+      grid-template-columns: auto 100px 140px 100px 96px;
     }
   `]
 })
@@ -93,7 +105,7 @@ export default class UnitsComponent implements OnInit {
     this.unitsService.findAll().subscribe();
   }
 
-  openDialog(unit?: any) {
+  openDialog(unit?: Unit) {
     const dialogRef = this.dialog.open(UnitDialogComponent, {
       data: { unit },
       width: '100%',
@@ -104,7 +116,7 @@ export default class UnitsComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.action === 'create') {
         this.unitsService.create(result.data).subscribe();
-      } else if (result?.action === 'update') {
+      } else if (result?.action === 'update' && unit?.id) {
         this.unitsService.update(unit.id, result.data).subscribe();
       }
     });

@@ -9,14 +9,26 @@ export class CategoriesService {
     return this.prisma.categoria.create({
       data: {
         ...data,
+        tipo: data.tipo || 'AMBOS',
         empresaId,
       },
     });
   }
 
-  async findAll(empresaId: string) {
+  async findAll(empresaId: string, tipo?: string) {
+    const where: any = { empresaId };
+    if (tipo) {
+      if (tipo === 'PRODUCTO') {
+        where.tipo = { in: ['PRODUCTO', 'AMBOS'] };
+      } else if (tipo === 'SERVICIO') {
+        where.tipo = { in: ['SERVICIO', 'AMBOS'] };
+      } else {
+        where.tipo = tipo;
+      }
+    }
     return this.prisma.categoria.findMany({
-      where: { empresaId },
+      where,
+      orderBy: { nombre: 'asc' },
     });
   }
 

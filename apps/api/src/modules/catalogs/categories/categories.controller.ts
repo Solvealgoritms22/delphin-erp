@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -32,8 +33,8 @@ export class CategoriesController {
   @Get()
   @RequirePermissions('catalogs:read')
   @ApiOperation({ summary: 'Listar categorías' })
-  findAll(@CurrentUser() user: any) {
-    return this.categoriesService.findAll(user.empresaId);
+  findAll(@CurrentUser() user: any, @Query('tipo') tipo?: string) {
+    return this.categoriesService.findAll(user.empresaId, tipo);
   }
 
   @Get(':id')

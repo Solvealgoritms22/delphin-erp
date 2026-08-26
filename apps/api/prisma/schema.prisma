@@ -342,6 +342,7 @@ model Categoria {
   descripcion String?
   icono       String?
   color       String?
+  tipo        String     @default("AMBOS") // "PRODUCTO" | "SERVICIO" | "AMBOS"
   estado      String     @default("ACTIVO")
   
   empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
@@ -370,6 +371,7 @@ model UnidadMedida {
   empresaId   String     @map("empresa_id")
   nombre      String
   abreviatura String
+  tipo        String     @default("PRODUCTO") // "PRODUCTO" | "SERVICIO"
   estado      String     @default("ACTIVO")
 
   empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)

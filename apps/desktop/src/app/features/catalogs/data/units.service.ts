@@ -7,6 +7,7 @@ export type Unit = {
   id: string;
   nombre: string;
   abreviatura: string;
+  tipo?: 'PRODUCTO' | 'SERVICIO' | string;
   estado: string;
 }
 

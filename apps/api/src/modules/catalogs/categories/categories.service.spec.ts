@@ -24,7 +24,7 @@ describe('CategoriesService', () => {
     await service.create('e1', { nombre: 'Alimentos' });
 
     expect(prisma.categoria.create).toHaveBeenCalledWith({
-      data: { nombre: 'Alimentos', empresaId: 'e1' },
+      data: { nombre: 'Alimentos', tipo: 'AMBOS', empresaId: 'e1' },
     });
   });
 
@@ -33,6 +33,7 @@ describe('CategoriesService', () => {
     await service.findAll('e1');
     expect(prisma.categoria.findMany).toHaveBeenCalledWith({
       where: { empresaId: 'e1' },
+      orderBy: { nombre: 'asc' },
     });
   });
 

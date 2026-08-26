@@ -45,6 +45,14 @@ import { TranslocoPipe } from '@jsverse/transloco';
           </mat-form-field>
 
           <mat-form-field class="w-full">
+            <mat-label>{{ 'catalogs.units.type' | transloco }}</mat-label>
+            <mat-select formControlName="tipo">
+              <mat-option value="PRODUCTO">{{ 'catalogs.units.typeProduct' | transloco }}</mat-option>
+              <mat-option value="SERVICIO">{{ 'catalogs.units.typeService' | transloco }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="w-full">
            <mat-label>{{ 'common.status' | transloco }}</mat-label>
             <mat-select formControlName="estado">
              <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
@@ -76,6 +84,7 @@ export class UnitDialogComponent implements OnInit {
     this.form = this.fb.group({
       nombre: [this.data?.unit?.nombre || '', Validators.required],
       abreviatura: [this.data?.unit?.abreviatura || '', Validators.required],
+      tipo: [this.data?.unit?.tipo || 'PRODUCTO', Validators.required],
       estado: [this.data?.unit?.estado || 'ACTIVO']
     });
   }

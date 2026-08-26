@@ -102,7 +102,7 @@ type BackupSettings = {
       </header>
 
       <!-- Main Body Container -->
-      <div class="flex-auto p-6 md:p-8 space-y-8 max-w-5xl">
+      <div class="flex-auto p-6 md:p-8 space-y-8 w-full">
 
         <!-- Card: Copias de Seguridad Automáticas -->
         <div class="rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900 shadow-sm transition-all">

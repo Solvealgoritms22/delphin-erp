@@ -388,7 +388,7 @@ export type InsumoRow = {
                   } @else {
                     <div class="flex flex-col gap-3">
                       @for (row of insumosList(); track $index) {
-                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3.5 rounded-xl border border-neutral-200/80 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-800/40">
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 p-3.5 rounded-xl border border-neutral-200/80 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-800/40">
                           <!-- Insumo Product Selector -->
                           <div class="flex-1 min-w-[200px]">
                             <mat-form-field class="w-full !mb-0" subscriptSizing="dynamic">
@@ -452,14 +452,15 @@ export type InsumoRow = {
                             </mat-form-field>
                           </div>
 
-                          <!-- Delete button (centrado verticalmente con los inputs) -->
+                          <!-- Delete button (Alineado perfectamente con los inputs) -->
                           <button
-                            mat-icon-button
                             type="button"
                             (click)="removeInsumoRow($index)"
-                            class="text-neutral-400 hover:text-red-600 dark:hover:text-red-400 self-center shrink-0 cursor-pointer -mt-1"
+                            class="flex size-12 shrink-0 items-center justify-center rounded-xl border border-neutral-200/80 bg-white text-red-500 shadow-2xs transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-neutral-700/80 dark:bg-neutral-900 dark:hover:border-red-900/50 dark:hover:bg-red-950/30 cursor-pointer self-center sm:self-end"
+                            [matTooltip]="'common.delete' | transloco"
+                            aria-label="Eliminar insumo"
                           >
-                            <mat-icon svgIcon="trash" class="icon-size-4.5"></mat-icon>
+                            <mat-icon svgIcon="trash" class="icon-size-4.5 text-red-500"></mat-icon>
                           </button>
                         </div>
                       }
@@ -621,7 +622,7 @@ export type InsumoRow = {
                 <mat-option [value]="null">{{
                   'common.select' | transloco
                 }}</mat-option>
-                @for (cat of productsService.categories(); track cat.id) {
+                @for (cat of filteredCategories(); track cat.id) {
                   <mat-option [value]="cat.id">
                     <div class="flex items-center gap-2">
                       @if (cat.icono) {
@@ -639,7 +640,7 @@ export type InsumoRow = {
               <mat-label>Unidad de medida</mat-label>
               <mat-select formControlName="unidadMedidaId">
                 <mat-option [value]="null">Ninguna</mat-option>
-                @for (unit of productsService.units(); track unit.id) {
+                @for (unit of filteredUnits(); track unit.id) {
                   <mat-option [value]="unit.id">
                     {{ unit.nombre }} ({{ unit.abreviatura }})
                   </mat-option>
@@ -746,6 +747,26 @@ export default class ProductFormComponent implements OnInit {
     return this.productsService
       .products()
       .filter((p) => p.tipo !== 'SERVICIO' && p.id !== this.productId);
+  });
+
+  filteredCategories = computed(() => {
+    const isServ = this.isService();
+    return this.productsService.categories().filter((cat) => {
+      if (isServ) {
+        return cat.tipo === 'SERVICIO' || cat.tipo === 'AMBOS' || !cat.tipo;
+      }
+      return cat.tipo === 'PRODUCTO' || cat.tipo === 'AMBOS' || !cat.tipo;
+    });
+  });
+
+  filteredUnits = computed(() => {
+    const isServ = this.isService();
+    return this.productsService.units().filter((unit) => {
+      if (isServ) {
+        return unit.tipo === 'SERVICIO';
+      }
+      return unit.tipo === 'PRODUCTO' || !unit.tipo;
+    });
   });
 
   totalMaterialsCost = computed(() => {
@@ -912,6 +933,23 @@ export default class ProductFormComponent implements OnInit {
   onTipoChange(newTipo: string) {
     const isServ = (newTipo || 'PRODUCTO').toUpperCase() === 'SERVICIO';
     this.isService.set(isServ);
+
+    // Clean up category or unit if not permitted for the new item type
+    const currentCatId = this.form.get('categoriaId')?.value;
+    if (currentCatId) {
+      const allowed = this.filteredCategories().some((c) => c.id === currentCatId);
+      if (!allowed) {
+        this.form.patchValue({ categoriaId: null });
+      }
+    }
+
+    const currentUnitId = this.form.get('unidadMedidaId')?.value;
+    if (currentUnitId) {
+      const allowed = this.filteredUnits().some((u) => u.id === currentUnitId);
+      if (!allowed) {
+        this.form.patchValue({ unidadMedidaId: null });
+      }
+    }
 
     const currentCode = this.form.get('codigo')?.value || '';
     if (!currentCode || currentCode.startsWith('PRD-') || currentCode.startsWith('SRV-')) {

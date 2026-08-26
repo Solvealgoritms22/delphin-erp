@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -32,8 +33,8 @@ export class UnitsController {
   @Get()
   @RequirePermissions('catalogs:read')
   @ApiOperation({ summary: 'Listar unidades de medida' })
-  findAll(@CurrentUser() user: any) {
-    return this.unitsService.findAll(user.empresaId);
+  findAll(@CurrentUser() user: any, @Query('tipo') tipo?: string) {
+    return this.unitsService.findAll(user.empresaId, tipo);
   }
 
   @Get(':id')
