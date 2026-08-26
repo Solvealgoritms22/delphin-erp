@@ -492,7 +492,7 @@ export class BackupsComponent {
     const isoMatch = name.match(/(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})/);
     if (isoMatch) {
       const [, date, hh, mm, ss] = isoMatch;
-      return `backup_${date.replace(/-/g, '')}_${hh}${mm}${ss}.backup`;
+      return `${date.replace(/-/g, '')}_${hh}${mm}${ss}.backup`;
     }
     return name;
   }
