@@ -123,8 +123,25 @@ export type FilterInvoiceDto = {
   estado?: string;
   fiscalbridgeStatus?: string;
   tipoNcf?: string;
+  tipoPago?: string;
+  metodoPago?: string;
   desde?: string;
   hasta?: string;
+  minTotal?: number;
+  maxTotal?: number;
+  // Pagination
+  page?: number;
+  limit?: number;
+  orderBy?: string;
+  orderDir?: 'asc' | 'desc';
+}
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 @Injectable({
@@ -136,32 +153,46 @@ export class InvoicesService {
 
   invoices = signal<FacturaVenta[]>([]);
   loading = signal<boolean>(false);
+  pagination = signal<{ total: number; page: number; limit: number; totalPages: number }>({
+    total: 0,
+    page: 1,
+    limit: 25,
+    totalPages: 0,
+  });
 
-  findAll(filters?: FilterInvoiceDto): Observable<FacturaVenta[]> {
+  findAll(filters?: FilterInvoiceDto): Observable<PaginatedResponse<FacturaVenta>> {
     this.loading.set(true);
     let params = new HttpParams();
     if (filters) {
       if (filters.search) params = params.set('search', filters.search);
-      if (filters.clienteId)
-        params = params.set('clienteId', filters.clienteId);
+      if (filters.clienteId) params = params.set('clienteId', filters.clienteId);
       if (filters.estado) params = params.set('estado', filters.estado);
-      if (filters.fiscalbridgeStatus)
-        params = params.set('fiscalbridgeStatus', filters.fiscalbridgeStatus);
+      if (filters.fiscalbridgeStatus) params = params.set('fiscalbridgeStatus', filters.fiscalbridgeStatus);
       if (filters.tipoNcf) params = params.set('tipoNcf', filters.tipoNcf);
+      if (filters.tipoPago) params = params.set('tipoPago', filters.tipoPago);
+      if (filters.metodoPago) params = params.set('metodoPago', filters.metodoPago);
       if (filters.desde) params = params.set('desde', filters.desde);
       if (filters.hasta) params = params.set('hasta', filters.hasta);
+      if (filters.minTotal !== undefined) params = params.set('minTotal', String(filters.minTotal));
+      if (filters.maxTotal !== undefined) params = params.set('maxTotal', String(filters.maxTotal));
+      if (filters.page) params = params.set('page', String(filters.page));
+      if (filters.limit) params = params.set('limit', String(filters.limit));
+      if (filters.orderBy) params = params.set('orderBy', filters.orderBy);
+      if (filters.orderDir) params = params.set('orderDir', filters.orderDir);
     }
 
-    return this.http.get<FacturaVenta[]>(this.apiUrl, { params }).pipe(
+    return this.http.get<PaginatedResponse<FacturaVenta>>(this.apiUrl, { params }).pipe(
       tap({
         next: (res) => {
-          this.invoices.set(res);
+          this.invoices.set(res.data);
+          this.pagination.set({ total: res.total, page: res.page, limit: res.limit, totalPages: res.totalPages });
           this.loading.set(false);
         },
         error: () => this.loading.set(false),
       })
     );
   }
+
 
   findOne(id: string): Observable<FacturaVenta> {
     return this.http.get<FacturaVenta>(`${this.apiUrl}/${id}`);

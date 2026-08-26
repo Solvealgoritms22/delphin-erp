@@ -58,6 +58,12 @@
     "lastYear": "Año anterior",
     "customRange": "Rango personalizado"
   },
+  "paginator": {
+    "rowsPerPage": "Filas por página",
+    "of": "de",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  },
   "aiChat": {
     "title": "AI ERP Agent",
     "conversations": "Conversaciones",
@@ -1407,6 +1413,104 @@
     "checkFailed": "Error al buscar actualizaciones",
     "notElectron": "Las actualizaciones solo están disponibles en la app de escritorio",
     "currentVersion": "Versión actual"
+  },
+  "reports": {
+    "title": "Reportes y Estadísticas",
+    "subtitle": "Análisis financiero, volumen de ventas, cobranzas y control de inventario.",
+    "exportCsv": "Exportar CSV",
+    "printPdf": "Imprimir / PDF",
+    "noDataForPeriod": "No se encontraron registros para el período seleccionado.",
+    "tabs": {
+      "sales": "Ventas",
+      "topProducts": "Top Productos",
+      "receivables": "Cuentas por Cobrar",
+      "inventory": "Inventario",
+      "clients": "Clientes"
+    },
+    "sales": {
+      "totalRevenue": "Total Facturado",
+      "itbisCollected": "ITBIS Recaudado",
+      "avgTicket": "Ticket Promedio",
+      "discounts": "Descuentos",
+      "invoicesCount": "Facturas emitidas",
+      "taxDeducted": "Impuestos fiscales",
+      "perInvoice": "Promedio por venta",
+      "discountsGiven": "Otorgados en ventas",
+      "timeline": "Evolución de Ventas",
+      "dataPoints": "períodos",
+      "byPaymentMethod": "Desglose por Método de Pago"
+    },
+    "topProducts": {
+      "ranking": "Ranking de Productos Más Vendidos",
+      "unitsSold": "Unidades Vendidas",
+      "totalRevenue": "Ingresos Totales",
+      "estimatedMargin": "Margen Estimado"
+    },
+    "receivables": {
+      "debtorClients": "Cartera de Clientes con Deuda Pendiente"
+    },
+    "inventory": {
+      "totalCostValue": "Valoración al Costo",
+      "totalRetailValue": "Valoración a Precio Venta",
+      "potentialProfit": "Ganancia Potencial",
+      "lowStockAlerts": "Alertas de Bajo Stock",
+      "lowStockNotice": "Productos con Existencia Crítica (Menor o igual al Stock Mínimo)"
+    },
+    "clients": {
+      "rankingTitle": "Ranking de Clientes por Facturación"
+    }
+  },
+  "nav": {
+    "main": "Principal",
+    "mainDescription": "Paneles de control y asistentes",
+    "dashboard": "Dashboard",
+    "aiChat": "Asistente IA",
+    "reports": "Reportes",
+    "catalogs": "Catálogos",
+    "catalogsDescription": "Gestión de artículos y maestros",
+    "products": "Productos",
+    "services": "Servicios",
+    "categories": "Categorías",
+    "brands": "Marcas",
+    "units": "Unidades",
+    "inventory": "Inventario",
+    "commercial": "Comercial",
+    "commercialDescription": "Ventas, comprobantes y socios",
+    "invoices": "Facturación",
+    "sequences": "Comprobantes (NCF)",
+    "clients": "Clientes",
+    "suppliers": "Proveedores",
+    "settings": "Configuración",
+    "settingsDescription": "Empresa, sucursales y respaldos",
+    "branches": "Sucursales",
+    "companies": "Mi Empresa",
+    "backups": "Copias de Seguridad",
+    "billingSettings": "Facturación SaaS",
+    "apiAccess": "API Pública",
+    "security": "Seguridad",
+    "securityDescription": "Control de accesos y auditoría",
+    "roles": "Roles y Permisos",
+    "users": "Usuarios",
+    "securityLogs": "Registros de Seguridad",
+    "sessions": "Sesiones Activas",
+    "system": "Sistema",
+    "systemDescription": "Mantenimiento y estado",
+    "activity": "Actividad",
+    "legal": "Términos y Privacidad"
+  },
+  "settings": {
+    "apiAccess": {
+      "title": "API Pública del Tenant",
+      "subtitle": "Conecta tus tiendas online, aplicaciones móviles y sistemas externos con tu base de datos.",
+      "newApp": "Nueva Integración",
+      "enterpriseOnly": "Exclusivo Plan Enterprise",
+      "unlockTitle": "Desbloquea el Poder de la API Externa en tu Empresa",
+      "unlockDescription": "Expón los datos de tu empresa (productos, facturas, clientes e inventario) de forma segura y automatizada mediante API Keys restringidas con límites de origen.",
+      "upgradeCta": "Ver Planes y Mejorar a Enterprise",
+      "connectedApps": "Aplicaciones Conectadas",
+      "originsLimitNotice": "Tu plan Enterprise te permite conectar hasta 2 aplicaciones externas o sistemas con sus respectivos orígenes.",
+      "addApplication": "Conectar Aplicación"
+    }
   },
   "weather": {
     "widgetTooltip": "Pronóstico del tiempo y temperatura",

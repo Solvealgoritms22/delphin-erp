@@ -402,6 +402,8 @@ export class InvoicesService {
     if (filterDto?.clienteId) where.clienteId = filterDto.clienteId;
     if (filterDto?.estado) where.estado = filterDto.estado;
     if (filterDto?.tipoNcf) where.tipoNcf = filterDto.tipoNcf;
+    if (filterDto?.tipoPago) where.tipoPago = filterDto.tipoPago;
+    if (filterDto?.metodoPago) where.metodoPago = filterDto.metodoPago;
     if (filterDto?.fiscalbridgeStatus)
       where.fiscalbridgeStatus = filterDto.fiscalbridgeStatus;
 
@@ -411,17 +413,51 @@ export class InvoicesService {
       if (filterDto.hasta) where.fecha.lte = new Date(filterDto.hasta);
     }
 
-    return this.prisma.facturaVenta.findMany({
-      where,
-      include: {
-        cliente: true,
-        almacen: true,
-        sucursal: true,
-        detalles: { include: { producto: true } },
-      },
-      orderBy: { fecha: 'desc' },
-    });
+    if (filterDto?.minTotal !== undefined || filterDto?.maxTotal !== undefined) {
+      where.total = {};
+      if (filterDto.minTotal !== undefined) where.total.gte = filterDto.minTotal;
+      if (filterDto.maxTotal !== undefined) where.total.lte = filterDto.maxTotal;
+    }
+
+    // Pagination
+    const page = Math.max(1, filterDto?.page ?? 1);
+    const limit = Math.min(100, Math.max(1, filterDto?.limit ?? 25));
+    const skip = (page - 1) * limit;
+
+    // Ordering
+    const validOrderBy = ['fecha', 'total', 'numeroFactura', 'creadoEn'];
+    const orderByField = validOrderBy.includes(filterDto?.orderBy ?? '')
+      ? (filterDto?.orderBy as string)
+      : 'fecha';
+    const orderDir = filterDto?.orderDir === 'asc' ? 'asc' : 'desc';
+
+    const include = {
+      cliente: true,
+      almacen: true,
+      sucursal: true,
+      detalles: { include: { producto: true } },
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.facturaVenta.findMany({
+        where,
+        include,
+        orderBy: { [orderByField]: orderDir },
+        skip,
+        take: limit,
+      }),
+      this.prisma.facturaVenta.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
+
 
   async findOne(empresaId: string, id: string) {
     const invoice = await this.prisma.facturaVenta.findFirst({

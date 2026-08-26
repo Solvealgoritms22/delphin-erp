@@ -58,6 +58,12 @@
     "lastYear": "Last year",
     "customRange": "Custom range"
   },
+  "paginator": {
+    "rowsPerPage": "Rows per page",
+    "of": "of",
+    "previous": "Previous",
+    "next": "Next"
+  },
   "aiChat": {
     "title": "AI ERP Agent",
     "conversations": "Conversations",
@@ -1407,6 +1413,104 @@
     "checkFailed": "Failed to check for updates",
     "notElectron": "Updates are only available in the desktop app",
     "currentVersion": "Current version"
+  },
+  "reports": {
+    "title": "Reports & Analytics",
+    "subtitle": "Financial performance, sales volume, accounts receivable and inventory valuation.",
+    "exportCsv": "Export CSV",
+    "printPdf": "Print / PDF",
+    "noDataForPeriod": "No records found for the selected period.",
+    "tabs": {
+      "sales": "Sales",
+      "topProducts": "Top Products",
+      "receivables": "Receivables",
+      "inventory": "Inventory",
+      "clients": "Clients"
+    },
+    "sales": {
+      "totalRevenue": "Total Revenue",
+      "itbisCollected": "Tax Collected",
+      "avgTicket": "Average Ticket",
+      "discounts": "Discounts",
+      "invoicesCount": "Invoices issued",
+      "taxDeducted": "Fiscal taxes",
+      "perInvoice": "Average per sale",
+      "discountsGiven": "Granted in sales",
+      "timeline": "Sales Evolution",
+      "dataPoints": "periods",
+      "byPaymentMethod": "Breakdown by Payment Method"
+    },
+    "topProducts": {
+      "ranking": "Best-Selling Products Ranking",
+      "unitsSold": "Units Sold",
+      "totalRevenue": "Total Revenue",
+      "estimatedMargin": "Estimated Margin"
+    },
+    "receivables": {
+      "debtorClients": "Clients with Outstanding Balance"
+    },
+    "inventory": {
+      "totalCostValue": "Cost Valuation",
+      "totalRetailValue": "Retail Valuation",
+      "potentialProfit": "Potential Profit",
+      "lowStockAlerts": "Low Stock Alerts",
+      "lowStockNotice": "Items with Critical Stock Level (Equal or Below Minimum)"
+    },
+    "clients": {
+      "rankingTitle": "Client Revenue Ranking"
+    }
+  },
+  "nav": {
+    "main": "Main",
+    "mainDescription": "Dashboards and assistants",
+    "dashboard": "Dashboard",
+    "aiChat": "AI Assistant",
+    "reports": "Reports",
+    "catalogs": "Catalogs",
+    "catalogsDescription": "Master items and catalogs",
+    "products": "Products",
+    "services": "Services",
+    "categories": "Categories",
+    "brands": "Brands",
+    "units": "Units",
+    "inventory": "Inventory",
+    "commercial": "Commercial",
+    "commercialDescription": "Sales, sequences and partners",
+    "invoices": "Invoicing",
+    "sequences": "Tax Sequences (NCF)",
+    "clients": "Clients",
+    "suppliers": "Suppliers",
+    "settings": "Settings",
+    "settingsDescription": "Company, branches and backups",
+    "branches": "Branches",
+    "companies": "My Company",
+    "backups": "Backups",
+    "billingSettings": "SaaS Billing",
+    "apiAccess": "Public API",
+    "security": "Security",
+    "securityDescription": "Access control and audit",
+    "roles": "Roles & Permissions",
+    "users": "Users",
+    "securityLogs": "Security Logs",
+    "sessions": "Active Sessions",
+    "system": "System",
+    "systemDescription": "Maintenance and health",
+    "activity": "Activity",
+    "legal": "Terms & Privacy"
+  },
+  "settings": {
+    "apiAccess": {
+      "title": "Tenant Public API",
+      "subtitle": "Connect external online stores, mobile apps and services directly to your database.",
+      "newApp": "New Integration",
+      "enterpriseOnly": "Enterprise Plan Exclusive",
+      "unlockTitle": "Unlock the Power of Tenant Public API",
+      "unlockDescription": "Expose your business data (products, invoices, clients, inventory) securely and automatically via restricted API keys with origin limits.",
+      "upgradeCta": "View Plans & Upgrade to Enterprise",
+      "connectedApps": "Connected Applications",
+      "originsLimitNotice": "Your Enterprise plan allows you to connect up to 2 external applications with specific origins.",
+      "addApplication": "Connect Application"
+    }
   },
   "weather": {
     "widgetTooltip": "Weather forecast & temperature",

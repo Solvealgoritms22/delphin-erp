@@ -55,7 +55,7 @@ type BillingData = {
       @if (loading()) {
 
         <div
-          class="flex-auto overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto"
+          class="flex-auto overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 w-full"
         >
           <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
             <div
@@ -95,7 +95,7 @@ type BillingData = {
         </div>
       } @else if (data(); as config) {
         <div
-          class="flex-auto overflow-y-auto min-w-0 p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto"
+          class="flex-auto overflow-y-auto min-w-0 p-4 sm:p-6 md:p-8 space-y-6 w-full"
         >
 
           <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">

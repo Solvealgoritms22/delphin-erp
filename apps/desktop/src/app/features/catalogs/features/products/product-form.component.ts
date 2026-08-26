@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { optimizeImageToWebP, formatBytes } from '@shared/utils/image-optimizer.util';
 import {
   FormBuilder,
   FormGroup,
@@ -553,6 +554,10 @@ export type InsumoRow = {
                         alt="Preview"
                         class="h-full w-full object-contain p-1"
                       />
+                      <!-- WebP badge -->
+                      @if (imageStats()[$index]?.wasConverted) {
+                        <span class="absolute bottom-1 left-1 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">WebP</span>
+                      }
                       <button
                         type="button"
                         (click)="removeImage($event, $index)"
@@ -592,7 +597,25 @@ export type InsumoRow = {
                   }}</span>
                 </p>
               }
+              <!-- Image processing overlay -->
+              @if (imageOptimizing()) {
+                <div class="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
+                  <div class="flex flex-col items-center gap-2">
+                    <div class="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                    <span class="text-xs font-semibold text-blue-600">Optimizando WebP…</span>
+                  </div>
+                </div>
+              }
             </div>
+            <!-- Savings summary -->
+            @if (imageStats().length > 0 && imageStats()[imageStats().length - 1].wasConverted) {
+              <p class="mt-1.5 flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                <mat-icon svgIcon="check" class="icon-size-3"></mat-icon>
+                Convertida a WebP ·
+                {{ formatBytes(imageStats()[imageStats().length - 1].originalSize) }}
+                → {{ formatBytes(imageStats()[imageStats().length - 1].optimizedSize) }}
+              </p>
+            }
             @if (imageError) {
               <p
                 class="mt-2 text-xs font-medium text-red-600 dark:text-red-400"
@@ -729,7 +752,10 @@ export default class ProductFormComponent implements OnInit {
   imagePreviews: string[] = [];
   isDragging = false;
   imageError: string | null = null;
+  imageOptimizing = signal(false);
+  imageStats = signal<Array<{ originalSize: number; optimizedSize: number; wasConverted: boolean }>>([]);
   readonly maxImages = 5;
+  readonly formatBytes = formatBytes;
 
   taxes = signal<
     Array<{
@@ -1059,44 +1085,57 @@ export default class ProductFormComponent implements OnInit {
     }
   }
 
-  private handleFiles(files: File[]): void {
+  private async handleFiles(files: File[]): Promise<void> {
     this.imageError = null;
 
     if (this.imagePreviews.length + files.length > this.maxImages) {
-      this.imageError = 'Solo puedes subir hasta ' + this.maxImages + ' imágenes en total.';
+      this.imageError = `Solo puedes subir hasta ${this.maxImages} imágenes en total.`;
       return;
     }
 
-    files.forEach((file) => {
-      if (!file.type.match(/image\/(png|jpeg|jpg|webp)/)) {
-        this.imageError = 'Solo se permiten imágenes (.png, .jpg, .jpeg, .webp).';
-        return;
+    const validFiles = files.filter((file) => {
+      if (!file.type.match(/image\/(png|jpeg|jpg|webp|gif|bmp|svg\+xml)/)) {
+        this.imageError = 'Solo se permiten imágenes (.png, .jpg, .jpeg, .webp, .gif).';
+        return false;
       }
-
-      if (file.size > 500 * 1024) {
-        this.imageError = 'Cada imagen debe ser menor a 500 KB.';
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        if (
-          e.target?.result &&
-          this.imagePreviews.length < this.maxImages
-        ) {
-          this.imagePreviews.push(e.target.result as string);
-          this.form.patchValue({
-            imagenes: JSON.stringify(this.imagePreviews),
-          });
-        }
-      };
-      reader.readAsDataURL(file);
+      return true;
     });
+
+    if (validFiles.length === 0) return;
+
+    this.imageOptimizing.set(true);
+
+    try {
+      for (const file of validFiles) {
+        if (this.imagePreviews.length >= this.maxImages) break;
+
+        const result = await optimizeImageToWebP(file, 0.85, 1920, 1920);
+
+        this.imagePreviews.push(result.base64);
+        this.imageStats.update((stats) => [
+          ...stats,
+          {
+            originalSize: result.originalSize,
+            optimizedSize: result.optimizedSize,
+            wasConverted: result.wasConverted,
+          },
+        ]);
+      }
+
+      this.form.patchValue({
+        imagenes: this.imagePreviews.length > 0 ? JSON.stringify(this.imagePreviews) : null,
+      });
+    } catch {
+      this.imageError = 'Error al procesar la imagen. Intenta con otro archivo.';
+    } finally {
+      this.imageOptimizing.set(false);
+    }
   }
 
   removeImage(event: Event, index: number): void {
     event.stopPropagation();
     this.imagePreviews.splice(index, 1);
+    this.imageStats.update((stats) => stats.filter((_, i) => i !== index));
     this.form.patchValue({
       imagenes:
         this.imagePreviews.length > 0

@@ -25,6 +25,13 @@ export default [
           ),
       },
       {
+        path: 'api-access',
+        canActivate: [permissionGuard],
+        data: { permissions: ['company:read'] },
+        loadComponent: () =>
+          import('./features/api-access/api-access.component'),
+      },
+      {
         path: 'empresas',
         canActivate: [permissionGuard],
         data: { permissions: ['company:read'] },

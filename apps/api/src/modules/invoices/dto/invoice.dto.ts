@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
   Min,
+  Max,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -60,11 +61,11 @@ export class CreateInvoiceDto {
 
   @IsString()
   @IsOptional()
-  tipoPago?: string = 'CONTADO'; // CONTADO | CREDITO
+  tipoPago?: string; // CONTADO | CREDITO
 
   @IsString()
   @IsOptional()
-  metodoPago?: string = 'EFECTIVO'; // EFECTIVO | TARJETA | TRANSFERENCIA | CHEQUE
+  metodoPago?: string; // EFECTIVO | TARJETA | TRANSFERENCIA | CHEQUE
 
   @IsString()
   @IsOptional()
@@ -129,9 +130,52 @@ export class FilterInvoiceDto {
 
   @IsString()
   @IsOptional()
+  tipoPago?: string;
+
+  @IsString()
+  @IsOptional()
+  metodoPago?: string;
+
+  @IsString()
+  @IsOptional()
   desde?: string;
 
   @IsString()
   @IsOptional()
   hasta?: string;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  minTotal?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  maxTotal?: number;
+
+  // ---- Pagination ----
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  @Type(() => Number)
+  page?: number;
+
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number;
+
+  @IsString()
+  @IsOptional()
+  orderBy?: string; // fecha | total | numeroFactura
+
+  @IsString()
+  @IsOptional()
+  orderDir?: 'asc' | 'desc';
 }
+

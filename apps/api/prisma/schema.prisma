@@ -68,6 +68,7 @@ model Empresa {
   terminosPago   TerminoPago[]
   pagosCliente   PagoCliente[]
   productosInsumos ProductoInsumo[]
+  apiApps        TenantApiApp[]
 
   @@map("empresas")
 }
@@ -915,3 +916,28 @@ model AiMessage {
   @@index([conversacionId])
   @@map("ai_mensajes")
 }
+
+// ------------------------------------------------------
+// Fase 6 - Tenant Public API (Plan Enterprise)
+// ------------------------------------------------------
+
+model TenantApiApp {
+  id             String    @id @default(uuid())
+  empresaId      String    @map("empresa_id")
+  nombre         String
+  descripcion    String?
+  apiKeyHash     String    @unique @map("api_key_hash")
+  apiKeyPrefix   String    @map("api_key_prefix")
+  allowedOrigins String?   @map("allowed_origins") // JSON stringified array of max 2 origins
+  estado         String    @default("ACTIVO") // ACTIVO | REVOCADO
+  lastUsedAt     DateTime? @map("last_used_at")
+  requestCount   BigInt    @default(0) @map("request_count")
+  creadoEn       DateTime  @default(now()) @map("creado_en")
+  actualizadoEn  DateTime  @updatedAt @map("actualizado_en")
+
+  empresa        Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, estado])
+  @@map("tenant_api_apps")
+}
+

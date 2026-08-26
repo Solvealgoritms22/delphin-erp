@@ -50,15 +50,15 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
               <mat-form-field class="w-full">
                <mat-label>{{ 'commercial.form.documentType' | transloco }}</mat-label>
                 <mat-select formControlName="tipoDocumento">
-                  <mat-option value="RNC">RNC</mat-option>
-                  <mat-option value="RUT">RUT</mat-option>
-                  <mat-option value="DNI">DNI</mat-option>
+                  @for (doc of getDocumentTypes(form.get('pais')?.value); track doc.value) {
+                    <mat-option [value]="doc.value">{{ doc.label }}</mat-option>
+                  }
                 </mat-select>
               </mat-form-field>
 
               <mat-form-field class="w-full">
                <mat-label>{{ 'commercial.form.documentNumber' | transloco }}</mat-label>
-                <input matInput formControlName="numeroDocumento" placeholder="12345678-9" />
+                <input matInput formControlName="numeroDocumento" [placeholder]="documentPlaceholder()" />
               </mat-form-field>
             </div>
 
@@ -202,7 +202,47 @@ export class ClientForm implements OnInit {
 
   phonePlaceholder(): string { return this.form?.get('pais')?.value === 'DO' ? '555 0000' : '+1 555 000 0000'; }
 
+  countryDocTypes: Record<string, Array<{ value: string; label: string }>> = {
+    DO: [
+      { value: 'RNC', label: 'RNC' },
+      { value: 'CEDULA', label: 'Cédula' },
+      { value: 'PASAPORTE', label: 'Pasaporte' },
+    ],
+    US: [
+      { value: 'EIN', label: 'EIN' },
+      { value: 'SSN', label: 'SSN' },
+      { value: 'PASAPORTE', label: 'Pasaporte' },
+    ],
+    ES: [
+      { value: 'NIF', label: 'NIF' },
+      { value: 'CIF', label: 'CIF' },
+      { value: 'NIE', label: 'NIE' },
+      { value: 'PASAPORTE', label: 'Pasaporte' },
+    ],
+  };
+
+  getDocumentTypes(countryCode?: string): Array<{ value: string; label: string }> {
+    const code = countryCode || this.form?.get('pais')?.value || 'DO';
+    return this.countryDocTypes[code] || this.countryDocTypes['DO'];
+  }
+
+  documentPlaceholder(): string {
+    const type = this.form?.get('tipoDocumento')?.value;
+    if (type === 'CEDULA') return '001-1234567-8';
+    if (type === 'RNC') return '1-01-12345-6';
+    if (type === 'EIN') return '12-3456789';
+    if (type === 'NIF') return '12345678A';
+    if (type === 'PASAPORTE') return 'A12345678';
+    return '12345678-9';
+  }
+
   applyCountry(country: string): void {
+    const validDocTypes = this.getDocumentTypes(country);
+    const currentDoc = this.form.get('tipoDocumento')?.value;
+    if (!validDocTypes.some((d) => d.value === currentDoc)) {
+      this.form.patchValue({ tipoDocumento: validDocTypes[0].value }, { emitEvent: false });
+    }
+
     this.phoneCodes = country === 'ES' ? ['+34'] : country === 'US' ? ['+1'] : ['+1 809', '+1 829', '+1 849'];
     if (!this.phoneCodes.includes(this.form.get('phoneCode')?.value)) {
       this.form.patchValue({ phoneCode: this.phoneCodes[0] }, { emitEvent: false });

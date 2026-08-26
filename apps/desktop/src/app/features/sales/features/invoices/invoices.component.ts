@@ -38,6 +38,7 @@ import { InventoryService } from '../../../catalogs/data/inventory.service';
 import { ClientsService } from '../../data/clients';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
+import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginator/paginator.component';
 
 @Component({
   selector: 'app-invoices',
@@ -59,6 +60,7 @@ import { environment } from '@/environments/environment';
     MatCheckboxModule,
     TranslocoPipe,
     EmptyStateComponent,
+    PaginatorComponent,
   ],
   template: `
     <div
@@ -118,6 +120,21 @@ import { environment } from '@/environments/environment';
 
           <div class="flex items-center gap-3">
 
+            <!-- Advanced filters toggle -->
+            <button
+              (click)="showAdvancedFilters = !showAdvancedFilters"
+              type="button"
+              class="relative flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border px-4 text-sm font-bold whitespace-nowrap transition-colors"
+              [class]="showAdvancedFilters
+                ? 'bg-blue-600 border-blue-600 text-white'
+                : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/50'"
+            >
+              <mat-icon svgIcon="sliders-horizontal" class="icon-size-4" />
+              Filtros
+              @if (activeFiltersCount > 0) {
+                <span class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">{{ activeFiltersCount }}</span>
+              }
+            </button>
             <button
               [matMenuTriggerFor]="ncfFilterMenu"
               type="button"
@@ -182,6 +199,75 @@ import { environment } from '@/environments/environment';
             </mat-menu>
           </div>
         </div>
+
+        <!-- Advanced Filters Panel -->
+        @if (showAdvancedFilters) {
+          <div class="flex shrink-0 flex-col border-b border-neutral-200 bg-neutral-50 px-6 pb-4 md:px-8 dark:border-neutral-700 dark:bg-neutral-800/50">
+            <div class="grid grid-cols-2 gap-3 pt-4 sm:grid-cols-3 lg:grid-cols-4">
+
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Estado</label>
+                <select [(ngModel)]="advancedFilters.estado" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
+                  <option value="">Todos</option>
+                  <option value="EMITIDA">Emitida</option>
+                  <option value="BORRADOR">Borrador</option>
+                  <option value="PAGADA">Pagada</option>
+                  <option value="ANULADA">Anulada</option>
+                </select>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Tipo de Pago</label>
+                <select [(ngModel)]="advancedFilters.tipoPago" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
+                  <option value="">Todos</option>
+                  <option value="CONTADO">Contado</option>
+                  <option value="CREDITO">Crédito</option>
+                </select>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Método de Pago</label>
+                <select [(ngModel)]="advancedFilters.metodoPago" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
+                  <option value="">Todos</option>
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="TARJETA">Tarjeta</option>
+                  <option value="TRANSFERENCIA">Transferencia</option>
+                  <option value="CHEQUE">Cheque</option>
+                </select>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Desde</label>
+                <input type="date" [(ngModel)]="advancedFilters.desde" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Hasta</label>
+                <input type="date" [(ngModel)]="advancedFilters.hasta" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Monto Mín.</label>
+                <input type="number" min="0" [(ngModel)]="advancedFilters.minTotal" placeholder="0.00" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Monto Máx.</label>
+                <input type="number" min="0" [(ngModel)]="advancedFilters.maxTotal" placeholder="0.00" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
+              </div>
+
+            </div>
+
+            <div class="mt-3 flex items-center gap-3">
+              <button (click)="applyAdvancedFilters()" class="cursor-pointer rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white transition-colors hover:bg-blue-700">
+                Aplicar filtros
+              </button>
+              <button (click)="resetFilters()" class="cursor-pointer rounded-xl border border-neutral-200 px-5 py-2 text-xs font-bold text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700">
+                Limpiar
+              </button>
+            </div>
+          </div>
+        }
 
         <div class="grid">
 
@@ -353,7 +439,9 @@ import { environment } from '@/environments/environment';
                 <div class="col-span-1 flex justify-center">
                   <button
                     [matMenuTriggerFor]="actionMenu"
-                    class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    [disabled]="inv.estado === 'ANULADA'"
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-30 disabled:pointer-events-none disabled:cursor-not-allowed"
+                    [class.cursor-pointer]="inv.estado !== 'ANULADA'"
                   >
                     <mat-icon
                       svgIcon="ellipsis-vertical"
@@ -467,6 +555,16 @@ import { environment } from '@/environments/environment';
             }
           }
         </div>
+
+        <!-- Paginator -->
+        @if (invoicesService.invoices().length > 0 || invoicesService.pagination().total > 0) {
+          <app-paginator
+            [total]="invoicesService.pagination().total"
+            [currentPage]="currentPage"
+            [limit]="pageLimit"
+            (pageChange)="onPageChange($event)"
+          />
+        }
       </div>
 
       <ng-template #createInvoiceModalTemplate>
@@ -996,8 +1094,39 @@ export class InvoicesComponent implements OnInit {
 
   searchQuery = '';
   selectedNcfFilter = 'ALL';
+  showAdvancedFilters = false;
+  currentPage = 1;
+  pageLimit = 25;
 
-  fiscalbridgeEnabled = false;
+  advancedFilters: {
+    estado: string;
+    tipoPago: string;
+    metodoPago: string;
+    desde: string;
+    hasta: string;
+    minTotal: number | null;
+    maxTotal: number | null;
+  } = {
+    estado: '',
+    tipoPago: '',
+    metodoPago: '',
+    desde: '',
+    hasta: '',
+    minTotal: null,
+    maxTotal: null,
+  };
+
+  get activeFiltersCount(): number {
+    let count = 0;
+    if (this.advancedFilters.estado) count++;
+    if (this.advancedFilters.tipoPago) count++;
+    if (this.advancedFilters.metodoPago) count++;
+    if (this.advancedFilters.desde) count++;
+    if (this.advancedFilters.hasta) count++;
+    if (this.advancedFilters.minTotal !== null) count++;
+    if (this.advancedFilters.maxTotal !== null) count++;
+    return count;
+  }
 
   newInvoice: CreateInvoiceDto = {
     clienteId: '',
@@ -1022,9 +1151,10 @@ export class InvoicesComponent implements OnInit {
   currencyCode = 'DOP';
   currencySymbol = 'RD$';
   defaultTaxRate = 18;
+  fiscalbridgeEnabled = false;
 
   ngOnInit() {
-    this.invoicesService.findAll().subscribe();
+    this.invoicesService.findAll({ page: 1, limit: this.pageLimit }).subscribe();
     this.sequencesService.findAll().subscribe();
     this.productsService.findAll().subscribe();
     this.inventoryService.getWarehouses().subscribe();
@@ -1048,17 +1178,58 @@ export class InvoicesComponent implements OnInit {
 
   setNcfFilter(type: string) {
     this.selectedNcfFilter = type;
+    this.currentPage = 1;
     this.filterInvoices();
   }
 
   filterInvoices() {
     this.invoicesService
       .findAll({
-        search: this.searchQuery,
-        tipoNcf:
-          this.selectedNcfFilter !== 'ALL' ? this.selectedNcfFilter : undefined,
+        search: this.searchQuery || undefined,
+        tipoNcf: this.selectedNcfFilter !== 'ALL' ? this.selectedNcfFilter : undefined,
+        page: this.currentPage,
+        limit: this.pageLimit,
       })
       .subscribe();
+  }
+
+  applyAdvancedFilters() {
+    this.currentPage = 1;
+    this.invoicesService.findAll({
+      search: this.searchQuery || undefined,
+      tipoNcf: this.selectedNcfFilter !== 'ALL' ? this.selectedNcfFilter : undefined,
+      estado: this.advancedFilters.estado || undefined,
+      tipoPago: this.advancedFilters.tipoPago || undefined,
+      metodoPago: this.advancedFilters.metodoPago || undefined,
+      desde: this.advancedFilters.desde || undefined,
+      hasta: this.advancedFilters.hasta || undefined,
+      minTotal: this.advancedFilters.minTotal ?? undefined,
+      maxTotal: this.advancedFilters.maxTotal ?? undefined,
+      page: 1,
+      limit: this.pageLimit,
+    }).subscribe();
+  }
+
+  resetFilters() {
+    this.advancedFilters = {
+      estado: '',
+      tipoPago: '',
+      metodoPago: '',
+      desde: '',
+      hasta: '',
+      minTotal: null,
+      maxTotal: null,
+    };
+    this.searchQuery = '';
+    this.selectedNcfFilter = 'ALL';
+    this.currentPage = 1;
+    this.invoicesService.findAll({ page: 1, limit: this.pageLimit }).subscribe();
+  }
+
+  onPageChange(event: PageChangeEvent) {
+    this.currentPage = event.page;
+    this.pageLimit = event.limit;
+    this.applyAdvancedFilters();
   }
 
   getNcfDescription(tipo: string): string {

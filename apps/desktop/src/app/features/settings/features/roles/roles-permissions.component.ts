@@ -309,11 +309,32 @@ export type RolePermissions = {
             </div>
 
             <div class="flex flex-col gap-4">
-              <h3 class="text-sm font-bold text-neutral-500">Permissions Assignment</h3>
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="text-sm font-bold text-neutral-500">Permissions Assignment</h3>
+                <div class="relative">
+                  <i-search [size]="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    type="text"
+                    [value]="permissionsSearch()"
+                    (input)="permissionsSearch.set($any($event.target).value)"
+                    placeholder="Buscar módulo…"
+                    class="w-52 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 py-1.5 pl-8 pr-3 text-xs font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none transition-colors"
+                  />
+                  @if (permissionsSearch()) {
+                    <button
+                      type="button"
+                      (click)="permissionsSearch.set('')"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors cursor-pointer"
+                    >
+                      <i-x [size]="12" />
+                    </button>
+                  }
+                </div>
+              </div>
 
               <div class="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800 border-b border-neutral-100 dark:border-neutral-800">
 
-                @for (mod of permissionModules; track mod.id) {
+                @for (mod of filteredPermissionModules(); track mod.id) {
 
                   <div class="flex flex-col sm:flex-row sm:items-center justify-between py-6 gap-4">
                     <div class="flex items-center gap-4">
@@ -336,6 +357,19 @@ export type RolePermissions = {
                         @if(modalRoleData.permissions[mod.slug]?.delete){<i-check [size]="14" />} Delete
                       </button>
                     </div>
+                  </div>
+                } @empty {
+                  <div class="flex flex-col items-center justify-center py-10 gap-2">
+                    <div class="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                      <i-search [size]="20" class="text-neutral-400" />
+                    </div>
+                    <p class="text-sm font-semibold text-neutral-900 dark:text-white">Sin resultados</p>
+                    <p class="text-xs text-neutral-500 dark:text-neutral-400">Ningún módulo coincide con "{{ permissionsSearch() }}"</p>
+                    <button
+                      type="button"
+                      (click)="permissionsSearch.set('')"
+                      class="mt-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                    >Limpiar búsqueda</button>
                   </div>
                 }
 
@@ -372,6 +406,18 @@ export class RolesComponent implements OnInit {
   searchQuery = signal('');
   statusFilter = signal<string>('All');
   roleFilter = signal<string>('All');
+  permissionsSearch = signal('');
+
+  filteredPermissionModules = computed(() => {
+    const q = this.permissionsSearch().toLowerCase().trim();
+    if (!q) return this.permissionModules;
+    return this.permissionModules.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        m.description.toLowerCase().includes(q) ||
+        m.slug.toLowerCase().includes(q),
+    );
+  });
 
   filteredAccounts = computed(() => {
     let list = this.accounts();
@@ -426,6 +472,13 @@ export class RolesComponent implements OnInit {
       slug: 'ai_chat',
       description: 'Consultas inteligentes, análisis y ejecución de herramientas con IA',
       icon: 'sparkles'
+    },
+    {
+      id: 'mod-reports',
+      name: 'Reportes y Estadísticas',
+      slug: 'reports',
+      description: 'Reportes de ventas, productos más vendidos, cuentas por cobrar e inventario',
+      icon: 'bar-chart-2'
     },
     {
       id: 'mod-catalogs',
@@ -607,6 +660,7 @@ export class RolesComponent implements OnInit {
       commercial: 'commercial',
       sucursales: 'sucursales',
       billing: 'billing',
+      reports: 'reports',
       ai_chat: 'ai_chat',
       'ai-chat': 'ai_chat',
       security: 'security_logs',

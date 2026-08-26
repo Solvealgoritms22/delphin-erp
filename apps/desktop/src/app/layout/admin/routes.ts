@@ -23,6 +23,12 @@ const routes: Routes = [
         loadChildren: () => import('@features/dashboard/routes'),
       },
       {
+        path: 'reports',
+        canActivate: [permissionGuard],
+        data: { permissions: ['reports:read'] },
+        loadComponent: () => import('@features/reports/reports.component'),
+      },
+      {
         path: 'catalogs',
         loadChildren: () => import('@features/catalogs/routes'),
       },
