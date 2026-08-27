@@ -232,25 +232,37 @@ type ActiveTab = 'rates' | 'calculator';
               <label class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
                 {{ 'dashboard.exchange.from' | transloco }}
               </label>
-              <div class="relative flex items-center rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 px-3 py-2.5 shadow-2xs cursor-pointer focus-within:border-blue-500 transition-colors">
-                <currency-flag [code]="calcFrom()" [size]="24" class="mr-2.5 shrink-0" />
-                <select
-                  [ngModel]="calcFrom()"
-                  (ngModelChange)="calcFrom.set($event)"
-                  class="w-full bg-transparent text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white outline-none cursor-pointer pr-6 truncate"
-                >
-                  @for (c of allAvailableCurrencies; track c.code) {
-                    <option [value]="c.code" class="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white">
-                      {{ c.code }} - {{ ('dashboard.exchange.currencies.' + c.code.toLowerCase()) | transloco }}
-                    </option>
-                  }
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-400">
-                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
+              <button
+                type="button"
+                [matMenuTriggerFor]="fromCurrencyMenu"
+                class="flex h-11 w-full items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 px-3 py-2 shadow-2xs cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <div class="flex items-center gap-2.5 min-w-0 truncate">
+                  <currency-flag [code]="calcFrom()" [size]="22" class="shrink-0" />
+                  <span class="text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white truncate">
+                    {{ calcFrom() }} - {{ ('dashboard.exchange.currencies.' + calcFrom().toLowerCase()) | transloco }}
+                  </span>
                 </div>
-              </div>
+                <mat-icon svgIcon="chevron-down" class="!h-3.5 !w-3.5 !text-[14px] text-neutral-400 shrink-0 ml-2"></mat-icon>
+              </button>
+              <mat-menu #fromCurrencyMenu="matMenu" class="max-h-72">
+                @for (c of allAvailableCurrencies; track c.code) {
+                  <button
+                    mat-menu-item
+                    (click)="calcFrom.set(c.code)"
+                    class="flex items-center justify-between text-xs"
+                    [class.font-bold]="c.code === calcFrom()"
+                  >
+                    <div class="flex items-center gap-2.5">
+                      <currency-flag [code]="c.code" [size]="18" />
+                      <span>{{ c.code }} - {{ ('dashboard.exchange.currencies.' + c.code.toLowerCase()) | transloco }}</span>
+                    </div>
+                    @if (c.code === calcFrom()) {
+                      <mat-icon svgIcon="check" class="!h-4 !w-4 !text-[16px] text-blue-600 dark:text-blue-400 ml-3"></mat-icon>
+                    }
+                  </button>
+                }
+              </mat-menu>
             </div>
 
             <div class="pb-1 flex justify-center">
@@ -260,7 +272,6 @@ type ActiveTab = 'rates' | 'calculator';
                 class="flex size-9 items-center justify-center rounded-full border border-neutral-200/80 dark:border-neutral-700/80 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all cursor-pointer shadow-2xs"
                 [matTooltip]="'dashboard.exchange.swap' | transloco"
               >
-
                 <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/>
                 </svg>
@@ -271,25 +282,37 @@ type ActiveTab = 'rates' | 'calculator';
               <label class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
                 {{ 'dashboard.exchange.to' | transloco }}
               </label>
-              <div class="relative flex items-center rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 px-3 py-2.5 shadow-2xs cursor-pointer focus-within:border-blue-500 transition-colors">
-                <currency-flag [code]="calcTo()" [size]="24" class="mr-2.5 shrink-0" />
-                <select
-                  [ngModel]="calcTo()"
-                  (ngModelChange)="calcTo.set($event)"
-                  class="w-full bg-transparent text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white outline-none cursor-pointer pr-6 truncate"
-                >
-                  @for (c of allAvailableCurrencies; track c.code) {
-                    <option [value]="c.code" class="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white">
-                      {{ c.code }} - {{ ('dashboard.exchange.currencies.' + c.code.toLowerCase()) | transloco }}
-                    </option>
-                  }
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-400">
-                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
+              <button
+                type="button"
+                [matMenuTriggerFor]="toCurrencyMenu"
+                class="flex h-11 w-full items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 px-3 py-2 shadow-2xs cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <div class="flex items-center gap-2.5 min-w-0 truncate">
+                  <currency-flag [code]="calcTo()" [size]="22" class="shrink-0" />
+                  <span class="text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white truncate">
+                    {{ calcTo() }} - {{ ('dashboard.exchange.currencies.' + calcTo().toLowerCase()) | transloco }}
+                  </span>
                 </div>
-              </div>
+                <mat-icon svgIcon="chevron-down" class="!h-3.5 !w-3.5 !text-[14px] text-neutral-400 shrink-0 ml-2"></mat-icon>
+              </button>
+              <mat-menu #toCurrencyMenu="matMenu" class="max-h-72">
+                @for (c of allAvailableCurrencies; track c.code) {
+                  <button
+                    mat-menu-item
+                    (click)="calcTo.set(c.code)"
+                    class="flex items-center justify-between text-xs"
+                    [class.font-bold]="c.code === calcTo()"
+                  >
+                    <div class="flex items-center gap-2.5">
+                      <currency-flag [code]="c.code" [size]="18" />
+                      <span>{{ c.code }} - {{ ('dashboard.exchange.currencies.' + c.code.toLowerCase()) | transloco }}</span>
+                    </div>
+                    @if (c.code === calcTo()) {
+                      <mat-icon svgIcon="check" class="!h-4 !w-4 !text-[16px] text-blue-600 dark:text-blue-400 ml-3"></mat-icon>
+                    }
+                  </button>
+                }
+              </mat-menu>
             </div>
 
           </div>

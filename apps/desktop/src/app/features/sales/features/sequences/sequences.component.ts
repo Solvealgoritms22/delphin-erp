@@ -153,7 +153,7 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'commercial.sequences.modal.type' | transloco }}</mat-label>
-                <mat-select [(ngModel)]="newSequence.tipo" (selectionChange)="onTypeChange($event.value)">
+                <mat-select [(ngModel)]="newSequence.tipo" (selectionChange)="onTypeChange($event.value)" placeholder="Seleccionar tipo">
                   <mat-option value="E31">{{ 'commercial.sequences.types.E31' | transloco }}</mat-option>
                   <mat-option value="E32">{{ 'commercial.sequences.types.E32' | transloco }}</mat-option>
                   <mat-option value="E34">{{ 'commercial.sequences.types.E34' | transloco }}</mat-option>
@@ -167,7 +167,7 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>{{ 'commercial.sequences.modal.environment' | transloco }}</mat-label>
-                <mat-select [(ngModel)]="newSequence.ambiente">
+                <mat-select [(ngModel)]="newSequence.ambiente" placeholder="Seleccionar ambiente">
                   <mat-option value="TEST">{{ 'commercial.sequences.modal.envOptions.test' | transloco }}</mat-option>
                   <mat-option value="CERT">{{ 'commercial.sequences.modal.envOptions.cert' | transloco }}</mat-option>
                   <mat-option value="PROD">{{ 'commercial.sequences.modal.envOptions.prod' | transloco }}</mat-option>

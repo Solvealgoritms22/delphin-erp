@@ -123,7 +123,11 @@ export type InsumoRow = {
             <div class="mb-4">
               <mat-form-field class="w-full">
                 <mat-label>{{ 'catalogs.products.itemType' | transloco }}</mat-label>
-                <mat-select formControlName="tipo" (selectionChange)="onTipoChange($event.value)">
+                <mat-select
+                  formControlName="tipo"
+                  (selectionChange)="onTipoChange($event.value)"
+                  [placeholder]="'catalogs.products.itemType' | transloco"
+                >
                   <mat-option value="PRODUCTO">
                     <div class="flex items-center gap-2">
                       <mat-icon svgIcon="package" class="icon-size-4 text-gray-600"></mat-icon>
@@ -271,7 +275,7 @@ export type InsumoRow = {
 
               <mat-form-field class="w-full">
                 <mat-label>{{ 'common.status' | transloco }}</mat-label>
-                <mat-select formControlName="estado">
+                <mat-select formControlName="estado" placeholder="Seleccionar estado">
                   <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
                   <mat-option value="INACTIVO">{{ 'common.inactive' | transloco }}</mat-option>
                 </mat-select>
@@ -299,7 +303,7 @@ export type InsumoRow = {
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
                 <mat-form-field class="w-full">
                   <mat-label>Almacén</mat-label>
-                  <mat-select formControlName="almacenId">
+                  <mat-select formControlName="almacenId" placeholder="Seleccionar almacén">
                     <mat-option [value]="null">Almacén Principal (Predeterminado)</mat-option>
                     @for (w of productsService.warehouses(); track w.id) {
                       <mat-option [value]="w.id">
@@ -641,7 +645,10 @@ export type InsumoRow = {
             <!-- Categoría -->
             <mat-form-field class="mb-4 w-full">
               <mat-label>{{ 'common.category' | transloco }}</mat-label>
-              <mat-select formControlName="categoriaId">
+              <mat-select
+                formControlName="categoriaId"
+                [placeholder]="'common.select' | transloco"
+              >
                 <mat-option [value]="null">{{
                   'common.select' | transloco
                 }}</mat-option>
@@ -661,7 +668,10 @@ export type InsumoRow = {
             <!-- Unidad de Medida -->
             <mat-form-field class="mb-4 w-full">
               <mat-label>Unidad de medida</mat-label>
-              <mat-select formControlName="unidadMedidaId">
+              <mat-select
+                formControlName="unidadMedidaId"
+                placeholder="Seleccionar unidad de medida"
+              >
                 <mat-option [value]="null">Ninguna</mat-option>
                 @for (unit of filteredUnits(); track unit.id) {
                   <mat-option [value]="unit.id">
@@ -675,7 +685,10 @@ export type InsumoRow = {
             @if (!isService()) {
               <mat-form-field class="mb-4 w-full">
                 <mat-label>{{ 'common.brand' | transloco }}</mat-label>
-                <mat-select formControlName="marcaId">
+                <mat-select
+                  formControlName="marcaId"
+                  [placeholder]="'catalogs.products.brandPlaceholder' | transloco"
+                >
                   <mat-option [value]="null">{{
                     'catalogs.products.brandPlaceholder' | transloco
                   }}</mat-option>

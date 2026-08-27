@@ -47,7 +47,6 @@ import {
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-3">
-              <mat-icon svgIcon="code" class="icon-size-7 text-blue-600 dark:text-blue-400"></mat-icon>
               {{ 'settings.apiAccess.title' | transloco }}
             </h1>
             <span
@@ -79,10 +78,24 @@ import {
       <!-- Main Content -->
       <div class="flex-auto min-h-0 overflow-y-auto p-6 md:p-8">
 
-        <!-- Loading Spinner -->
-        <div *ngIf="apiService.loading()" class="flex h-64 flex-col items-center justify-center gap-3">
-          <div class="h-8 w-8 animate-spin rounded-full border-3 border-blue-600 border-t-transparent"></div>
-          <span class="text-xs font-semibold text-neutral-500">{{ 'common.loading' | transloco }}</span>
+        <!-- Loading Skeleton -->
+        <div *ngIf="apiService.loading()" class="flex flex-col gap-6 animate-pulse select-none" aria-hidden="true">
+          <div class="h-20 rounded-2xl bg-neutral-200 dark:bg-neutral-800"></div>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            @for (i of [1, 2]; track i) {
+              <div class="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 flex flex-col gap-4">
+                <div class="flex items-center gap-3">
+                  <div class="h-10 w-10 rounded-xl bg-neutral-200 dark:bg-neutral-800"></div>
+                  <div class="flex flex-col gap-1.5 flex-1">
+                    <div class="h-4 w-32 rounded bg-neutral-200 dark:bg-neutral-800"></div>
+                    <div class="h-3 w-24 rounded bg-neutral-100 dark:bg-neutral-800"></div>
+                  </div>
+                </div>
+                <div class="h-12 rounded-xl bg-neutral-100 dark:bg-neutral-800 mt-2"></div>
+                <div class="h-4 w-40 rounded bg-neutral-100 dark:bg-neutral-800 mt-4"></div>
+              </div>
+            }
+          </div>
         </div>
 
         <div *ngIf="!apiService.loading()">
@@ -270,13 +283,17 @@ import {
             </div>
 
             <!-- Empty State if no apps created -->
-            <div *ngIf="appsList().length === 0" class="rounded-3xl border border-dashed border-neutral-200 p-12 text-center dark:border-neutral-800">
-              <mat-icon svgIcon="code" class="mx-auto icon-size-10 text-neutral-400 mb-3"></mat-icon>
+            <div *ngIf="appsList().length === 0" class="rounded-3xl border border-dashed border-neutral-200 p-12 text-center dark:border-neutral-800 flex flex-col items-center">
+              <img
+                src="illustrations/18.svg"
+                alt="Sin aplicaciones registradas"
+                class="max-h-[120px] w-auto select-none pointer-events-none drop-shadow-2xs mb-4"
+              />
               <h3 class="text-base font-bold text-neutral-900 dark:text-white">Aún no tienes aplicaciones registradas</h3>
               <p class="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">Crea tu primera integración API para conectar tu tienda virtual o app externa.</p>
               <button
                 (click)="openCreateModal()"
-                class="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 cursor-pointer"
+                class="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 cursor-pointer"
               >
                 <mat-icon svgIcon="plus" class="icon-size-4"></mat-icon>
                 Crear Integración

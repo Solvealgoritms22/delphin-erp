@@ -95,11 +95,11 @@ let nextId = 0;
         </div>
 
         <!-- Metric Value & SVG Sparkline Row -->
-        <div class="mt-4 flex items-center justify-between gap-2 min-w-0">
+        <div class="mt-3.5 flex items-end justify-between gap-1 min-w-0">
           <!-- Metric Number & Trend Pill & Subtitle -->
-          <div class="flex flex-col min-w-0 flex-1 pr-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+          <div class="flex flex-col min-w-0 flex-1 overflow-hidden pr-0.5">
+            <div class="flex items-baseline gap-1.5 flex-wrap">
+              <span class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-neutral-900 dark:text-white truncate max-w-full">
                 {{ prefix() }}@if (isNumeric(value())) { {{ +value() | number }} } @else { {{ value() }} }{{ suffix() }}
               </span>
 
@@ -126,14 +126,14 @@ let nextId = 0;
             </div>
 
             <!-- Subtitle / Label (Clean & readable) -->
-            <p class="mt-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 line-clamp-1" [title]="subtitle() || label()">
+            <p class="mt-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 truncate max-w-full" [title]="subtitle() || label()">
               {{ subtitle() || label() }}
             </p>
           </div>
 
           <!-- SVG Sparkline Wave Curve -->
-          <div class="relative flex h-12 w-28 shrink-0 items-center justify-end overflow-visible sm:w-32">
-            <svg class="h-full w-full overflow-visible" viewBox="0 0 140 60" preserveAspectRatio="none">
+          <div class="relative flex h-11 w-20 sm:w-24 shrink-0 items-end justify-end overflow-hidden pb-0.5 opacity-90">
+            <svg class="h-full w-full" viewBox="0 0 140 60" preserveAspectRatio="none">
               <defs>
                 <linearGradient [id]="gradientId()" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" [attr.stop-color]="resolvedStrokeColor()" stop-opacity="0.22" />

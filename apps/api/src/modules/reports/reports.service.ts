@@ -26,8 +26,8 @@ export class ReportsService {
 
     if (dto?.from || dto?.to) {
       where.fecha = {};
-      if (dto.from) where.fecha.gte = new Date(dto.from);
-      if (dto.to) where.fecha.lte = new Date(dto.to);
+      if (dto.from) where.fecha.gte = new Date(dto.from.includes('T') ? dto.from : `${dto.from}T00:00:00.000Z`);
+      if (dto.to) where.fecha.lte = new Date(dto.to.includes('T') ? dto.to : `${dto.to}T23:59:59.999Z`);
     }
 
     const invoices = await this.prisma.facturaVenta.findMany({
@@ -116,8 +116,8 @@ export class ReportsService {
 
     if (dto?.from || dto?.to) {
       whereInvoice.fecha = {};
-      if (dto.from) whereInvoice.fecha.gte = new Date(dto.from);
-      if (dto.to) whereInvoice.fecha.lte = new Date(dto.to);
+      if (dto.from) whereInvoice.fecha.gte = new Date(dto.from.includes('T') ? dto.from : `${dto.from}T00:00:00.000Z`);
+      if (dto.to) whereInvoice.fecha.lte = new Date(dto.to.includes('T') ? dto.to : `${dto.to}T23:59:59.999Z`);
     }
 
     const items = await this.prisma.facturaVentaDetalle.findMany({
@@ -392,8 +392,8 @@ export class ReportsService {
 
     if (dto?.from || dto?.to) {
       where.fecha = {};
-      if (dto.from) where.fecha.gte = new Date(dto.from);
-      if (dto.to) where.fecha.lte = new Date(dto.to);
+      if (dto.from) where.fecha.gte = new Date(dto.from.includes('T') ? dto.from : `${dto.from}T00:00:00.000Z`);
+      if (dto.to) where.fecha.lte = new Date(dto.to.includes('T') ? dto.to : `${dto.to}T23:59:59.999Z`);
     }
 
     const invoices = await this.prisma.facturaVenta.findMany({

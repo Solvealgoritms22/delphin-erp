@@ -39,6 +39,7 @@ import { ClientsService } from '../../data/clients';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
 import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginator/paginator.component';
+import { InvoicePreviewComponent } from './invoice-preview.component';
 
 @Component({
   selector: 'app-invoices',
@@ -207,33 +208,57 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
 
               <div class="flex flex-col gap-1">
                 <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Estado</label>
-                <select [(ngModel)]="advancedFilters.estado" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
-                  <option value="">Todos</option>
-                  <option value="EMITIDA">Emitida</option>
-                  <option value="BORRADOR">Borrador</option>
-                  <option value="PAGADA">Pagada</option>
-                  <option value="ANULADA">Anulada</option>
-                </select>
+                <button
+                  type="button"
+                  [matMenuTriggerFor]="estadoFilterMenu"
+                  class="flex h-10 w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900 shadow-2xs transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800 cursor-pointer"
+                >
+                  <span>{{ getEstadoFilterLabel(advancedFilters.estado) }}</span>
+                  <mat-icon svgIcon="chevron-down" class="!h-3.5 !w-3.5 !text-[14px] text-neutral-400"></mat-icon>
+                </button>
+                <mat-menu #estadoFilterMenu="matMenu">
+                  <button mat-menu-item (click)="advancedFilters.estado = ''" [class.font-bold]="!advancedFilters.estado">Todos</button>
+                  <button mat-menu-item (click)="advancedFilters.estado = 'EMITIDA'" [class.font-bold]="advancedFilters.estado === 'EMITIDA'">Emitida</button>
+                  <button mat-menu-item (click)="advancedFilters.estado = 'BORRADOR'" [class.font-bold]="advancedFilters.estado === 'BORRADOR'">Borrador</button>
+                  <button mat-menu-item (click)="advancedFilters.estado = 'PAGADA'" [class.font-bold]="advancedFilters.estado === 'PAGADA'">Pagada</button>
+                  <button mat-menu-item (click)="advancedFilters.estado = 'ANULADA'" [class.font-bold]="advancedFilters.estado === 'ANULADA'">Anulada</button>
+                </mat-menu>
               </div>
 
               <div class="flex flex-col gap-1">
                 <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Tipo de Pago</label>
-                <select [(ngModel)]="advancedFilters.tipoPago" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
-                  <option value="">Todos</option>
-                  <option value="CONTADO">Contado</option>
-                  <option value="CREDITO">Crédito</option>
-                </select>
+                <button
+                  type="button"
+                  [matMenuTriggerFor]="tipoPagoFilterMenu"
+                  class="flex h-10 w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900 shadow-2xs transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800 cursor-pointer"
+                >
+                  <span>{{ getTipoPagoFilterLabel(advancedFilters.tipoPago) }}</span>
+                  <mat-icon svgIcon="chevron-down" class="!h-3.5 !w-3.5 !text-[14px] text-neutral-400"></mat-icon>
+                </button>
+                <mat-menu #tipoPagoFilterMenu="matMenu">
+                  <button mat-menu-item (click)="advancedFilters.tipoPago = ''" [class.font-bold]="!advancedFilters.tipoPago">Todos</button>
+                  <button mat-menu-item (click)="advancedFilters.tipoPago = 'CONTADO'" [class.font-bold]="advancedFilters.tipoPago === 'CONTADO'">Contado</button>
+                  <button mat-menu-item (click)="advancedFilters.tipoPago = 'CREDITO'" [class.font-bold]="advancedFilters.tipoPago === 'CREDITO'">Crédito</button>
+                </mat-menu>
               </div>
 
               <div class="flex flex-col gap-1">
                 <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Método de Pago</label>
-                <select [(ngModel)]="advancedFilters.metodoPago" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
-                  <option value="">Todos</option>
-                  <option value="EFECTIVO">Efectivo</option>
-                  <option value="TARJETA">Tarjeta</option>
-                  <option value="TRANSFERENCIA">Transferencia</option>
-                  <option value="CHEQUE">Cheque</option>
-                </select>
+                <button
+                  type="button"
+                  [matMenuTriggerFor]="metodoPagoFilterMenu"
+                  class="flex h-10 w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900 shadow-2xs transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800 cursor-pointer"
+                >
+                  <span>{{ getMetodoPagoFilterLabel(advancedFilters.metodoPago) }}</span>
+                  <mat-icon svgIcon="chevron-down" class="!h-3.5 !w-3.5 !text-[14px] text-neutral-400"></mat-icon>
+                </button>
+                <mat-menu #metodoPagoFilterMenu="matMenu">
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = ''" [class.font-bold]="!advancedFilters.metodoPago">Todos</button>
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'EFECTIVO'" [class.font-bold]="advancedFilters.metodoPago === 'EFECTIVO'">Efectivo</button>
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'TARJETA'" [class.font-bold]="advancedFilters.metodoPago === 'TARJETA'">Tarjeta</button>
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'TRANSFERENCIA'" [class.font-bold]="advancedFilters.metodoPago === 'TRANSFERENCIA'">Transferencia</button>
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'CHEQUE'" [class.font-bold]="advancedFilters.metodoPago === 'CHEQUE'">Cheque</button>
+                </mat-menu>
               </div>
 
               <div class="flex flex-col gap-1">
@@ -310,16 +335,22 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
           } @else {
             @for (inv of invoicesService.invoices(); track inv.id) {
               <div
-                class="grid grid-cols-12 items-center gap-4 border-b border-neutral-100 px-6 py-4 text-sm transition-colors hover:bg-neutral-50/50 md:px-8 dark:border-neutral-800/80 dark:hover:bg-neutral-800/30"
-                [class.opacity-60]="inv.estado === 'ANULADA'"
-                [class.bg-neutral-50/40]="inv.estado === 'ANULADA'"
+                (click)="openPreview(inv)"
+                class="grid grid-cols-12 items-center gap-4 border-b border-neutral-100 px-6 py-4 text-sm transition-colors hover:bg-neutral-50/60 md:px-8 dark:border-neutral-800/80 dark:hover:bg-neutral-800/40 cursor-pointer"
               >
 
                 <div class="col-span-2 flex flex-col">
-                  <span class="font-bold text-neutral-900 dark:text-white" [class.line-through]="inv.estado === 'ANULADA'">{{
+                  <span
+                    class="font-bold"
+                    [class.line-through]="inv.estado === 'ANULADA'"
+                    [class.text-neutral-400]="inv.estado === 'ANULADA'"
+                    [class.dark:text-neutral-500]="inv.estado === 'ANULADA'"
+                    [class.text-neutral-900]="inv.estado !== 'ANULADA'"
+                    [class.dark:text-white]="inv.estado !== 'ANULADA'"
+                  >{{
                     inv.numeroFactura
                   }}</span>
-                  <span class="text-xs text-neutral-400">{{
+                  <span class="text-xs text-neutral-400 dark:text-neutral-500">{{
                     inv.fecha | date: 'dd/MM/yyyy HH:mm'
                   }}</span>
                 </div>
@@ -330,25 +361,30 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                     [class.text-blue-600]="inv.estado !== 'ANULADA'"
                     [class.dark:text-blue-400]="inv.estado !== 'ANULADA'"
                     [class.text-neutral-400]="inv.estado === 'ANULADA'"
+                    [class.dark:text-neutral-500]="inv.estado === 'ANULADA'"
                     [class.line-through]="inv.estado === 'ANULADA'"
                     >{{
                       inv.ncf || ('commercial.invoices.noNcf' | transloco)
                     }}</span
                   >
-                  <span class="text-[11px] text-neutral-400">{{
+                  <span class="text-[11px] text-neutral-400 dark:text-neutral-500">{{
                     getNcfDescription(inv.tipoNcf)
                   }}</span>
                 </div>
 
                 <div class="col-span-3 flex flex-col">
                   <span
-                    class="truncate font-bold text-neutral-900 dark:text-white"
+                    class="truncate font-bold"
+                    [class.text-neutral-500]="inv.estado === 'ANULADA'"
+                    [class.dark:text-neutral-400]="inv.estado === 'ANULADA'"
+                    [class.text-neutral-900]="inv.estado !== 'ANULADA'"
+                    [class.dark:text-white]="inv.estado !== 'ANULADA'"
                     >{{
                       inv.cliente?.nombreRazonSocial ||
                         ('commercial.invoices.cashClient' | transloco)
                     }}</span
                   >
-                  <span class="font-mono text-xs text-neutral-400">{{
+                  <span class="font-mono text-xs text-neutral-400 dark:text-neutral-500">{{
                     inv.cliente?.numeroDocumento ||
                       ('commercial.invoices.finalConsumer' | transloco)
                   }}</span>
@@ -356,12 +392,16 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
 
                 <div class="col-span-2 flex flex-col text-right">
                   <span
-                    class="font-mono font-bold text-neutral-900 dark:text-white"
+                    class="font-mono font-bold"
                     [class.line-through]="inv.estado === 'ANULADA'"
+                    [class.text-neutral-400]="inv.estado === 'ANULADA'"
+                    [class.dark:text-neutral-500]="inv.estado === 'ANULADA'"
+                    [class.text-neutral-900]="inv.estado !== 'ANULADA'"
+                    [class.dark:text-white]="inv.estado !== 'ANULADA'"
                     >{{ getCurrencySymbol(inv.moneda) }}
                     {{ inv.total | number: '1.2-2' }}</span
                   >
-                  <span class="text-[11px] text-neutral-400"
+                  <span class="text-[11px] text-neutral-400 dark:text-neutral-500"
                     >{{ 'commercial.invoices.modal.itbis' | transloco }}
                     {{ getCurrencySymbol(inv.moneda) }}
                     {{ inv.itbis | number: '1.2-2' }}</span
@@ -373,7 +413,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                 >
                   @if (inv.estado === 'ANULADA') {
                     <span
-                      class="flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-bold text-rose-700 dark:bg-rose-500/10 dark:text-rose-400"
+                      class="flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/60 dark:border-rose-500/20"
                     >
                       <mat-icon
                         svgIcon="ban"
@@ -383,7 +423,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                     </span>
                   } @else if (inv.estado === 'BORRADOR') {
                     <span
-                      class="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                      class="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20"
                     >
                       <mat-icon
                         svgIcon="file-text"
@@ -393,7 +433,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                     </span>
                   } @else if (inv.fiscalbridgeDocId) {
                     <span
-                      class="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                      class="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20"
                     >
                       <mat-icon
                         svgIcon="check-circle"
@@ -408,7 +448,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                     inv.fiscalbridgeStatus === 'FAILED'
                   ) {
                     <span
-                      class="flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400"
+                      class="flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-200/60 dark:border-red-500/20"
                     >
                       <mat-icon
                         svgIcon="alert-triangle"
@@ -421,13 +461,13 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                     </span>
                   } @else if (inv.tipoNcf.startsWith('E')) {
                     <span
-                      class="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-400"
+                      class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20"
                     >
                       {{ 'commercial.invoices.status.ecfPending' | transloco }}
                     </span>
                   } @else {
                     <span
-                      class="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-bold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                      class="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-bold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200/60 dark:border-neutral-700/50"
                     >
                       {{
                         'commercial.invoices.status.ncfTraditional' | transloco
@@ -439,9 +479,8 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                 <div class="col-span-1 flex justify-center">
                   <button
                     [matMenuTriggerFor]="actionMenu"
-                    [disabled]="inv.estado === 'ANULADA'"
-                    class="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-30 disabled:pointer-events-none disabled:cursor-not-allowed"
-                    [class.cursor-pointer]="inv.estado !== 'ANULADA'"
+                    (click)="$event.stopPropagation()"
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
                   >
                     <mat-icon
                       svgIcon="ellipsis-vertical"
@@ -452,6 +491,20 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                     #actionMenu="matMenu"
                     class="!rounded-xl !p-1"
                   >
+                    <!-- Ver / Imprimir factura - siempre disponible -->
+                    <button
+                      mat-menu-item
+                      (click)="openPreview(inv)"
+                    >
+                      <mat-icon
+                        svgIcon="file-text"
+                        class="icon-size-4 text-neutral-600"
+                      ></mat-icon>
+                      <span>{{
+                        'commercial.invoices.actions.viewInvoice' | transloco
+                      }}</span>
+                    </button>
+
                     @if (inv.estado === 'BORRADOR') {
                       <button
                         mat-menu-item
@@ -610,7 +663,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                 <mat-label>{{
                   'commercial.invoices.modal.client' | transloco
                 }}</mat-label>
-                <mat-select [(ngModel)]="newInvoice.clienteId">
+                <mat-select [(ngModel)]="newInvoice.clienteId" placeholder="Seleccionar cliente">
                   <mat-option value="">{{
                     'commercial.invoices.finalConsumerNoRnc' | transloco
                   }}</mat-option>
@@ -631,7 +684,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                 <mat-label>{{
                   'commercial.invoices.modal.ncfType' | transloco
                 }}</mat-label>
-                <mat-select [(ngModel)]="newInvoice.tipoNcf">
+                <mat-select [(ngModel)]="newInvoice.tipoNcf" placeholder="Seleccionar tipo de NCF">
                   @if (fiscalbridgeEnabled) {
                     <mat-option value="E31">{{
                       'commercial.invoices.types.E31' | transloco
@@ -669,7 +722,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                 <mat-label>{{
                   'commercial.invoices.modal.warehouse' | transloco
                 }}</mat-label>
-                <mat-select [(ngModel)]="newInvoice.almacenId">
+                <mat-select [(ngModel)]="newInvoice.almacenId" placeholder="Seleccionar almacén">
                   @for (w of inventoryService.warehouses(); track w.id) {
                     <mat-option [value]="w.id"
                       >{{ w.nombre }} ({{
@@ -688,7 +741,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                 <mat-label>{{
                   'commercial.invoices.modal.paymentCondition' | transloco
                 }}</mat-label>
-                <mat-select [(ngModel)]="newInvoice.tipoPago">
+                <mat-select [(ngModel)]="newInvoice.tipoPago" placeholder="Seleccionar condición de pago">
                   <mat-option value="CONTADO">{{
                     'commercial.invoices.modal.paymentConditions.cash'
                       | transloco
@@ -737,6 +790,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                         }}</mat-label>
                         <mat-select
                           [(ngModel)]="item.productoId"
+                          placeholder="Seleccionar producto"
                           (selectionChange)="
                             onProductSelected($index, item.productoId)
                           "
@@ -996,7 +1050,7 @@ import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginato
                 <mat-label>{{
                   'commercial.creditNotes.reason' | transloco
                 }}</mat-label>
-                <mat-select [(ngModel)]="creditNoteReason">
+                <mat-select [(ngModel)]="creditNoteReason" placeholder="Seleccionar motivo">
                   <mat-option value="1">{{
                     'commercial.creditNotes.reasons.1' | transloco
                   }}</mat-option>
@@ -1230,6 +1284,34 @@ export class InvoicesComponent implements OnInit {
     this.currentPage = event.page;
     this.pageLimit = event.limit;
     this.applyAdvancedFilters();
+  }
+
+  getEstadoFilterLabel(estado: string): string {
+    const map: Record<string, string> = {
+      EMITIDA: 'Emitida',
+      BORRADOR: 'Borrador',
+      PAGADA: 'Pagada',
+      ANULADA: 'Anulada',
+    };
+    return estado ? (map[estado] || estado) : 'Todos';
+  }
+
+  getTipoPagoFilterLabel(tipo: string): string {
+    const map: Record<string, string> = {
+      CONTADO: 'Contado',
+      CREDITO: 'Crédito',
+    };
+    return tipo ? (map[tipo] || tipo) : 'Todos';
+  }
+
+  getMetodoPagoFilterLabel(metodo: string): string {
+    const map: Record<string, string> = {
+      EFECTIVO: 'Efectivo',
+      TARJETA: 'Tarjeta',
+      TRANSFERENCIA: 'Transferencia',
+      CHEQUE: 'Cheque',
+    };
+    return metodo ? (map[metodo] || metodo) : 'Todos';
   }
 
   getNcfDescription(tipo: string): string {
@@ -1610,6 +1692,16 @@ export class InvoicesComponent implements OnInit {
           },
         });
       }
+    });
+  }
+
+  openPreview(inv: FacturaVenta) {
+    this.dialog.open(InvoicePreviewComponent, {
+      data: inv,
+      width: '100%',
+      maxWidth: '820px',
+      maxHeight: '95vh',
+      panelClass: 'dialog-panel-no-padding',
     });
   }
 }

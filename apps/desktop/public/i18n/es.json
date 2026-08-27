@@ -1026,7 +1026,8 @@
         "emitDraft": "Emitir Factura Fiscal",
         "cancelInvoice": "Anular Factura",
         "deleteDraft": "Eliminar Borrador",
-        "creditNote": "Emitir Nota de Crédito"
+        "creditNote": "Emitir Nota de Crédito",
+        "viewInvoice": "Ver factura"
       },
       "creditNotes": {
         "title": "Nota de Crédito",
@@ -1098,7 +1099,8 @@
         "cancelConfirm": "¿Estás seguro de que deseas anular esta factura{{ ncf }}? El inventario será restaurado.",
         "cancelSuccess": "Factura anulada y stock devuelto al almacén",
         "cancelError": "No se pudo anular la factura"
-      }
+      },
+      "print": "Imprimir"
     }
   },
   "maintenance": {

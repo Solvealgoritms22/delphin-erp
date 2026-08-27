@@ -137,7 +137,7 @@ export type UserDialogData = {
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Estado de Acceso</mat-label>
-          <mat-select formControlName="estado">
+          <mat-select formControlName="estado" placeholder="Seleccionar estado">
             <mat-option value="ACTIVO">Activo (Permite Iniciar Sesión)</mat-option>
             <mat-option value="INACTIVO">Inactivo (Bloquea Iniciar Sesión)</mat-option>
           </mat-select>

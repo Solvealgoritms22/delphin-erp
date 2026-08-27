@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
@@ -19,6 +20,9 @@ import {
   InventoryReportResponse,
   SalesByClientResponse,
 } from './data/reports.service';
+
+import { StatCardComponent } from '@shared/components/stat-card/stat-card.component';
+import { AuthState } from '@core/auth/auth.state';
 
 export type ReportTab =
   | 'sales'
@@ -38,11 +42,13 @@ export type ReportTab =
     FormsModule,
     MatIconModule,
     MatButtonModule,
+    MatMenuModule,
     MatSnackBarModule,
     TranslocoPipe,
+    StatCardComponent,
   ],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
+    <div class="no-print flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
 
       <!-- Header -->
       <div
@@ -50,7 +56,6 @@ export type ReportTab =
       >
         <div>
           <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-3">
-            <mat-icon svgIcon="bar-chart-2" class="icon-size-7 text-blue-600 dark:text-blue-400"></mat-icon>
             {{ 'reports.title' | transloco }}
           </h1>
           <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
@@ -96,33 +101,47 @@ export type ReportTab =
 
         <!-- Date Range Controls (for time-sensitive tabs) -->
         <div *ngIf="activeTab() !== 'inventory' && activeTab() !== 'receivables'" class="flex items-center gap-2">
-          <select
-            [(ngModel)]="selectedDatePreset"
-            (ngModelChange)="onPresetChange($event)"
-            class="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+          <button
+            type="button"
+            [matMenuTriggerFor]="datePresetMenu"
+            class="flex items-center gap-2 h-9 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors shadow-2xs cursor-pointer"
           >
-            <option value="today">{{ 'common.today' | transloco }}</option>
-            <option value="thisMonth">{{ 'common.thisMonth' | transloco }}</option>
-            <option value="lastMonth">{{ 'common.lastMonth' | transloco }}</option>
-            <option value="thisYear">{{ 'common.thisYear' | transloco }}</option>
-            <option value="custom">{{ 'common.customRange' | transloco }}</option>
-          </select>
+            <mat-icon svgIcon="calendar" class="!h-4 !w-4 !text-[16px] text-neutral-400"></mat-icon>
+            <span>{{ getPresetLabel(selectedDatePreset) | transloco }}</span>
+            <mat-icon svgIcon="chevron-down" class="!h-3.5 !w-3.5 !text-[14px] text-neutral-400"></mat-icon>
+          </button>
+          <mat-menu #datePresetMenu="matMenu">
+            @for (preset of datePresets; track preset.value) {
+              <button
+                mat-menu-item
+                (click)="onPresetChange(preset.value)"
+                class="flex items-center justify-between !h-10 text-xs"
+                [class.font-bold]="preset.value === selectedDatePreset"
+              >
+                <span>{{ preset.label | transloco }}</span>
+                @if (preset.value === selectedDatePreset) {
+                  <mat-icon svgIcon="check" class="!h-4 !w-4 !text-[16px] text-blue-600 dark:text-blue-400 ml-4"></mat-icon>
+                }
+              </button>
+            }
+          </mat-menu>
 
-          <div *ngIf="selectedDatePreset === 'custom'" class="flex items-center gap-1.5">
+          <div *ngIf="selectedDatePreset === 'custom'" class="flex items-center gap-1.5 animate-fadeIn">
             <input
               type="date"
               [(ngModel)]="dateFrom"
-              class="rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs font-medium dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+              class="h-9 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 text-xs font-medium text-neutral-800 outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
             />
-            <span class="text-xs text-neutral-400">-</span>
+            <span class="text-xs text-neutral-400 font-semibold">-</span>
             <input
               type="date"
               [(ngModel)]="dateTo"
-              class="rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs font-medium dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+              class="h-9 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 text-xs font-medium text-neutral-800 outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
             />
             <button
+              type="button"
               (click)="loadActiveReport()"
-              class="rounded-xl bg-blue-600 px-3 py-1 text-xs font-bold text-white hover:bg-blue-700"
+              class="h-9 rounded-xl bg-blue-600 px-3.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition-colors cursor-pointer"
             >
               OK
             </button>
@@ -133,10 +152,45 @@ export type ReportTab =
       <!-- Main Content Area -->
       <div class="flex-auto min-h-0 overflow-y-auto p-6 md:p-8">
 
-        <!-- Loading Skeleton / Spinner -->
-        <div *ngIf="reportsService.loading()" class="flex h-64 flex-col items-center justify-center gap-3">
-          <div class="h-8 w-8 animate-spin rounded-full border-3 border-blue-600 border-t-transparent"></div>
-          <span class="text-xs font-semibold text-neutral-500">{{ 'common.loading' | transloco }}</span>
+        <!-- Loading Skeleton -->
+        <div *ngIf="reportsService.loading()" class="flex flex-col gap-6 animate-pulse select-none" aria-hidden="true">
+          <!-- 4 Metric Cards Skeleton -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            @for (i of [1, 2, 3, 4]; track i) {
+              <div class="h-44 animate-pulse rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800"></div>
+            }
+          </div>
+
+          <!-- Main Chart / Table Card Skeleton -->
+          <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div class="lg:col-span-2 rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
+              <div class="flex items-center justify-between mb-6">
+                <div class="h-4 w-36 rounded bg-neutral-200 dark:bg-neutral-800"></div>
+                <div class="h-3 w-16 rounded bg-neutral-100 dark:bg-neutral-800"></div>
+              </div>
+              <div class="h-64 flex items-end gap-3 pt-6 pb-2">
+                @for (h of [40, 65, 30, 85, 50, 90, 70, 45, 60, 80, 55, 75]; track $index) {
+                  <div class="flex-1 rounded-t-lg bg-neutral-200 dark:bg-neutral-800" [style.height.%]="h"></div>
+                }
+              </div>
+            </div>
+
+            <!-- Side Breakdown Card Skeleton -->
+            <div class="rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
+              <div class="h-4 w-40 rounded bg-neutral-200 dark:bg-neutral-800 mb-6"></div>
+              <div class="flex flex-col gap-5">
+                @for (i of [1, 2, 3, 4]; track i) {
+                  <div class="flex flex-col gap-2">
+                    <div class="flex justify-between">
+                      <div class="h-3 w-20 rounded bg-neutral-200 dark:bg-neutral-800"></div>
+                      <div class="h-3 w-24 rounded bg-neutral-200 dark:bg-neutral-800"></div>
+                    </div>
+                    <div class="h-2 w-full rounded-full bg-neutral-100 dark:bg-neutral-800"></div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
         </div>
 
         <div *ngIf="!reportsService.loading()">
@@ -146,59 +200,49 @@ export type ReportTab =
 
             <!-- Summary KPI Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <div class="flex items-center justify-between text-neutral-500 dark:text-neutral-400">
-                  <span class="text-xs font-bold uppercase tracking-wider">{{ 'reports.sales.totalRevenue' | transloco }}</span>
-                  <div class="rounded-lg bg-blue-50 p-2 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
-                    <mat-icon svgIcon="dollar-sign" class="icon-size-4"></mat-icon>
-                  </div>
-                </div>
-                <div class="mt-3 text-2xl font-extrabold text-neutral-900 dark:text-white">
-                  RD$ {{ (salesData()?.summary?.totalVentas || 0) | number:'1.2-2' }}
-                </div>
-                <span class="mt-1 block text-xs text-neutral-400">
-                  {{ salesData()?.summary?.totalFacturas }} {{ 'reports.sales.invoicesCount' | transloco }}
-                </span>
-              </div>
+              <app-stat-card
+                [title]="'reports.sales.totalRevenue' | transloco"
+                [subtitle]="(salesData()?.summary?.totalFacturas || 0) + ' ' + ('reports.sales.invoicesCount' | transloco)"
+                prefix="RD$ "
+                [value]="((salesData()?.summary?.totalVentas || 0) | number:'1.2-2') || '0.00'"
+                icon="dollar-sign"
+                curvePreset="asc-sigmoid"
+                color="blue"
+                (refresh)="loadActiveReport()"
+              />
 
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <div class="flex items-center justify-between text-neutral-500 dark:text-neutral-400">
-                  <span class="text-xs font-bold uppercase tracking-wider">{{ 'reports.sales.itbisCollected' | transloco }}</span>
-                  <div class="rounded-lg bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-                    <mat-icon svgIcon="percent" class="icon-size-4"></mat-icon>
-                  </div>
-                </div>
-                <div class="mt-3 text-2xl font-extrabold text-neutral-900 dark:text-white">
-                  RD$ {{ (salesData()?.summary?.totalItbis || 0) | number:'1.2-2' }}
-                </div>
-                <span class="mt-1 block text-xs text-neutral-400">{{ 'reports.sales.taxDeducted' | transloco }}</span>
-              </div>
+              <app-stat-card
+                [title]="'reports.sales.itbisCollected' | transloco"
+                [subtitle]="'reports.sales.taxDeducted' | transloco"
+                prefix="RD$ "
+                [value]="((salesData()?.summary?.totalItbis || 0) | number:'1.2-2') || '0.00'"
+                icon="percent"
+                curvePreset="peak-wave"
+                color="emerald"
+                (refresh)="loadActiveReport()"
+              />
 
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <div class="flex items-center justify-between text-neutral-500 dark:text-neutral-400">
-                  <span class="text-xs font-bold uppercase tracking-wider">{{ 'reports.sales.avgTicket' | transloco }}</span>
-                  <div class="rounded-lg bg-purple-50 p-2 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
-                    <mat-icon svgIcon="shopping-cart" class="icon-size-4"></mat-icon>
-                  </div>
-                </div>
-                <div class="mt-3 text-2xl font-extrabold text-neutral-900 dark:text-white">
-                  RD$ {{ (salesData()?.summary?.promedioTicket || 0) | number:'1.2-2' }}
-                </div>
-                <span class="mt-1 block text-xs text-neutral-400">{{ 'reports.sales.perInvoice' | transloco }}</span>
-              </div>
+              <app-stat-card
+                [title]="'reports.sales.avgTicket' | transloco"
+                [subtitle]="'reports.sales.perInvoice' | transloco"
+                prefix="RD$ "
+                [value]="((salesData()?.summary?.promedioTicket || 0) | number:'1.2-2') || '0.00'"
+                icon="shopping-cart"
+                curvePreset="s-curve"
+                color="purple"
+                (refresh)="loadActiveReport()"
+              />
 
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <div class="flex items-center justify-between text-neutral-500 dark:text-neutral-400">
-                  <span class="text-xs font-bold uppercase tracking-wider">{{ 'reports.sales.discounts' | transloco }}</span>
-                  <div class="rounded-lg bg-amber-50 p-2 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
-                    <mat-icon svgIcon="tag" class="icon-size-4"></mat-icon>
-                  </div>
-                </div>
-                <div class="mt-3 text-2xl font-extrabold text-neutral-900 dark:text-white">
-                  RD$ {{ (salesData()?.summary?.totalDescuento || 0) | number:'1.2-2' }}
-                </div>
-                <span class="mt-1 block text-xs text-neutral-400">{{ 'reports.sales.discountsGiven' | transloco }}</span>
-              </div>
+              <app-stat-card
+                [title]="'reports.sales.discounts' | transloco"
+                [subtitle]="'reports.sales.discountsGiven' | transloco"
+                prefix="RD$ "
+                [value]="((salesData()?.summary?.totalDescuento || 0) | number:'1.2-2') || '0.00'"
+                icon="tag"
+                curvePreset="trough-wave"
+                color="amber"
+                (refresh)="loadActiveReport()"
+              />
             </div>
 
             <!-- Time-Series Chart & Payment Methods Breakdown -->
@@ -211,8 +255,18 @@ export type ReportTab =
                   <span class="text-xs font-normal text-neutral-400">{{ salesData()?.timeSeries?.length || 0 }} {{ 'reports.sales.dataPoints' | transloco }}</span>
                 </h3>
 
-                <div *ngIf="salesData()?.timeSeries?.length === 0" class="flex h-48 items-center justify-center text-sm text-neutral-400">
-                  {{ 'reports.noDataForPeriod' | transloco }}
+                <div *ngIf="(salesData()?.timeSeries?.length || 0) === 0" class="flex flex-col items-center justify-center py-10 px-4 text-center min-h-[220px]">
+                  <img
+                    class="max-h-[110px] w-auto select-none pointer-events-none drop-shadow-2xs mb-3 opacity-90"
+                    src="illustrations/20.svg"
+                    alt="Sin ventas"
+                  />
+                  <div class="text-sm font-bold text-neutral-800 dark:text-neutral-200">
+                    Sin ventas en este período
+                  </div>
+                  <p class="mt-1 max-w-xs text-xs text-neutral-500 dark:text-neutral-400">
+                    No se encontraron transacciones en el rango de fechas seleccionado.
+                  </p>
                 </div>
 
                 <!-- SVG Bar Chart -->
@@ -242,7 +296,22 @@ export type ReportTab =
                 <h3 class="text-base font-bold text-neutral-900 dark:text-white mb-4">
                   {{ 'reports.sales.byPaymentMethod' | transloco }}
                 </h3>
-                <div class="flex flex-col gap-4">
+
+                <div *ngIf="(salesData()?.paymentMethods?.length || 0) === 0" class="flex flex-col items-center justify-center py-10 px-4 text-center min-h-[220px]">
+                  <img
+                    class="max-h-[110px] w-auto select-none pointer-events-none drop-shadow-2xs mb-3 opacity-90"
+                    src="illustrations/24.svg"
+                    alt="Sin métodos de pago"
+                  />
+                  <div class="text-sm font-bold text-neutral-800 dark:text-neutral-200">
+                    Sin transacciones registradas
+                  </div>
+                  <p class="mt-1 max-w-xs text-xs text-neutral-500 dark:text-neutral-400">
+                    No hay métodos de pago registrados en el período actual.
+                  </p>
+                </div>
+
+                <div *ngIf="(salesData()?.paymentMethods?.length || 0) > 0" class="flex flex-col gap-4">
                   <div *ngFor="let pm of salesData()?.paymentMethods" class="flex flex-col gap-1.5">
                     <div class="flex items-center justify-between text-xs font-bold">
                       <span class="text-neutral-700 dark:text-neutral-300">{{ pm.metodo }}</span>
@@ -271,10 +340,24 @@ export type ReportTab =
                 <h3 class="text-lg font-bold text-neutral-900 dark:text-white">
                   {{ 'reports.topProducts.ranking' | transloco }}
                 </h3>
-                <span class="text-xs text-neutral-500">{{ topProductsData()?.topProducts?.length }} productos analizados</span>
+                <span class="text-xs text-neutral-500">{{ topProductsData()?.topProducts?.length || 0 }} productos analizados</span>
               </div>
 
-              <div class="overflow-x-auto">
+              <div *ngIf="(topProductsData()?.topProducts?.length || 0) === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <img
+                  class="max-h-[130px] w-auto select-none pointer-events-none drop-shadow-2xs mb-4"
+                  src="illustrations/4.svg"
+                  alt="Sin productos"
+                />
+                <div class="text-base font-bold text-neutral-800 dark:text-neutral-200">
+                  Sin productos vendidos
+                </div>
+                <p class="mt-1.5 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
+                  No se registran ventas de artículos ni servicios para las fechas seleccionadas.
+                </p>
+              </div>
+
+              <div *ngIf="(topProductsData()?.topProducts?.length || 0) > 0" class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                   <thead class="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                     <tr>
@@ -309,30 +392,49 @@ export type ReportTab =
 
             <!-- Aging Summary Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">0 - 30 Días (Corriente)</span>
-                <div class="mt-2 text-2xl font-extrabold text-neutral-900 dark:text-white">
-                  RD$ {{ (receivablesData()?.summary?.aging?.corriente || 0) | number:'1.2-2' }}
-                </div>
-              </div>
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <span class="text-xs font-bold uppercase tracking-wider text-amber-500">31 - 60 Días</span>
-                <div class="mt-2 text-2xl font-extrabold text-neutral-900 dark:text-white">
-                  RD$ {{ (receivablesData()?.summary?.aging?.de31a60 || 0) | number:'1.2-2' }}
-                </div>
-              </div>
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <span class="text-xs font-bold uppercase tracking-wider text-orange-500">61 - 90 Días</span>
-                <div class="mt-2 text-2xl font-extrabold text-neutral-900 dark:text-white">
-                  RD$ {{ (receivablesData()?.summary?.aging?.de61a90 || 0) | number:'1.2-2' }}
-                </div>
-              </div>
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <span class="text-xs font-bold uppercase tracking-wider text-rose-600">Más de 90 Días</span>
-                <div class="mt-2 text-2xl font-extrabold text-rose-600">
-                  RD$ {{ (receivablesData()?.summary?.aging?.masDe90 || 0) | number:'1.2-2' }}
-                </div>
-              </div>
+              <app-stat-card
+                title="0 - 30 Días"
+                subtitle="Corriente al día"
+                prefix="RD$ "
+                [value]="((receivablesData()?.summary?.aging?.corriente || 0) | number:'1.2-2') || '0.00'"
+                icon="calendar"
+                curvePreset="asc-sigmoid"
+                color="emerald"
+                (refresh)="loadActiveReport()"
+              />
+
+              <app-stat-card
+                title="31 - 60 Días"
+                subtitle="Vencimiento reciente"
+                prefix="RD$ "
+                [value]="((receivablesData()?.summary?.aging?.de31a60 || 0) | number:'1.2-2') || '0.00'"
+                icon="clock"
+                curvePreset="peak-wave"
+                color="amber"
+                (refresh)="loadActiveReport()"
+              />
+
+              <app-stat-card
+                title="61 - 90 Días"
+                subtitle="Mora intermedia"
+                prefix="RD$ "
+                [value]="((receivablesData()?.summary?.aging?.de61a90 || 0) | number:'1.2-2') || '0.00'"
+                icon="alert-circle"
+                curvePreset="s-curve"
+                color="rose"
+                (refresh)="loadActiveReport()"
+              />
+
+              <app-stat-card
+                title="Más de 90 Días"
+                subtitle="Mora crítica"
+                prefix="RD$ "
+                [value]="((receivablesData()?.summary?.aging?.masDe90 || 0) | number:'1.2-2') || '0.00'"
+                icon="alert-triangle"
+                curvePreset="trough-wave"
+                color="rose"
+                (refresh)="loadActiveReport()"
+              />
             </div>
 
             <!-- Debtor Ranking -->
@@ -346,7 +448,21 @@ export type ReportTab =
                 </span>
               </div>
 
-              <div class="overflow-x-auto">
+              <div *ngIf="(receivablesData()?.topDebtors?.length || 0) === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <img
+                  class="max-h-[130px] w-auto select-none pointer-events-none drop-shadow-2xs mb-4"
+                  src="illustrations/28.svg"
+                  alt="Cartera al día"
+                />
+                <div class="text-base font-bold text-emerald-700 dark:text-emerald-400">
+                  ¡Cartera 100% al día!
+                </div>
+                <p class="mt-1.5 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
+                  No hay clientes con facturas vencidas ni balances pendientes de cobro.
+                </p>
+              </div>
+
+              <div *ngIf="(receivablesData()?.topDebtors?.length || 0) > 0" class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                   <thead class="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                     <tr>
@@ -377,30 +493,64 @@ export type ReportTab =
 
             <!-- Summary KPI Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{ 'reports.inventory.totalCostValue' | transloco }}</span>
-                <div class="mt-2 text-2xl font-extrabold text-neutral-900 dark:text-white">
-                  RD$ {{ (inventoryData()?.summary?.totalValorCosto || 0) | number:'1.2-2' }}
-                </div>
+              <app-stat-card
+                [title]="'reports.inventory.totalCostValue' | transloco"
+                subtitle="Costo de adquisición"
+                prefix="RD$ "
+                [value]="((inventoryData()?.summary?.totalValorCosto || 0) | number:'1.2-2') || '0.00'"
+                icon="package"
+                curvePreset="asc-sigmoid"
+                color="blue"
+                (refresh)="loadActiveReport()"
+              />
+
+              <app-stat-card
+                [title]="'reports.inventory.totalRetailValue' | transloco"
+                subtitle="Precio de catálogo"
+                prefix="RD$ "
+                [value]="((inventoryData()?.summary?.totalValorVenta || 0) | number:'1.2-2') || '0.00'"
+                icon="tag"
+                curvePreset="peak-wave"
+                color="purple"
+                (refresh)="loadActiveReport()"
+              />
+
+              <app-stat-card
+                [title]="'reports.inventory.potentialProfit' | transloco"
+                subtitle="Margen proyectado"
+                prefix="RD$ "
+                [value]="((inventoryData()?.summary?.gananciaPotencial || 0) | number:'1.2-2') || '0.00'"
+                icon="trending-up"
+                curvePreset="asc-sigmoid"
+                color="emerald"
+                (refresh)="loadActiveReport()"
+              />
+
+              <app-stat-card
+                [title]="'reports.inventory.lowStockAlerts' | transloco"
+                subtitle="Por debajo del mínimo"
+                [value]="inventoryData()?.summary?.alertaBajoStockCount || 0"
+                suffix=" productos"
+                icon="alert-triangle"
+                curvePreset="trough-wave"
+                color="rose"
+                (refresh)="loadActiveReport()"
+              />
+            </div>
+
+            <!-- Healthy stock banner when no low stock alerts -->
+            <div *ngIf="(inventoryData()?.lowStockItems?.length || 0) === 0" class="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-8 text-center dark:border-emerald-900/40 dark:bg-emerald-950/20 flex flex-col items-center justify-center">
+              <img
+                class="max-h-[110px] w-auto select-none pointer-events-none drop-shadow-2xs mb-3"
+                src="illustrations/4.svg"
+                alt="Stock saludable"
+              />
+              <div class="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                Nivel de inventario óptimo
               </div>
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{ 'reports.inventory.totalRetailValue' | transloco }}</span>
-                <div class="mt-2 text-2xl font-extrabold text-neutral-900 dark:text-white">
-                  RD$ {{ (inventoryData()?.summary?.totalValorVenta || 0) | number:'1.2-2' }}
-                </div>
-              </div>
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">{{ 'reports.inventory.potentialProfit' | transloco }}</span>
-                <div class="mt-2 text-2xl font-extrabold text-emerald-600">
-                  RD$ {{ (inventoryData()?.summary?.gananciaPotencial || 0) | number:'1.2-2' }}
-                </div>
-              </div>
-              <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <span class="text-xs font-bold uppercase tracking-wider text-rose-600">{{ 'reports.inventory.lowStockAlerts' | transloco }}</span>
-                <div class="mt-2 text-2xl font-extrabold text-rose-600">
-                  {{ inventoryData()?.summary?.alertaBajoStockCount || 0 }} productos
-                </div>
-              </div>
+              <p class="mt-1 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
+                Todos los productos en almacén cuentan con existencias por encima de su umbral mínimo.
+              </p>
             </div>
 
             <!-- Low Stock Items Table -->
@@ -448,7 +598,21 @@ export type ReportTab =
                 </span>
               </div>
 
-              <div class="overflow-x-auto">
+              <div *ngIf="(clientsData()?.clients?.length || 0) === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <img
+                  class="max-h-[130px] w-auto select-none pointer-events-none drop-shadow-2xs mb-4"
+                  src="illustrations/1.svg"
+                  alt="Sin clientes"
+                />
+                <div class="text-base font-bold text-neutral-800 dark:text-neutral-200">
+                  Sin clientes en este período
+                </div>
+                <p class="mt-1.5 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
+                  No se registran compras asociadas a clientes en las fechas seleccionadas.
+                </p>
+              </div>
+
+              <div *ngIf="(clientsData()?.clients?.length || 0) > 0" class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                   <thead class="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                     <tr>
@@ -491,13 +655,36 @@ export type ReportTab =
 })
 export default class ReportsComponent implements OnInit {
   reportsService = inject(ReportsService);
+  authState = inject(AuthState);
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
+
+  printDate = new Date();
+
+  readonly currentEmpresa = computed(() => {
+    const user = this.authState.user();
+    const empId = this.authState.empresaId();
+    if (!user?.empresas || user.empresas.length === 0) return null;
+    return user.empresas.find((e) => e.id === empId) || user.empresas[0];
+  });
 
   activeTab = signal<ReportTab>('sales');
   selectedDatePreset = 'thisMonth';
   dateFrom = '';
   dateTo = '';
+
+  datePresets = [
+    { value: 'today', label: 'common.today' },
+    { value: 'thisMonth', label: 'common.thisMonth' },
+    { value: 'lastMonth', label: 'common.lastMonth' },
+    { value: 'thisYear', label: 'common.thisYear' },
+    { value: 'custom', label: 'common.customRange' },
+  ];
+
+  getPresetLabel(val: string): string {
+    const preset = this.datePresets.find((p) => p.value === val);
+    return preset ? preset.label : 'common.thisMonth';
+  }
 
   tabs = [
     { key: 'sales' as ReportTab, label: 'reports.tabs.sales', icon: 'trending-up' },
@@ -530,6 +717,7 @@ export default class ReportsComponent implements OnInit {
   }
 
   onPresetChange(preset: string): void {
+    this.selectedDatePreset = preset;
     if (preset !== 'custom') {
       this.applyDatePreset(preset);
       this.loadActiveReport();
@@ -537,25 +725,33 @@ export default class ReportsComponent implements OnInit {
   }
 
   applyDatePreset(preset: string): void {
+    this.selectedDatePreset = preset;
     const now = new Date();
     if (preset === 'today') {
-      const todayStr = now.toISOString().split('T')[0];
+      const todayStr = this.formatDate(now);
       this.dateFrom = todayStr;
       this.dateTo = todayStr;
     } else if (preset === 'thisMonth') {
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      this.dateFrom = firstDay.toISOString().split('T')[0];
-      this.dateTo = now.toISOString().split('T')[0];
+      this.dateFrom = this.formatDate(firstDay);
+      this.dateTo = this.formatDate(now);
     } else if (preset === 'lastMonth') {
       const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastDayLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-      this.dateFrom = firstDayLastMonth.toISOString().split('T')[0];
-      this.dateTo = lastDayLastMonth.toISOString().split('T')[0];
+      this.dateFrom = this.formatDate(firstDayLastMonth);
+      this.dateTo = this.formatDate(lastDayLastMonth);
     } else if (preset === 'thisYear') {
       const firstDayYear = new Date(now.getFullYear(), 0, 1);
-      this.dateFrom = firstDayYear.toISOString().split('T')[0];
-      this.dateTo = now.toISOString().split('T')[0];
+      this.dateFrom = this.formatDate(firstDayYear);
+      this.dateTo = this.formatDate(now);
     }
+  }
+
+  private formatDate(d: Date): string {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   loadActiveReport(): void {
@@ -587,8 +783,533 @@ export default class ReportsComponent implements OnInit {
     return Math.max(8, pct);
   }
 
+  getReportTitle(): string {
+    switch (this.activeTab()) {
+      case 'sales': return 'INFORME DE VENTAS Y FACTURACIÓN';
+      case 'top-products': return 'REPORTE DE PRODUCTOS MÁS VENDIDOS';
+      case 'receivables': return 'ESTADO DE CUENTAS POR COBRAR Y ANTIGÜEDAD';
+      case 'inventory': return 'VALORACIÓN DE INVENTARIO Y CONTROL DE STOCK';
+      case 'clients': return 'CONSOLIDADO DE VENTAS POR CLIENTE';
+      default: return 'REPORTE GENERAL';
+    }
+  }
+
+  getReportPeriodLabel(): string {
+    if (this.activeTab() === 'inventory' || this.activeTab() === 'receivables') {
+      return 'Al corte actual';
+    }
+    if (this.selectedDatePreset === 'custom') {
+      return `Del ${this.dateFrom} al ${this.dateTo}`;
+    }
+    const presetObj = this.datePresets.find((p) => p.value === this.selectedDatePreset);
+    const label = presetObj ? this.transloco.translate(presetObj.label) : this.selectedDatePreset;
+    return `${label} (${this.dateFrom} al ${this.dateTo})`;
+  }
+
+  private formatCurrency(val: number | undefined | null): string {
+    const num = Number(val || 0);
+    return 'RD$ ' + num.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  private formatNumber(val: number | undefined | null): string {
+    const num = Number(val || 0);
+    return num.toLocaleString('es-DO');
+  }
+
   printReport(): void {
-    window.print();
+    const html = this.generateReportHtml();
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    document.body.appendChild(printFrame);
+
+    const frameDoc = printFrame.contentWindow?.document;
+    if (frameDoc) {
+      frameDoc.open();
+      frameDoc.write(html);
+      frameDoc.close();
+
+      setTimeout(() => {
+        printFrame.contentWindow?.focus();
+        printFrame.contentWindow?.print();
+        setTimeout(() => {
+          document.body.removeChild(printFrame);
+        }, 1000);
+      }, 350);
+    }
+  }
+
+  private generateReportHtml(): string {
+    const empresa = this.currentEmpresa();
+    const empresaNombre = empresa?.razonSocial || 'Dolphin ERP';
+    const empresaRnc = empresa?.rnc ? `RNC: ${empresa.rnc}` : '';
+    const user = this.authState.user();
+    const usuarioNombre = user?.name || user?.email || 'Administrador';
+    const fechaEmision = new Date().toLocaleString('es-DO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    const periodo = this.getReportPeriodLabel();
+    const titulo = this.getReportTitle();
+    const tab = this.activeTab();
+
+    let bodyContent = '';
+
+    if (tab === 'sales') {
+      const s = this.salesData();
+      const summary = s?.summary;
+      const timeSeries = s?.timeSeries || [];
+      const paymentMethods = s?.paymentMethods || [];
+
+      bodyContent = `
+        <div class="kpi-grid">
+          <div class="kpi-box">
+            <div class="kpi-label">Total Facturado</div>
+            <div class="kpi-val">${this.formatCurrency(summary?.totalVentas)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Subtotal Neto</div>
+            <div class="kpi-val">${this.formatCurrency(summary?.totalSubtotal)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">ITBIS Recaudado</div>
+            <div class="kpi-val" style="color: #047857;">${this.formatCurrency(summary?.totalItbis)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Total Facturas / Ticket</div>
+            <div class="kpi-val">${summary?.totalFacturas || 0} facturas · ${this.formatCurrency(summary?.promedioTicket)}</div>
+          </div>
+        </div>
+
+        ${paymentMethods.length > 0 ? `
+          <div class="section-title">Desglose por Formas de Pago</div>
+          <table>
+            <thead>
+              <tr>
+                <th class="text-left">Forma / Método de Pago</th>
+                <th class="text-center">Transacciones</th>
+                <th class="text-right">Monto Total</th>
+                <th class="text-right">% Participación</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${paymentMethods.map((pm) => `
+                <tr>
+                  <td class="font-bold">${pm.metodo}</td>
+                  <td class="text-center">${pm.count}</td>
+                  <td class="text-right mono font-bold">${this.formatCurrency(pm.total)}</td>
+                  <td class="text-right mono">${summary?.totalVentas ? ((pm.total / summary.totalVentas) * 100).toFixed(1) : 0}%</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : ''}
+
+        <div class="section-title">Detalle Cronológico de Ventas</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="text-left" style="width: 40px;">#</th>
+              <th class="text-left">Fecha</th>
+              <th class="text-center">Cant. Facturas</th>
+              <th class="text-right">ITBIS Fiscal</th>
+              <th class="text-right">Total Facturado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${timeSeries.length === 0 ? `
+              <tr><td colspan="5" class="text-center" style="padding: 16px; color: #64748b;">No se registraron ventas en el período.</td></tr>
+            ` : timeSeries.map((item, idx) => `
+              <tr style="${idx % 2 === 1 ? 'background-color: #f8fafc;' : ''}">
+                <td style="color: #94a3b8;">${idx + 1}</td>
+                <td class="mono font-bold">${item.date}</td>
+                <td class="text-center">${item.count}</td>
+                <td class="text-right mono">${this.formatCurrency(item.itbis)}</td>
+                <td class="text-right mono font-bold">${this.formatCurrency(item.total)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="2" class="text-right font-black">TOTAL GENERAL:</td>
+              <td class="text-center font-bold">${summary?.totalFacturas || 0}</td>
+              <td class="text-right mono">${this.formatCurrency(summary?.totalItbis)}</td>
+              <td class="text-right mono">${this.formatCurrency(summary?.totalVentas)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+    } else if (tab === 'top-products') {
+      const top = this.topProductsData()?.topProducts || [];
+      bodyContent = `
+        <div class="section-title">Ranking de Artículos y Servicios Vendidos</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="text-left" style="width: 35px;">#</th>
+              <th class="text-left">Código</th>
+              <th class="text-left">Descripción del Producto</th>
+              <th class="text-left">Categoría</th>
+              <th class="text-right">Cant. Vendida</th>
+              <th class="text-right">Ingresos Totales</th>
+              <th class="text-right">Margen Bruto</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${top.length === 0 ? `
+              <tr><td colspan="7" class="text-center" style="padding: 16px; color: #64748b;">No hay registros de ventas para este período.</td></tr>
+            ` : top.map((p, idx) => `
+              <tr style="${idx % 2 === 1 ? 'background-color: #f8fafc;' : ''}">
+                <td style="color: #94a3b8; font-weight: bold;">${idx + 1}</td>
+                <td class="mono font-bold">${p.codigo}</td>
+                <td class="font-bold">${p.nombre}</td>
+                <td>${p.categoria}</td>
+                <td class="text-right font-bold">${this.formatNumber(p.cantidadVendida)}</td>
+                <td class="text-right mono font-bold">${this.formatCurrency(p.totalIngresos)}</td>
+                <td class="text-right mono font-bold" style="color: #047857;">${this.formatCurrency(p.margenEstimado)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } else if (tab === 'receivables') {
+      const r = this.receivablesData();
+      const summary = r?.summary;
+      const debtors = r?.topDebtors || [];
+
+      bodyContent = `
+        <div class="kpi-grid">
+          <div class="kpi-box">
+            <div class="kpi-label">0 - 30 Días (Corriente)</div>
+            <div class="kpi-val" style="color: #047857;">${this.formatCurrency(summary?.aging?.corriente)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">31 - 60 Días</div>
+            <div class="kpi-val">${this.formatCurrency(summary?.aging?.de31a60)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">61 - 90 Días</div>
+            <div class="kpi-val">${this.formatCurrency(summary?.aging?.de61a90)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Más de 90 Días</div>
+            <div class="kpi-val" style="color: #be123c;">${this.formatCurrency(summary?.aging?.masDe90)}</div>
+          </div>
+        </div>
+
+        <div class="section-title">Detalle de Clientes con Balance Pendiente</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="text-left" style="width: 35px;">#</th>
+              <th class="text-left">Cliente / Razón Social</th>
+              <th class="text-left">RNC / Cédula</th>
+              <th class="text-left">Contacto</th>
+              <th class="text-center">Facturas Pendientes</th>
+              <th class="text-right">Saldo Deudor</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${debtors.length === 0 ? `
+              <tr><td colspan="6" class="text-center" style="padding: 16px; color: #047857; font-weight: bold;">Toda la cartera se encuentra al día sin saldos pendientes.</td></tr>
+            ` : debtors.map((d, idx) => `
+              <tr style="${idx % 2 === 1 ? 'background-color: #f8fafc;' : ''}">
+                <td style="color: #94a3b8;">${idx + 1}</td>
+                <td class="font-bold">${d.nombre}</td>
+                <td class="mono">${d.documento}</td>
+                <td>${d.telefono || d.email || '-'}</td>
+                <td class="text-center font-bold">${d.facturasPendientes}</td>
+                <td class="text-right mono font-bold" style="color: #be123c;">${this.formatCurrency(d.totalDeuda)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="4" class="text-right font-black">TOTAL PENDIENTE DE COBRO:</td>
+              <td class="text-center font-bold">${summary?.totalFacturasPendientes || 0}</td>
+              <td class="text-right mono font-black">${this.formatCurrency(summary?.totalPendiente)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+    } else if (tab === 'inventory') {
+      const inv = this.inventoryData();
+      const summary = inv?.summary;
+      const lowStock = inv?.lowStockItems || [];
+
+      bodyContent = `
+        <div class="kpi-grid">
+          <div class="kpi-box">
+            <div class="kpi-label">Valor Total al Costo</div>
+            <div class="kpi-val">${this.formatCurrency(summary?.totalValorCosto)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Valor Total al Detalle</div>
+            <div class="kpi-val">${this.formatCurrency(summary?.totalValorVenta)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Ganancia Estimada</div>
+            <div class="kpi-val" style="color: #047857;">${this.formatCurrency(summary?.gananciaPotencial)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Alertas de Bajo Stock</div>
+            <div class="kpi-val" style="color: #be123c;">${summary?.alertaBajoStockCount || 0} productos</div>
+          </div>
+        </div>
+
+        <div class="section-title">Control de Stock Crítico / Alertas de Reabastecimiento</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="text-left" style="width: 35px;">#</th>
+              <th class="text-left">Código</th>
+              <th class="text-left">Producto / Artículo</th>
+              <th class="text-left">Almacén</th>
+              <th class="text-center">Stock Actual</th>
+              <th class="text-center">Stock Mínimo</th>
+              <th class="text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lowStock.length === 0 ? `
+              <tr><td colspan="7" class="text-center" style="padding: 16px; color: #047857; font-weight: bold;">Todos los artículos cuentan con existencias óptimas.</td></tr>
+            ` : lowStock.map((item, idx) => `
+              <tr style="${idx % 2 === 1 ? 'background-color: #f8fafc;' : ''}">
+                <td style="color: #94a3b8;">${idx + 1}</td>
+                <td class="mono font-bold">${item.codigo}</td>
+                <td class="font-bold">${item.nombre}</td>
+                <td>${item.almacenNombre}</td>
+                <td class="text-center font-bold" style="color: #be123c;">${item.cantidadActual} ${item.unidad}</td>
+                <td class="text-center">${item.stockMinimo} ${item.unidad}</td>
+                <td class="text-center font-bold" style="color: #be123c; text-transform: uppercase; font-size: 9.5px;">Reabastecer</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } else if (tab === 'clients') {
+      const cData = this.clientsData();
+      const clients = cData?.clients || [];
+
+      bodyContent = `
+        <div class="section-title">Reporte Consolidado de Ventas por Cliente</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="text-left" style="width: 35px;">#</th>
+              <th class="text-left">Cliente / Razón Social</th>
+              <th class="text-left">RNC / Cédula</th>
+              <th class="text-center">Facturas</th>
+              <th class="text-right">Ticket Promedio</th>
+              <th class="text-right">Total Facturado</th>
+              <th class="text-right">% Participación</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${clients.length === 0 ? `
+              <tr><td colspan="7" class="text-center" style="padding: 16px; color: #64748b;">No hay transacciones registradas para este período.</td></tr>
+            ` : clients.map((c, idx) => `
+              <tr style="${idx % 2 === 1 ? 'background-color: #f8fafc;' : ''}">
+                <td style="color: #94a3b8;">${idx + 1}</td>
+                <td class="font-bold">${c.nombre}</td>
+                <td class="mono">${c.documento}</td>
+                <td class="text-center font-bold">${c.totalFacturas}</td>
+                <td class="text-right mono">${this.formatCurrency(c.promedioTicket)}</td>
+                <td class="text-right mono font-bold">${this.formatCurrency(c.totalVentas)}</td>
+                <td class="text-right mono font-semibold">${c.porcentajeParticipacion.toFixed(1)}%</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="5" class="text-right font-black">GRAN TOTAL FACTURADO:</td>
+              <td class="text-right mono font-black">${this.formatCurrency(cData?.grandTotal)}</td>
+              <td class="text-right mono font-black">100.0%</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+    }
+
+    return `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${titulo} - ${empresaNombre}</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            background: #ffffff;
+            padding: 24px;
+            font-size: 11px;
+            line-height: 1.4;
+          }
+          @page {
+            size: letter portrait;
+            margin: 1.2cm;
+          }
+          .header {
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+          }
+          .company-name {
+            font-size: 20px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+          }
+          .company-rnc {
+            font-size: 11px;
+            font-weight: 700;
+            color: #334155;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            margin-top: 2px;
+          }
+          .system-sub {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 2px;
+          }
+          .report-title {
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #1e3a8a;
+            text-align: right;
+            letter-spacing: -0.3px;
+          }
+          .report-meta {
+            font-size: 10px;
+            color: #475569;
+            text-align: right;
+            margin-top: 4px;
+            line-height: 1.5;
+          }
+          .section-title {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #334155;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 4px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+            page-break-inside: auto;
+          }
+          tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+          th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            padding: 7px 9px;
+            border: 1px solid #cbd5e1;
+          }
+          td {
+            padding: 6px 9px;
+            border: 1px solid #e2e8f0;
+            font-size: 10.5px;
+          }
+          .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          }
+          .text-right { text-align: right; }
+          .text-center { text-align: center; }
+          .text-left { text-align: left; }
+          .font-bold { font-weight: 700; }
+          .font-black { font-weight: 900; }
+          .total-row {
+            background-color: #e2e8f0;
+            font-weight: 900;
+            border-top: 2px solid #0f172a;
+          }
+          .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+          }
+          .kpi-box {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 8px 12px;
+            background-color: #f8fafc;
+          }
+          .kpi-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+          }
+          .kpi-val {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 3px;
+          }
+          .footer {
+            border-top: 1px solid #cbd5e1;
+            padding-top: 10px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #64748b;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="company-name">${empresaNombre}</div>
+            ${empresaRnc ? `<div class="company-rnc">${empresaRnc}</div>` : ''}
+            <div class="system-sub">Sistema de Gestión Empresarial y Facturación Fiscal</div>
+          </div>
+          <div>
+            <div class="report-title">${titulo}</div>
+            <div class="report-meta">
+              <div><strong>Período:</strong> ${periodo}</div>
+              <div><strong>Emisión:</strong> ${fechaEmision}</div>
+              <div><strong>Generado por:</strong> ${usuarioNombre}</div>
+            </div>
+          </div>
+        </div>
+
+        ${bodyContent}
+
+        <div class="footer">
+          <span>Dolphin ERP · Documento Oficial de Reporte Contable</span>
+          <span>Confidencial · Uso Interno Exclusivo</span>
+        </div>
+      </body>
+      </html>
+    `;
   }
 
   exportCurrentReportCsv(): void {

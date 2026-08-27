@@ -63,11 +63,11 @@ import { PlusIcon, PencilIcon } from 'ng-animated-icons';
                   <div class="text-sm text-neutral-500">{{ unidad.abreviatura }}</div>
                   <div>
                     @if (unidad.tipo === 'SERVICIO') {
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700">
                         {{ 'catalogs.units.typeService' | transloco }}
                       </span>
                     } @else {
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700">
                         {{ 'catalogs.units.typeProduct' | transloco }}
                       </span>
                     }

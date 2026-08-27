@@ -1,9 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { FormsModule } from '@angular/forms';
 import { CategoriesService, Category } from '../../data/categories.service';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
@@ -83,6 +85,8 @@ const KNOWN_ILLUSTRATIONS_MAP: Record<string, string> = {
     MatIconModule,
     MatDialogModule,
     MatTooltipModule,
+    MatButtonToggleModule,
+    FormsModule,
     EmptyStateComponent,
     TableSkeletonComponent,
     TranslocoPipe,
@@ -93,21 +97,44 @@ const KNOWN_ILLUSTRATIONS_MAP: Record<string, string> = {
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
       <!-- Header -->
       <div
-        class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900"
+        class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-start sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 gap-4"
       >
-        <div>
-          <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
-            {{ 'catalogs.categories.title' | transloco }}
+        <div class="flex flex-col gap-4">
+          <div>
+            <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+              {{ 'catalogs.categories.title' | transloco }}
+            </div>
+            <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+              {{ 'catalogs.categories.description' | transloco }}
+            </p>
           </div>
-          <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {{ 'catalogs.categories.description' | transloco }}
-          </p>
+
+          <!-- Tipo Filter (Debajo del subtítulo) -->
+          <div class="flex items-center">
+            <mat-button-toggle-group
+              [value]="tipoFilter()"
+              (change)="tipoFilter.set($event.value)"
+              aria-label="Filtrar por tipo"
+              class="!border !border-neutral-200 dark:!border-neutral-700 !rounded-xl overflow-hidden !h-9"
+            >
+              <mat-button-toggle value="TODOS" class="!text-xs !font-medium !px-3">
+                {{ 'catalogs.categories.typeAll' | transloco }}
+              </mat-button-toggle>
+              <mat-button-toggle value="PRODUCTO" class="!text-xs !font-medium !px-3">
+                {{ 'catalogs.categories.typeProducts' | transloco }}
+              </mat-button-toggle>
+              <mat-button-toggle value="SERVICIO" class="!text-xs !font-medium !px-3">
+                {{ 'catalogs.categories.typeServices' | transloco }}
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
         </div>
-        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
+
+        <div class="flex shrink-0 items-center sm:self-start">
           <button
             mat-flat-button
             (click)="openDialog()"
-            class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl cursor-pointer"
+            class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl cursor-pointer !h-10"
           >
             <i-plus [size]="18" class="mr-2" />
             {{ 'catalogs.categories.new' | transloco }}
@@ -132,7 +159,7 @@ const KNOWN_ILLUSTRATIONS_MAP: Record<string, string> = {
           <!-- Skeleton Loading -->
           @if (categoriesService.isLoading()) {
             <app-table-skeleton [gridClass]="'inventory-grid'" [rows]="6" [cells]="cells4" />
-          } @else if (categoriesService.categories().length === 0) {
+          } @else if (filteredCategories().length === 0) {
             <!-- Empty State -->
             <div class="flex flex-auto justify-center p-6 sm:p-10">
               <app-empty-state
@@ -146,7 +173,7 @@ const KNOWN_ILLUSTRATIONS_MAP: Record<string, string> = {
             </div>
           } @else {
             <!-- Table Rows -->
-            @for (cat of categoriesService.categories(); track cat.id) {
+            @for (cat of filteredCategories(); track cat.id) {
               <div
                 class="inventory-grid grid items-center gap-4 py-3 px-6 md:px-8 border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors"
               >
@@ -177,15 +204,15 @@ const KNOWN_ILLUSTRATIONS_MAP: Record<string, string> = {
                 <!-- Tipo / Aplica a -->
                 <div>
                   @if (cat.tipo === 'PRODUCTO') {
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700">
                       {{ 'catalogs.categories.typeProductsShort' | transloco }}
                     </span>
                   } @else if (cat.tipo === 'SERVICIO') {
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700">
                       {{ 'catalogs.categories.typeServicesShort' | transloco }}
                     </span>
                   } @else {
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700">
                       {{ 'catalogs.categories.typeAllShort' | transloco }}
                     </span>
                   }
@@ -246,6 +273,14 @@ export default class CategoriesComponent implements OnInit {
   dialog = inject(MatDialog);
 
   cells4 = ['90%', '70%', '40%', '50%'];
+  readonly tipoFilter = signal<string>('TODOS');
+
+  readonly filteredCategories = computed(() => {
+    const all = this.categoriesService.categories();
+    const filter = this.tipoFilter();
+    if (filter === 'TODOS') return all;
+    return all.filter((c) => c.tipo === filter);
+  });
 
   ngOnInit() {
     this.categoriesService.findAll().subscribe();

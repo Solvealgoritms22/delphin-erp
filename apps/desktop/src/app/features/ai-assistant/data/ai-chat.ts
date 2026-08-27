@@ -13,7 +13,7 @@ export class AiChatService {
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
   private readonly apiUrl = `${environment.apiUrl}/ai`;
-  private readonly storageKey = 'dolphin_ai_conversations';
+  private readonly baseStorageKey = 'dolphin_ai_conversations';
 
   /** rAF handle used for batching streaming token updates */
   private streamingRafHandle: number | null = null;
@@ -28,6 +28,18 @@ export class AiChatService {
     const activeId = this.activeConversationId();
     return list.find((c) => c.id === activeId) || list[0] || null;
   });
+
+  /**
+   * Returns a per-user, per-empresa localStorage key so each account
+   * has its own isolated conversation history.
+   */
+  private get storageKey(): string {
+    const user = this.authState.user();
+    const empresaId = this.authState.empresaId();
+    const userId = user?.id || 'anon';
+    const eid = empresaId || 'default';
+    return `${this.baseStorageKey}_${userId}_${eid}`;
+  }
 
   constructor() {
     this.loadFromStorage();

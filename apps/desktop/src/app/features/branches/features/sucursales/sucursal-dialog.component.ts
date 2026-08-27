@@ -73,7 +73,7 @@ import { XIcon } from 'ng-animated-icons';
 
           <mat-form-field class="w-full">
            <mat-label>{{ 'common.status' | transloco }}</mat-label>
-            <mat-select formControlName="estado">
+            <mat-select formControlName="estado" placeholder="Seleccionar estado">
                <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
                <mat-option value="INACTIVO">{{ 'common.inactive' | transloco }}</mat-option>
             </mat-select>

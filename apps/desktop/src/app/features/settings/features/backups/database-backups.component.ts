@@ -153,7 +153,7 @@ type BackupSettings = {
               <!-- Frecuencia -->
               <mat-form-field class="w-full" subscriptSizing="dynamic">
                 <mat-label>{{ 'backups.frequency' | transloco }}</mat-label>
-                <mat-select [(ngModel)]="settings.backupFrecuencia">
+                <mat-select [(ngModel)]="settings.backupFrecuencia" placeholder="Seleccionar frecuencia">
                   <mat-option value="DAILY">{{ 'backups.freqDaily' | transloco }}</mat-option>
                   <mat-option value="WEEKLY">{{ 'backups.freqWeekly' | transloco }}</mat-option>
                   <mat-option value="MONTHLY">{{ 'backups.freqMonthly' | transloco }}</mat-option>
@@ -163,7 +163,7 @@ type BackupSettings = {
               <!-- Hora de Ejecución -->
               <mat-form-field class="w-full" subscriptSizing="dynamic">
                 <mat-label>{{ 'backups.time' | transloco }}</mat-label>
-                <mat-select [(ngModel)]="settings.backupHora">
+                <mat-select [(ngModel)]="settings.backupHora" placeholder="Seleccionar hora">
                   @for (hour of hourOptions; track hour.value) {
                     <mat-option [value]="hour.value">{{ hour.label }}</mat-option>
                   }
@@ -173,7 +173,7 @@ type BackupSettings = {
               <!-- Destino -->
               <mat-form-field class="w-full" subscriptSizing="dynamic">
                 <mat-label>{{ 'backups.destination' | transloco }}</mat-label>
-                <mat-select [(ngModel)]="settings.backupDestino">
+                <mat-select [(ngModel)]="settings.backupDestino" placeholder="Seleccionar destino">
                   <mat-option value="LOCAL">{{ 'backups.destLocal' | transloco }}</mat-option>
                   <mat-option value="GOOGLE_DRIVE">
                     {{ 'backups.destDrive' | transloco }}

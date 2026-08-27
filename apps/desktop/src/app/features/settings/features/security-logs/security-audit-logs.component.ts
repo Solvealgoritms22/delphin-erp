@@ -196,14 +196,15 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
                 </thead>
                 <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
                   @if (loading()) {
-                    <tr>
-                      <td colspan="8" class="py-12 text-center text-neutral-400">
-                        <div class="flex flex-col items-center justify-center gap-2">
-                          <div class="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                          <p class="text-sm">Loading...</p>
-                        </div>
-                      </td>
-                    </tr>
+                    @for (row of [1, 2, 3, 4, 5]; track row) {
+                      <tr class="animate-pulse">
+                        <td class="py-4 px-4"><div class="h-3.5 w-28 rounded bg-neutral-200 dark:bg-neutral-800"></div></td>
+                        <td class="py-4 px-4"><div class="h-3.5 w-32 rounded bg-neutral-200 dark:bg-neutral-800"></div></td>
+                        <td class="py-4 px-4"><div class="h-3.5 w-40 rounded bg-neutral-200 dark:bg-neutral-800"></div></td>
+                        <td class="py-4 px-4"><div class="h-5 w-16 rounded-full bg-neutral-200 dark:bg-neutral-800"></div></td>
+                        <td class="py-4 px-4 text-right"><div class="h-7 w-7 ml-auto rounded-lg bg-neutral-100 dark:bg-neutral-800"></div></td>
+                      </tr>
+                    }
                   } @else if (filteredLogs().length === 0) {
                     <tr>
                       <td colspan="8" class="py-16 text-center">
@@ -277,12 +278,30 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
 
             <div class="flex items-center justify-between p-4 border-t border-neutral-200 dark:border-neutral-800 text-[13px] text-neutral-500">
               <div class="flex items-center gap-2">
-                <span>Rows per page</span>
-                <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set($any($event))" class="border border-neutral-300 dark:border-neutral-700 rounded-lg px-2 py-1 bg-transparent font-medium text-neutral-700 dark:text-neutral-300 focus:ring-0 cursor-pointer">
-                  <option [value]="10">10</option>
-                  <option [value]="25">25</option>
-                  <option [value]="50">50</option>
-                </select>
+                <span>Rows per page:</span>
+                <button
+                  type="button"
+                  [matMenuTriggerFor]="pageSizeMenu"
+                  class="flex items-center gap-1.5 h-7 px-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700/60 transition-colors shadow-2xs cursor-pointer"
+                >
+                  <span>{{ pageSize() }}</span>
+                  <i-chevron-down [size]="12" class="text-neutral-400" />
+                </button>
+                <mat-menu #pageSizeMenu="matMenu" class="min-w-[80px]">
+                  @for (size of [10, 25, 50]; track size) {
+                    <button
+                      mat-menu-item
+                      (click)="pageSize.set(size)"
+                      class="flex items-center justify-between !h-9 text-xs"
+                      [class.font-bold]="size === pageSize()"
+                    >
+                      <span>{{ size }}</span>
+                      @if (size === pageSize()) {
+                        <mat-icon svgIcon="check" class="!h-3.5 !w-3.5 !text-[14px] text-blue-600 dark:text-blue-400 ml-2"></mat-icon>
+                      }
+                    </button>
+                  }
+                </mat-menu>
               </div>
               <div>
                  {{ filteredLogs().length }} visible events of {{ logs().length }}

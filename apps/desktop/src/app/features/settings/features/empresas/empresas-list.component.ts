@@ -69,8 +69,13 @@ export type Empresa = {
 
       <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-12">
 
-        <div *ngIf="isLoading()" class="flex justify-center p-12">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <!-- Loading Skeleton -->
+        <div *ngIf="isLoading()" class="flex flex-col gap-6 animate-pulse select-none" aria-hidden="true">
+          <div class="h-36 rounded-2xl bg-neutral-200 dark:bg-neutral-800"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="h-32 rounded-2xl bg-neutral-100 dark:bg-neutral-800"></div>
+            <div class="h-32 rounded-2xl bg-neutral-100 dark:bg-neutral-800"></div>
+          </div>
         </div>
 
         <div *ngIf="!isLoading()">

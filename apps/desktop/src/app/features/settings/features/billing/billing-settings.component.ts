@@ -114,7 +114,7 @@ type BillingData = {
 
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.baseCurrency' | transloco }}</mat-label>
-                    <mat-select [(ngModel)]="config.configuracion.monedaBase">
+                    <mat-select [(ngModel)]="config.configuracion.monedaBase" placeholder="Seleccionar moneda">
                       <mat-option value="DOP">{{ 'billingConfig.currencyDop' | transloco }}</mat-option>
                       <mat-option value="USD">{{ 'billingConfig.currencyUsd' | transloco }}</mat-option>
                       <mat-option value="EUR">{{ 'billingConfig.currencyEur' | transloco }}</mat-option>
@@ -123,7 +123,7 @@ type BillingData = {
 
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.timezone' | transloco }}</mat-label>
-                    <mat-select [(ngModel)]="config.configuracion.zonaHoraria">
+                    <mat-select [(ngModel)]="config.configuracion.zonaHoraria" placeholder="Seleccionar zona horaria">
                       <mat-option value="America/Santo_Domingo">{{
                         'billingConfig.timezoneSantoDomingo' | transloco
                       }}</mat-option>
@@ -136,14 +136,14 @@ type BillingData = {
 
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.rounding' | transloco }}</mat-label>
-                    <mat-select [(ngModel)]="config.configuracion.metodoRedondeo">
+                    <mat-select [(ngModel)]="config.configuracion.metodoRedondeo" placeholder="Seleccionar método">
                       <mat-option value="HALF_UP">{{ 'billingConfig.halfUp' | transloco }}</mat-option>
                     </mat-select>
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.roundingBy' | transloco }}</mat-label>
-                    <mat-select [(ngModel)]="config.configuracion.redondeoPor">
+                    <mat-select [(ngModel)]="config.configuracion.redondeoPor" placeholder="Seleccionar redondeo">
                       <mat-option value="LINEA">{{ 'billingConfig.byLine' | transloco }}</mat-option>
                       <mat-option value="DOCUMENTO">{{
                         'billingConfig.byDocument' | transloco
@@ -153,7 +153,7 @@ type BillingData = {
 
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.currencyPrecision' | transloco }}</mat-label>
-                    <mat-select [(ngModel)]="config.configuracion.precisionMoneda">
+                    <mat-select [(ngModel)]="config.configuracion.precisionMoneda" placeholder="Seleccionar precisión">
                       <mat-option [value]="0">0</mat-option>
                       <mat-option [value]="2">2</mat-option>
                     </mat-select>
@@ -161,7 +161,7 @@ type BillingData = {
 
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.quantityPrecision' | transloco }}</mat-label>
-                    <mat-select [(ngModel)]="config.configuracion.precisionCantidad">
+                    <mat-select [(ngModel)]="config.configuracion.precisionCantidad" placeholder="Seleccionar precisión">
                       <mat-option [value]="2">2</mat-option>
                       <mat-option [value]="3">3</mat-option>
                       <mat-option [value]="4">4</mat-option>
@@ -170,7 +170,7 @@ type BillingData = {
 
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'billingConfig.includesTax' | transloco }}</mat-label>
-                    <mat-select [(ngModel)]="config.configuracion.preciosIncluyenImpuesto">
+                    <mat-select [(ngModel)]="config.configuracion.preciosIncluyenImpuesto" placeholder="Seleccionar opción">
                       <mat-option [value]="false">{{ 'billingConfig.no' | transloco }}</mat-option>
                       <mat-option [value]="true">{{ 'billingConfig.yes' | transloco }}</mat-option>
                     </mat-select>
@@ -265,7 +265,7 @@ type BillingData = {
                             <mat-label>{{
                               'billingConfig.dgiiIndicator' | transloco
                             }}</mat-label>
-                            <mat-select [(ngModel)]="tax.indicadorFacturacion">
+                            <mat-select [(ngModel)]="tax.indicadorFacturacion" placeholder="Seleccionar indicador">
                               <mat-option value="1"
                                 >1 ·
                                 {{ 'billingConfig.taxable' | transloco }}</mat-option

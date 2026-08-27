@@ -49,7 +49,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <mat-form-field class="w-full">
                <mat-label>{{ 'commercial.form.documentType' | transloco }}</mat-label>
-                <mat-select formControlName="tipoDocumento">
+                <mat-select formControlName="tipoDocumento" [placeholder]="'common.select' | transloco">
                   @for (doc of getDocumentTypes(form.get('pais')?.value); track doc.value) {
                     <mat-option [value]="doc.value">{{ doc.label }}</mat-option>
                   }
@@ -84,7 +84,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
              </label>
               <mat-form-field class="mt-7 w-full">
                 <mat-label>{{ 'commercial.form.country' | transloco }}</mat-label>
-                <mat-select formControlName="pais">
+                <mat-select formControlName="pais" placeholder="Seleccionar país">
                   @for (country of countries; track country.code) {
                     <mat-option [value]="country.code" [disabled]="country.disabled">
                       <span class="inline-flex items-center gap-2"><country-flag [code]="country.code" [width]="20" /> {{ country.label }}{{ country.disabled ? ' (próximamente)' : '' }}</span>
@@ -110,7 +110,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
              <div class="flex items-end gap-2">
                <mat-form-field class="w-32 shrink-0">
                  <mat-label>{{ 'commercial.form.code' | transloco }}</mat-label>
-                 <mat-select formControlName="phoneCode">
+                 <mat-select formControlName="phoneCode" placeholder="+1">
                    @for (code of phoneCodes; track code) {
                      <mat-option [value]="code">{{ code }}</mat-option>
                    }
@@ -129,7 +129,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
 
             <mat-form-field class="w-full">
                <mat-label>{{ 'common.status' | transloco }}</mat-label>
-              <mat-select formControlName="estado">
+              <mat-select formControlName="estado" placeholder="Seleccionar estado">
                  <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
                  <mat-option value="INACTIVO">{{ 'common.inactive' | transloco }}</mat-option>
               </mat-select>

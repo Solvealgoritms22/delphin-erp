@@ -167,7 +167,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
             class="w-full"
           >
             <mat-label>País</mat-label>
-            <mat-select formControlName="pais">
+            <mat-select formControlName="pais" placeholder="Seleccionar país">
               @for (c of countries; track c.code) {
                 <mat-option
                   [value]="c.code"
@@ -335,7 +335,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
                 class="w-full"
               >
                 <mat-label>Método de Autenticación</mat-label>
-                <mat-select formControlName="fiscalbridgeAuthMethod">
+                <mat-select formControlName="fiscalbridgeAuthMethod" placeholder="Seleccionar método">
                   <mat-option value="TOKEN"
                     >API Token (Recomendado 365 días)</mat-option
                   >
@@ -349,7 +349,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
                 class="w-full"
               >
                 <mat-label>Entorno DGII</mat-label>
-                <mat-select formControlName="fiscalbridgeEnv">
+                <mat-select formControlName="fiscalbridgeEnv" placeholder="Seleccionar entorno">
                   <mat-option value="TEST">TEST (Sandbox / Pruebas)</mat-option>
                   <mat-option value="CERT"
                     >CERT (Certificación DGII)</mat-option

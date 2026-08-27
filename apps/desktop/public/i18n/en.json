@@ -1026,7 +1026,8 @@
         "emitDraft": "Issue Fiscal Invoice",
         "cancelInvoice": "Void Invoice",
         "deleteDraft": "Delete Draft",
-        "creditNote": "Issue Credit Note"
+        "creditNote": "Issue Credit Note",
+        "viewInvoice": "View invoice"
       },
       "creditNotes": {
         "title": "Credit Note",
@@ -1098,7 +1099,8 @@
         "cancelConfirm": "Are you sure you want to void this invoice{{ ncf }}? Inventory will be restored.",
         "cancelSuccess": "Invoice voided and stock returned to warehouse",
         "cancelError": "Could not void invoice"
-      }
+      },
+      "print": "Print"
     }
   },
   "maintenance": {
