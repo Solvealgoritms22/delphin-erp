@@ -265,13 +265,28 @@ export class BackupsService {
       throw new BadRequestException('Estado OAuth expirado');
     const client = this.oauthClient();
     const { tokens } = await client.getToken(code);
-    if (!tokens.refresh_token)
-      throw new BadRequestException('Google no devolvió refresh token');
+
+    let refreshToken: string;
+    if (tokens.refresh_token) {
+      refreshToken = this.encryptSecret(tokens.refresh_token);
+    } else {
+      const existing = await this.prisma.googleDriveConnection.findUnique({
+        where: { propietarioId: pending.userId },
+      });
+      if (existing?.refreshToken) {
+        refreshToken = existing.refreshToken;
+      } else {
+        throw new BadRequestException(
+          'Google no devolvió refresh token. Por favor intenta revocar el acceso y autorizar de nuevo.',
+        );
+      }
+    }
+
     client.setCredentials(tokens);
     const profile = await google
       .oauth2({ version: 'v2', auth: client })
       .userinfo.get();
-    const refreshToken = this.encryptSecret(tokens.refresh_token);
+
     await this.prisma.googleDriveConnection.upsert({
       where: { propietarioId: pending.userId },
       create: {

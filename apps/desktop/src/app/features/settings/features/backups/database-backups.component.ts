@@ -1,7 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -11,6 +13,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { environment } from '@/environments/environment';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
@@ -53,6 +56,7 @@ type BackupSettings = {
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
+    MatMenuModule,
     TranslocoPipe,
     EmptyStateComponent,
   ],
@@ -61,7 +65,7 @@ type BackupSettings = {
       
       <!-- Top Header -->
       <header
-        class="flex shrink-0 flex-col justify-between gap-6 border-b border-neutral-200 px-6 py-8 sm:flex-row sm:items-center md:px-8 bg-white dark:bg-neutral-900 dark:border-neutral-800"
+        class="flex shrink-0 flex-col justify-between gap-4 border-b border-neutral-200 px-6 py-6 sm:flex-row sm:items-center md:px-8 bg-white dark:bg-neutral-900 dark:border-neutral-800"
       >
         <div>
           <h1
@@ -73,31 +77,99 @@ type BackupSettings = {
             {{ 'backups.description' | transloco }}
           </p>
         </div>
-        <div class="flex flex-wrap gap-2.5">
-          <button
-            mat-stroked-button
-            type="button"
-            class="rounded-xl"
-            (click)="connectDrive()"
-          >
-            <img
-              src="/images/google-drive.png"
-              alt="Google Drive"
-              class="w-5 h-5 mr-2 object-contain inline-block shrink-0"
-            />
-            {{ 'backups.connectDrive' | transloco }}
-          </button>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <!-- Google Drive Status / Connect Button -->
+          @if (settings.googleDriveConnected) {
+            <button
+              mat-stroked-button
+              type="button"
+              [matMenuTriggerFor]="driveMenu"
+              class="!rounded-xl !border-neutral-200 dark:!border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 !h-10 !px-3.5 shadow-2xs"
+            >
+              <img
+                src="/images/google-drive.png"
+                alt="Google Drive"
+                class="w-4 h-4 mr-2 object-contain inline-block shrink-0"
+              />
+              <span class="truncate max-w-[150px] sm:max-w-[190px] text-xs font-medium" [title]="settings.googleEmail || ''">
+                {{ settings.googleEmail || ('backups.driveConnected' | transloco) }}
+              </span>
+              <mat-icon svgIcon="chevron-down" class="ml-1.5 icon-size-3.5 text-neutral-400"></mat-icon>
+            </button>
+
+            <mat-menu #driveMenu="matMenu" class="!rounded-2xl !p-1.5 !min-w-[230px]">
+              <div class="px-3 py-2 border-b border-neutral-100 dark:border-neutral-800 text-xs">
+                <p class="font-semibold text-neutral-800 dark:text-neutral-200">{{ 'backups.driveConnected' | transloco }}</p>
+                <p class="text-neutral-500 dark:text-neutral-400 truncate mt-0.5">{{ settings.googleEmail }}</p>
+              </div>
+              <button mat-menu-item (click)="create('GOOGLE_DRIVE')" [disabled]="busy()" class="!rounded-xl text-xs">
+                <img src="/images/google-drive.png" alt="Drive" class="w-4 h-4 mr-2 object-contain inline-block" />
+                <span>{{ 'backups.createDrive' | transloco }}</span>
+              </button>
+              <button mat-menu-item (click)="disconnectDrive()" class="!rounded-xl text-xs text-red-600 dark:text-red-400">
+                <mat-icon svgIcon="trash" class="icon-size-4 text-red-500 mr-2"></mat-icon>
+                <span>{{ 'backups.disconnectDrive' | transloco }}</span>
+              </button>
+            </mat-menu>
+          } @else {
+            <button
+              mat-stroked-button
+              type="button"
+              class="!rounded-xl !border-neutral-300 dark:!border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 !h-10 !px-3.5 shadow-2xs"
+              [disabled]="isAuthorizingDrive()"
+              (click)="connectDrive()"
+            >
+              <img
+                src="/images/google-drive.png"
+                alt="Google Drive"
+                class="w-4 h-4 mr-2 object-contain inline-block shrink-0"
+              />
+              <span class="text-xs font-medium">{{ isAuthorizingDrive() ? ('common.loading' | transloco) : ('backups.connectDrive' | transloco) }}</span>
+            </button>
+          }
+
+          <!-- Create Backup Primary Dropdown Button -->
           <button
             mat-flat-button
             color="primary"
             type="button"
-            class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
+            [matMenuTriggerFor]="createMenu"
+            class="!rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold !h-10 !px-4 shadow-sm"
             [disabled]="busy()"
-            (click)="create('LOCAL')"
           >
-            <mat-icon svgIcon="plus" class="mr-2"></mat-icon>
-            {{ 'backups.createLocal' | transloco }}
+            <mat-icon svgIcon="plus" class="mr-1.5 icon-size-4"></mat-icon>
+            <span class="text-xs sm:text-sm">{{ 'backups.createAction' | transloco }}</span>
+            <mat-icon svgIcon="chevron-down" class="ml-1.5 icon-size-3.5 opacity-80"></mat-icon>
           </button>
+
+          <mat-menu #createMenu="matMenu" class="!rounded-2xl !p-1.5 !min-w-[270px]">
+            <button mat-menu-item (click)="create('LOCAL')" class="!rounded-xl text-xs py-2">
+              <mat-icon svgIcon="archive" class="icon-size-4.5 text-blue-600 mr-2"></mat-icon>
+              <div class="flex flex-col text-left">
+                <span class="font-semibold text-neutral-800 dark:text-neutral-200">{{ 'backups.createLocal' | transloco }}</span>
+                <span class="text-[11px] text-neutral-400">{{ 'backups.localLocationDesc' | transloco }}</span>
+              </div>
+            </button>
+
+            @if (settings.googleDriveConnected) {
+              <button mat-menu-item (click)="create('GOOGLE_DRIVE')" class="!rounded-xl text-xs py-2">
+                <img src="/images/google-drive.png" alt="Drive" class="w-4 h-4 mr-2 object-contain inline-block shrink-0" />
+                <div class="flex flex-col text-left">
+                  <span class="font-semibold text-neutral-800 dark:text-neutral-200">{{ 'backups.createDrive' | transloco }}</span>
+                  <span class="text-[11px] text-neutral-400">{{ 'backups.driveLocationDesc' | transloco }}</span>
+                </div>
+              </button>
+            } @else {
+              <button mat-menu-item (click)="connectDrive()" class="!rounded-xl text-xs py-2 opacity-85">
+                <img src="/images/google-drive.png" alt="Drive" class="w-4 h-4 mr-2 object-contain inline-block shrink-0" />
+                <div class="flex flex-col text-left">
+                  <span class="font-semibold text-neutral-800 dark:text-neutral-200">{{ 'backups.connectDrive' | transloco }}</span>
+                  <span class="text-[11px] text-neutral-400">{{ 'backups.driveLocationConnectDesc' | transloco }}</span>
+                </div>
+              </button>
+            }
+          </mat-menu>
         </div>
       </header>
 
@@ -171,20 +243,22 @@ type BackupSettings = {
               </mat-form-field>
 
               <!-- Destino -->
-              <mat-form-field class="w-full" subscriptSizing="dynamic">
-                <mat-label>{{ 'backups.destination' | transloco }}</mat-label>
-                <mat-select [(ngModel)]="settings.backupDestino" placeholder="Seleccionar destino">
-                  <mat-option value="LOCAL">{{ 'backups.destLocal' | transloco }}</mat-option>
-                  <mat-option value="GOOGLE_DRIVE">
-                    {{ 'backups.destDrive' | transloco }}
-                    @if (settings.googleDriveConnected) {
-                      (Conectado)
-                    } @else {
-                      (Requiere conexión)
-                    }
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
+              <div class="flex flex-col">
+                <mat-form-field class="w-full" subscriptSizing="dynamic">
+                  <mat-label>{{ 'backups.destination' | transloco }}</mat-label>
+                  <mat-select [(ngModel)]="settings.backupDestino" placeholder="Seleccionar destino">
+                    <mat-option value="LOCAL">{{ 'backups.destLocal' | transloco }}</mat-option>
+                    <mat-option value="GOOGLE_DRIVE">
+                      {{ 'backups.destDrive' | transloco }}
+                      @if (settings.googleDriveConnected) {
+                        (Conectado)
+                      } @else {
+                        (Requiere conexión)
+                      }
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
 
               <!-- Días de Retención -->
               <mat-form-field class="w-full" subscriptSizing="dynamic">
@@ -202,7 +276,24 @@ type BackupSettings = {
 
             </div>
 
-            <p class="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
+            @if (settings.backupDestino === 'GOOGLE_DRIVE' && !settings.googleDriveConnected) {
+              <div class="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 p-3 text-xs text-amber-800 dark:text-amber-300">
+                <mat-icon svgIcon="alert-triangle" class="icon-size-4 shrink-0 text-amber-600 dark:text-amber-400"></mat-icon>
+                <span class="flex-1">
+                  Google Drive no está conectado. Para guardar copias automáticas en la nube, vincula tu cuenta de Google.
+                </span>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="rounded-lg !px-3 !py-1 text-xs border-amber-300 dark:border-amber-700 bg-white dark:bg-neutral-900"
+                  (click)="connectDrive()"
+                >
+                  {{ 'backups.connectDrive' | transloco }}
+                </button>
+              </div>
+            }
+
+            <p class="text-xs text-neutral-400 dark:text-neutral-500 mt-2">
               * {{ 'backups.retentionHint' | transloco }}
             </p>
 
@@ -315,7 +406,7 @@ type BackupSettings = {
                       mat-stroked-button
                       type="button"
                       class="rounded-xl"
-                      [disabled]="backup.estado !== 'COMPLETED'"
+                      [disabled]="backup.estado !== 'COMPLETED' || backup.proveedor === 'GOOGLE_DRIVE'"
                       (click)="download(backup)"
                     >
                       <mat-icon svgIcon="download" class="mr-1.5 icon-size-4"></mat-icon>
@@ -341,15 +432,20 @@ type BackupSettings = {
     </div>
   `,
 })
-export class BackupsComponent {
+export class BackupsComponent implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly snack = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly i18n = inject(TranslocoService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
+  private querySub?: Subscription;
 
   readonly backups = signal<Backup[]>([]);
   readonly busy = signal(false);
   readonly isSavingSettings = signal(false);
+  readonly isAuthorizingDrive = signal(false);
 
   settings: BackupSettings = {
     backupAutoEnabled: false,
@@ -395,6 +491,38 @@ export class BackupsComponent {
     this.loadSettings();
   }
 
+  ngOnInit() {
+    this.querySub = this.route.queryParams.subscribe((params) => {
+      if (params['googleDrive'] === 'success') {
+        this.notice('backups.driveConnectedSuccess');
+        this.loadSettings();
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { googleDrive: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      } else if (params['googleDriveError']) {
+        const errorMsg = params['googleDriveError'];
+        this.snack.open(
+          errorMsg || this.i18n.translate('backups.driveError'),
+          this.i18n.translate('common.close'),
+          { duration: 5000 },
+        );
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { googleDriveError: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.querySub?.unsubscribe();
+  }
+
   private load() {
     this.http.get<Backup[]>(this.api).subscribe({
       next: (value) => this.backups.set(value),
@@ -434,17 +562,61 @@ export class BackupsComponent {
         this.busy.set(false);
         this.load();
       },
-      error: () => {
+      error: (err) => {
         this.busy.set(false);
-        this.notice('backups.createError');
+        const msg = err?.error?.message || this.i18n.translate('backups.createError');
+        this.snack.open(msg, this.i18n.translate('common.close'), { duration: 4500 });
       },
     });
   }
 
   connectDrive() {
+    this.isAuthorizingDrive.set(true);
     this.http.post<{ url: string }>(`${this.api}/google/authorize`, {}).subscribe({
-      next: (result) => window.dolphinWindow?.openExternal(result.url),
-      error: () => this.notice('backups.driveError'),
+      next: (result) => {
+        this.isAuthorizingDrive.set(false);
+        if (result?.url) {
+          if ((window as any).dolphinWindow?.openExternal) {
+            (window as any).dolphinWindow.openExternal(result.url);
+          } else {
+            window.open(result.url, '_blank');
+          }
+        }
+      },
+      error: (err) => {
+        this.isAuthorizingDrive.set(false);
+        const msg = err?.error?.message || this.i18n.translate('backups.driveError');
+        this.snack.open(msg, this.i18n.translate('common.close'), { duration: 4500 });
+      },
+    });
+  }
+
+  disconnectDrive() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: this.i18n.translate('backups.disconnectDriveTitle'),
+        message: this.i18n.translate('backups.confirmDisconnectDrive'),
+        confirmLabel: this.i18n.translate('common.disconnect'),
+        cancelLabel: this.i18n.translate('common.cancel'),
+        destructive: true,
+        icon: 'trash',
+      } satisfies ConfirmDialogData,
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.http.delete(`${this.api}/google`).subscribe({
+          next: () => {
+            this.notice('backups.driveDisconnected');
+            this.loadSettings();
+          },
+          error: (err) => {
+            const msg = err?.error?.message || this.i18n.translate('backups.driveError');
+            this.snack.open(msg, this.i18n.translate('common.close'), { duration: 4000 });
+          },
+        });
+      }
     });
   }
 
@@ -512,3 +684,4 @@ export class BackupsComponent {
     });
   }
 }
+
