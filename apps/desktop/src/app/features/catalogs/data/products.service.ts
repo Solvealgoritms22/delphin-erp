@@ -53,6 +53,12 @@ export type Product = {
     };
   }>;
   insumos?: ProductInsumo[];
+  enOferta?: boolean;
+  precioOferta?: number | null;
+  descuentoPorcentaje?: number | null;
+  ofertaDesde?: string | null;
+  ofertaHasta?: string | null;
+  descuentoMaximo?: number | null;
 };
 
 @Injectable({ providedIn: 'root' })

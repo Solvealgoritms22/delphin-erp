@@ -36,6 +36,7 @@ import { SequencesService } from '../../data/sequences.service';
 import { ProductsService } from '../../../catalogs/data/products.service';
 import { InventoryService } from '../../../catalogs/data/inventory.service';
 import { ClientsService } from '../../data/clients';
+import { PromotionsService } from '../../data/promotions.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
 import { PaginatorComponent, PageChangeEvent } from '@shared/components/paginator/paginator.component';
@@ -842,13 +843,35 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
                       </mat-form-field>
                     </div>
 
+                    <div class="w-28">
+                      <mat-form-field
+                        appearance="outline"
+                        class="!mb-0 w-full"
+                      >
+                        <mat-label>Descuento</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          [(ngModel)]="item.descuento"
+                          (ngModelChange)="recalculateTotals()"
+                          placeholder="0.00"
+                        />
+                      </mat-form-field>
+                    </div>
+
                     <div
                       class="w-28 text-right font-mono text-sm font-bold text-neutral-900 dark:text-white"
                     >
                       {{ currencySymbol }}
                       {{
-                        item.cantidad * item.precioUnitario | number: '1.2-2'
+                        ((item.cantidad * item.precioUnitario) - (item.descuento || 0)) | number: '1.2-2'
                       }}
+                      @if (item.promocionNombre) {
+                        <span class="block text-[10px] text-emerald-600 dark:text-emerald-400 font-sans truncate font-normal">
+                          {{ item.promocionNombre }}
+                        </span>
+                      }
                     </div>
 
                     @if (invoiceRows.length > 1) {
@@ -876,14 +899,39 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
                   class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400"
                 >
                   <span>{{
-                    'commercial.invoices.modal.subtotalTaxed' | transloco
+                    'commercial.invoices.modal.subtotalGross' | transloco
                   }}</span>
                   <span
                     class="font-mono font-bold text-neutral-900 dark:text-white"
                     >{{ currencySymbol }}
-                    {{ calculatedSubtotal | number: '1.2-2' }}</span
+                    {{ calculatedSubtotalBruto | number: '1.2-2' }}</span
                   >
                 </div>
+                @if (calculatedDiscount > 0) {
+                  <div
+                    class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold"
+                  >
+                    <span>{{
+                      'commercial.invoices.modal.discountsApplied' | transloco
+                    }}</span>
+                    <span class="font-mono"
+                      >- {{ currencySymbol }}
+                      {{ calculatedDiscount | number: '1.2-2' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400"
+                  >
+                    <span>{{
+                      'commercial.invoices.modal.subtotalNet' | transloco
+                    }}</span>
+                    <span
+                      class="font-mono font-bold text-neutral-900 dark:text-white"
+                      >{{ currencySymbol }}
+                      {{ calculatedSubtotalNeto | number: '1.2-2' }}</span
+                    >
+                  </div>
+                }
                 <div
                   class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400"
                 >
@@ -1182,6 +1230,8 @@ export class InvoicesComponent implements OnInit {
     return count;
   }
 
+  promotionsService = inject(PromotionsService);
+
   newInvoice: CreateInvoiceDto = {
     clienteId: '',
     almacenId: '',
@@ -1195,11 +1245,18 @@ export class InvoicesComponent implements OnInit {
     productoId: string;
     cantidad: number;
     precioUnitario: number;
+    precioLista?: number;
+    descuento?: number;
+    porcentajeDescuento?: number;
+    promocionId?: string | null;
+    promocionNombre?: string | null;
     tasaItbis: number;
     impuestoId?: string | null;
   }[] = [];
 
-  calculatedSubtotal = 0;
+  calculatedSubtotalBruto = 0;
+  calculatedDiscount = 0;
+  calculatedSubtotalNeto = 0;
   calculatedItbis = 0;
   calculatedTotal = 0;
   currencyCode = 'DOP';
@@ -1213,6 +1270,7 @@ export class InvoicesComponent implements OnInit {
     this.productsService.findAll().subscribe();
     this.inventoryService.getWarehouses().subscribe();
     this.clientsService.findAll().subscribe();
+    this.promotionsService.loadAll().subscribe();
     this.http.get<any>(`${environment.apiUrl}/billing-config`).subscribe({
       next: (config) => {
         this.currencyCode = config.configuracion?.monedaBase || 'DOP';
@@ -1339,6 +1397,9 @@ export class InvoicesComponent implements OnInit {
         productoId: '',
         cantidad: 1,
         precioUnitario: 0,
+        precioLista: 0,
+        descuento: 0,
+        porcentajeDescuento: 0,
         tasaItbis: this.defaultTaxRate,
       },
     ];
@@ -1346,7 +1407,7 @@ export class InvoicesComponent implements OnInit {
     this.recalculateTotals();
 
     this.dialogRef = this.dialog.open(this.createInvoiceModalTemplate, {
-      width: '780px',
+      width: '840px',
       maxWidth: '95vw',
       panelClass: ['custom-dialog-container'],
     });
@@ -1357,6 +1418,9 @@ export class InvoicesComponent implements OnInit {
       productoId: '',
       cantidad: 1,
       precioUnitario: 0,
+      precioLista: 0,
+      descuento: 0,
+      porcentajeDescuento: 0,
       tasaItbis: this.defaultTaxRate,
     });
   }
@@ -1371,31 +1435,69 @@ export class InvoicesComponent implements OnInit {
       .products()
       .find((p) => p.id === productId);
     if (product) {
-      this.invoiceRows[index].precioUnitario = Number(product.precioVenta) || 0;
+      const price = Number(product.precioVenta) || 0;
+      this.invoiceRows[index].precioLista = price;
+      this.invoiceRows[index].precioUnitario = price;
       this.invoiceRows[index].tasaItbis = Number(
         product.impuesto?.tasa ?? product.taxRate ?? this.defaultTaxRate
       );
       (this.invoiceRows[index] as any).impuestoId =
         product.impuestoId || product.impuesto?.id;
+
+      // Detect product direct offer or active campaign promotions
+      const now = new Date();
+      let autoDiscount = 0;
+      let promoName: string | null = null;
+      let promoId: string | null = null;
+
+      if (product.enOferta) {
+        let isOfferValid = true;
+        if (product.ofertaDesde && new Date(product.ofertaDesde) > now) isOfferValid = false;
+        if (product.ofertaHasta && new Date(product.ofertaHasta) < now) isOfferValid = false;
+
+        if (isOfferValid) {
+          if (product.precioOferta !== null && product.precioOferta !== undefined && Number(product.precioOferta) < price) {
+            autoDiscount = (price - Number(product.precioOferta)) * Number(this.invoiceRows[index].cantidad || 1);
+            promoName = 'Oferta de Producto';
+          } else if (product.descuentoPorcentaje && Number(product.descuentoPorcentaje) > 0) {
+            autoDiscount = (price * Number(this.invoiceRows[index].cantidad || 1) * Number(product.descuentoPorcentaje)) / 100;
+            promoName = `Oferta (${product.descuentoPorcentaje}% OFF)`;
+          }
+        }
+      }
+
+      this.invoiceRows[index].descuento = Number(autoDiscount.toFixed(2));
+      this.invoiceRows[index].promocionNombre = promoName;
+      this.invoiceRows[index].promocionId = promoId;
+
       this.recalculateTotals();
     }
   }
 
   recalculateTotals() {
-    let subtotal = 0;
+    let subtotalBruto = 0;
+    let totalDiscount = 0;
     let itbis = 0;
 
     for (const row of this.invoiceRows) {
-      const lineSubtotal = (row.cantidad || 0) * (row.precioUnitario || 0);
+      const qty = Number(row.cantidad) || 0;
+      const unitPrice = Number(row.precioUnitario) || 0;
+      const lineGross = qty * unitPrice;
+      const lineDisc = Math.min(lineGross, Number(row.descuento) || 0);
+      const lineNet = Math.max(0, lineGross - lineDisc);
       const lineItbis =
-        (lineSubtotal * (row.tasaItbis ?? this.defaultTaxRate)) / 100;
-      subtotal += lineSubtotal;
+        (lineNet * (row.tasaItbis ?? this.defaultTaxRate)) / 100;
+
+      subtotalBruto += lineGross;
+      totalDiscount += lineDisc;
       itbis += lineItbis;
     }
 
-    this.calculatedSubtotal = subtotal;
-    this.calculatedItbis = itbis;
-    this.calculatedTotal = subtotal + itbis;
+    this.calculatedSubtotalBruto = Number(subtotalBruto.toFixed(2));
+    this.calculatedDiscount = Number(totalDiscount.toFixed(2));
+    this.calculatedSubtotalNeto = Number((subtotalBruto - totalDiscount).toFixed(2));
+    this.calculatedItbis = Number(itbis.toFixed(2));
+    this.calculatedTotal = Number((this.calculatedSubtotalNeto + itbis).toFixed(2));
   }
 
   closeDialog() {
@@ -1508,9 +1610,15 @@ export class InvoicesComponent implements OnInit {
         productoId: r.productoId,
         cantidad: Number(r.cantidad),
         precioUnitario: Number(r.precioUnitario),
+        precioLista: Number(r.precioLista || r.precioUnitario),
+        descuento: Number(r.descuento || 0),
+        porcentajeDescuento: Number(r.porcentajeDescuento || 0),
+        promocionId: r.promocionId || undefined,
+        promocionNombre: r.promocionNombre || undefined,
         tasaItbis: Number(r.tasaItbis),
         impuestoId: r.impuestoId || undefined,
       })),
+      descuento: this.calculatedDiscount,
     };
 
     this.invoicesService.create(invoicePayload).subscribe({

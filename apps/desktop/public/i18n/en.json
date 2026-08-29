@@ -283,6 +283,10 @@
     "commercial": "Commercial",
     "commercialDescription": "Sales, sequences and partners",
     "invoices": "Invoicing",
+    "quotes": "Quotations",
+    "purchases": "Purchases & Expenses",
+    "receivables": "Accounts Receivable (AR)",
+    "promotions": "Promotions & Offers",
     "sequences": "Tax Sequences (NCF)",
     "clients": "Clients",
     "suppliers": "Suppliers",
@@ -716,6 +720,15 @@
       "detailTitle": "Commercial Item Details",
       "noImages": "No images attached",
       "profitMargin": "Profit margin",
+      "discountsAndOffers": "Offers & Discounts",
+      "enableOffer": "Enable Special Offer / Direct Discount",
+      "discountPercentage": "Discount Percentage (%)",
+      "specialOfferPrice": "Special Offer Price",
+      "offerValidFrom": "Valid From",
+      "offerValidUntil": "Valid Until",
+      "customerSavings": "Customer Savings",
+      "maxAllowedDiscount": "Maximum Allowed Discount in Sales (%)",
+      "maxAllowedDiscountHint": "Maximum discount percentage that cashiers can apply to this item (0-100%).",
       "emptyTitle": "No physical products registered",
       "emptyDescription": "Create your first physical product to manage inventory and pricing."
     },
@@ -884,6 +897,25 @@
     }
   },
   "commercial": {
+    "quotes": {
+      "title": "Quotations and Estimates",
+      "subtitle": "Commercial proposal issuance, validity control and automated email dispatch",
+      "new": "New Quotation",
+      "edit": "Edit Quotation",
+      "sendEmail": "Send by Email",
+      "convertToInvoice": "Convert to Sales Invoice",
+      "quoteNumber": "Quote #",
+      "validUntil": "Valid Until",
+      "client": "Client",
+      "total": "Quoted Total",
+      "status": "Status",
+      "draft": "Draft",
+      "sent": "Sent",
+      "accepted": "Accepted",
+      "invoiced": "Invoiced",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
     "clients": {
       "title": "Clients",
       "description": "Review and manage your clients' commercial information.",
@@ -905,6 +937,69 @@
       "emptyTitle": "No suppliers registered",
       "emptyDescription": "Create your first supplier to manage commercial operations.",
       "deleteConfirm": "Are you sure you want to delete this supplier?"
+    },
+    "purchases": {
+      "title": "Purchases & Accounts Payable (AP)",
+      "subtitle": "Record supplier purchases, operating expenses (DGII 606), inventory stocking, and AP payments.",
+      "new": "New Purchase / Expense",
+      "search": "Search by Purchase No., NCF or Supplier...",
+      "emptyTitle": "No purchases recorded",
+      "emptySubtitle": "Record purchases from suppliers to increase inventory stock and track accounts payable.",
+      "stats": {
+        "monthPurchases": "Month Purchases",
+        "pendingCxP": "Accounts Payable (AP)",
+        "overdueCxP": "Overdue AP",
+        "suppliersCount": "Suppliers"
+      },
+      "dialog": {
+        "title": "Record Purchase / Expense Invoice",
+        "subtitle": "Enter tax data and line items for the supplier invoice.",
+        "supplier": "Supplier",
+        "ncf": "Supplier NCF",
+        "warehouse": "Destination Warehouse",
+        "expenseType": "Cost / Expense Classification",
+        "paymentType": "Payment Terms",
+        "paymentMethod": "Payment Method",
+        "date": "Issue Date",
+        "dueDate": "Due Date",
+        "invoiceNumber": "Invoice No. / Reference",
+        "itemsTitle": "Products and Expense Lines",
+        "addItem": "Add Line",
+        "submit": "Save and Record Purchase"
+      },
+      "payment": {
+        "title": "Record Supplier Payment",
+        "amount": "Payment Amount (RD$)",
+        "method": "Payment Method",
+        "reference": "Check No. / Bank Reference",
+        "date": "Payment Date",
+        "submit": "Record Payment"
+      }
+    },
+    "receivables": {
+      "title": "Accounts Receivable & Payment Receipts (AR)",
+      "subtitle": "Credit invoice management, customer payment receipts, collections history, and customer receivables.",
+      "newReceipt": "New Payment Receipt",
+      "emptyPendingTitle": "No pending credit invoices",
+      "emptyPendingSubtitle": "All credit invoices are fully paid or do not match current filters.",
+      "emptyReceiptsTitle": "No payment receipts recorded",
+      "emptyReceiptsSubtitle": "Record payments against customer invoices to build revenue collection history.",
+      "stats": {
+        "totalCxC": "Total Accounts Receivable (AR)",
+        "overdueCxC": "Overdue Invoices",
+        "monthCollected": "Collected this Month",
+        "clientsWithBalance": "Clients with Balance"
+      },
+      "dialog": {
+        "title": "Record Payment Receipt",
+        "subtitle": "Select a customer and allocate payments across one or multiple pending invoices.",
+        "client": "Customer",
+        "method": "Payment Method",
+        "reference": "Reference / Check No. / Voucher",
+        "date": "Payment Date",
+        "pendingInvoices": "Invoices with Outstanding Balance",
+        "submit": "Save & Print Receipt"
+      }
     },
     "form": {
       "name": "Name or company",
@@ -1079,6 +1174,9 @@
         "product": "Product",
         "quantity": "Qty",
         "price": "Price",
+        "subtotalGross": "Gross Subtotal:",
+        "discountsApplied": "Discounts:",
+        "subtotalNet": "Net Taxable Base:",
         "subtotalTaxed": "Taxable Subtotal:",
         "itbis": "Taxes:",
         "totalToInvoice": "Total to Invoice:",
@@ -1112,6 +1210,64 @@
         "cancelError": "Could not void invoice"
       },
       "print": "Print"
+    },
+    "promotions": {
+      "title": "Promotions & Discounts",
+      "description": "Create offer campaigns, coupons, percentage discounts, fixed amounts or special prices applicable to products, brands or categories.",
+      "newPromotion": "New Promotion",
+      "createTitle": "Create Promotion or Offer",
+      "createSubtitle": "Define parameters, discount type, scope and validity of the promotion.",
+      "editTitle": "Edit Promotion",
+      "editSubtitle": "Modify values and rules applicable to this promotion.",
+      "namePlaceholder": "E.g.: Black Friday 20%, Dairy Discount",
+      "couponCode": "Coupon Code",
+      "descriptionPlaceholder": "Describe benefits and conditions of this promotion...",
+      "discountRules": "Discount Rules",
+      "discountType": "Discount Type",
+      "discountValue": "Discount Value",
+      "types": {
+        "percentage": "Percentage",
+        "fixedAmount": "Fixed Amount Discount",
+        "fixedPrice": "Fixed Offer Price"
+      },
+      "scopeSection": "Application Scope",
+      "scope": "Applies to",
+      "scopes": {
+        "all": "Entire Catalog",
+        "category": "Specific Category",
+        "brand": "Specific Brand",
+        "products": "Selected Products"
+      },
+      "selectProducts": "Select Products",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "minQuantity": "Minimum Quantity",
+      "minAmount": "Minimum Amount",
+      "usageLimit": "Usage Limit",
+      "isCumulative": "Is it cumulative with other discounts?",
+      "cumulativeBadge": "Cumulative",
+      "paused": "Paused",
+      "scheduled": "Scheduled",
+      "expired": "Expired",
+      "activate": "Activate",
+      "pause": "Pause",
+      "stats": {
+        "total": "Total Promotions",
+        "active": "Active Now",
+        "scheduled": "Scheduled",
+        "expired": "Expired"
+      },
+      "searchPlaceholder": "Search promotions by name, coupon...",
+      "table": {
+        "promotion": "Promotion / Coupon",
+        "benefit": "Benefit",
+        "scope": "Scope",
+        "validity": "Validity"
+      },
+      "emptyTitle": "No promotions registered",
+      "emptyDescription": "Create promotional campaigns or discount coupons to boost your sales.",
+      "deleteTitle": "Delete Promotion",
+      "deleteConfirm": "Are you sure you want to delete this promotion?"
     }
   },
   "maintenance": {
@@ -1199,6 +1355,28 @@
     }
   },
   "settings": {
+    "users": {
+      "title": "Users & Members",
+      "description": "Manage team members, access accounts, assigned roles, and user statuses.",
+      "create": "New User",
+      "edit": "Edit User",
+      "total": "Total Users",
+      "activeMembers": "Active Users",
+      "inactiveMembers": "Inactive Users",
+      "search": "Search user by name or email...",
+      "allStatuses": "All Statuses",
+      "active": "Active",
+      "inactive": "Inactive",
+      "allRoles": "All Roles",
+      "user": "User",
+      "role": "Assigned Role",
+      "emptyTitle": "No users found",
+      "emptyDescription": "There are no registered users or none match the active filters.",
+      "clearFilters": "Clear Filters",
+      "owner": "Owner",
+      "noRole": "No Assigned Role",
+      "unknown": "Unknown"
+    },
     "apiAccess": {
       "title": "Tenant Public API",
       "subtitle": "Connect external online stores, mobile apps and services directly to your database.",
@@ -1424,7 +1602,8 @@
       "topProducts": "Top Products",
       "receivables": "Receivables",
       "inventory": "Inventory",
-      "clients": "Clients"
+      "clients": "Clients",
+      "taxDgii": "DGII Tax"
     },
     "sales": {
       "totalRevenue": "Total Revenue",

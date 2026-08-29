@@ -1,5 +1,6 @@
-import { IsOptional, IsString, IsNumber, Min } from 'class-validator';
+import { IsOptional, IsString, IsNumber, Min, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
 export class DateRangeReportDto {
   @IsOptional()
@@ -35,4 +36,16 @@ export class InventoryReportDto {
   @IsOptional()
   @IsString()
   categoriaId?: string;
+}
+
+export class TaxReportDto {
+  @ApiProperty({ description: 'Período fiscal en formato YYYYMM o YYYY-MM (ej: 202608 o 2026-08)' })
+  @IsString()
+  @IsNotEmpty()
+  periodo: string;
+
+  @ApiPropertyOptional({ description: 'Filtrar por sucursal específica' })
+  @IsOptional()
+  @IsString()
+  sucursalId?: string;
 }

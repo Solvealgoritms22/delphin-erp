@@ -32,20 +32,26 @@ export interface SalesReportResponse {
 }
 
 export interface TopProductItem {
-  id: string;
+  id?: string;
+  productoId?: string;
   codigo: string;
   nombre: string;
-  tipo: string;
+  tipo?: string;
   categoria: string;
+  marca?: string;
   cantidadVendida: number;
-  totalIngresos: number;
+  totalIngresos?: number;
+  totalVendido?: number;
   costoEstimado: number;
   margenEstimado: number;
+  porcentajeDelTotal?: number;
 }
 
 export interface TopProductsReportResponse {
   topProducts: TopProductItem[];
-  totalCount: number;
+  products: TopProductItem[];
+  totalCount?: number;
+  grandTotal?: number;
 }
 
 export interface ReceivablesAging {
@@ -131,7 +137,144 @@ export interface ClientSalesItem {
 
 export interface SalesByClientResponse {
   grandTotal: number;
+  totalClients?: number;
   clients: ClientSalesItem[];
+}
+
+// =========================================================================
+// MODELOS FISCALES DGII (606, 607, 608, IT-1)
+// =========================================================================
+
+export interface Row606 {
+  id: string;
+  rncCedula: string;
+  tipoId: string;
+  tipoGasto: string;
+  ncf: string;
+  ncfModificado: string;
+  fechaComprobante: string;
+  fechaPago: string;
+  montoServicios: number;
+  montoBienes: number;
+  totalFacturado: number;
+  itbisFacturado: number;
+  itbisRetenido: number;
+  itbisProporcionalidad: number;
+  itbisCosto: number;
+  itbisAdelantar: number;
+  itbisPercibido: number;
+  tipoRetencionIsr: string;
+  retencionRenta: number;
+  isrPercibido: number;
+  formaPago: string;
+  proveedorNombre: string;
+}
+
+export interface Report606Response {
+  periodo: string;
+  rncEmpresa: string;
+  summary: {
+    totalRegistros: number;
+    totalMontoServicios: number;
+    totalMontoBienes: number;
+    totalFacturado: number;
+    totalItbisFacturado: number;
+    totalItbisRetenido: number;
+    totalRetencionRenta: number;
+  };
+  rows: Row606[];
+  txtContent: string;
+  filename: string;
+}
+
+export interface Row607 {
+  id: string;
+  rncCedula: string;
+  tipoId: string;
+  ncf: string;
+  ncfModificado: string;
+  tipoIngreso: string;
+  fechaComprobante: string;
+  fechaRetencion: string;
+  montoFacturado: number;
+  itbisFacturado: number;
+  itbisRetenido: number;
+  itbisPercibido: number;
+  retencionRenta: number;
+  isrPercibido: number;
+  isc: number;
+  otrosImpuestos: number;
+  propinaLegal: number;
+  montoEfectivo: number;
+  montoChequeTransf: number;
+  montoTarjeta: number;
+  montoCredito: number;
+  montoBonos: number;
+  montoPermuta: number;
+  montoOtrasFormas: number;
+  clienteNombre: string;
+}
+
+export interface Report607Response {
+  periodo: string;
+  rncEmpresa: string;
+  summary: {
+    totalRegistros: number;
+    totalMontoFacturado: number;
+    totalItbisFacturado: number;
+    totalEfectivo: number;
+    totalChequeTransf: number;
+    totalTarjeta: number;
+    totalCredito: number;
+  };
+  rows: Row607[];
+  txtContent: string;
+  filename: string;
+}
+
+export interface Row608 {
+  id: string;
+  ncf: string;
+  fechaAnulacion: string;
+  tipoAnulacion: string;
+  motivo: string;
+  numeroFactura: string;
+}
+
+export interface Report608Response {
+  periodo: string;
+  rncEmpresa: string;
+  summary: {
+    totalRegistros: number;
+  };
+  rows: Row608[];
+  txtContent: string;
+  filename: string;
+}
+
+export interface ReportIt1Response {
+  periodo: string;
+  year: number;
+  month: number;
+  rncEmpresa: string;
+  operaciones: {
+    totalIngresos: number;
+    ingresosExentos: number;
+    ingresosGravados18: number;
+    ingresosGravados16: number;
+    totalItbisCobrado: number;
+  };
+  deducciones: {
+    itbisComprasLocales: number;
+    itbisServiciosDeducibles: number;
+    totalItbisDeducible: number;
+    itbisRetenido: number;
+  };
+  liquidacion: {
+    impuestoLiquidado: number;
+    itbisAPagar: number;
+    saldoAFavor: number;
+  };
 }
 
 @Injectable({
@@ -139,13 +282,51 @@ export interface SalesByClientResponse {
 })
 export class ReportsService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/reports`;
+  private apiUrl = `${environment.apiUrl}/v1/reports`;
 
-  salesReport = signal<SalesReportResponse | null>(null);
-  topProductsReport = signal<TopProductsReportResponse | null>(null);
-  receivablesReport = signal<ReceivablesReportResponse | null>(null);
-  inventoryReport = signal<InventoryReportResponse | null>(null);
-  salesByClientReport = signal<SalesByClientResponse | null>(null);
+  salesReport = signal<SalesReportResponse>({
+    summary: { totalVentas: 0, totalItbis: 0, totalDescuento: 0, totalSubtotal: 0, totalFacturas: 0, promedioTicket: 0 },
+    paymentMethods: [],
+    timeSeries: [],
+  });
+  topProductsReport = signal<TopProductsReportResponse>({
+    products: [],
+    topProducts: [],
+    totalCount: 0,
+    grandTotal: 0,
+  });
+  receivablesReport = signal<ReceivablesReportResponse>({
+    summary: {
+      totalPendiente: 0,
+      totalFacturasPendientes: 0,
+      aging: { corriente: 0, de31a60: 0, de61a90: 0, masDe90: 0 },
+    },
+    topDebtors: [],
+    invoices: [],
+  });
+  inventoryReport = signal<InventoryReportResponse>({
+    summary: {
+      totalItemsDistintos: 0,
+      totalUnidades: 0,
+      totalValorCosto: 0,
+      totalValorVenta: 0,
+      gananciaPotencial: 0,
+      alertaBajoStockCount: 0,
+    },
+    lowStockItems: [],
+    warehouses: [],
+  });
+  salesByClientReport = signal<SalesByClientResponse>({
+    clients: [],
+    totalClients: 0,
+    grandTotal: 0,
+  });
+
+  report606 = signal<Report606Response | null>(null);
+  report607 = signal<Report607Response | null>(null);
+  report608 = signal<Report608Response | null>(null);
+  reportIt1 = signal<ReportIt1Response | null>(null);
+
   loading = signal<boolean>(false);
 
   getSalesReport(filters?: { from?: string; to?: string; sucursalId?: string; groupBy?: string }): Observable<SalesReportResponse> {
@@ -175,10 +356,22 @@ export class ReportsService {
     if (filters?.limit) params = params.set('limit', String(filters.limit));
     if (filters?.sucursalId) params = params.set('sucursalId', filters.sucursalId);
 
-    return this.http.get<TopProductsReportResponse>(`${this.apiUrl}/top-products`, { params }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/top-products`, { params }).pipe(
       tap({
         next: (data) => {
-          this.topProductsReport.set(data);
+          const rawList = data.products || data.topProducts || [];
+          const list: TopProductItem[] = rawList.map((p: any) => ({
+            ...p,
+            totalIngresos: p.totalIngresos ?? p.totalVendido ?? 0,
+            totalVendido: p.totalVendido ?? p.totalIngresos ?? 0,
+          }));
+          const normalized: TopProductsReportResponse = {
+            products: list,
+            topProducts: list,
+            totalCount: data.totalCount ?? list.length,
+            grandTotal: data.grandTotal ?? 0,
+          };
+          this.topProductsReport.set(normalized);
           this.loading.set(false);
         },
         error: () => this.loading.set(false),
@@ -231,5 +424,78 @@ export class ReportsService {
         error: () => this.loading.set(false),
       }),
     );
+  }
+
+  // =========================================================================
+  // METODOS FISCALES DGII
+  // =========================================================================
+
+  get606(periodo: string, sucursalId?: string): Observable<Report606Response> {
+    this.loading.set(true);
+    let params = new HttpParams().set('periodo', periodo);
+    if (sucursalId) params = params.set('sucursalId', sucursalId);
+
+    return this.http.get<Report606Response>(`${this.apiUrl}/tax/606`, { params }).pipe(
+      tap({
+        next: (data) => {
+          this.report606.set(data);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      }),
+    );
+  }
+
+  get607(periodo: string, sucursalId?: string): Observable<Report607Response> {
+    this.loading.set(true);
+    let params = new HttpParams().set('periodo', periodo);
+    if (sucursalId) params = params.set('sucursalId', sucursalId);
+
+    return this.http.get<Report607Response>(`${this.apiUrl}/tax/607`, { params }).pipe(
+      tap({
+        next: (data) => {
+          this.report607.set(data);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      }),
+    );
+  }
+
+  get608(periodo: string, sucursalId?: string): Observable<Report608Response> {
+    this.loading.set(true);
+    let params = new HttpParams().set('periodo', periodo);
+    if (sucursalId) params = params.set('sucursalId', sucursalId);
+
+    return this.http.get<Report608Response>(`${this.apiUrl}/tax/608`, { params }).pipe(
+      tap({
+        next: (data) => {
+          this.report608.set(data);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      }),
+    );
+  }
+
+  getIt1(periodo: string, sucursalId?: string): Observable<ReportIt1Response> {
+    this.loading.set(true);
+    let params = new HttpParams().set('periodo', periodo);
+    if (sucursalId) params = params.set('sucursalId', sucursalId);
+
+    return this.http.get<ReportIt1Response>(`${this.apiUrl}/tax/it1`, { params }).pipe(
+      tap({
+        next: (data) => {
+          this.reportIt1.set(data);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      }),
+    );
+  }
+
+  downloadTaxTxt(type: '606' | '607' | '608', periodo: string) {
+    const url = `${this.apiUrl}/tax/download/${type}?periodo=${periodo}`;
+    window.open(url, '_blank');
   }
 }

@@ -162,8 +162,21 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                 </div>
 
                 <!-- Precio -->
-                <div class="hidden lg:block text-right font-bold text-neutral-900 dark:text-white">
-                  {{ product.precioVenta | currency }}
+                <div class="hidden lg:block text-right font-bold">
+                  @if (product.enOferta && (product.precioOferta || (product.descuentoPorcentaje && product.descuentoPorcentaje > 0))) {
+                    <div class="flex flex-col items-end">
+                      <span class="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
+                        {{ (product.precioOferta ? product.precioOferta : (product.precioVenta - (product.precioVenta * (product.descuentoPorcentaje || 0) / 100))) | currency }}
+                      </span>
+                      <span class="text-[11px] line-through text-neutral-400 font-normal">
+                        {{ product.precioVenta | currency }}
+                      </span>
+                    </div>
+                  } @else {
+                    <span class="text-neutral-900 dark:text-white">
+                      {{ product.precioVenta | currency }}
+                    </span>
+                  }
                 </div>
 
                 <!-- Acciones -->

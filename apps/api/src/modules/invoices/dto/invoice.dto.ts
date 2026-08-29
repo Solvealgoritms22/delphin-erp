@@ -32,9 +32,36 @@ export class InvoiceItemDto {
   @IsString()
   @IsOptional()
   impuestoId?: string;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  descuento?: number;
+
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  porcentajeDescuento?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  precioLista?: number;
+
+  @IsString()
+  @IsOptional()
+  promocionId?: string;
+
+  @IsString()
+  @IsOptional()
+  promocionNombre?: string;
 }
 
 export class CreateInvoiceDto {
+  @IsString()
+  @IsOptional()
+  codigoCupon?: string;
   @IsString()
   @IsOptional()
   clienteId?: string;

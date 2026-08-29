@@ -5,7 +5,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,6 +19,10 @@ import {
   ReceivablesReportResponse,
   InventoryReportResponse,
   SalesByClientResponse,
+  Report606Response,
+  Report607Response,
+  Report608Response,
+  ReportIt1Response,
 } from './data/reports.service';
 
 import { StatCardComponent } from '@shared/components/stat-card/stat-card.component';
@@ -29,7 +33,8 @@ export type ReportTab =
   | 'top-products'
   | 'receivables'
   | 'inventory'
-  | 'clients';
+  | 'clients'
+  | 'tax-dgii';
 
 @Component({
   selector: 'app-reports',
@@ -46,6 +51,7 @@ export type ReportTab =
     MatSnackBarModule,
     TranslocoPipe,
     StatCardComponent,
+    DecimalPipe,
   ],
   template: `
     <div class="no-print flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
@@ -100,7 +106,7 @@ export type ReportTab =
         </div>
 
         <!-- Date Range Controls (for time-sensitive tabs) -->
-        <div *ngIf="activeTab() !== 'inventory' && activeTab() !== 'receivables'" class="flex items-center gap-2">
+        <div *ngIf="activeTab() !== 'inventory' && activeTab() !== 'receivables' && activeTab() !== 'tax-dgii'" class="flex items-center gap-2">
           <button
             type="button"
             [matMenuTriggerFor]="datePresetMenu"
@@ -196,15 +202,15 @@ export type ReportTab =
         <div *ngIf="!reportsService.loading()">
 
           <!-- ================= TAB 1: VENTAS ================= -->
-          <div *ngIf="activeTab() === 'sales' && salesData()" class="flex flex-col gap-6">
+          <div *ngIf="activeTab() === 'sales'" class="flex flex-col gap-6">
 
             <!-- Summary KPI Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <app-stat-card
                 [title]="'reports.sales.totalRevenue' | transloco"
-                [subtitle]="(salesData()?.summary?.totalFacturas || 0) + ' ' + ('reports.sales.invoicesCount' | transloco)"
+                [subtitle]="(salesData().summary.totalFacturas || 0) + ' ' + ('reports.sales.invoicesCount' | transloco)"
                 prefix="RD$ "
-                [value]="((salesData()?.summary?.totalVentas || 0) | number:'1.2-2') || '0.00'"
+                [value]="((salesData().summary.totalVentas || 0) | number:'1.2-2') || '0.00'"
                 icon="dollar-sign"
                 curvePreset="asc-sigmoid"
                 color="blue"
@@ -215,7 +221,7 @@ export type ReportTab =
                 [title]="'reports.sales.itbisCollected' | transloco"
                 [subtitle]="'reports.sales.taxDeducted' | transloco"
                 prefix="RD$ "
-                [value]="((salesData()?.summary?.totalItbis || 0) | number:'1.2-2') || '0.00'"
+                [value]="((salesData().summary.totalItbis || 0) | number:'1.2-2') || '0.00'"
                 icon="percent"
                 curvePreset="peak-wave"
                 color="emerald"
@@ -226,7 +232,7 @@ export type ReportTab =
                 [title]="'reports.sales.avgTicket' | transloco"
                 [subtitle]="'reports.sales.perInvoice' | transloco"
                 prefix="RD$ "
-                [value]="((salesData()?.summary?.promedioTicket || 0) | number:'1.2-2') || '0.00'"
+                [value]="((salesData().summary.promedioTicket || 0) | number:'1.2-2') || '0.00'"
                 icon="shopping-cart"
                 curvePreset="s-curve"
                 color="purple"
@@ -237,7 +243,7 @@ export type ReportTab =
                 [title]="'reports.sales.discounts' | transloco"
                 [subtitle]="'reports.sales.discountsGiven' | transloco"
                 prefix="RD$ "
-                [value]="((salesData()?.summary?.totalDescuento || 0) | number:'1.2-2') || '0.00'"
+                [value]="((salesData().summary.totalDescuento || 0) | number:'1.2-2') || '0.00'"
                 icon="tag"
                 curvePreset="trough-wave"
                 color="amber"
@@ -252,10 +258,10 @@ export type ReportTab =
               <div class="lg:col-span-2 rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
                 <h3 class="text-base font-bold text-neutral-900 dark:text-white mb-4 flex items-center justify-between">
                   <span>{{ 'reports.sales.timeline' | transloco }}</span>
-                  <span class="text-xs font-normal text-neutral-400">{{ salesData()?.timeSeries?.length || 0 }} {{ 'reports.sales.dataPoints' | transloco }}</span>
+                  <span class="text-xs font-normal text-neutral-400">{{ salesData().timeSeries.length || 0 }} {{ 'reports.sales.dataPoints' | transloco }}</span>
                 </h3>
 
-                <div *ngIf="(salesData()?.timeSeries?.length || 0) === 0" class="flex flex-col items-center justify-center py-10 px-4 text-center min-h-[220px]">
+                <div *ngIf="salesData().timeSeries.length === 0" class="flex flex-col items-center justify-center py-10 px-4 text-center min-h-[220px]">
                   <img
                     class="max-h-[110px] w-auto select-none pointer-events-none drop-shadow-2xs mb-3 opacity-90"
                     src="illustrations/20.svg"
@@ -270,9 +276,9 @@ export type ReportTab =
                 </div>
 
                 <!-- SVG Bar Chart -->
-                <div *ngIf="(salesData()?.timeSeries?.length || 0) > 0" class="h-64 flex items-end gap-2 pt-6 pb-2 overflow-x-auto">
+                <div *ngIf="salesData().timeSeries.length > 0" class="h-64 flex items-end gap-2 pt-6 pb-2 overflow-x-auto">
                   <div
-                    *ngFor="let point of salesData()?.timeSeries"
+                    *ngFor="let point of salesData().timeSeries"
                     class="flex flex-col items-center flex-1 min-w-[32px] group relative h-full justify-end"
                   >
                     <!-- Tooltip -->
@@ -297,7 +303,7 @@ export type ReportTab =
                   {{ 'reports.sales.byPaymentMethod' | transloco }}
                 </h3>
 
-                <div *ngIf="(salesData()?.paymentMethods?.length || 0) === 0" class="flex flex-col items-center justify-center py-10 px-4 text-center min-h-[220px]">
+                <div *ngIf="salesData().paymentMethods.length === 0" class="flex flex-col items-center justify-center py-10 px-4 text-center min-h-[220px]">
                   <img
                     class="max-h-[110px] w-auto select-none pointer-events-none drop-shadow-2xs mb-3 opacity-90"
                     src="illustrations/24.svg"
@@ -311,8 +317,8 @@ export type ReportTab =
                   </p>
                 </div>
 
-                <div *ngIf="(salesData()?.paymentMethods?.length || 0) > 0" class="flex flex-col gap-4">
-                  <div *ngFor="let pm of salesData()?.paymentMethods" class="flex flex-col gap-1.5">
+                <div *ngIf="salesData().paymentMethods.length > 0" class="flex flex-col gap-4">
+                  <div *ngFor="let pm of salesData().paymentMethods" class="flex flex-col gap-1.5">
                     <div class="flex items-center justify-between text-xs font-bold">
                       <span class="text-neutral-700 dark:text-neutral-300">{{ pm.metodo }}</span>
                       <span class="text-neutral-900 dark:text-white">RD$ {{ pm.total | number:'1.2-2' }}</span>
@@ -320,7 +326,7 @@ export type ReportTab =
                     <div class="h-2 w-full rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
                       <div
                         class="h-full rounded-full bg-blue-600"
-                        [style.width.%]="salesData()?.summary?.totalVentas ? (pm.total / salesData()!.summary.totalVentas) * 100 : 0"
+                        [style.width.%]="salesData().summary.totalVentas ? (pm.total / salesData().summary.totalVentas) * 100 : 0"
                       ></div>
                     </div>
                     <span class="text-[10px] text-neutral-400 text-right">{{ pm.count }} transacciones</span>
@@ -333,17 +339,17 @@ export type ReportTab =
           </div>
 
           <!-- ================= TAB 2: TOP PRODUCTOS ================= -->
-          <div *ngIf="activeTab() === 'top-products' && topProductsData()" class="flex flex-col gap-6">
+          <div *ngIf="activeTab() === 'top-products'" class="flex flex-col gap-6">
 
             <div class="rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900 overflow-hidden">
               <div class="p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
                 <h3 class="text-lg font-bold text-neutral-900 dark:text-white">
                   {{ 'reports.topProducts.ranking' | transloco }}
                 </h3>
-                <span class="text-xs text-neutral-500">{{ topProductsData()?.topProducts?.length || 0 }} productos analizados</span>
+                <span class="text-xs text-neutral-500">{{ topProductsData().topProducts.length || 0 }} productos analizados</span>
               </div>
 
-              <div *ngIf="(topProductsData()?.topProducts?.length || 0) === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div *ngIf="topProductsData().topProducts.length === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
                 <img
                   class="max-h-[130px] w-auto select-none pointer-events-none drop-shadow-2xs mb-4"
                   src="illustrations/4.svg"
@@ -357,7 +363,7 @@ export type ReportTab =
                 </p>
               </div>
 
-              <div *ngIf="(topProductsData()?.topProducts?.length || 0) > 0" class="overflow-x-auto">
+              <div *ngIf="topProductsData().topProducts.length > 0" class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                   <thead class="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                     <tr>
@@ -371,7 +377,7 @@ export type ReportTab =
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-                    <tr *ngFor="let p of topProductsData()?.topProducts; let i = index" class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
+                    <tr *ngFor="let p of topProductsData().topProducts; let i = index" class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
                       <td class="py-4 px-6 font-bold text-neutral-400">{{ i + 1 }}</td>
                       <td class="py-4 px-6 font-mono font-semibold text-neutral-600 dark:text-neutral-300">{{ p.codigo }}</td>
                       <td class="py-4 px-6 font-bold text-neutral-900 dark:text-white">{{ p.nombre }}</td>
@@ -388,7 +394,7 @@ export type ReportTab =
           </div>
 
           <!-- ================= TAB 3: CUENTAS POR COBRAR ================= -->
-          <div *ngIf="activeTab() === 'receivables' && receivablesData()" class="flex flex-col gap-6">
+          <div *ngIf="activeTab() === 'receivables'" class="flex flex-col gap-6">
 
             <!-- Aging Summary Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -396,7 +402,7 @@ export type ReportTab =
                 title="0 - 30 Días"
                 subtitle="Corriente al día"
                 prefix="RD$ "
-                [value]="((receivablesData()?.summary?.aging?.corriente || 0) | number:'1.2-2') || '0.00'"
+                [value]="((receivablesData().summary.aging.corriente || 0) | number:'1.2-2') || '0.00'"
                 icon="calendar"
                 curvePreset="asc-sigmoid"
                 color="emerald"
@@ -407,7 +413,7 @@ export type ReportTab =
                 title="31 - 60 Días"
                 subtitle="Vencimiento reciente"
                 prefix="RD$ "
-                [value]="((receivablesData()?.summary?.aging?.de31a60 || 0) | number:'1.2-2') || '0.00'"
+                [value]="((receivablesData().summary.aging.de31a60 || 0) | number:'1.2-2') || '0.00'"
                 icon="clock"
                 curvePreset="peak-wave"
                 color="amber"
@@ -418,7 +424,7 @@ export type ReportTab =
                 title="61 - 90 Días"
                 subtitle="Mora intermedia"
                 prefix="RD$ "
-                [value]="((receivablesData()?.summary?.aging?.de61a90 || 0) | number:'1.2-2') || '0.00'"
+                [value]="((receivablesData().summary.aging.de61a90 || 0) | number:'1.2-2') || '0.00'"
                 icon="alert-circle"
                 curvePreset="s-curve"
                 color="rose"
@@ -429,7 +435,7 @@ export type ReportTab =
                 title="Más de 90 Días"
                 subtitle="Mora crítica"
                 prefix="RD$ "
-                [value]="((receivablesData()?.summary?.aging?.masDe90 || 0) | number:'1.2-2') || '0.00'"
+                [value]="((receivablesData().summary.aging.masDe90 || 0) | number:'1.2-2') || '0.00'"
                 icon="alert-triangle"
                 curvePreset="trough-wave"
                 color="rose"
@@ -444,11 +450,11 @@ export type ReportTab =
                   {{ 'reports.receivables.debtorClients' | transloco }}
                 </h3>
                 <span class="text-xs font-bold text-rose-600">
-                  Total Pendiente: RD$ {{ (receivablesData()?.summary?.totalPendiente || 0) | number:'1.2-2' }}
+                  Total Pendiente: RD$ {{ (receivablesData().summary.totalPendiente || 0) | number:'1.2-2' }}
                 </span>
               </div>
 
-              <div *ngIf="(receivablesData()?.topDebtors?.length || 0) === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div *ngIf="receivablesData().topDebtors.length === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
                 <img
                   class="max-h-[130px] w-auto select-none pointer-events-none drop-shadow-2xs mb-4"
                   src="illustrations/28.svg"
@@ -462,7 +468,7 @@ export type ReportTab =
                 </p>
               </div>
 
-              <div *ngIf="(receivablesData()?.topDebtors?.length || 0) > 0" class="overflow-x-auto">
+              <div *ngIf="receivablesData().topDebtors.length > 0" class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                   <thead class="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                     <tr>
@@ -474,7 +480,7 @@ export type ReportTab =
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-                    <tr *ngFor="let d of receivablesData()?.topDebtors" class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
+                    <tr *ngFor="let d of receivablesData().topDebtors" class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
                       <td class="py-4 px-6 font-bold text-neutral-900 dark:text-white">{{ d.nombre }}</td>
                       <td class="py-4 px-6 font-mono text-neutral-600 dark:text-neutral-400">{{ d.documento }}</td>
                       <td class="py-4 px-6 text-xs text-neutral-500">{{ d.telefono || d.email || '-' }}</td>
@@ -489,7 +495,7 @@ export type ReportTab =
           </div>
 
           <!-- ================= TAB 4: INVENTARIO ================= -->
-          <div *ngIf="activeTab() === 'inventory' && inventoryData()" class="flex flex-col gap-6">
+          <div *ngIf="activeTab() === 'inventory'" class="flex flex-col gap-6">
 
             <!-- Summary KPI Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -497,7 +503,7 @@ export type ReportTab =
                 [title]="'reports.inventory.totalCostValue' | transloco"
                 subtitle="Costo de adquisición"
                 prefix="RD$ "
-                [value]="((inventoryData()?.summary?.totalValorCosto || 0) | number:'1.2-2') || '0.00'"
+                [value]="((inventoryData().summary.totalValorCosto || 0) | number:'1.2-2') || '0.00'"
                 icon="package"
                 curvePreset="asc-sigmoid"
                 color="blue"
@@ -508,7 +514,7 @@ export type ReportTab =
                 [title]="'reports.inventory.totalRetailValue' | transloco"
                 subtitle="Precio de catálogo"
                 prefix="RD$ "
-                [value]="((inventoryData()?.summary?.totalValorVenta || 0) | number:'1.2-2') || '0.00'"
+                [value]="((inventoryData().summary.totalValorVenta || 0) | number:'1.2-2') || '0.00'"
                 icon="tag"
                 curvePreset="peak-wave"
                 color="purple"
@@ -519,7 +525,7 @@ export type ReportTab =
                 [title]="'reports.inventory.potentialProfit' | transloco"
                 subtitle="Margen proyectado"
                 prefix="RD$ "
-                [value]="((inventoryData()?.summary?.gananciaPotencial || 0) | number:'1.2-2') || '0.00'"
+                [value]="((inventoryData().summary.gananciaPotencial || 0) | number:'1.2-2') || '0.00'"
                 icon="trending-up"
                 curvePreset="asc-sigmoid"
                 color="emerald"
@@ -529,7 +535,7 @@ export type ReportTab =
               <app-stat-card
                 [title]="'reports.inventory.lowStockAlerts' | transloco"
                 subtitle="Por debajo del mínimo"
-                [value]="inventoryData()?.summary?.alertaBajoStockCount || 0"
+                [value]="inventoryData().summary.alertaBajoStockCount || 0"
                 suffix=" productos"
                 icon="alert-triangle"
                 curvePreset="trough-wave"
@@ -539,7 +545,7 @@ export type ReportTab =
             </div>
 
             <!-- Healthy stock banner when no low stock alerts -->
-            <div *ngIf="(inventoryData()?.lowStockItems?.length || 0) === 0" class="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-8 text-center dark:border-emerald-900/40 dark:bg-emerald-950/20 flex flex-col items-center justify-center">
+            <div *ngIf="inventoryData().lowStockItems.length === 0" class="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-8 text-center dark:border-emerald-900/40 dark:bg-emerald-950/20 flex flex-col items-center justify-center">
               <img
                 class="max-h-[110px] w-auto select-none pointer-events-none drop-shadow-2xs mb-3"
                 src="illustrations/4.svg"
@@ -554,7 +560,7 @@ export type ReportTab =
             </div>
 
             <!-- Low Stock Items Table -->
-            <div *ngIf="(inventoryData()?.lowStockItems?.length || 0) > 0" class="rounded-2xl border border-rose-200 bg-rose-50/30 dark:border-rose-900/40 dark:bg-rose-950/20 p-6">
+            <div *ngIf="inventoryData().lowStockItems.length > 0" class="rounded-2xl border border-rose-200 bg-rose-50/30 dark:border-rose-900/40 dark:bg-rose-950/20 p-6">
               <h3 class="text-base font-bold text-rose-700 dark:text-rose-400 mb-4 flex items-center gap-2">
                 <mat-icon svgIcon="alert-triangle" class="icon-size-5 text-rose-600"></mat-icon>
                 {{ 'reports.inventory.lowStockNotice' | transloco }}
@@ -571,7 +577,7 @@ export type ReportTab =
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-                    <tr *ngFor="let item of inventoryData()?.lowStockItems">
+                    <tr *ngFor="let item of inventoryData().lowStockItems">
                       <td class="py-3 px-4 font-mono font-bold">{{ item.codigo }}</td>
                       <td class="py-3 px-4 font-semibold">{{ item.nombre }}</td>
                       <td class="py-3 px-4 text-neutral-500">{{ item.almacenNombre }}</td>
@@ -586,7 +592,7 @@ export type ReportTab =
           </div>
 
           <!-- ================= TAB 5: VENTAS POR CLIENTE ================= -->
-          <div *ngIf="activeTab() === 'clients' && clientsData()" class="flex flex-col gap-6">
+          <div *ngIf="activeTab() === 'clients'" class="flex flex-col gap-6">
 
             <div class="rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900 overflow-hidden">
               <div class="p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
@@ -594,11 +600,11 @@ export type ReportTab =
                   {{ 'reports.clients.rankingTitle' | transloco }}
                 </h3>
                 <span class="text-xs text-neutral-500 font-semibold">
-                  Gran Total: RD$ {{ (clientsData()?.grandTotal || 0) | number:'1.2-2' }}
+                  Gran Total: RD$ {{ (clientsData().grandTotal || 0) | number:'1.2-2' }}
                 </span>
               </div>
 
-              <div *ngIf="(clientsData()?.clients?.length || 0) === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div *ngIf="clientsData().clients.length === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
                 <img
                   class="max-h-[130px] w-auto select-none pointer-events-none drop-shadow-2xs mb-4"
                   src="illustrations/1.svg"
@@ -612,7 +618,7 @@ export type ReportTab =
                 </p>
               </div>
 
-              <div *ngIf="(clientsData()?.clients?.length || 0) > 0" class="overflow-x-auto">
+              <div *ngIf="clientsData().clients.length > 0" class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                   <thead class="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                     <tr>
@@ -626,7 +632,7 @@ export type ReportTab =
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-                    <tr *ngFor="let c of clientsData()?.clients; let idx = index" class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
+                    <tr *ngFor="let c of clientsData().clients; let idx = index" class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
                       <td class="py-4 px-6 font-bold text-neutral-400">{{ idx + 1 }}</td>
                       <td class="py-4 px-6 font-bold text-neutral-900 dark:text-white">{{ c.nombre }}</td>
                       <td class="py-4 px-6 font-mono text-neutral-600 dark:text-neutral-400">{{ c.documento }}</td>
@@ -641,6 +647,549 @@ export type ReportTab =
                     </tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ================= TAB 6: FISCAL DGII (606, 607, 608, IT-1) ================= -->
+          <div *ngIf="activeTab() === 'tax-dgii'" class="flex flex-col gap-6">
+
+            <!-- Segmented Sub-Tab Switcher -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 p-1.5 rounded-2xl bg-neutral-200/50 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
+              <button
+                type="button"
+                (click)="taxSubTab = '606'"
+                class="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer select-none"
+                [ngClass]="taxSubTab === '606' ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-xs border border-neutral-200/60 dark:border-neutral-700/60' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'"
+              >
+                <mat-icon svgIcon="shopping-bag" class="icon-size-4"></mat-icon>
+                <span>Formato 606 (Compras)</span>
+              </button>
+              <button
+                type="button"
+                (click)="taxSubTab = '607'"
+                class="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer select-none"
+                [ngClass]="taxSubTab === '607' ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-xs border border-neutral-200/60 dark:border-neutral-700/60' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'"
+              >
+                <mat-icon svgIcon="trending-up" class="icon-size-4"></mat-icon>
+                <span>Formato 607 (Ventas)</span>
+              </button>
+              <button
+                type="button"
+                (click)="taxSubTab = '608'"
+                class="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer select-none"
+                [ngClass]="taxSubTab === '608' ? 'bg-white dark:bg-neutral-800 text-rose-600 dark:text-rose-400 shadow-xs border border-neutral-200/60 dark:border-neutral-700/60' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'"
+              >
+                <mat-icon svgIcon="alert-circle" class="icon-size-4"></mat-icon>
+                <span>Formato 608 (Anulados)</span>
+              </button>
+              <button
+                type="button"
+                (click)="taxSubTab = 'it1'"
+                class="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer select-none"
+                [ngClass]="taxSubTab === 'it1' ? 'bg-white dark:bg-neutral-800 text-emerald-600 dark:text-emerald-400 shadow-xs border border-neutral-200/60 dark:border-neutral-700/60' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'"
+              >
+                <mat-icon svgIcon="landmark" class="icon-size-4"></mat-icon>
+                <span>Borrador IT-1 (Liquidación)</span>
+              </button>
+            </div>
+
+            <!-- Dedicated Fiscal Control & Actions Toolbar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-xs">
+              <div class="flex flex-wrap items-center gap-3">
+                <!-- Month / Year Selector Pill -->
+                <div class="flex items-center gap-1 p-1 rounded-xl bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200/60 dark:border-neutral-700/50">
+                  <button
+                    type="button"
+                    (click)="prevTaxMonth()"
+                    matTooltip="Mes anterior"
+                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <mat-icon svgIcon="chevron-left" class="icon-size-4"></mat-icon>
+                  </button>
+                  <input
+                    type="month"
+                    [(ngModel)]="taxPeriod"
+                    (change)="loadTaxReports()"
+                    class="h-7 px-2.5 text-xs font-bold rounded-lg border-0 bg-transparent text-neutral-900 dark:text-white outline-none cursor-pointer"
+                  />
+                  <button
+                    type="button"
+                    (click)="nextTaxMonth()"
+                    matTooltip="Mes siguiente"
+                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <mat-icon svgIcon="chevron-right" class="icon-size-4"></mat-icon>
+                  </button>
+                </div>
+
+                <!-- Company & Period Metadata Badges -->
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-neutral-200/60 dark:border-neutral-700/50">
+                    RNC: <strong class="ml-1 font-mono text-neutral-900 dark:text-white">{{ currentEmpresa()?.rnc || report606()?.rncEmpresa || '000000000' }}</strong>
+                  </span>
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
+                    Período: <strong class="ml-1 font-mono">{{ taxPeriod }}</strong>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Actions on the right -->
+              <div class="flex items-center gap-2">
+                @if (taxSubTab === '606') {
+                  <button
+                    type="button"
+                    (click)="downloadTaxTxt('606')"
+                    class="flex items-center gap-2 h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                  >
+                    <mat-icon svgIcon="download" class="icon-size-4"></mat-icon>
+                    <span>Descargar TXT DGII</span>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="exportTaxCsv('606')"
+                    class="flex items-center gap-2 h-9 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <mat-icon svgIcon="file-text" class="icon-size-4"></mat-icon>
+                    <span>Exportar CSV</span>
+                  </button>
+                } @else if (taxSubTab === '607') {
+                  <button
+                    type="button"
+                    (click)="downloadTaxTxt('607')"
+                    class="flex items-center gap-2 h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                  >
+                    <mat-icon svgIcon="download" class="icon-size-4"></mat-icon>
+                    <span>Descargar TXT DGII</span>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="exportTaxCsv('607')"
+                    class="flex items-center gap-2 h-9 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <mat-icon svgIcon="file-text" class="icon-size-4"></mat-icon>
+                    <span>Exportar CSV</span>
+                  </button>
+                } @else if (taxSubTab === '608') {
+                  <button
+                    type="button"
+                    (click)="downloadTaxTxt('608')"
+                    class="flex items-center gap-2 h-9 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                  >
+                    <mat-icon svgIcon="download" class="icon-size-4"></mat-icon>
+                    <span>Descargar TXT DGII</span>
+                  </button>
+                } @else if (taxSubTab === 'it1') {
+                  <button
+                    type="button"
+                    (click)="printIt1Form()"
+                    class="flex items-center gap-2 h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                  >
+                    <mat-icon svgIcon="printer" class="icon-size-4"></mat-icon>
+                    <span>Imprimir Declaración IT-1</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- SUB-TAB 1: FORMATO 606 (COMPRAS Y GASTOS) -->
+            <div *ngIf="taxSubTab === '606'" class="flex flex-col gap-6">
+              <!-- Summary KPI Cards -->
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <app-stat-card
+                  title="Total Compras Reportadas"
+                  [subtitle]="(report606()?.summary?.totalRegistros || 0) + ' Comprobantes 606'"
+                  [value]="((report606()?.summary?.totalRegistros || 0) | number) || '0'"
+                  icon="shopping-bag"
+                  curvePreset="asc-sigmoid"
+                  color="blue"
+                  (refresh)="loadTaxReports()"
+                />
+
+                <app-stat-card
+                  title="Monto Total Facturado"
+                  [subtitle]="'Bienes: RD$ ' + (((report606()?.summary?.totalMontoBienes || 0) | number:'1.2-2') || '0.00')"
+                  prefix="RD$ "
+                  [value]="((report606()?.summary?.totalFacturado || 0) | number:'1.2-2') || '0.00'"
+                  icon="dollar-sign"
+                  curvePreset="peak-wave"
+                  color="blue"
+                  (refresh)="loadTaxReports()"
+                />
+
+                <app-stat-card
+                  title="ITBIS Facturado"
+                  subtitle="Crédito fiscal deducible en IT-1"
+                  prefix="RD$ "
+                  [value]="((report606()?.summary?.totalItbisFacturado || 0) | number:'1.2-2') || '0.00'"
+                  icon="percent"
+                  curvePreset="s-curve"
+                  color="emerald"
+                  (refresh)="loadTaxReports()"
+                />
+
+                <app-stat-card
+                  title="Retenciones (ITBIS + ISR)"
+                  [subtitle]="'ITBIS Ret.: RD$ ' + (((report606()?.summary?.totalItbisRetenido || 0) | number:'1.2-2') || '0.00')"
+                  prefix="RD$ "
+                  [value]="(((report606()?.summary?.totalItbisRetenido || 0) + (report606()?.summary?.totalRetencionRenta || 0)) | number:'1.2-2') || '0.00'"
+                  icon="receipt"
+                  curvePreset="trough-wave"
+                  color="amber"
+                  (refresh)="loadTaxReports()"
+                />
+              </div>
+
+              <!-- Table Container -->
+              <div class="rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900 overflow-hidden">
+                <div class="flex items-center justify-between p-6 border-b border-neutral-100 dark:border-neutral-800">
+                  <div class="flex items-center gap-3">
+                    <h3 class="text-base font-bold text-neutral-900 dark:text-white">
+                      Comprobantes Fiscales de Compras (Formato 606)
+                    </h3>
+                    <span class="inline-flex items-center rounded-full bg-neutral-100 dark:bg-neutral-800 px-2.5 py-0.5 text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+                      {{ report606()?.rows?.length || 0 }} registros
+                    </span>
+                  </div>
+                </div>
+
+                @if (!report606() || report606()!.rows.length === 0) {
+                  <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <img
+                      class="max-h-[130px] w-auto select-none pointer-events-none drop-shadow-2xs mb-4"
+                      src="illustrations/1.svg"
+                      alt="Sin compras"
+                    />
+                    <div class="text-base font-bold text-neutral-800 dark:text-neutral-200">
+                      No hay compras registradas en este período
+                    </div>
+                    <p class="mt-1.5 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
+                      Registra facturas de proveedores para generar automáticamente el reporte fiscal 606.
+                    </p>
+                  </div>
+                } @else {
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                      <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 font-bold border-b border-neutral-100 dark:border-neutral-800">
+                        <tr>
+                          <th class="py-3 px-4">#</th>
+                          <th class="py-3 px-4">RNC / Cédula</th>
+                          <th class="py-3 px-4">Proveedor</th>
+                          <th class="py-3 px-4">NCF</th>
+                          <th class="py-3 px-3">Fecha</th>
+                          <th class="py-3 px-4 text-right">Servicios</th>
+                          <th class="py-3 px-4 text-right">Bienes</th>
+                          <th class="py-3 px-4 text-right font-bold">Total Facturado</th>
+                          <th class="py-3 px-4 text-right">ITBIS Fact.</th>
+                          <th class="py-3 px-4 text-right">Retenciones</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
+                        @for (r of report606()!.rows; track r.id; let idx = $index) {
+                          <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
+                            <td class="py-3 px-4 text-neutral-400 font-bold">{{ idx + 1 }}</td>
+                            <td class="py-3 px-4 font-mono font-bold text-neutral-700 dark:text-neutral-300">{{ r.rncCedula || 'N/D' }}</td>
+                            <td class="py-3 px-4 font-medium text-neutral-900 dark:text-white max-w-[200px] truncate">{{ r.proveedorNombre }}</td>
+                            <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">{{ r.ncf }}</td>
+                            <td class="py-3 px-3 text-neutral-500">{{ r.fechaComprobante }}</td>
+                            <td class="py-3 px-4 text-right font-mono">RD$ {{ r.montoServicios | number:'1.2-2' }}</td>
+                            <td class="py-3 px-4 text-right font-mono">RD$ {{ r.montoBienes | number:'1.2-2' }}</td>
+                            <td class="py-3 px-4 text-right font-mono font-bold text-neutral-900 dark:text-white">RD$ {{ r.totalFacturado | number:'1.2-2' }}</td>
+                            <td class="py-3 px-4 text-right font-mono font-semibold text-emerald-600 dark:text-emerald-400">RD$ {{ r.itbisFacturado | number:'1.2-2' }}</td>
+                            <td class="py-3 px-4 text-right font-mono text-amber-600 dark:text-amber-400">
+                              RD$ {{ (r.itbisRetenido + r.retencionRenta) | number:'1.2-2' }}
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- SUB-TAB 2: FORMATO 607 (VENTAS) -->
+            <div *ngIf="taxSubTab === '607'" class="flex flex-col gap-6">
+              <!-- Summary KPI Cards -->
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <app-stat-card
+                  title="Facturas NCF Emitidas"
+                  [subtitle]="(report607()?.summary?.totalRegistros || 0) + ' Comprobantes 607'"
+                  [value]="((report607()?.summary?.totalRegistros || 0) | number) || '0'"
+                  icon="file-text"
+                  curvePreset="asc-sigmoid"
+                  color="blue"
+                  (refresh)="loadTaxReports()"
+                />
+
+                <app-stat-card
+                  title="Monto Total Facturado"
+                  subtitle="Base imponible de ventas"
+                  prefix="RD$ "
+                  [value]="((report607()?.summary?.totalMontoFacturado || 0) | number:'1.2-2') || '0.00'"
+                  icon="dollar-sign"
+                  curvePreset="peak-wave"
+                  color="blue"
+                  (refresh)="loadTaxReports()"
+                />
+
+                <app-stat-card
+                  title="ITBIS Cobrado en Ventas"
+                  subtitle="Débito fiscal para IT-1"
+                  prefix="RD$ "
+                  [value]="((report607()?.summary?.totalItbisFacturado || 0) | number:'1.2-2') || '0.00'"
+                  icon="percent"
+                  curvePreset="s-curve"
+                  color="emerald"
+                  (refresh)="loadTaxReports()"
+                />
+
+                <app-stat-card
+                  title="Ventas a Crédito"
+                  [subtitle]="'Contado: RD$ ' + ((((report607()?.summary?.totalEfectivo || 0) + (report607()?.summary?.totalTarjeta || 0)) | number:'1.2-2') || '0.00')"
+                  prefix="RD$ "
+                  [value]="((report607()?.summary?.totalCredito || 0) | number:'1.2-2') || '0.00'"
+                  icon="clock"
+                  curvePreset="trough-wave"
+                  color="amber"
+                  (refresh)="loadTaxReports()"
+                />
+              </div>
+
+              <!-- Table Container -->
+              <div class="rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900 overflow-hidden">
+                <div class="flex items-center justify-between p-6 border-b border-neutral-100 dark:border-neutral-800">
+                  <div class="flex items-center gap-3">
+                    <h3 class="text-base font-bold text-neutral-900 dark:text-white">
+                      Comprobantes Fiscales de Ventas (Formato 607)
+                    </h3>
+                    <span class="inline-flex items-center rounded-full bg-neutral-100 dark:bg-neutral-800 px-2.5 py-0.5 text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+                      {{ report607()?.rows?.length || 0 }} registros
+                    </span>
+                  </div>
+                </div>
+
+                @if (!report607() || report607()!.rows.length === 0) {
+                  <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <img
+                      class="max-h-[130px] w-auto select-none pointer-events-none drop-shadow-2xs mb-4"
+                      src="illustrations/1.svg"
+                      alt="Sin ventas"
+                    />
+                    <div class="text-base font-bold text-neutral-800 dark:text-neutral-200">
+                      No hay ventas registradas con NCF en este período
+                    </div>
+                    <p class="mt-1.5 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
+                      Emite facturas electrónicas o fiscales para generar automáticamente el reporte 607.
+                    </p>
+                  </div>
+                } @else {
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                      <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 font-bold border-b border-neutral-100 dark:border-neutral-800">
+                        <tr>
+                          <th class="py-3 px-4">#</th>
+                          <th class="py-3 px-4">RNC / Cédula</th>
+                          <th class="py-3 px-4">Cliente</th>
+                          <th class="py-3 px-4">NCF</th>
+                          <th class="py-3 px-3">Fecha</th>
+                          <th class="py-3 px-4 text-right">Monto Facturado</th>
+                          <th class="py-3 px-4 text-right font-bold">ITBIS Facturado</th>
+                          <th class="py-3 px-4 text-right">Efectivo</th>
+                          <th class="py-3 px-4 text-right">Tarjeta</th>
+                          <th class="py-3 px-4 text-right">Crédito</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
+                        @for (r of report607()!.rows; track r.id; let idx = $index) {
+                          <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
+                            <td class="py-3 px-4 text-neutral-400 font-bold">{{ idx + 1 }}</td>
+                            <td class="py-3 px-4 font-mono font-bold text-neutral-700 dark:text-neutral-300">{{ r.rncCedula || 'Consumidor Final' }}</td>
+                            <td class="py-3 px-4 font-medium text-neutral-900 dark:text-white max-w-[200px] truncate">{{ r.clienteNombre }}</td>
+                            <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">{{ r.ncf }}</td>
+                            <td class="py-3 px-3 text-neutral-500">{{ r.fechaComprobante }}</td>
+                            <td class="py-3 px-4 text-right font-mono font-bold text-neutral-900 dark:text-white">RD$ {{ r.montoFacturado | number:'1.2-2' }}</td>
+                            <td class="py-3 px-4 text-right font-mono font-semibold text-emerald-600 dark:text-emerald-400">RD$ {{ r.itbisFacturado | number:'1.2-2' }}</td>
+                            <td class="py-3 px-4 text-right font-mono">RD$ {{ r.montoEfectivo | number:'1.2-2' }}</td>
+                            <td class="py-3 px-4 text-right font-mono">RD$ {{ r.montoTarjeta | number:'1.2-2' }}</td>
+                            <td class="py-3 px-4 text-right font-mono text-amber-600 dark:text-amber-400">RD$ {{ r.montoCredito | number:'1.2-2' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- SUB-TAB 3: FORMATO 608 (ANULADOS) -->
+            <div *ngIf="taxSubTab === '608'" class="flex flex-col gap-6">
+              <!-- Summary KPI Cards -->
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <app-stat-card
+                  title="Total Comprobantes Anulados"
+                  subtitle="Secuencias invalidadas DGII"
+                  [value]="((report608()?.summary?.totalRegistros || 0) | number) || '0'"
+                  icon="alert-circle"
+                  curvePreset="asc-sigmoid"
+                  color="rose"
+                  (refresh)="loadTaxReports()"
+                />
+              </div>
+
+              <!-- Table Container -->
+              <div class="rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900 overflow-hidden">
+                <div class="flex items-center justify-between p-6 border-b border-neutral-100 dark:border-neutral-800">
+                  <div class="flex items-center gap-3">
+                    <h3 class="text-base font-bold text-neutral-900 dark:text-white">
+                      Comprobantes Fiscales Anulados (Formato 608)
+                    </h3>
+                    <span class="inline-flex items-center rounded-full bg-neutral-100 dark:bg-neutral-800 px-2.5 py-0.5 text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+                      {{ report608()?.rows?.length || 0 }} registros
+                    </span>
+                  </div>
+                </div>
+
+                @if (!report608() || report608()!.rows.length === 0) {
+                  <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-3">
+                      <mat-icon svgIcon="check" class="icon-size-6 text-emerald-600 dark:text-emerald-400"></mat-icon>
+                    </div>
+                    <div class="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                      No se registraron comprobantes fiscales anulados
+                    </div>
+                    <p class="mt-1 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
+                      Todas las secuencias NCF emitidas en este período se encuentran activas y válidas.
+                    </p>
+                  </div>
+                } @else {
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                      <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 font-bold border-b border-neutral-100 dark:border-neutral-800">
+                        <tr>
+                          <th class="py-3 px-4">#</th>
+                          <th class="py-3 px-4">NCF Anulado</th>
+                          <th class="py-3 px-4">No. Factura</th>
+                          <th class="py-3 px-4">Fecha de Anulación</th>
+                          <th class="py-3 px-4">Tipo Anulación DGII</th>
+                          <th class="py-3 px-4">Motivo</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
+                        @for (r of report608()!.rows; track r.id; let idx = $index) {
+                          <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
+                            <td class="py-3 px-4 text-neutral-400 font-bold">{{ idx + 1 }}</td>
+                            <td class="py-3 px-4 font-mono font-bold text-rose-600 dark:text-rose-400">{{ r.ncf }}</td>
+                            <td class="py-3 px-4 font-bold">{{ r.numeroFactura }}</td>
+                            <td class="py-3 px-4 text-neutral-500">{{ r.fechaAnulacion }}</td>
+                            <td class="py-3 px-4">
+                              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+                                Tipo {{ r.tipoAnulacion }}
+                              </span>
+                            </td>
+                            <td class="py-3 px-4 text-neutral-500">{{ r.motivo }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- SUB-TAB 4: BORRADOR DECLARACION JURADA IT-1 -->
+            <div *ngIf="taxSubTab === 'it1'" class="flex flex-col gap-6">
+              <div class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 space-y-8 max-w-4xl mx-auto w-full">
+                <!-- IT-1 Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start border-b border-neutral-200 dark:border-neutral-800 pb-6">
+                  <div>
+                    <span class="text-xs uppercase font-extrabold tracking-wider text-emerald-600 dark:text-emerald-400">
+                      DGII · República Dominicana
+                    </span>
+                    <h2 class="text-2xl font-black text-neutral-900 dark:text-white mt-1">
+                      Declaración Jurada y Pago de ITBIS (IT-1)
+                    </h2>
+                    <p class="text-xs text-neutral-500 mt-1">
+                      Borrador Consolidado de Liquidación Tributaria · Período Fiscal {{ reportIt1()?.periodo || taxPeriod }}
+                    </p>
+                  </div>
+                  <div class="mt-4 sm:mt-0 text-right">
+                    <div class="text-xs font-bold text-neutral-500">RNC Contribuyente</div>
+                    <div class="text-sm font-mono font-black text-neutral-900 dark:text-white">
+                      {{ reportIt1()?.rncEmpresa || currentEmpresa()?.rnc || '000000000' }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Seccion I: Operaciones Reportadas -->
+                <div class="space-y-3">
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-bold">I</span>
+                    Operaciones Reportadas en el Período (Débito Fiscal)
+                  </h3>
+                  <div class="border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden text-xs">
+                    <div class="flex justify-between items-center p-3 bg-neutral-50/50 dark:bg-neutral-800/20 border-b border-neutral-100 dark:border-neutral-800">
+                      <span><strong>Casilla 1:</strong> Total de Ingresos por Operaciones</span>
+                      <span class="font-mono font-bold text-sm">RD$ {{ (reportIt1()?.operaciones?.totalIngresos || 0) | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 border-b border-neutral-100 dark:border-neutral-800">
+                      <span class="text-neutral-600 dark:text-neutral-400"><strong>Casilla 2:</strong> Ingresos Exentos por Ley</span>
+                      <span class="font-mono">RD$ {{ (reportIt1()?.operaciones?.ingresosExentos || 0) | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 border-b border-neutral-100 dark:border-neutral-800">
+                      <span class="text-neutral-600 dark:text-neutral-400"><strong>Casilla 11:</strong> Operaciones Gravadas a la Tasa del 18%</span>
+                      <span class="font-mono">RD$ {{ (reportIt1()?.operaciones?.ingresosGravados18 || 0) | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-blue-50/40 dark:bg-blue-950/20 text-blue-900 dark:text-blue-300 font-bold">
+                      <span><strong>Casilla 15:</strong> Total ITBIS Cobrado en Operaciones</span>
+                      <span class="font-mono text-sm">RD$ {{ (reportIt1()?.operaciones?.totalItbisCobrado || 0) | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Seccion II: Liquidación y Deducciones -->
+                <div class="space-y-3">
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-bold">II</span>
+                    Deducciones e ITBIS Pagado en Compras (Crédito Fiscal)
+                  </h3>
+                  <div class="border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden text-xs">
+                    <div class="flex justify-between items-center p-3 border-b border-neutral-100 dark:border-neutral-800">
+                      <span class="text-neutral-600 dark:text-neutral-400"><strong>Casilla 23:</strong> ITBIS Pagado en Compras Locales de Bienes</span>
+                      <span class="font-mono">RD$ {{ (reportIt1()?.deducciones?.itbisComprasLocales || 0) | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 border-b border-neutral-100 dark:border-neutral-800">
+                      <span class="text-neutral-600 dark:text-neutral-400"><strong>Casilla 24:</strong> ITBIS Pagado por Servicios Deducibles</span>
+                      <span class="font-mono">RD$ {{ (reportIt1()?.deducciones?.itbisServiciosDeducibles || 0) | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-neutral-50/50 dark:bg-neutral-800/20 border-b border-neutral-100 dark:border-neutral-800 font-bold">
+                      <span><strong>Casilla 26:</strong> Total ITBIS Deducible (Crédito Fiscal)</span>
+                      <span class="font-mono text-emerald-600 dark:text-emerald-400">RD$ {{ (reportIt1()?.deducciones?.totalItbisDeducible || 0) | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 border-b border-neutral-100 dark:border-neutral-800">
+                      <span class="text-neutral-600 dark:text-neutral-400"><strong>Casilla 28:</strong> ITBIS Retenido por Terceros</span>
+                      <span class="font-mono text-amber-600 dark:text-amber-400">RD$ {{ (reportIt1()?.deducciones?.itbisRetenido || 0) | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Seccion III: Resultado Final de Liquidación -->
+                <div class="p-6 rounded-2xl border" [ngClass]="(reportIt1()?.liquidacion?.itbisAPagar || 0) > 0 ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/60 dark:border-amber-500/20' : 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-500/20'">
+                  <div class="flex flex-col sm:flex-row justify-between items-baseline gap-2">
+                    <div>
+                      <span class="text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
+                        {{ (reportIt1()?.liquidacion?.itbisAPagar || 0) > 0 ? 'Casilla 33: TOTAL ITBIS A PAGAR A LA DGII' : 'Casilla 34: SALDO A FAVOR DEL CONTRIBUYENTE' }}
+                      </span>
+                      <p class="text-xs text-neutral-500 mt-0.5">
+                        Liquidación neta (ITBIS Cobrado en Ventas - ITBIS Deducible en Compras - Retenciones)
+                      </p>
+                    </div>
+                    <div class="text-3xl font-black" [ngClass]="(reportIt1()?.liquidacion?.itbisAPagar || 0) > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'">
+                      RD$ {{ ((reportIt1()?.liquidacion?.itbisAPagar || 0) > 0 ? reportIt1()?.liquidacion?.itbisAPagar : reportIt1()?.liquidacion?.saldoAFavor) | number:'1.2-2' }}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -673,6 +1222,10 @@ export default class ReportsComponent implements OnInit {
   dateFrom = '';
   dateTo = '';
 
+  // Fiscal DGII State
+  taxSubTab: '606' | '607' | '608' | 'it1' = '606';
+  taxPeriod = this.getDefaultTaxPeriod();
+
   datePresets = [
     { value: 'today', label: 'common.today' },
     { value: 'thisMonth', label: 'common.thisMonth' },
@@ -692,6 +1245,7 @@ export default class ReportsComponent implements OnInit {
     { key: 'receivables' as ReportTab, label: 'reports.tabs.receivables', icon: 'clock' },
     { key: 'inventory' as ReportTab, label: 'reports.tabs.inventory', icon: 'boxes' },
     { key: 'clients' as ReportTab, label: 'reports.tabs.clients', icon: 'users' },
+    { key: 'tax-dgii' as ReportTab, label: 'reports.tabs.taxDgii', icon: 'file-text' },
   ];
 
   salesData = this.reportsService.salesReport;
@@ -700,11 +1254,102 @@ export default class ReportsComponent implements OnInit {
   inventoryData = this.reportsService.inventoryReport;
   clientsData = this.reportsService.salesByClientReport;
 
+  report606 = this.reportsService.report606;
+  report607 = this.reportsService.report607;
+  report608 = this.reportsService.report608;
+  reportIt1 = this.reportsService.reportIt1;
+
   maxSalesPoint = computed(() => {
-    const points = this.salesData()?.timeSeries || [];
+    const points = this.salesData().timeSeries || [];
     if (points.length === 0) return 1;
     return Math.max(...points.map((p) => p.total), 1);
   });
+
+  private getDefaultTaxPeriod(): string {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }
+
+  prevTaxMonth(): void {
+    const [yStr, mStr] = this.taxPeriod.split('-');
+    let y = parseInt(yStr, 10);
+    let m = parseInt(mStr, 10) - 1;
+    if (m < 1) {
+      m = 12;
+      y -= 1;
+    }
+    this.taxPeriod = `${y}-${String(m).padStart(2, '0')}`;
+    this.loadTaxReports();
+  }
+
+  nextTaxMonth(): void {
+    const [yStr, mStr] = this.taxPeriod.split('-');
+    let y = parseInt(yStr, 10);
+    let m = parseInt(mStr, 10) + 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+    this.taxPeriod = `${y}-${String(m).padStart(2, '0')}`;
+    this.loadTaxReports();
+  }
+
+  loadTaxReports(): void {
+    const periodClean = this.taxPeriod.replace('-', '');
+    this.reportsService.get606(periodClean).subscribe();
+    this.reportsService.get607(periodClean).subscribe();
+    this.reportsService.get608(periodClean).subscribe();
+    this.reportsService.getIt1(periodClean).subscribe();
+  }
+
+  downloadTaxTxt(type: '606' | '607' | '608'): void {
+    const periodClean = this.taxPeriod.replace('-', '');
+    this.reportsService.downloadTaxTxt(type, periodClean);
+  }
+
+  exportTaxCsv(type: '606' | '607' | '608'): void {
+    const periodClean = this.taxPeriod.replace('-', '');
+    let csvContent = '';
+    let filename = `DGII_${type}_${periodClean}.csv`;
+
+    if (type === '606') {
+      const rep = this.report606();
+      if (!rep || rep.rows.length === 0) {
+        this.snackBar.open('No hay datos en el 606 para exportar', 'Cerrar', { duration: 3000 });
+        return;
+      }
+      csvContent = 'RNC_Cedula,Tipo_ID,Tipo_Gasto,NCF,NCF_Modificado,Fecha_Comprobante,Fecha_Pago,Monto_Servicios,Monto_Bienes,Total_Facturado,ITBIS_Facturado,ITBIS_Retenido,Retencion_Renta,Forma_Pago,Proveedor\n';
+      for (const r of rep.rows) {
+        csvContent += `"${r.rncCedula}","${r.tipoId}","${r.tipoGasto}","${r.ncf}","${r.ncfModificado}","${r.fechaComprobante}","${r.fechaPago}",${r.montoServicios},${r.montoBienes},${r.totalFacturado},${r.itbisFacturado},${r.itbisRetenido},${r.retencionRenta},"${r.formaPago}","${r.proveedorNombre}"\n`;
+      }
+    } else if (type === '607') {
+      const rep = this.report607();
+      if (!rep || rep.rows.length === 0) {
+        this.snackBar.open('No hay datos en el 607 para exportar', 'Cerrar', { duration: 3000 });
+        return;
+      }
+      csvContent = 'RNC_Cedula,Tipo_ID,NCF,NCF_Modificado,Tipo_Ingreso,Fecha_Comprobante,Monto_Facturado,ITBIS_Facturado,Efectivo,Cheque_Transf,Tarjeta,Credito,Cliente\n';
+      for (const r of rep.rows) {
+        csvContent += `"${r.rncCedula}","${r.tipoId}","${r.ncf}","${r.ncfModificado}","${r.tipoIngreso}","${r.fechaComprobante}",${r.montoFacturado},${r.itbisFacturado},${r.montoEfectivo},${r.montoChequeTransf},${r.montoTarjeta},${r.montoCredito},"${r.clienteNombre}"\n`;
+      }
+    }
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  printIt1Form(): void {
+    this.printReport();
+  }
 
   ngOnInit(): void {
     this.applyDatePreset('thisMonth');
@@ -774,6 +1419,9 @@ export default class ReportsComponent implements OnInit {
       case 'clients':
         this.reportsService.getSalesByClient(filter).subscribe();
         break;
+      case 'tax-dgii':
+        this.loadTaxReports();
+        break;
     }
   }
 
@@ -790,11 +1438,15 @@ export default class ReportsComponent implements OnInit {
       case 'receivables': return 'ESTADO DE CUENTAS POR COBRAR Y ANTIGÜEDAD';
       case 'inventory': return 'VALORACIÓN DE INVENTARIO Y CONTROL DE STOCK';
       case 'clients': return 'CONSOLIDADO DE VENTAS POR CLIENTE';
+      case 'tax-dgii': return 'REPORTES FISCALES DGII Y LIQUIDACIÓN IT-1';
       default: return 'REPORTE GENERAL';
     }
   }
 
   getReportPeriodLabel(): string {
+    if (this.activeTab() === 'tax-dgii') {
+      return `Período Fiscal ${this.taxPeriod}`;
+    }
     if (this.activeTab() === 'inventory' || this.activeTab() === 'receivables') {
       return 'Al corte actual';
     }
@@ -966,7 +1618,7 @@ export default class ReportsComponent implements OnInit {
           <tbody>
             ${top.length === 0 ? `
               <tr><td colspan="7" class="text-center" style="padding: 16px; color: #64748b;">No hay registros de ventas para este período.</td></tr>
-            ` : top.map((p, idx) => `
+            ` : top.map((p: any, idx: number) => `
               <tr style="${idx % 2 === 1 ? 'background-color: #f8fafc;' : ''}">
                 <td style="color: #94a3b8; font-weight: bold;">${idx + 1}</td>
                 <td class="mono font-bold">${p.codigo}</td>
@@ -1133,6 +1785,104 @@ export default class ReportsComponent implements OnInit {
               <td colspan="5" class="text-right font-black">GRAN TOTAL FACTURADO:</td>
               <td class="text-right mono font-black">${this.formatCurrency(cData?.grandTotal)}</td>
               <td class="text-right mono font-black">100.0%</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+    } else if (tab === 'tax-dgii') {
+      const it1 = this.reportIt1();
+      bodyContent = `
+        <div class="kpi-grid">
+          <div class="kpi-box">
+            <div class="kpi-label">Casilla 1: Total Ingresos</div>
+            <div class="kpi-val">${this.formatCurrency(it1?.operaciones?.totalIngresos)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Casilla 15: ITBIS Cobrado</div>
+            <div class="kpi-val" style="color: #2563eb;">${this.formatCurrency(it1?.operaciones?.totalItbisCobrado)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Casilla 26: ITBIS Deducible</div>
+            <div class="kpi-val" style="color: #047857;">${this.formatCurrency(it1?.deducciones?.totalItbisDeducible)}</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">${(it1?.liquidacion?.itbisAPagar || 0) > 0 ? 'Casilla 33: A Pagar DGII' : 'Casilla 34: Saldo a Favor'}</div>
+            <div class="kpi-val" style="color: ${(it1?.liquidacion?.itbisAPagar || 0) > 0 ? '#d97706' : '#047857'};">
+              ${this.formatCurrency((it1?.liquidacion?.itbisAPagar || 0) > 0 ? it1?.liquidacion?.itbisAPagar : it1?.liquidacion?.saldoAFavor)}
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">I. Operaciones Reportadas en el Período (Débito Fiscal)</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="text-left" style="width: 60px;">Casilla</th>
+              <th class="text-left">Descripción del Concepto Tributario</th>
+              <th class="text-right">Monto Acumulado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-bold mono">01</td>
+              <td>Total de Ingresos por Operaciones</td>
+              <td class="text-right mono font-bold">${this.formatCurrency(it1?.operaciones?.totalIngresos)}</td>
+            </tr>
+            <tr>
+              <td class="font-bold mono">02</td>
+              <td>Ingresos Exentos por Ley</td>
+              <td class="text-right mono">${this.formatCurrency(it1?.operaciones?.ingresosExentos)}</td>
+            </tr>
+            <tr>
+              <td class="font-bold mono">11</td>
+              <td>Operaciones Gravadas a la Tasa del 18%</td>
+              <td class="text-right mono">${this.formatCurrency(it1?.operaciones?.ingresosGravados18)}</td>
+            </tr>
+            <tr style="background-color: #eff6ff; font-weight: bold;">
+              <td class="font-bold mono" style="color: #1d4ed8;">15</td>
+              <td style="color: #1d4ed8;">Total ITBIS Cobrado en Operaciones (Débito Fiscal)</td>
+              <td class="text-right mono" style="color: #1d4ed8;">${this.formatCurrency(it1?.operaciones?.totalItbisCobrado)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="section-title" style="margin-top: 20px;">II. Deducciones e ITBIS Pagado en Compras (Crédito Fiscal)</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="text-left" style="width: 60px;">Casilla</th>
+              <th class="text-left">Descripción del Concepto Tributario</th>
+              <th class="text-right">Monto Deducible</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-bold mono">23</td>
+              <td>ITBIS Pagado en Compras Locales de Bienes</td>
+              <td class="text-right mono">${this.formatCurrency(it1?.deducciones?.itbisComprasLocales)}</td>
+            </tr>
+            <tr>
+              <td class="font-bold mono">24</td>
+              <td>ITBIS Pagado por Servicios Deducibles</td>
+              <td class="text-right mono">${this.formatCurrency(it1?.deducciones?.itbisServiciosDeducibles)}</td>
+            </tr>
+            <tr style="background-color: #f0fdf4; font-weight: bold;">
+              <td class="font-bold mono" style="color: #15803d;">26</td>
+              <td style="color: #15803d;">Total ITBIS Deducible (Crédito Fiscal)</td>
+              <td class="text-right mono" style="color: #15803d;">${this.formatCurrency(it1?.deducciones?.totalItbisDeducible)}</td>
+            </tr>
+            <tr>
+              <td class="font-bold mono">28</td>
+              <td>ITBIS Retenido por Terceros</td>
+              <td class="text-right mono" style="color: #b45309;">${this.formatCurrency(it1?.deducciones?.itbisRetenido)}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="2" class="text-right font-black">${(it1?.liquidacion?.itbisAPagar || 0) > 0 ? 'CASILLA 33: TOTAL ITBIS A PAGAR A LA DGII:' : 'CASILLA 34: SALDO A FAVOR DEL CONTRIBUYENTE:'}</td>
+              <td class="text-right mono font-black" style="color: ${(it1?.liquidacion?.itbisAPagar || 0) > 0 ? '#b45309' : '#15803d'};">
+                ${this.formatCurrency((it1?.liquidacion?.itbisAPagar || 0) > 0 ? it1?.liquidacion?.itbisAPagar : it1?.liquidacion?.saldoAFavor)}
+              </td>
             </tr>
           </tfoot>
         </table>

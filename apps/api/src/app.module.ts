@@ -32,6 +32,9 @@ import { FiscalbridgeWebhookModule } from './modules/invoices/fiscalbridge-webho
 import { CreditNotesModule } from './modules/credit-notes/credit-notes.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { TenantApiModule } from './modules/tenant-api/tenant-api.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
+import { PurchasesModule } from './modules/purchases/purchases.module';
+import { QuotesModule } from './modules/quotes/quotes.module';
 
 @Module({
   imports: [
@@ -106,6 +109,9 @@ import { TenantApiModule } from './modules/tenant-api/tenant-api.module';
     CreditNotesModule,
     ReportsModule,
     TenantApiModule,
+    PromotionsModule,
+    PurchasesModule,
+    QuotesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

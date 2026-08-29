@@ -33,13 +33,15 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('No tienes permisos asignados');
     }
 
-    if (!this.prisma)
-      return (
-        user.permissions.includes('*') ||
-        requiredPermissions.every((permission) =>
-          user.permissions.includes(permission),
-        )
+    if (user.permissions.includes('*')) {
+      return true;
+    }
+
+    if (!this.prisma) {
+      return requiredPermissions.every((permission) =>
+        user.permissions.includes(permission),
       );
+    }
 
     const company = user.empresaId
       ? await this.prisma.empresa.findUnique({
@@ -48,8 +50,9 @@ export class PermissionsGuard implements CanActivate {
         })
       : null;
     if (!company) throw new ForbiddenException('Empresa activa inválida');
-    if (company.propietarioId === user.id && user.permissions.includes('*'))
+    if (company.propietarioId === user.id) {
       return true;
+    }
 
     const membership = await this.prisma.membresia.findUnique({
       where: {

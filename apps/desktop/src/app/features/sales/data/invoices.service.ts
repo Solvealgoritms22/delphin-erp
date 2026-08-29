@@ -13,6 +13,10 @@ export type FacturaVentaDetalle = {
     codigo: string;
     precioVenta: number;
     taxRate: number;
+    enOferta?: boolean;
+    precioOferta?: number | null;
+    descuentoPorcentaje?: number | null;
+    descuentoMaximo?: number | null;
     impuesto?: {
       id: string;
       codigo: string;
@@ -22,6 +26,11 @@ export type FacturaVentaDetalle = {
   };
   cantidad: number;
   precioUnitario: number;
+  precioLista?: number;
+  descuento?: number;
+  porcentajeDescuento?: number;
+  promocionId?: string | null;
+  promocionNombre?: string | null;
   tasaItbis: number;
   itbis: number;
   subtotal: number;
@@ -84,6 +93,11 @@ export type InvoiceItemDto = {
   productoId: string;
   cantidad: number;
   precioUnitario: number;
+  precioLista?: number;
+  descuento?: number;
+  porcentajeDescuento?: number;
+  promocionId?: string | null;
+  promocionNombre?: string | null;
   tasaItbis?: number;
   impuestoId?: string;
 }
@@ -98,6 +112,8 @@ export type CreateInvoiceDto = {
   ncfModificado?: string;
   motivoModificacion?: string;
   notas?: string;
+  descuento?: number;
+  codigoCupon?: string;
   items: InvoiceItemDto[];
   moneda?: string;
   esBorrador?: boolean;

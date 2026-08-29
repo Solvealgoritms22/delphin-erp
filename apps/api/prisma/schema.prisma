@@ -69,6 +69,11 @@ model Empresa {
   pagosCliente   PagoCliente[]
   productosInsumos ProductoInsumo[]
   apiApps        TenantApiApp[]
+  promociones    Promocion[]
+  promocionesProductos PromocionProducto[]
+  facturasCompra FacturaCompra[]
+  pagosProveedor PagoProveedor[]
+  cotizaciones   Cotizacion[]
 
   @@map("empresas")
 }
@@ -88,6 +93,8 @@ model Sucursal {
   empresa      Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   almacenes    Almacen[]
   facturasVenta FacturaVenta[]
+  facturasCompra FacturaCompra[]
+  cotizaciones  Cotizacion[]
 
   @@unique([empresaId, nombre])
   @@map("sucursales")
@@ -118,6 +125,10 @@ model Usuario {
   pushSubscriptions PushSubscription[]
   empresasPropiedad Empresa[] @relation("EmpresasPropiedad")
   facturasVenta  FacturaVenta[]
+  facturasCompra FacturaCompra[]
+  pagosProveedor PagoProveedor[]
+  pagosCliente   PagoCliente[]
+  cotizaciones   Cotizacion[]
   aiConversaciones AiConversation[]
   backups              Backup[]             @relation("BackupsPropietario")
   googleDriveConnection GoogleDriveConnection?
@@ -348,6 +359,7 @@ model Categoria {
   
   empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   productos   Producto[]
+  promociones Promocion[]
 
   @@unique([empresaId, nombre])
   @@map("categorias")
@@ -362,6 +374,7 @@ model Marca {
 
   empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   productos   Producto[]
+  promociones Promocion[]
 
   @@unique([empresaId, nombre])
   @@map("marcas")
@@ -416,6 +429,17 @@ model Producto {
   facturasDetalle  FacturaVentaDetalle[]
   insumos          ProductoInsumo[] @relation("InsumosDelProducto")
   usadoComoInsumo  ProductoInsumo[] @relation("ProductoComoInsumo")
+  promocionesProductos PromocionProducto[]
+  comprasDetalle   FacturaCompraDetalle[]
+  cotizacionesDetalle CotizacionDetalle[]
+
+  // Ofertas y Descuentos del Producto
+  enOferta              Boolean       @default(false) @map("en_oferta")
+  precioOferta          Decimal?      @map("precio_oferta") @db.Decimal(12, 2)
+  descuentoPorcentaje   Decimal?      @default(0) @map("descuento_porcentaje") @db.Decimal(5, 2)
+  ofertaDesde           DateTime?     @map("oferta_desde")
+  ofertaHasta           DateTime?     @map("oferta_hasta")
+  descuentoMaximo       Decimal?      @default(100) @map("descuento_maximo") @db.Decimal(5, 2)
 
   @@unique([empresaId, codigo])
   @@map("productos")
@@ -457,6 +481,8 @@ model Almacen {
   sucursal    Sucursal? @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
   stocks      InventarioStock[]
   facturasVenta FacturaVenta[]
+  facturasCompra FacturaCompra[]
+  cotizaciones  Cotizacion[]
 
   @@unique([empresaId, nombre])
   @@map("almacenes")
@@ -522,6 +548,7 @@ model Cliente {
   empresa           Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   facturasVenta     FacturaVenta[]
   pagos             PagoCliente[]
+  cotizaciones      Cotizacion[]
 
   @@unique([empresaId, numeroDocumento])
   @@map("clientes")
@@ -543,6 +570,8 @@ model Proveedor {
   actualizadoEn     DateTime  @updatedAt @map("actualizado_en")
 
   empresa           Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  facturasCompra    FacturaCompra[]
+  pagos             PagoProveedor[]
 
   @@unique([empresaId, numeroDocumento])
   @@map("proveedores")
@@ -731,6 +760,7 @@ model FacturaVenta {
   impuestos                ImpuestoFactura[]
   pagosAplicados           AplicacionPago[]
   terminoPago              TerminoPago? @relation(fields: [terminoPagoId], references: [id], onDelete: SetNull)
+  cotizaciones             Cotizacion[]
 
   @@unique([empresaId, numeroFactura])
   @@index([empresaId, ncf])
@@ -748,6 +778,11 @@ model FacturaVentaDetalle {
   tasaItbis      Decimal      @default(18) @map("tasa_itbis") @db.Decimal(5, 2)
   impuestoId     String?      @map("impuesto_id")
   indicadorFacturacion String? @map("indicador_facturacion")
+  descuento      Decimal      @default(0) @db.Decimal(12, 2)
+  porcentajeDescuento Decimal? @default(0) @map("porcentaje_descuento") @db.Decimal(5, 2)
+  precioLista    Decimal?     @map("precio_lista") @db.Decimal(12, 2)
+  promocionId    String?      @map("promocion_id")
+  promocionNombre String?     @map("promocion_nombre")
   itbis          Decimal      @db.Decimal(12, 2)
   subtotal       Decimal      @db.Decimal(12, 2)
   total          Decimal      @db.Decimal(12, 2)
@@ -759,6 +794,7 @@ model FacturaVentaDetalle {
   factura        FacturaVenta @relation(fields: [facturaId], references: [id], onDelete: Cascade)
   producto       Producto     @relation(fields: [productoId], references: [id], onDelete: Restrict)
   impuesto       Impuesto?    @relation(fields: [impuestoId], references: [id], onDelete: SetNull)
+  promocion      Promocion?   @relation(fields: [promocionId], references: [id], onDelete: SetNull)
   impuestos      ImpuestoFactura[]
 
   @@index([facturaId])
@@ -855,6 +891,7 @@ model TerminoPago {
 model PagoCliente {
   id             String   @id @default(uuid())
   empresaId      String   @map("empresa_id")
+  numeroRecibo   String?  @map("numero_recibo")
   clienteId      String   @map("cliente_id")
   moneda         String   @default("DOP") @db.VarChar(3)
   monto          Decimal  @db.Decimal(12, 2)
@@ -862,15 +899,17 @@ model PagoCliente {
   metodo         String
   referencia     String?
   fechaPago      DateTime @default(now()) @map("fecha_pago")
-  estado         String   @default("REGISTRADO")
+  estado         String   @default("REGISTRADO") // REGISTRADO, ANULADO
   usuarioId      String   @map("usuario_id")
   notas          String?
   creadoEn       DateTime @default(now()) @map("creado_en")
 
   empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
   aplicaciones AplicacionPago[]
   @@index([empresaId, clienteId, fechaPago])
+  @@index([empresaId, numeroRecibo])
   @@map("pagos_clientes")
 }
 
@@ -940,4 +979,244 @@ model TenantApiApp {
   @@index([empresaId, estado])
   @@map("tenant_api_apps")
 }
+
+// ------------------------------------------------------
+// Fase Promociones y Descuentos
+// ------------------------------------------------------
+
+model Promocion {
+  id              String              @id @default(uuid())
+  empresaId       String              @map("empresa_id")
+  nombre          String
+  descripcion     String?             @db.Text
+  codigoCupon     String?             @map("codigo_cupon")
+  tipoDescuento   String              @default("PORCENTAJE") @map("tipo_descuento") // "PORCENTAJE", "MONTO_FIJO", "PRECIO_FIJO"
+  valorDescuento  Decimal             @map("valor_descuento") @db.Decimal(12, 2)
+  alcance         String              @default("PRODUCTOS") // "TODOS", "CATEGORIA", "MARCA", "PRODUCTOS"
+  categoriaId     String?             @map("categoria_id")
+  marcaId         String?             @map("marca_id")
+  fechaInicio     DateTime            @map("fecha_inicio")
+  fechaFin        DateTime            @map("fecha_fin")
+  cantidadMinima  Decimal?            @default(1) @map("cantidad_minima") @db.Decimal(12, 2)
+  montoMinimo     Decimal?            @default(0) @map("monto_minimo") @db.Decimal(12, 2)
+  limiteUsos      Int?                @map("limite_usos")
+  usosActuales    Int                 @default(0) @map("usos_actuales")
+  esAcumulable    Boolean             @default(false) @map("es_acumulable")
+  prioridad       Int                 @default(0)
+  estado          String              @default("ACTIVO") // "ACTIVO", "INACTIVO", "EXPIRADO", "PAUSADO"
+  creadoEn        DateTime            @default(now()) @map("creado_en")
+  actualizadoEn   DateTime            @updatedAt @map("actualizado_en")
+
+  empresa         Empresa             @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  categoria       Categoria?          @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  marca           Marca?              @relation(fields: [marcaId], references: [id], onDelete: SetNull)
+  productos       PromocionProducto[]
+  detallesFactura FacturaVentaDetalle[]
+
+  @@unique([empresaId, codigoCupon])
+  @@index([empresaId, estado, fechaInicio, fechaFin])
+  @@map("promociones")
+}
+
+model PromocionProducto {
+  id          String    @id @default(uuid())
+  empresaId   String    @map("empresa_id")
+  promocionId String    @map("promocion_id")
+  productoId  String    @map("producto_id")
+  creadoEn    DateTime  @default(now()) @map("creado_en")
+
+  empresa     Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  promocion   Promocion @relation(fields: [promocionId], references: [id], onDelete: Cascade)
+  producto    Producto  @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@unique([promocionId, productoId])
+  @@index([empresaId, productoId])
+  @@map("promociones_productos")
+}
+
+// ------------------------------------------------------
+// Fase 7 - Compras y Cuentas por Pagar (CxP)
+// ------------------------------------------------------
+
+model FacturaCompra {
+  id                   String                  @id @default(uuid())
+  empresaId            String                  @map("empresa_id")
+  sucursalId           String?                 @map("sucursal_id")
+  almacenId            String?                 @map("almacen_id")
+  proveedorId          String                  @map("proveedor_id")
+  usuarioId            String?                 @map("usuario_id")
+
+  numeroFactura        String                  @map("numero_factura") // Secuencia interna: ej COM-0001
+  ncf                  String?                 // NCF del proveedor: B01, B11, B13, E31, E41, etc.
+  ncfModificado        String?                 @map("ncf_modificado") // Para notas de crédito de proveedores
+  tipoNcf              String?                 @map("tipo_ncf") // B01, B11, B13, E31, E41
+  tipoGasto            String?                 @map("tipo_gasto") // Clasificación DGII 606: 01 a 11
+  fecha                DateTime                @default(now())
+  fechaVencimiento     DateTime?               @map("fecha_vencimiento")
+  estado               String                  @default("REGISTRADA") // REGISTRADA, PAGADA_PARCIAL, PAGADA, ANULADA
+  tipoPago             String                  @default("CONTADO") @map("tipo_pago") // CONTADO, CREDITO
+  metodoPago           String                  @default("TRANSFERENCIA") @map("metodo_pago") // EFECTIVO, TRANSFERENCIA, CHEQUE, TARJETA, OTRO
+
+  subtotal             Decimal                 @db.Decimal(12, 2)
+  descuento            Decimal                 @default(0) @db.Decimal(12, 2)
+  itbis                Decimal                 @default(0) @db.Decimal(12, 2)
+  itbisRetenido        Decimal                 @default(0) @map("itbis_retenido") @db.Decimal(12, 2)
+  retencionRenta       Decimal                 @default(0) @map("retencion_renta") @db.Decimal(12, 2)
+  total                Decimal                 @db.Decimal(12, 2)
+  montoPagado          Decimal                 @default(0) @map("monto_pagado") @db.Decimal(12, 2)
+  balancePendiente     Decimal                 @default(0) @map("balance_pendiente") @db.Decimal(12, 2)
+  moneda               String                  @default("DOP") @db.VarChar(3)
+  tasaCambio           Decimal                 @default(1) @map("tasa_cambio") @db.Decimal(18, 8)
+
+  notas                String?
+  creadoEn             DateTime                @default(now()) @map("creado_en")
+  actualizadoEn        DateTime                @updatedAt @map("actualizado_en")
+
+  empresa              Empresa                 @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  sucursal             Sucursal?               @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
+  almacen              Almacen?                @relation(fields: [almacenId], references: [id], onDelete: SetNull)
+  proveedor            Proveedor               @relation(fields: [proveedorId], references: [id], onDelete: Restrict)
+  usuario              Usuario?                @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  detalles             FacturaCompraDetalle[]
+  pagosAplicados       AplicacionPagoProveedor[]
+
+  @@unique([empresaId, numeroFactura])
+  @@index([empresaId, proveedorId, fecha(sort: Desc)])
+  @@index([empresaId, estado])
+  @@map("facturas_compra")
+}
+
+model FacturaCompraDetalle {
+  id               String        @id @default(uuid())
+  facturaCompraId  String        @map("factura_compra_id")
+  productoId       String?       @map("producto_id")
+  descripcion      String
+  cantidad         Decimal       @db.Decimal(12, 2)
+  costoUnitario    Decimal       @map("costo_unitario") @db.Decimal(12, 2)
+  descuento        Decimal       @default(0) @db.Decimal(12, 2)
+  tasaItbis        Decimal       @default(18) @map("tasa_itbis") @db.Decimal(5, 2)
+  itbis            Decimal       @default(0) @db.Decimal(12, 2)
+  subtotal         Decimal       @db.Decimal(12, 2)
+  total            Decimal       @db.Decimal(12, 2)
+  afectaInventario Boolean       @default(true) @map("afecta_inventario")
+
+  facturaCompra    FacturaCompra @relation(fields: [facturaCompraId], references: [id], onDelete: Cascade)
+  producto         Producto?     @relation(fields: [productoId], references: [id], onDelete: SetNull)
+
+  @@index([facturaCompraId])
+  @@map("facturas_compra_detalles")
+}
+
+model PagoProveedor {
+  id           String                   @id @default(uuid())
+  empresaId    String                   @map("empresa_id")
+  proveedorId  String                   @map("proveedor_id")
+  usuarioId    String                   @map("usuario_id")
+  moneda       String                   @default("DOP") @db.VarChar(3)
+  monto        Decimal                  @db.Decimal(12, 2)
+  tasaCambio   Decimal                  @default(1) @map("tasa_cambio") @db.Decimal(18, 8)
+  metodo       String                   // TRANSFERENCIA, CHEQUE, EFECTIVO, OTRO
+  referencia   String?                  // No. Cheque / Comprobante de Transferencia
+  fechaPago    DateTime                 @default(now()) @map("fecha_pago")
+  estado       String                   @default("REGISTRADO")
+  notas        String?
+  creadoEn     DateTime                 @default(now()) @map("creado_en")
+
+  empresa      Empresa                  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  proveedor    Proveedor                @relation(fields: [proveedorId], references: [id], onDelete: Restrict)
+  usuario      Usuario                  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  aplicaciones AplicacionPagoProveedor[]
+
+  @@index([empresaId, proveedorId, fechaPago])
+  @@map("pagos_proveedores")
+}
+
+model AplicacionPagoProveedor {
+  id              String        @id @default(uuid())
+  pagoId          String        @map("pago_id")
+  facturaCompraId String        @map("factura_compra_id")
+  monto           Decimal       @db.Decimal(12, 2)
+  creadoEn        DateTime      @default(now()) @map("creado_en")
+
+  pago            PagoProveedor @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+  facturaCompra   FacturaCompra @relation(fields: [facturaCompraId], references: [id], onDelete: Cascade)
+
+  @@unique([pagoId, facturaCompraId])
+  @@index([facturaCompraId])
+  @@map("aplicaciones_pago_proveedor")
+}
+
+// ------------------------------------------------------
+// Fase 8 - Cotizaciones y Presupuestos (Quotes / Estimates)
+// ------------------------------------------------------
+
+model Cotizacion {
+  id                   String              @id @default(uuid())
+  empresaId            String              @map("empresa_id")
+  sucursalId           String?             @map("sucursal_id")
+  almacenId            String?             @map("almacen_id")
+  clienteId            String?             @map("cliente_id")
+  usuarioId            String?             @map("usuario_id")
+  facturaId            String?             @map("factura_id")
+
+  numeroCotizacion     String              @map("numero_cotizacion") // Secuencia ej: COT-000001
+  fecha                DateTime            @default(now())
+  fechaVencimiento     DateTime?           @map("fecha_vencimiento") // Validez de la oferta (días de vigencia)
+  estado               String              @default("BORRADOR") // BORRADOR, ENVIADA, ACEPTADA, FACTURADA, RECHAZADA, VENCIDA
+
+  subtotal             Decimal             @db.Decimal(12, 2)
+  descuento            Decimal             @default(0) @db.Decimal(12, 2)
+  itbis                Decimal             @default(0) @db.Decimal(12, 2)
+  total                Decimal             @db.Decimal(12, 2)
+  moneda               String              @default("DOP") @db.VarChar(3)
+  tasaCambio           Decimal             @default(1) @map("tasa_cambio") @db.Decimal(18, 8)
+
+  notas                String?             @db.Text
+  terminosCondiciones  String?             @map("terminos_condiciones") @db.Text
+
+  // Trazabilidad de Envío por Correo Electrónico (SMTP)
+  enviadaPorEmail      Boolean             @default(false) @map("enviada_por_email")
+  fechaEnvioEmail      DateTime?           @map("fecha_envio_email")
+  emailDestino         String?             @map("email_destino")
+
+  creadoEn             DateTime            @default(now()) @map("creado_en")
+  actualizadoEn        DateTime            @updatedAt @map("actualizado_en")
+
+  empresa              Empresa             @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  sucursal             Sucursal?           @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
+  almacen              Almacen?            @relation(fields: [almacenId], references: [id], onDelete: SetNull)
+  cliente              Cliente?            @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  usuario              Usuario?            @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  factura              FacturaVenta?       @relation(fields: [facturaId], references: [id], onDelete: SetNull)
+  detalles             CotizacionDetalle[]
+
+  @@unique([empresaId, numeroCotizacion])
+  @@index([empresaId, clienteId, fecha(sort: Desc)])
+  @@index([empresaId, estado])
+  @@map("cotizaciones")
+}
+
+model CotizacionDetalle {
+  id                  String       @id @default(uuid())
+  cotizacionId        String       @map("cotizacion_id")
+  productoId          String?      @map("producto_id")
+  descripcion         String
+  cantidad            Decimal      @db.Decimal(12, 2)
+  precioUnitario      Decimal      @map("precio_unitario") @db.Decimal(12, 2)
+  descuento           Decimal      @default(0) @db.Decimal(12, 2)
+  porcentajeDescuento Decimal?     @default(0) @map("porcentaje_descuento") @db.Decimal(5, 2)
+  tasaItbis           Decimal      @default(18) @map("tasa_itbis") @db.Decimal(5, 2)
+  itbis               Decimal      @default(0) @db.Decimal(12, 2)
+  subtotal            Decimal      @db.Decimal(12, 2)
+  total               Decimal      @db.Decimal(12, 2)
+  creadoEn            DateTime     @default(now()) @map("creado_en")
+
+  cotizacion          Cotizacion   @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+  producto            Producto?    @relation(fields: [productoId], references: [id], onDelete: SetNull)
+
+  @@index([cotizacionId])
+  @@map("cotizaciones_detalles")
+}
+
+
 

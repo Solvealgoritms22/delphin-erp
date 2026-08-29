@@ -283,6 +283,10 @@
     "commercial": "Comercial",
     "commercialDescription": "Ventas, comprobantes y socios",
     "invoices": "Facturación",
+    "quotes": "Cotizaciones",
+    "purchases": "Compras y Gastos",
+    "receivables": "Cuentas por Cobrar (CxC)",
+    "promotions": "Promociones y Ofertas",
     "sequences": "Comprobantes (NCF)",
     "clients": "Clientes",
     "suppliers": "Proveedores",
@@ -716,6 +720,15 @@
       "detailTitle": "Detalle de ítem comercial",
       "noImages": "Sin imágenes adjuntas",
       "profitMargin": "Margen de ganancia",
+      "discountsAndOffers": "Ofertas y Descuentos",
+      "enableOffer": "Activar Oferta / Descuento Directo",
+      "discountPercentage": "Porcentaje de Descuento (%)",
+      "specialOfferPrice": "Precio Especial de Oferta",
+      "offerValidFrom": "Válido Desde",
+      "offerValidUntil": "Válido Hasta",
+      "customerSavings": "Ahorro del Cliente",
+      "maxAllowedDiscount": "Descuento Máximo Permitido en Ventas (%)",
+      "maxAllowedDiscountHint": "Límite máximo de descuento que los vendedores pueden aplicar a este artículo (0-100%).",
       "emptyTitle": "No hay productos físicos registrados",
       "emptyDescription": "Crea tu primer producto físico para gestionar existencias y precios."
     },
@@ -884,6 +897,25 @@
     }
   },
   "commercial": {
+    "quotes": {
+      "title": "Cotizaciones y Presupuestos",
+      "subtitle": "Emisión de propuestas comerciales, control de vigencia y envío automático por correo",
+      "new": "Nueva Cotización",
+      "edit": "Editar Cotización",
+      "sendEmail": "Enviar por Correo",
+      "convertToInvoice": "Convertir a Factura Fiscal",
+      "quoteNumber": "No. Cotización",
+      "validUntil": "Válida hasta",
+      "client": "Cliente",
+      "total": "Total Cotizado",
+      "status": "Estado",
+      "draft": "Borrador",
+      "sent": "Enviada",
+      "accepted": "Aceptada",
+      "invoiced": "Facturada",
+      "rejected": "Rechazada",
+      "expired": "Vencida"
+    },
     "clients": {
       "title": "Clientes",
       "description": "Consulta y gestiona la información comercial de tus clientes.",
@@ -905,6 +937,69 @@
       "emptyTitle": "No hay proveedores registrados",
       "emptyDescription": "Crea tu primer proveedor para gestionar tus operaciones comerciales.",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar este proveedor?"
+    },
+    "purchases": {
+      "title": "Compras y Cuentas por Pagar (CxP)",
+      "subtitle": "Registra facturas de compras, gastos operativos (DGII 606), control de inventario y abonos a proveedores.",
+      "new": "Nueva Compra / Gasto",
+      "search": "Buscar por No. Compra, NCF o Proveedor...",
+      "emptyTitle": "No hay compras registradas",
+      "emptySubtitle": "Registra compras a proveedores para aumentar existencias y llevar el control de tus cuentas por pagar.",
+      "stats": {
+        "monthPurchases": "Compras del Mes",
+        "pendingCxP": "Cuentas por Pagar (CxP)",
+        "overdueCxP": "CxP Vencidas",
+        "suppliersCount": "Proveedores"
+      },
+      "dialog": {
+        "title": "Registrar Factura de Compra / Gasto",
+        "subtitle": "Ingresa los datos fiscales y líneas de detalle de la compra del proveedor.",
+        "supplier": "Proveedor",
+        "ncf": "NCF del Proveedor",
+        "warehouse": "Almacén de Destino",
+        "expenseType": "Clasificación de Costo / Gasto",
+        "paymentType": "Condición de Pago",
+        "paymentMethod": "Método de Pago",
+        "date": "Fecha de Emisión",
+        "dueDate": "Fecha de Vencimiento",
+        "invoiceNumber": "No. Factura / Referencia",
+        "itemsTitle": "Productos y Líneas de Gasto",
+        "addItem": "Añadir Línea",
+        "submit": "Guardar y Registrar Compra"
+      },
+      "payment": {
+        "title": "Registrar Abono a Proveedor",
+        "amount": "Monto a Abonar (RD$)",
+        "method": "Método de Pago",
+        "reference": "No. Cheque / Referencia Bancaria",
+        "date": "Fecha de Pago",
+        "submit": "Registrar Pago"
+      }
+    },
+    "receivables": {
+      "title": "Cuentas por Cobrar y Recibos de Ingreso (CxC)",
+      "subtitle": "Control de facturas a crédito, recaudación de cobros, recibos oficiales de ingreso y gestión de cartera de clientes.",
+      "newReceipt": "Nuevo Recibo de Cobro",
+      "emptyPendingTitle": "No hay facturas pendientes de cobro",
+      "emptyPendingSubtitle": "Todas las facturas a crédito están saldadas al día o no coinciden con los filtros.",
+      "emptyReceiptsTitle": "No hay recibos de ingreso registrados",
+      "emptyReceiptsSubtitle": "Registra cobros a facturas de clientes para alimentar el historial de ingresos.",
+      "stats": {
+        "totalCxC": "Total por Cobrar (CxC)",
+        "overdueCxC": "Cartera Vencida (Mora)",
+        "monthCollected": "Cobrado en el Mes",
+        "clientsWithBalance": "Clientes con Saldo"
+      },
+      "dialog": {
+        "title": "Registrar Recibo de Ingreso / Cobro",
+        "subtitle": "Selecciona el cliente y aplica el cobro a una o múltiples facturas pendientes.",
+        "client": "Cliente",
+        "method": "Método de Cobro",
+        "reference": "Referencia / No. Cheque / Comprobante",
+        "date": "Fecha de Cobro",
+        "pendingInvoices": "Facturas con Saldo Adeudado",
+        "submit": "Guardar e Imprimir Recibo"
+      }
     },
     "form": {
       "name": "Nombre o razón social",
@@ -1079,6 +1174,9 @@
         "product": "Producto",
         "quantity": "Cant.",
         "price": "Precio",
+        "subtotalGross": "Subtotal Bruto:",
+        "discountsApplied": "Descuentos:",
+        "subtotalNet": "Base Imponible Neta:",
         "subtotalTaxed": "Subtotal Gravado:",
         "itbis": "Impuestos:",
         "totalToInvoice": "Total a Facturar:",
@@ -1112,6 +1210,64 @@
         "cancelError": "No se pudo anular la factura"
       },
       "print": "Imprimir"
+    },
+    "promotions": {
+      "title": "Promociones y Descuentos",
+      "description": "Crea campañas de ofertas, cupones, descuentos por porcentaje, monto fijo o precios especiales aplicables a productos, marcas o categorías.",
+      "newPromotion": "Nueva Promoción",
+      "createTitle": "Crear Promoción u Oferta",
+      "createSubtitle": "Define los parámetros, tipo de descuento, alcance y vigencia de la promoción.",
+      "editTitle": "Editar Promoción",
+      "editSubtitle": "Modifica los valores y reglas aplicables a esta promoción.",
+      "namePlaceholder": "Black Friday 20%, Descuento Lácteos",
+      "couponCode": "Código de Cupón",
+      "descriptionPlaceholder": "Describe los beneficios y condiciones de esta promoción...",
+      "discountRules": "Reglas de Descuento",
+      "discountType": "Tipo de Descuento",
+      "discountValue": "Valor del Descuento",
+      "types": {
+        "percentage": "Porcentaje",
+        "fixedAmount": "Monto Fijo de Rebaja",
+        "fixedPrice": "Precio Fijo de Oferta"
+      },
+      "scopeSection": "Alcance de Aplicación",
+      "scope": "Aplica a",
+      "scopes": {
+        "all": "Todo el Catálogo",
+        "category": "Categoría Específica",
+        "brand": "Marca Específica",
+        "products": "Productos Seleccionados"
+      },
+      "selectProducts": "Seleccionar Productos",
+      "startDate": "Fecha de Inicio",
+      "endDate": "Fecha de Fin",
+      "minQuantity": "Cantidad Mínima",
+      "minAmount": "Monto Mínimo",
+      "usageLimit": "Límite de Usos",
+      "isCumulative": "¿Es acumulable con otros descuentos?",
+      "cumulativeBadge": "Acumulable",
+      "paused": "Pausado",
+      "scheduled": "Programado",
+      "expired": "Expirado",
+      "activate": "Activar",
+      "pause": "Pausar",
+      "stats": {
+        "total": "Total Promociones",
+        "active": "Activas Ahora",
+        "scheduled": "Programadas",
+        "expired": "Expiradas"
+      },
+      "searchPlaceholder": "Buscar promociones por nombre, cupón...",
+      "table": {
+        "promotion": "Promoción / Cupón",
+        "benefit": "Beneficio",
+        "scope": "Alcance",
+        "validity": "Vigencia"
+      },
+      "emptyTitle": "No hay promociones registradas",
+      "emptyDescription": "Crea campañas de ofertas o cupones de descuento para dinamizar tus ventas.",
+      "deleteTitle": "Eliminar Promoción",
+      "deleteConfirm": "¿Estás seguro de que deseas eliminar esta promoción?"
     }
   },
   "maintenance": {
@@ -1199,6 +1355,28 @@
     }
   },
   "settings": {
+    "users": {
+      "title": "Usuarios y Miembros",
+      "description": "Administra el equipo, cuentas de acceso, roles asignados y estados de los usuarios.",
+      "create": "Nuevo Usuario",
+      "edit": "Editar Usuario",
+      "total": "Total de Usuarios",
+      "activeMembers": "Usuarios Activos",
+      "inactiveMembers": "Usuarios Inactivos",
+      "search": "Buscar usuario por nombre o correo...",
+      "allStatuses": "Todos los Estados",
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "allRoles": "Todos los Roles",
+      "user": "Usuario",
+      "role": "Rol Asignado",
+      "emptyTitle": "No se encontraron usuarios",
+      "emptyDescription": "No hay usuarios registrados o no coinciden con los filtros aplicados.",
+      "clearFilters": "Limpiar Filtros",
+      "owner": "Propietario (Owner)",
+      "noRole": "Sin Rol Asignado",
+      "unknown": "Desconocido"
+    },
     "apiAccess": {
       "title": "API Pública del Tenant",
       "subtitle": "Conecta tus tiendas online, aplicaciones móviles y sistemas externos con tu base de datos.",
@@ -1424,7 +1602,8 @@
       "topProducts": "Top Productos",
       "receivables": "Cuentas por Cobrar",
       "inventory": "Inventario",
-      "clients": "Clientes"
+      "clients": "Clientes",
+      "taxDgii": "Fiscal DGII"
     },
     "sales": {
       "totalRevenue": "Total Facturado",

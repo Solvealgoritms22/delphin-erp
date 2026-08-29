@@ -419,6 +419,32 @@ export class ProductsService {
       result.imagenes = this.normalizeImages(imagenes);
     if (estado !== undefined) result.estado = cleanString(estado) || 'ACTIVO';
 
+    if (data.enOferta !== undefined) result.enOferta = Boolean(data.enOferta);
+    if (data.precioOferta !== undefined) {
+      result.precioOferta =
+        data.precioOferta !== null && data.precioOferta !== '' && !isNaN(Number(data.precioOferta))
+          ? Number(data.precioOferta)
+          : null;
+    }
+    if (data.descuentoPorcentaje !== undefined) {
+      result.descuentoPorcentaje =
+        data.descuentoPorcentaje !== null && data.descuentoPorcentaje !== '' && !isNaN(Number(data.descuentoPorcentaje))
+          ? Number(data.descuentoPorcentaje)
+          : 0;
+    }
+    if (data.ofertaDesde !== undefined) {
+      result.ofertaDesde = data.ofertaDesde ? new Date(data.ofertaDesde) : null;
+    }
+    if (data.ofertaHasta !== undefined) {
+      result.ofertaHasta = data.ofertaHasta ? new Date(data.ofertaHasta) : null;
+    }
+    if (data.descuentoMaximo !== undefined) {
+      result.descuentoMaximo =
+        data.descuentoMaximo !== null && data.descuentoMaximo !== '' && !isNaN(Number(data.descuentoMaximo))
+          ? Number(data.descuentoMaximo)
+          : 100;
+    }
+
     return result;
   }
 

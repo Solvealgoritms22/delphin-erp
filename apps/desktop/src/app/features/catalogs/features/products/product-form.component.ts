@@ -283,6 +283,108 @@ export type InsumoRow = {
             </div>
           </div>
 
+          <!-- Descuentos y Ofertas Especiales -->
+          <div
+            class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <mat-icon svgIcon="tag" class="icon-size-5 text-neutral-500"></mat-icon>
+                <h2 class="text-lg font-bold text-neutral-900 dark:text-white">
+                  {{ 'catalogs.products.discountsAndOffers' | transloco }}
+                </h2>
+              </div>
+              <mat-slide-toggle formControlName="enOferta" color="primary">
+                <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                  {{ 'catalogs.products.enableOffer' | transloco }}
+                </span>
+              </mat-slide-toggle>
+            </div>
+
+            @if (form.get('enOferta')?.value) {
+              <div class="flex flex-col gap-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/80 dark:border-neutral-700/60 mb-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <mat-form-field class="w-full">
+                    <mat-label>{{ 'catalogs.products.discountPercentage' | transloco }}</mat-label>
+                    <span matTextSuffix class="text-neutral-500 font-semibold pr-2">%</span>
+                    <input
+                      matInput
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      formControlName="descuentoPorcentaje"
+                      (input)="onDiscountPercentChange()"
+                      placeholder="0"
+                    />
+                  </mat-form-field>
+
+                  <mat-form-field class="w-full">
+                    <mat-label>{{ 'catalogs.products.specialOfferPrice' | transloco }}</mat-label>
+                    <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">RD$</span>
+                    <input
+                      matInput
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      formControlName="precioOferta"
+                      (input)="onOfferPriceChange()"
+                      placeholder="0.00"
+                    />
+                  </mat-form-field>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <mat-form-field class="w-full">
+                    <mat-label>{{ 'catalogs.products.offerValidFrom' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="date"
+                      formControlName="ofertaDesde"
+                    />
+                  </mat-form-field>
+
+                  <mat-form-field class="w-full">
+                    <mat-label>{{ 'catalogs.products.offerValidUntil' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="date"
+                      formControlName="ofertaHasta"
+                    />
+                  </mat-form-field>
+                </div>
+
+                <!-- Resumen interactivo de ahorro -->
+                <div class="flex items-center justify-between p-3 rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40 text-xs font-semibold">
+                  <span>{{ 'catalogs.products.customerSavings' | transloco }}:</span>
+                  <span class="font-mono font-bold text-sm">
+                    RD$ {{ calculatedSavings() | number:'1.2-2' }} ({{ calculatedDiscountPercent() | number:'1.0-1' }}% OFF)
+                  </span>
+                </div>
+              </div>
+            }
+
+            <!-- Descuento Máximo Permitido en Ventas -->
+            <div class="mt-2">
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'catalogs.products.maxAllowedDiscount' | transloco }}</mat-label>
+                <span matTextSuffix class="text-neutral-500 font-semibold pr-2">%</span>
+                <input
+                  matInput
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  formControlName="descuentoMaximo"
+                  placeholder="100"
+                />
+                <mat-hint class="text-[11px] text-neutral-400">
+                  {{ 'catalogs.products.maxAllowedDiscountHint' | transloco }}
+                </mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+
           <!-- SECCIÓN DE INVENTARIO PARA PRODUCTOS FÍSICOS -->
           @if (!isService()) {
             <div
@@ -855,6 +957,12 @@ export default class ProductFormComponent implements OnInit {
       tags: [''],
       imagenes: [null],
       estado: ['ACTIVO'],
+      enOferta: [false],
+      precioOferta: [null, [Validators.min(0)]],
+      descuentoPorcentaje: [0, [Validators.min(0), Validators.max(100)]],
+      ofertaDesde: [null],
+      ofertaHasta: [null],
+      descuentoMaximo: [100, [Validators.min(0), Validators.max(100)]],
     });
 
     if (this.isEdit && this.productId) {
@@ -881,6 +989,21 @@ export default class ProductFormComponent implements OnInit {
             tags: data.tags || '',
             imagenes: data.imagenes || null,
             estado: data.estado || 'ACTIVO',
+            enOferta: Boolean(data.enOferta),
+            precioOferta:
+              data.precioOferta !== null && data.precioOferta !== undefined
+                ? Number(data.precioOferta)
+                : null,
+            descuentoPorcentaje:
+              data.descuentoPorcentaje !== null && data.descuentoPorcentaje !== undefined
+                ? Number(data.descuentoPorcentaje)
+                : 0,
+            ofertaDesde: data.ofertaDesde ? data.ofertaDesde.split('T')[0] : null,
+            ofertaHasta: data.ofertaHasta ? data.ofertaHasta.split('T')[0] : null,
+            descuentoMaximo:
+              data.descuentoMaximo !== null && data.descuentoMaximo !== undefined
+                ? Number(data.descuentoMaximo)
+                : 100,
           });
 
           // Insumos if any
@@ -994,6 +1117,52 @@ export default class ProductFormComponent implements OnInit {
     if (!currentCode || currentCode.startsWith('PRD-') || currentCode.startsWith('SRV-')) {
       this.generateCode(false);
     }
+  }
+
+  onDiscountPercentChange() {
+    const price = Number(this.form.get('precioVenta')?.value || 0);
+    const pct = Number(this.form.get('descuentoPorcentaje')?.value || 0);
+    if (price > 0 && pct >= 0 && pct <= 100) {
+      const offerPrice = price - (price * pct) / 100;
+      this.form.patchValue(
+        { precioOferta: Number(offerPrice.toFixed(2)) },
+        { emitEvent: false },
+      );
+    }
+  }
+
+  onOfferPriceChange() {
+    const price = Number(this.form.get('precioVenta')?.value || 0);
+    const offer = Number(this.form.get('precioOferta')?.value || 0);
+    if (price > 0 && offer >= 0 && offer <= price) {
+      const pct = ((price - offer) / price) * 100;
+      this.form.patchValue(
+        { descuentoPorcentaje: Number(pct.toFixed(2)) },
+        { emitEvent: false },
+      );
+    }
+  }
+
+  calculatedSavings(): number {
+    const price = Number(this.form?.get('precioVenta')?.value || 0);
+    const offer = this.form?.get('precioOferta')?.value;
+    const pct = Number(this.form?.get('descuentoPorcentaje')?.value || 0);
+    if (offer !== null && offer !== undefined && !isNaN(Number(offer)) && Number(offer) < price) {
+      return Math.max(0, price - Number(offer));
+    }
+    if (pct > 0 && price > 0) {
+      return (price * pct) / 100;
+    }
+    return 0;
+  }
+
+  calculatedDiscountPercent(): number {
+    const price = Number(this.form?.get('precioVenta')?.value || 0);
+    const savings = this.calculatedSavings();
+    if (price > 0 && savings > 0) {
+      return (savings / price) * 100;
+    }
+    return 0;
   }
 
   getCatImg(icono?: string): string {

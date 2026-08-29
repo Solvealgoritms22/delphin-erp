@@ -17,6 +17,11 @@ interface CalculatedItem {
   productoId: string;
   cantidad: Prisma.Decimal;
   precioUnitario: Prisma.Decimal;
+  precioLista: Prisma.Decimal;
+  descuento: Prisma.Decimal;
+  porcentajeDescuento: Prisma.Decimal;
+  promocionId?: string | null;
+  promocionNombre?: string | null;
   tasaItbis: Prisma.Decimal;
   itbis: Prisma.Decimal;
   subtotal: Prisma.Decimal;
@@ -132,8 +137,9 @@ export class InvoicesService {
       ncf = ncfResult.ncf;
     }
 
-    // Calcular Subtotal, ITBIS y Total
-    let subtotalAcc = new Prisma.Decimal(0);
+    // Calcular Subtotal, ITBIS, Descuentos y Total
+    let subtotalBrutoAcc = new Prisma.Decimal(0);
+    let descuentoLineasAcc = new Prisma.Decimal(0);
     let itbisAcc = new Prisma.Decimal(0);
 
     const existingTaxes = await this.prisma.impuesto.findMany({
@@ -142,6 +148,7 @@ export class InvoicesService {
     const existingTaxIds = new Set(existingTaxes.map((t) => t.id));
 
     const calculatedItems: CalculatedItem[] = [];
+    const now = new Date();
 
     for (const item of dto.items) {
       const producto = await this.prisma.producto.findFirst({
@@ -155,7 +162,12 @@ export class InvoicesService {
       }
 
       const cantidad = new Prisma.Decimal(item.cantidad);
-      const precio = new Prisma.Decimal(item.precioUnitario);
+      const precioLista = new Prisma.Decimal(
+        item.precioLista !== undefined ? item.precioLista : producto.precioVenta,
+      );
+      const precio = new Prisma.Decimal(
+        item.precioUnitario !== undefined ? item.precioUnitario : producto.precioVenta,
+      );
       const configuredTax = item.impuestoId
         ? billing.impuestos.find((tax) => tax.id === item.impuestoId)
         : producto.impuesto?.empresaId === empresaId
@@ -171,22 +183,63 @@ export class InvoicesService {
           'La tasa de impuesto debe estar entre 0 y 100.',
         );
 
-      const itemSubtotal = cantidad.mul(precio);
-      const itemItbis = itemSubtotal
+      const grossSubtotal = cantidad.mul(precio);
+
+      // Calcular descuento de la línea
+      let lineDiscount = new Prisma.Decimal(0);
+      let appliedPromoId = item.promocionId || null;
+      let appliedPromoNombre = item.promocionNombre || null;
+
+      if (item.descuento !== undefined && item.descuento !== null) {
+        lineDiscount = new Prisma.Decimal(item.descuento);
+      } else if (producto.enOferta) {
+        let offerActive = true;
+        if (producto.ofertaDesde && producto.ofertaDesde > now) offerActive = false;
+        if (producto.ofertaHasta && producto.ofertaHasta < now) offerActive = false;
+
+        if (offerActive) {
+          if (producto.precioOferta !== null && new Prisma.Decimal(producto.precioOferta).lt(precio)) {
+            const unitDisc = precio.sub(new Prisma.Decimal(producto.precioOferta));
+            lineDiscount = unitDisc.mul(cantidad);
+            appliedPromoNombre = 'Oferta de Producto';
+          } else if (producto.descuentoPorcentaje !== null && new Prisma.Decimal(producto.descuentoPorcentaje).gt(0)) {
+            lineDiscount = grossSubtotal.mul(new Prisma.Decimal(producto.descuentoPorcentaje)).div(100);
+            appliedPromoNombre = `Oferta (${producto.descuentoPorcentaje}% OFF)`;
+          }
+        }
+      }
+
+      // Validar contra descuento máximo permitido del producto
+      const maxDiscountPct = new Prisma.Decimal(producto.descuentoMaximo ?? 100);
+      const maxAllowedDiscount = grossSubtotal.mul(maxDiscountPct).div(100);
+      if (lineDiscount.gt(maxAllowedDiscount)) {
+        lineDiscount = maxAllowedDiscount;
+      }
+      if (lineDiscount.gt(grossSubtotal)) {
+        lineDiscount = grossSubtotal;
+      }
+
+      const itemSubtotalNeto = grossSubtotal.sub(lineDiscount);
+      const pctDiscount = grossSubtotal.gt(0)
+        ? lineDiscount.mul(100).div(grossSubtotal)
+        : new Prisma.Decimal(0);
+
+      const itemItbis = itemSubtotalNeto
         .mul(tasaItbis)
         .div(100)
         .toDecimalPlaces(
           configuration.precisionMoneda,
           Prisma.Decimal.ROUND_HALF_UP,
         );
-      const itemTotal = itemSubtotal
+      const itemTotal = itemSubtotalNeto
         .add(itemItbis)
         .toDecimalPlaces(
           configuration.precisionMoneda,
           Prisma.Decimal.ROUND_HALF_UP,
         );
 
-      subtotalAcc = subtotalAcc.add(itemSubtotal);
+      subtotalBrutoAcc = subtotalBrutoAcc.add(grossSubtotal);
+      descuentoLineasAcc = descuentoLineasAcc.add(lineDiscount);
       itbisAcc = itbisAcc.add(itemItbis);
 
       const rawTaxId = item.impuestoId || configuredTax?.id;
@@ -197,9 +250,14 @@ export class InvoicesService {
         productoId: item.productoId,
         cantidad,
         precioUnitario: precio,
+        precioLista,
+        descuento: lineDiscount,
+        porcentajeDescuento: pctDiscount,
+        promocionId: appliedPromoId,
+        promocionNombre: appliedPromoNombre,
         tasaItbis,
         itbis: itemItbis,
-        subtotal: itemSubtotal,
+        subtotal: itemSubtotalNeto,
         total: itemTotal,
         impuestoId: validTaxId || undefined,
         indicadorFacturacion:
@@ -208,13 +266,15 @@ export class InvoicesService {
       });
     }
 
-    const discount = new Prisma.Decimal(dto.descuento || 0);
-    if (discount.lt(0) || discount.gt(subtotalAcc))
+    const globalDiscount = new Prisma.Decimal(dto.descuento || 0);
+    const totalDiscount = descuentoLineasAcc.add(globalDiscount);
+
+    if (totalDiscount.lt(0) || totalDiscount.gt(subtotalBrutoAcc))
       throw new BadRequestException(
-        'El descuento no puede superar el subtotal.',
+        'El descuento total no puede superar el subtotal.',
       );
-    const totalAfterDiscount = subtotalAcc
-      .sub(discount)
+    const totalAfterDiscount = subtotalBrutoAcc
+      .sub(totalDiscount)
       .add(itbisAcc)
       .toDecimalPlaces(
         configuration.precisionMoneda,
@@ -295,8 +355,8 @@ export class InvoicesService {
           estado: isDraft ? 'BORRADOR' : 'EMITIDA',
           tipoPago: dto.tipoPago || 'CONTADO',
           metodoPago: dto.metodoPago || 'EFECTIVO',
-          subtotal: subtotalAcc,
-          descuento: discount,
+          subtotal: subtotalBrutoAcc,
+          descuento: totalDiscount,
           itbis: itbisAcc,
           total: totalAfterDiscount,
           moneda: currency,
@@ -320,6 +380,11 @@ export class InvoicesService {
               productoId: item.productoId,
               cantidad: item.cantidad,
               precioUnitario: item.precioUnitario,
+              precioLista: item.precioLista,
+              descuento: item.descuento,
+              porcentajeDescuento: item.porcentajeDescuento,
+              promocionId: item.promocionId || null,
+              promocionNombre: item.promocionNombre || null,
               tasaItbis: item.tasaItbis,
               itbis: item.itbis,
               subtotal: item.subtotal,
@@ -336,6 +401,23 @@ export class InvoicesService {
           detalles: { include: { producto: true } },
         },
       });
+
+      // Incrementar contador de usos de promociones aplicadas (si no es borrador)
+      if (!isDraft) {
+        const appliedPromoIds = Array.from(
+          new Set(
+            calculatedItems
+              .map((i) => i.promocionId)
+              .filter((id): id is string => Boolean(id)),
+          ),
+        );
+        for (const promoId of appliedPromoIds) {
+          await tx.promocion.updateMany({
+            where: { id: promoId, empresaId },
+            data: { usosActuales: { increment: 1 } },
+          });
+        }
+      }
       const taxLines = calculatedItems
         .map((item, index) =>
           item.impuestoId && created.detalles[index]

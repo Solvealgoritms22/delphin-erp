@@ -190,6 +190,14 @@ import { AuthState } from '../../../../core/auth/auth.state';
                       @if (det.producto?.codigo) {
                         <div class="text-[10px] text-neutral-500 font-mono">Cód: {{ det.producto.codigo }}</div>
                       }
+                      @if (det.descuento && det.descuento > 0) {
+                        <div class="text-[10px] text-emerald-700 font-semibold">
+                          Desc: -{{ getCurrencySymbol(invoice.moneda) }} {{ det.descuento | number:'1.2-2' }}
+                          @if (det.promocionNombre) {
+                            ({{ det.promocionNombre }})
+                          }
+                        </div>
+                      }
                     </td>
                     <td class="py-2.5 px-3 text-center font-mono font-medium">{{ det.cantidad | number:'1.0-4' }}</td>
                     <td class="py-2.5 px-3 text-right font-mono text-neutral-700">{{ getCurrencySymbol(invoice.moneda) }} {{ det.precioUnitario | number:'1.2-2' }}</td>

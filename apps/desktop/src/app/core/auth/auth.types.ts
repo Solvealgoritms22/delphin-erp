@@ -3,6 +3,8 @@ export type Empresa = {
   razonSocial: string;
   rnc?: string | null;
   logo?: string | null;
+  telefono?: string | null;
+  direccion?: string | null;
   estado?: string;
 };
 

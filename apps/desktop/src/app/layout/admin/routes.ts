@@ -45,6 +45,42 @@ const routes: Routes = [
               ),
           },
           {
+            path: 'quotes',
+            canActivate: [permissionGuard],
+            data: { permissions: ['commercial:read'] },
+            loadComponent: () =>
+              import('@features/sales/features/quotes/quotes.component').then(
+                (c) => c.QuotesComponent
+              ),
+          },
+          {
+            path: 'promotions',
+            canActivate: [permissionGuard],
+            data: { permissions: ['commercial:read'] },
+            loadComponent: () =>
+              import('@features/sales/features/promotions/promotions.component').then(
+                (c) => c.PromotionsComponent
+              ),
+          },
+          {
+            path: 'purchases',
+            canActivate: [permissionGuard],
+            data: { permissions: ['commercial:read'] },
+            loadComponent: () =>
+              import('@features/sales/features/purchases/purchases.component').then(
+                (c) => c.PurchasesComponent
+              ),
+          },
+          {
+            path: 'receivables',
+            canActivate: [permissionGuard],
+            data: { permissions: ['commercial:read'] },
+            loadComponent: () =>
+              import('@features/sales/features/receivables/receivables.component').then(
+                (c) => c.ReceivablesComponent
+              ),
+          },
+          {
             path: 'sequences',
             canActivate: [permissionGuard],
             data: { permissions: ['sequences:read'] },
