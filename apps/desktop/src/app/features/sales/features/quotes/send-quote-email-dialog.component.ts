@@ -7,7 +7,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { TranslocoPipe } from '@jsverse/transloco';
 import { Cotizacion, QuotesService, SmtpStatusResponse } from '../../data/quotes.service';
 
 @Component({

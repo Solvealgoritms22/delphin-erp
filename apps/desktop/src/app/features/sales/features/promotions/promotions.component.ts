@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,7 +18,6 @@ import {
 import {
   PromotionsService,
   Promocion,
-  FilterPromotionsDto,
 } from '../../data/promotions.service';
 import { PromotionDialogComponent } from './promotion-dialog.component';
 

@@ -1448,7 +1448,7 @@ export class InvoicesComponent implements OnInit {
       const now = new Date();
       let autoDiscount = 0;
       let promoName: string | null = null;
-      let promoId: string | null = null;
+      const promoId: string | null = null;
 
       if (product.enOferta) {
         let isOfferValid = true;

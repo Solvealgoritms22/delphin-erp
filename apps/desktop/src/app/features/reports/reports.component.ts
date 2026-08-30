@@ -5,7 +5,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
-import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,15 +15,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import {
   ReportsService,
-  SalesReportResponse,
-  TopProductsReportResponse,
-  ReceivablesReportResponse,
-  InventoryReportResponse,
-  SalesByClientResponse,
-  Report606Response,
-  Report607Response,
-  Report608Response,
-  ReportIt1Response,
 } from './data/reports.service';
 
 import { StatCardComponent } from '@shared/components/stat-card/stat-card.component';
@@ -1395,7 +1386,7 @@ export default class ReportsComponent implements OnInit {
   exportTaxCsv(type: '606' | '607' | '608'): void {
     const periodClean = this.taxPeriod.replace('-', '');
     let csvContent = '';
-    let filename = `DGII_${type}_${periodClean}.csv`;
+    const filename = `DGII_${type}_${periodClean}.csv`;
 
     if (type === '606') {
       const rep = this.report606();
@@ -2148,7 +2139,7 @@ export default class ReportsComponent implements OnInit {
   exportCurrentReportCsv(): void {
     const tab = this.activeTab();
     let csvContent = '';
-    let filename = `Reporte_${tab}_${new Date().toISOString().split('T')[0]}.csv`;
+    const filename = `Reporte_${tab}_${new Date().toISOString().split('T')[0]}.csv`;
 
     if (tab === 'sales' && this.salesData()) {
       csvContent = 'Fecha,Total Facturado,Cantidad Facturas,ITBIS\n';

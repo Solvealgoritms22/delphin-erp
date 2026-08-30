@@ -14,7 +14,7 @@ import {
   UserNotificationPreference,
 } from '@core/notifications/notification.service';
 
-interface CategoryGroup {
+type CategoryGroup = {
   category: string;
   items: NotificationCatalogItem[];
 }

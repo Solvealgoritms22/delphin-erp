@@ -23,7 +23,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PromotionsService, Promocion } from '../../data/promotions.service';
 import { ProductsService } from '../../../catalogs/data/products.service';
 
-export interface PromotionDialogData {
+export type PromotionDialogData = {
   promotion?: Promocion | null;
   isEdit?: boolean;
 }

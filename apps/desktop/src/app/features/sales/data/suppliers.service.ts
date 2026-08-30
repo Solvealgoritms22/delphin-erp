@@ -3,7 +3,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '@/environments/environment';
 import { tap, catchError, of } from 'rxjs';
 
-export interface Supplier {
+export type Supplier = {
   id: string;
   tipoDocumento: string;
   numeroDocumento: string;

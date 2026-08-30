@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '@/environments/environment';
 
-export interface SalesReportSummary {
+export type SalesReportSummary = {
   totalVentas: number;
   totalItbis: number;
   totalDescuento: number;
@@ -12,26 +12,26 @@ export interface SalesReportSummary {
   promedioTicket: number;
 }
 
-export interface PaymentMethodBreakdown {
+export type PaymentMethodBreakdown = {
   metodo: string;
   count: number;
   total: number;
 }
 
-export interface SalesTimeSeriesPoint {
+export type SalesTimeSeriesPoint = {
   date: string;
   total: number;
   count: number;
   itbis: number;
 }
 
-export interface SalesReportResponse {
+export type SalesReportResponse = {
   summary: SalesReportSummary;
   paymentMethods: PaymentMethodBreakdown[];
   timeSeries: SalesTimeSeriesPoint[];
 }
 
-export interface TopProductItem {
+export type TopProductItem = {
   id?: string;
   productoId?: string;
   codigo: string;
@@ -47,21 +47,21 @@ export interface TopProductItem {
   porcentajeDelTotal?: number;
 }
 
-export interface TopProductsReportResponse {
+export type TopProductsReportResponse = {
   topProducts: TopProductItem[];
   products: TopProductItem[];
   totalCount?: number;
   grandTotal?: number;
 }
 
-export interface ReceivablesAging {
+export type ReceivablesAging = {
   corriente: number;
   de31a60: number;
   de61a90: number;
   masDe90: number;
 }
 
-export interface DebtorClientItem {
+export type DebtorClientItem = {
   clienteId: string;
   nombre: string;
   documento: string;
@@ -71,7 +71,7 @@ export interface DebtorClientItem {
   facturasPendientes: number;
 }
 
-export interface ReceivablesInvoiceItem {
+export type ReceivablesInvoiceItem = {
   id: string;
   numeroFactura: string;
   ncf?: string;
@@ -83,7 +83,7 @@ export interface ReceivablesInvoiceItem {
   clienteDocumento: string;
 }
 
-export interface ReceivablesReportResponse {
+export type ReceivablesReportResponse = {
   summary: {
     totalPendiente: number;
     totalFacturasPendientes: number;
@@ -93,7 +93,7 @@ export interface ReceivablesReportResponse {
   invoices: ReceivablesInvoiceItem[];
 }
 
-export interface LowStockItem {
+export type LowStockItem = {
   productoId: string;
   codigo: string;
   nombre: string;
@@ -103,14 +103,14 @@ export interface LowStockItem {
   unidad: string;
 }
 
-export interface WarehouseStockSummary {
+export type WarehouseStockSummary = {
   almacenId: string;
   nombre: string;
   totalItems: number;
   valorCosto: number;
 }
 
-export interface InventoryReportResponse {
+export type InventoryReportResponse = {
   summary: {
     totalItemsDistintos: number;
     totalUnidades: number;
@@ -123,7 +123,7 @@ export interface InventoryReportResponse {
   warehouses: WarehouseStockSummary[];
 }
 
-export interface ClientSalesItem {
+export type ClientSalesItem = {
   clienteId: string;
   nombre: string;
   documento: string;
@@ -135,7 +135,7 @@ export interface ClientSalesItem {
   porcentajeParticipacion: number;
 }
 
-export interface SalesByClientResponse {
+export type SalesByClientResponse = {
   grandTotal: number;
   totalClients?: number;
   clients: ClientSalesItem[];
@@ -145,7 +145,7 @@ export interface SalesByClientResponse {
 // MODELOS FISCALES DGII (606, 607, 608, IT-1)
 // =========================================================================
 
-export interface Row606 {
+export type Row606 = {
   id: string;
   rncCedula: string;
   tipoId: string;
@@ -170,7 +170,7 @@ export interface Row606 {
   proveedorNombre: string;
 }
 
-export interface Report606Response {
+export type Report606Response = {
   periodo: string;
   rncEmpresa: string;
   summary: {
@@ -187,7 +187,7 @@ export interface Report606Response {
   filename: string;
 }
 
-export interface Row607 {
+export type Row607 = {
   id: string;
   rncCedula: string;
   tipoId: string;
@@ -215,7 +215,7 @@ export interface Row607 {
   clienteNombre: string;
 }
 
-export interface Report607Response {
+export type Report607Response = {
   periodo: string;
   rncEmpresa: string;
   summary: {
@@ -232,7 +232,7 @@ export interface Report607Response {
   filename: string;
 }
 
-export interface Row608 {
+export type Row608 = {
   id: string;
   ncf: string;
   fechaAnulacion: string;
@@ -241,7 +241,7 @@ export interface Row608 {
   numeroFactura: string;
 }
 
-export interface Report608Response {
+export type Report608Response = {
   periodo: string;
   rncEmpresa: string;
   summary: {
@@ -252,7 +252,7 @@ export interface Report608Response {
   filename: string;
 }
 
-export interface ReportIt1Response {
+export type ReportIt1Response = {
   periodo: string;
   year: number;
   month: number;

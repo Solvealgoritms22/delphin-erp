@@ -4,7 +4,7 @@ import { AuthState } from '@core/auth/auth.state';
 import { FacturaVenta } from '@features/sales/data/invoices.service';
 import { environment } from '@/environments/environment';
 
-export interface ActiveCompanyData {
+export type ActiveCompanyData = {
   id: string;
   razonSocial: string;
   rnc?: string;

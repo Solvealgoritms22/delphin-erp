@@ -3,7 +3,7 @@ import { Product } from '@features/catalogs/data/products.service';
 import { Client } from '@features/sales/data/clients';
 import { AuthState } from '@core/auth/auth.state';
 
-export interface CartItem {
+export type CartItem = {
   id: string; // product id
   product: Product;
   cantidad: number;
@@ -17,7 +17,7 @@ export interface CartItem {
   total: number;
 }
 
-export interface HeldCart {
+export type HeldCart = {
   id: string;
   createdAt: Date;
   client: Client | null;

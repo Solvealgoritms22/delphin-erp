@@ -1,9 +1,8 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   MatDialogRef,
-  MAT_DIALOG_DATA,
   MatDialogModule,
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,7 +21,7 @@ import { SuppliersService } from '../../data/suppliers.service';
 import { ProductsService, Product } from '../../../catalogs/data/products.service';
 import { InventoryService, Warehouse } from '../../../catalogs/data/inventory.service';
 
-export interface PurchaseItemRow {
+export type PurchaseItemRow = {
   productoId?: string;
   descripcion: string;
   cantidad: number;

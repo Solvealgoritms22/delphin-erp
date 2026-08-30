@@ -4,7 +4,7 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { HeldCart, PosService } from '../data/pos.service';
+import { PosService } from '../data/pos.service';
 
 @Component({
   selector: 'app-pos-held-dialog',

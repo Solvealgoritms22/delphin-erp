@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-export interface PosDiscountData {
+export type PosDiscountData = {
   subtotal: number;
   currentValue: number;
   currentType: 'PERCENT' | 'FIXED';

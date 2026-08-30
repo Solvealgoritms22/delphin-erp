@@ -4,7 +4,6 @@ import {
   ElementRef,
   HostListener,
   inject,
-  OnDestroy,
   OnInit,
   signal,
   ViewChild,
@@ -467,7 +466,7 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
     </div>
   `,
 })
-export class PosComponent implements OnInit, OnDestroy {
+export class PosComponent implements OnInit {
   readonly posService = inject(PosService);
   private readonly productsService = inject(ProductsService);
   private readonly categoriesService = inject(CategoriesService);
@@ -517,8 +516,6 @@ export class PosComponent implements OnInit, OnDestroy {
     this.categoriesService.findAll().subscribe();
     this.clientsService.findAll().subscribe();
   }
-
-  ngOnDestroy(): void {}
 
   toggleMobileCart(): void {
     this.mobileCartOpen.update((open) => !open);

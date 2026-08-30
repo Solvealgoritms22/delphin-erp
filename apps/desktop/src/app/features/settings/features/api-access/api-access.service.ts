@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '@/environments/environment';
 
-export interface TenantApiAppItem {
+export type TenantApiAppItem = {
   id: string;
   nombre: string;
   descripcion?: string | null;
@@ -15,19 +15,19 @@ export interface TenantApiAppItem {
   creadoEn: string;
 }
 
-export interface TenantApiAppsResponse {
+export type TenantApiAppsResponse = {
   isEnterprise: boolean;
   maxAllowedApps: number;
   apps: TenantApiAppItem[];
 }
 
-export interface CreateTenantAppDto {
+export type CreateTenantAppDto = {
   nombre: string;
   descripcion?: string;
   allowedOrigins?: string[];
 }
 
-export interface CreateAppResponse {
+export type CreateAppResponse = {
   message: string;
   rawApiKey: string;
   app: TenantApiAppItem;

@@ -4,7 +4,7 @@ import { environment } from '@/environments/environment';
 import { tap, catchError, of, Observable } from 'rxjs';
 import { Client } from './clients';
 
-export interface AplicacionPagoCliente {
+export type AplicacionPagoCliente = {
   id: string;
   pagoId: string;
   facturaId: string;
@@ -23,7 +23,7 @@ export interface AplicacionPagoCliente {
   };
 }
 
-export interface PagoCliente {
+export type PagoCliente = {
   id: string;
   empresaId: string;
   numeroRecibo?: string | null;
@@ -43,7 +43,7 @@ export interface PagoCliente {
   aplicaciones: AplicacionPagoCliente[];
 }
 
-export interface PendingInvoice {
+export type PendingInvoice = {
   id: string;
   numeroFactura: string;
   ncf?: string | null;
@@ -68,7 +68,7 @@ export interface PendingInvoice {
   enMora: boolean;
 }
 
-export interface ReceivablesMetrics {
+export type ReceivablesMetrics = {
   totalPorCobrar: number;
   facturasPendientesCount: number;
   totalVencido: number;
@@ -79,12 +79,12 @@ export interface ReceivablesMetrics {
   totalCobrosHistoricos: number;
 }
 
-export interface PaymentApplicationDto {
+export type PaymentApplicationDto = {
   facturaId: string;
   monto: number;
 }
 
-export interface CreateCustomerPaymentDto {
+export type CreateCustomerPaymentDto = {
   clienteId: string;
   monto?: number;
   facturaId?: string;
@@ -97,7 +97,7 @@ export interface CreateCustomerPaymentDto {
   notas?: string;
 }
 
-export interface FilterCustomerPaymentsDto {
+export type FilterCustomerPaymentsDto = {
   search?: string;
   clienteId?: string;
   metodo?: string;
@@ -154,7 +154,7 @@ export class CustomerPaymentsService {
         this.totalCount.set(res.total || 0);
         this.isLoading.set(false);
       }),
-      catchError((err) => {
+      catchError((_err) => {
         this.isLoading.set(false);
         this.payments.set([]);
         return of({ data: [], total: 0 });

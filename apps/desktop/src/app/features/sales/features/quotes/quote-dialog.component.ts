@@ -8,14 +8,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
-import { TranslocoPipe } from '@jsverse/transloco';
-import { Cotizacion, QuotesService, CreateQuoteDto, CreateQuoteItemDto } from '../../data/quotes.service';
+import { Cotizacion, QuotesService, CreateQuoteDto } from '../../data/quotes.service';
 import { ClientsService, Client } from '../../data/clients';
 import { ProductsService, Product } from '../../../catalogs/data/products.service';
 import { InventoryService, Warehouse } from '../../../catalogs/data/inventory.service';
-import { SendQuoteEmailDialogComponent } from './send-quote-email-dialog.component';
 
-interface QuoteLineItem {
+type QuoteLineItem = {
   productoId?: string;
   descripcion: string;
   cantidad: number;
@@ -518,7 +516,7 @@ export class QuoteDialogComponent implements OnInit {
     this.dialogRef.close(false);
   }
 
-  saveQuote(sendAfterSave = false): void {
+  saveQuote(_sendAfterSave = false): void {
     if (this.items.length === 0 || !this.items.some((i) => i.descripcion.trim())) {
       this.snackBar.open('Agrega al menos una línea con descripción válida.', 'Cerrar', { duration: 3500 });
       return;

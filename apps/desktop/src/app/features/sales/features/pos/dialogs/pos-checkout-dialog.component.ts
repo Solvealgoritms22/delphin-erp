@@ -11,7 +11,7 @@ import { Client } from '@features/sales/data/clients';
 import { CartItem, PosService } from '../data/pos.service';
 import { PosReceiptService } from '../data/pos-receipt.service';
 
-export interface PosCheckoutData {
+export type PosCheckoutData = {
   items: CartItem[];
   client: Client | null;
   subtotal: number;

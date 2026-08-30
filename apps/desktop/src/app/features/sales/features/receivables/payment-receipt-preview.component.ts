@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { PagoCliente } from '../../data/customer-payments.service';
 
-export interface PaymentReceiptPreviewData {
+export type PaymentReceiptPreviewData = {
   payment: PagoCliente;
 }
 

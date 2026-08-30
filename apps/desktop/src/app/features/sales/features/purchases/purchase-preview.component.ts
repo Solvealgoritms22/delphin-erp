@@ -7,10 +7,9 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslocoPipe } from '@jsverse/transloco';
 import { FacturaCompra } from '../../data/purchases.service';
 
-export interface PurchasePreviewData {
+export type PurchasePreviewData = {
   purchase: FacturaCompra;
 }
 

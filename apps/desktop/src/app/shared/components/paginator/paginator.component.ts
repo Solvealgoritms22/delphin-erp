@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ChevronLeftIcon, ChevronRightIcon } from 'ng-animated-icons';
 
-export interface PageChangeEvent {
+export type PageChangeEvent = {
   page: number;
   limit: number;
 }

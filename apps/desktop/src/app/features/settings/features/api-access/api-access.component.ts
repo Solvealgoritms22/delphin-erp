@@ -2,7 +2,6 @@ import {
   Component,
   OnInit,
   inject,
-  signal,
   computed,
   TemplateRef,
   ViewChild,

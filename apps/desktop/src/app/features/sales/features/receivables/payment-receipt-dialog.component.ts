@@ -21,14 +21,14 @@ import {
   PendingInvoice,
   PaymentApplicationDto,
 } from '../../data/customer-payments.service';
-import { ClientsService, Client } from '../../data/clients';
+import { ClientsService } from '../../data/clients';
 
-export interface PaymentReceiptDialogData {
+export type PaymentReceiptDialogData = {
   clienteId?: string;
   facturaId?: string;
 }
 
-interface InvoiceSelectionRow {
+type InvoiceSelectionRow = {
   invoice: PendingInvoice;
   selected: boolean;
   montoAplicar: number;

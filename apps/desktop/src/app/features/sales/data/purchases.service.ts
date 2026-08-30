@@ -5,7 +5,7 @@ import { tap, catchError, of } from 'rxjs';
 import { Supplier } from './suppliers.service';
 import { Product } from '../../catalogs/data/products.service';
 
-export interface FacturaCompraDetalle {
+export type FacturaCompraDetalle = {
   id: string;
   facturaCompraId: string;
   productoId?: string | null;
@@ -21,7 +21,7 @@ export interface FacturaCompraDetalle {
   producto?: Product | null;
 }
 
-export interface PagoProveedor {
+export type PagoProveedor = {
   id: string;
   empresaId: string;
   proveedorId: string;
@@ -37,7 +37,7 @@ export interface PagoProveedor {
   creadoEn: string;
 }
 
-export interface AplicacionPagoProveedor {
+export type AplicacionPagoProveedor = {
   id: string;
   pagoId: string;
   facturaCompraId: string;
@@ -46,7 +46,7 @@ export interface AplicacionPagoProveedor {
   pago?: PagoProveedor;
 }
 
-export interface FacturaCompra {
+export type FacturaCompra = {
   id: string;
   empresaId: string;
   sucursalId?: string | null;
@@ -84,7 +84,7 @@ export interface FacturaCompra {
   pagosAplicados?: AplicacionPagoProveedor[];
 }
 
-export interface PurchaseItemDto {
+export type PurchaseItemDto = {
   productoId?: string;
   descripcion: string;
   cantidad: number;
@@ -94,7 +94,7 @@ export interface PurchaseItemDto {
   afectaInventario?: boolean;
 }
 
-export interface CreatePurchaseDto {
+export type CreatePurchaseDto = {
   proveedorId: string;
   almacenId?: string;
   sucursalId?: string;
@@ -114,7 +114,7 @@ export interface CreatePurchaseDto {
   items: PurchaseItemDto[];
 }
 
-export interface CreateSupplierPaymentDto {
+export type CreateSupplierPaymentDto = {
   monto: number;
   metodo: string;
   referencia?: string;
@@ -122,7 +122,7 @@ export interface CreateSupplierPaymentDto {
   notas?: string;
 }
 
-export interface FilterPurchasesDto {
+export type FilterPurchasesDto = {
   search?: string;
   proveedorId?: string;
   estado?: string;
@@ -133,7 +133,7 @@ export interface FilterPurchasesDto {
   limit?: number;
 }
 
-export interface PurchaseMetrics {
+export type PurchaseMetrics = {
   totalComprasMes: number;
   cantidadComprasMes: number;
   totalCxPPendiente: number;
@@ -142,7 +142,7 @@ export interface PurchaseMetrics {
   facturasVencidasCount: number;
 }
 
-export interface PurchasesResponse {
+export type PurchasesResponse = {
   data: FacturaCompra[];
   total: number;
   page: number;

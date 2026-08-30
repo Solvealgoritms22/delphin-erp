@@ -3,7 +3,6 @@ import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslocoPipe } from '@jsverse/transloco';
 import { Cotizacion } from '../../data/quotes.service';
 import { AuthState } from '@core/auth/auth.state';
 

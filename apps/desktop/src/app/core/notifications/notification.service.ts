@@ -16,7 +16,7 @@ export type AppNotification = {
   payload?: Record<string, unknown> | null;
 };
 
-export interface NotificationCatalogItem {
+export type NotificationCatalogItem = {
   id: string;
   category: string;
   categoryLabel: string;
@@ -27,7 +27,7 @@ export interface NotificationCatalogItem {
   defaultChannels: string[];
 }
 
-export interface UserNotificationPreference {
+export type UserNotificationPreference = {
   tipo: string;
   canal: string;
   habilitado: boolean;
