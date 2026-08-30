@@ -117,7 +117,7 @@ interface InvoiceSelectionRow {
               <input
                 matInput
                 [(ngModel)]="paymentData.referencia"
-                placeholder="Ej. Transferencia #89421 o Cheque #5512"
+                placeholder="Transferencia #89421 o Cheque #5512"
               />
             </mat-form-field>
           </div>
