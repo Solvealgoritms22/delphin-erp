@@ -36,7 +36,7 @@ type CategoryGroup = {
   ],
   template: `
     <div class="flex h-full w-full min-w-0 flex-col bg-white dark:bg-neutral-900 overflow-hidden">
-      <!-- Header Estándar Fuse -->
+      <!-- Header Estándar-->
       <header class="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 gap-4">
         <div>
           <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">

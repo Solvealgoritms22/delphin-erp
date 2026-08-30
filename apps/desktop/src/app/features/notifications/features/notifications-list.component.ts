@@ -19,7 +19,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
   ],
   template: `
     <div class="flex h-full w-full min-w-0 flex-col bg-white dark:bg-neutral-900 overflow-hidden">
-      <!-- Header Estándar Fuse -->
+      <!-- Header Estándar -->
       <header class="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 gap-4">
         <div>
           <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
@@ -108,7 +108,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                 [class.bg-primary-50/30]="!notification.leidaEn"
                 [class.dark:bg-primary-950/20]="!notification.leidaEn"
               >
-                <!-- Avatar Circular Estándar Fuse -->
+                <!-- Avatar Circular Estándar-->
                 <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-300">
                   <mat-icon [svgIcon]="notification.icono || iconFor(notification.tipo)" class="!w-5 !h-5"></mat-icon>
                 </div>

@@ -25,7 +25,7 @@ export class QuotesService {
     private readonly activityLog: ActivityLogService,
     private readonly tenantMailer: TenantMailerService,
     @Optional() private readonly notifications?: NotificationsService,
-  ) {}
+  ) { }
 
   /**
    * Genera el siguiente número secuencial correlativo de cotización por empresa (ej: COT-000001)
@@ -610,7 +610,7 @@ export class QuotesService {
       });
     }
 
-    // 4. Construir la plantilla HTML corporativa con estética Fuse
+    // 4. Construir la plantilla HTML corporativa
     const emailSubject =
       dto.customSubject?.trim() ||
       `Cotización ${quote.numeroCotizacion} - ${empresa.razonSocial}`;
@@ -804,10 +804,10 @@ export class QuotesService {
 
     const formattedDueDate = quote.fechaVencimiento
       ? new Date(quote.fechaVencimiento).toLocaleDateString('es-DO', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
       : '30 días desde la emisión';
 
     const formatCurrency = (val: any) => {
