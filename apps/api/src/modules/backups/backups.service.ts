@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
   ServiceUnavailableException,
+  Optional,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { google } from 'googleapis';
@@ -21,6 +22,7 @@ import { basename, dirname, join, resolve } from 'path';
 import { Readable } from 'stream';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ActivityLogService } from '../activity-log/activity-log.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const gzipAsync = promisify(gzip);
 const TENANT_MODELS = [
@@ -60,6 +62,7 @@ export class BackupsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activity: ActivityLogService,
+    @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
   async list(userId: string, empresaId?: string) {
@@ -161,6 +164,21 @@ export class BackupsService {
         resourceType: 'Backup',
         metadata: { provider, sha256 },
       });
+
+      if (this.notifications) {
+        await this.notifications.create({
+          usuarioId: userId,
+          empresaId,
+          tipo: 'BACKUP_SUCCESS',
+          titulo: 'Backup Completado con Éxito',
+          mensaje: `Respaldo ${name} (${provider}) generado y verificado correctamente.`,
+          severidad: 'SUCCESS',
+          icono: 'database-zap',
+          payload: { backupId: id, provider, nombreArchivo: name },
+          canales: ['IN_APP'],
+        });
+      }
+
       return {
         ...result,
         tamanoBytes:
@@ -173,6 +191,21 @@ export class BackupsService {
           data: { estado: 'FAILED', error: safeError(error) },
         })
         .catch(() => undefined);
+
+      if (this.notifications) {
+        await this.notifications.create({
+          usuarioId: userId,
+          empresaId,
+          tipo: 'BACKUP_FAILED',
+          titulo: 'Fallo en Creación de Backup',
+          mensaje: `No se pudo generar el respaldo ${name}: ${safeError(error)}.`,
+          severidad: 'CRITICAL',
+          icono: 'database-alert',
+          payload: { backupId: id, provider, error: safeError(error) },
+          canales: ['IN_APP', 'EMAIL', 'PUSH'],
+        });
+      }
+
       throw error;
     }
   }

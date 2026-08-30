@@ -3,10 +3,12 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ActivityLogService } from '../activity-log/activity-log.service';
 import { TenantMailerService, OwnerSmtpConfig } from '../../common/tenant-mailer.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   CreateQuoteDto,
   FilterQuotesDto,
@@ -22,6 +24,7 @@ export class QuotesService {
     private readonly prisma: PrismaService,
     private readonly activityLog: ActivityLogService,
     private readonly tenantMailer: TenantMailerService,
+    @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
   /**
@@ -636,6 +639,23 @@ export class QuotesService {
       },
     });
 
+    if (this.notifications) {
+      await this.notifications.create({
+        empresaId,
+        tipo: 'QUOTE_SENT',
+        titulo: 'Cotización Despachada',
+        mensaje: `Cotización ${quote.numeroCotizacion} enviada por correo a ${targetEmail}.`,
+        severidad: 'SUCCESS',
+        icono: 'send',
+        payload: {
+          cotizacionId: id,
+          numeroCotizacion: quote.numeroCotizacion,
+          emailDestino: targetEmail,
+        },
+        canales: ['IN_APP'],
+      });
+    }
+
     this.logger.log(`[QuotesService] Cotización ${quote.numeroCotizacion} enviada por correo a ${targetEmail}`);
 
     return {
@@ -744,6 +764,24 @@ export class QuotesService {
           numeroCotizacion: quote.numeroCotizacion,
         },
       });
+
+      if (this.notifications) {
+        await this.notifications.create({
+          empresaId,
+          tipo: 'QUOTE_CONVERTED',
+          titulo: 'Cotización Facturada',
+          mensaje: `Cotización ${quote.numeroCotizacion} convertida a factura ${factura.numeroFactura}.`,
+          severidad: 'SUCCESS',
+          icono: 'check-circle',
+          payload: {
+            cotizacionId: quote.id,
+            facturaId: factura.id,
+            numeroCotizacion: quote.numeroCotizacion,
+            numeroFactura: factura.numeroFactura,
+          },
+          canales: ['IN_APP'],
+        });
+      }
 
       return {
         success: true,

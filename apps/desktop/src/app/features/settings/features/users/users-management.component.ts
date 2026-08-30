@@ -14,6 +14,7 @@ import { UsersService, User as Account } from '../../data/users';
 import { RolesService } from '../../data/roles';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { StatCardComponent } from '@shared/components/stat-card/stat-card.component';
 import { UserDialogComponent, UserDialogData } from './user-dialog.component';
 import { AuthState } from '@core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -27,7 +28,6 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
   },
   imports: [
     CommonModule,
-    DecimalPipe,
     FormsModule,
     MatButtonModule,
     MatIconModule,
@@ -35,6 +35,7 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
     MatDialogModule,
     MatSnackBarModule,
     EmptyStateComponent,
+    StatCardComponent,
     TranslocoPipe,
     PlusIcon,
     SearchIcon,
@@ -75,35 +76,35 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
       <div class="flex-auto min-h-0 overflow-y-auto px-6 sm:px-10 py-8 pb-16">
 
         <section class="grid gap-4 sm:grid-cols-3 mb-8">
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ 'settings.users.total' | transloco }}</p>
-              <div>
-                <p class="mt-5 text-4xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ accounts().length | number }}</p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">100% {{ 'dashboard.general.ofTotal' | transloco }}</p>
-              </div>
-            </div>
-          </article>
+          <app-stat-card
+            [title]="'settings.users.total' | transloco"
+            [subtitle]="'100% ' + ('dashboard.general.ofTotal' | transloco)"
+            [value]="accounts().length"
+            icon="users"
+            curvePreset="asc-sigmoid"
+            color="blue"
+            (refresh)="loadUsers()"
+          />
 
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ 'settings.users.activeMembers' | transloco }}</p>
-              <div>
-                <p class="mt-5 text-4xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ activeCount() | number }}</p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">{{ percentageOf(activeCount()) }}% {{ 'dashboard.general.ofTotal' | transloco }}</p>
-              </div>
-            </div>
-          </article>
+          <app-stat-card
+            [title]="'settings.users.activeMembers' | transloco"
+            [subtitle]="percentageOf(activeCount()) + '% ' + ('dashboard.general.ofTotal' | transloco)"
+            [value]="activeCount()"
+            icon="user-check"
+            curvePreset="asc-sigmoid"
+            color="emerald"
+            (refresh)="loadUsers()"
+          />
 
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">{{ 'settings.users.inactiveMembers' | transloco }}</p>
-              <div>
-                <p class="mt-5 text-4xl font-semibold tracking-tight text-neutral-950 dark:text-white">{{ inactiveCount() | number }}</p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">{{ percentageOf(inactiveCount()) }}% {{ 'dashboard.general.ofTotal' | transloco }}</p>
-              </div>
-            </div>
-          </article>
+          <app-stat-card
+            [title]="'settings.users.inactiveMembers' | transloco"
+            [subtitle]="percentageOf(inactiveCount()) + '% ' + ('dashboard.general.ofTotal' | transloco)"
+            [value]="inactiveCount()"
+            icon="user-x"
+            curvePreset="trough-wave"
+            color="amber"
+            (refresh)="loadUsers()"
+          />
         </section>
 
       <div class="px-6 sm:px-10 w-full pb-12 flex flex-col gap-6">
@@ -266,7 +267,7 @@ export class UsersComponent implements OnInit {
     return list;
   });
 
-  ngOnInit() {
+  loadUsers() {
     this.rolesService.findAll()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
@@ -285,6 +286,10 @@ export class UsersComponent implements OnInit {
         next: (empresa) => this.currentEmpresa.set(empresa),
         error: (err) => console.error('Error fetching current empresa for SMTP check', err)
       });
+  }
+
+  ngOnInit() {
+    this.loadUsers();
   }
 
   clearFilters() {

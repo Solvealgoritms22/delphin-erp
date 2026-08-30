@@ -1,5 +1,6 @@
 import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
@@ -83,10 +84,15 @@ import { BellIcon } from 'ng-animated-icons';
                  <mat-icon svgIcon="trash-2" />
                   {{ 'notifications.clearAll' | transloco }}
                </button>
-               <button mat-menu-item (click)="toggleInApp()">
-                 <mat-icon [svgIcon]="inAppEnabled() ? 'bell-off' : 'bell'" />
-                  {{ (inAppEnabled() ? 'notifications.disable' : 'notifications.enable') | transloco }}
-               </button>
+                <button mat-menu-item (click)="toggleInApp()">
+                  <mat-icon [svgIcon]="inAppEnabled() ? 'bell-off' : 'bell'" />
+                   {{ (inAppEnabled() ? 'notifications.disable' : 'notifications.enable') | transloco }}
+                </button>
+                <mat-divider />
+                <button mat-menu-item (click)="openSettings()">
+                  <mat-icon svgIcon="sliders-horizontal" />
+                  <span>Preferencias de alertas</span>
+                </button>
             </mat-menu>
           </div>
 
@@ -165,6 +171,7 @@ export class Notifications implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
+  private readonly router = inject(Router);
 
   protected open = signal(false);
   protected filters = [
@@ -248,5 +255,10 @@ export class Notifications implements OnInit, OnDestroy {
 
   toggleInApp(): void {
     this.notificationService.setInAppEnabled(!this.inAppEnabled());
+  }
+
+  openSettings(): void {
+    this.open.set(false);
+    this.router.navigate(['/admin/settings/notifications']);
   }
 }

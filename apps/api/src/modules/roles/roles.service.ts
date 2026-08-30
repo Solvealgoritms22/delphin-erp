@@ -5,10 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { normalizePermissions } from '../../common/permissions.util';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 @Injectable()
 export class RolesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly activityLog: ActivityLogService,
+  ) {}
 
   async findAllByEmpresa(empresaId: string) {
     return this.prisma.role.findMany({
@@ -31,7 +35,7 @@ export class RolesService {
       throw new ConflictException(`El rol '${roleName}' ya existe.`);
     }
 
-    return this.prisma.role.create({
+    const created = await this.prisma.role.create({
       data: {
         empresaId,
         nombre: roleName,
@@ -39,6 +43,18 @@ export class RolesService {
         permissions: JSON.stringify(rolePerms),
       },
     });
+
+    await this.activityLog.log({
+      empresaId,
+      modulo: 'roles',
+      accion: 'CREATE',
+      resourceId: created.id,
+      resourceName: created.nombre,
+      resourceType: 'Rol de Usuario',
+      metadata: { descripcion: created.descripcion },
+    });
+
+    return created;
   }
 
   async update(empresaId: string, id: string, data: any) {
@@ -64,7 +80,7 @@ export class RolesService {
       }
     }
 
-    return this.prisma.role.update({
+    const updated = await this.prisma.role.update({
       where: { id },
       data: {
         nombre: roleName || role.nombre,
@@ -72,6 +88,17 @@ export class RolesService {
         permissions: JSON.stringify(rolePerms),
       },
     });
+
+    await this.activityLog.log({
+      empresaId,
+      modulo: 'roles',
+      accion: 'UPDATE',
+      resourceId: updated.id,
+      resourceName: updated.nombre,
+      resourceType: 'Rol de Usuario',
+    });
+
+    return updated;
   }
 
   async remove(empresaId: string, id: string) {
@@ -80,8 +107,19 @@ export class RolesService {
       throw new NotFoundException('Rol no encontrado');
     }
 
-    return this.prisma.role.delete({
+    const deleted = await this.prisma.role.delete({
       where: { id },
     });
+
+    await this.activityLog.log({
+      empresaId,
+      modulo: 'roles',
+      accion: 'DELETE',
+      resourceId: id,
+      resourceName: role.nombre,
+      resourceType: 'Rol de Usuario',
+    });
+
+    return deleted;
   }
 }

@@ -10,6 +10,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
+import { StatCardComponent } from '@shared/components/stat-card/stat-card.component';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
@@ -44,6 +45,7 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
     TranslocoPipe,
     EmptyStateComponent,
     TableSkeletonComponent,
+    StatCardComponent,
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50 dark:bg-neutral-950">
@@ -73,76 +75,51 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
 
       <!-- Main Scrollable Content -->
       <div class="flex-auto overflow-y-auto px-6 md:px-8 py-6 space-y-6">
-        <!-- Stat Cards: Official 2-layer rounded card design -->
-        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <!-- Compras del Mes -->
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                {{ 'commercial.purchases.stats.monthPurchases' | transloco }}
-              </p>
-              <div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-neutral-950 dark:text-white">
-                  RD$ {{ metrics().totalComprasMes | number: '1.2-2' }}
-                </p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                  {{ metrics().cantidadComprasMes }} compras registradas este mes
-                </p>
-              </div>
-            </div>
-          </article>
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <app-stat-card
+            [title]="'commercial.purchases.stats.monthPurchases' | transloco"
+            [subtitle]="metrics().cantidadComprasMes + ' compras registradas este mes'"
+            prefix="RD$ "
+            [value]="(metrics().totalComprasMes | number: '1.2-2') || '0.00'"
+            icon="shopping-bag"
+            curvePreset="asc-sigmoid"
+            color="blue"
+            (refresh)="loadPurchases()"
+          />
 
-          <!-- Cuentas por Pagar (CxP Pendiente) -->
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                {{ 'commercial.purchases.stats.pendingCxP' | transloco }}
-              </p>
-              <div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
-                  RD$ {{ metrics().totalCxPPendiente | number: '1.2-2' }}
-                </p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                  {{ metrics().facturasPendientesCount }} facturas con saldo pendiente
-                </p>
-              </div>
-            </div>
-          </article>
+          <app-stat-card
+            [title]="'commercial.purchases.stats.pendingCxP' | transloco"
+            [subtitle]="metrics().facturasPendientesCount + ' facturas con saldo pendiente'"
+            prefix="RD$ "
+            [value]="(metrics().totalCxPPendiente | number: '1.2-2') || '0.00'"
+            icon="clock"
+            curvePreset="asc-sigmoid"
+            color="amber"
+            (refresh)="loadPurchases()"
+          />
 
-          <!-- Total Vencido -->
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                {{ 'commercial.purchases.stats.overdueCxP' | transloco }}
-              </p>
-              <div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
-                  RD$ {{ metrics().totalVencido | number: '1.2-2' }}
-                </p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                  {{ metrics().facturasVencidasCount }} facturas vencidas
-                </p>
-              </div>
-            </div>
-          </article>
+          <app-stat-card
+            [title]="'commercial.purchases.stats.overdueCxP' | transloco"
+            [subtitle]="metrics().facturasVencidasCount + ' facturas vencidas'"
+            prefix="RD$ "
+            [value]="(metrics().totalVencido | number: '1.2-2') || '0.00'"
+            icon="alert-triangle"
+            curvePreset="trough-wave"
+            color="rose"
+            (refresh)="loadPurchases()"
+          />
 
-          <!-- Proveedores Registrados -->
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                {{ 'commercial.purchases.stats.suppliersCount' | transloco }}
-              </p>
-              <div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-neutral-950 dark:text-white">
-                  {{ suppliers().length | number }}
-                </p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                  Proveedores en directorio
-                </p>
-              </div>
-            </div>
-          </article>
-        </section>
+          <app-stat-card
+            [title]="'commercial.purchases.stats.suppliersCount' | transloco"
+            subtitle="Proveedores en directorio"
+            [value]="suppliers().length"
+            icon="truck"
+            curvePreset="s-curve"
+            color="purple"
+            (refresh)="loadPurchases()"
+          />
+        </div>
 
         <!-- Filter Controls (Standard MatMenu + Search) -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

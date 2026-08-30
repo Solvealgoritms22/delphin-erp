@@ -110,7 +110,7 @@ export type EvaluatedCartResult = {
 })
 export class PromotionsService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/v1/promotions`;
+  private apiUrl = `${environment.apiUrl}/promotions`;
 
   promotions = signal<Promocion[]>([]);
   loading = signal<boolean>(false);

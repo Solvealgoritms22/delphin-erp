@@ -25,6 +25,11 @@ export default [
           ),
       },
       {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./features/notifications/notification-settings.component'),
+      },
+      {
         path: 'api-access',
         canActivate: [permissionGuard],
         data: { permissions: ['company:read'] },

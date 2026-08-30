@@ -131,7 +131,7 @@ export type SmtpStatusResponse = {
 })
 export class QuotesService {
   private http = inject(HttpClient);
-  private baseUrl = `${environment.apiUrl}/v1/quotes`;
+  private baseUrl = `${environment.apiUrl}/quotes`;
 
   quotes = signal<Cotizacion[]>([]);
   loading = signal<boolean>(false);

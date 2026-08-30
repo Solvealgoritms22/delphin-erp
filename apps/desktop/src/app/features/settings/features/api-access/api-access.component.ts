@@ -104,8 +104,11 @@ import {
           <div *ngIf="!isEnterprise()" class="mx-auto max-w-3xl flex flex-col items-center justify-center py-10">
             <div class="w-full rounded-3xl border border-neutral-200 bg-white p-8 sm:p-10 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 text-center flex flex-col items-center">
               
-              <div class="h-16 w-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6">
-                <mat-icon svgIcon="lock" class="icon-size-8"></mat-icon>
+              <!-- Plan Icon (3 Overlapping Circles) -->
+              <div class="relative w-12 h-12 mb-6">
+                <div class="w-8 h-8 rounded-full absolute top-0 left-0 bg-blue-200 dark:bg-blue-800/40"></div>
+                <div class="w-8 h-8 rounded-full absolute top-0 left-4 bg-blue-500 dark:bg-blue-600/60 mix-blend-multiply dark:mix-blend-lighten"></div>
+                <div class="w-8 h-8 rounded-full absolute top-3.5 left-2 bg-blue-400 dark:bg-blue-700/50 mix-blend-multiply dark:mix-blend-lighten"></div>
               </div>
 
               <span class="rounded-full bg-amber-100 dark:bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-800 dark:text-amber-300 mb-3">
@@ -124,7 +127,7 @@ import {
               <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full text-left">
                 <div class="rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/40 p-4">
                   <div class="flex items-center gap-2 font-bold text-xs text-neutral-900 dark:text-white mb-1">
-                    <mat-icon svgIcon="shield-check" class="icon-size-4 text-blue-600"></mat-icon>
+                    <mat-icon svgIcon="shield-check" class="icon-size-4 text-neutral-500 dark:text-neutral-400"></mat-icon>
                     Seguridad por API Key
                   </div>
                   <p class="text-[11px] text-neutral-500 leading-normal">Claves cifradas en SHA-256 con revocación y rotación instantánea.</p>
@@ -132,7 +135,7 @@ import {
 
                 <div class="rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/40 p-4">
                   <div class="flex items-center gap-2 font-bold text-xs text-neutral-900 dark:text-white mb-1">
-                    <mat-icon svgIcon="globe" class="icon-size-4 text-emerald-600"></mat-icon>
+                    <mat-icon svgIcon="globe" class="icon-size-4 text-neutral-500 dark:text-neutral-400"></mat-icon>
                     Máx. 2 Orígenes
                   </div>
                   <p class="text-[11px] text-neutral-500 leading-normal">Conecta hasta 2 aplicaciones o sistemas externos simultáneos.</p>
@@ -140,7 +143,7 @@ import {
 
                 <div class="rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/40 p-4">
                   <div class="flex items-center gap-2 font-bold text-xs text-neutral-900 dark:text-white mb-1">
-                    <mat-icon svgIcon="database" class="icon-size-4 text-purple-600"></mat-icon>
+                    <mat-icon svgIcon="database" class="icon-size-4 text-neutral-500 dark:text-neutral-400"></mat-icon>
                     Acceso a Datos en Vivo
                   </div>
                   <p class="text-[11px] text-neutral-500 leading-normal">Catálogo de productos, facturas emitidas, clientes e inventario.</p>
@@ -152,7 +155,7 @@ import {
                 (click)="goToPlans()"
                 class="mt-8 flex items-center gap-2 rounded-2xl bg-blue-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all cursor-pointer"
               >
-                <mat-icon svgIcon="sparkles" class="icon-size-4"></mat-icon>
+                <mat-icon svgIcon="rocket" class="icon-size-4"></mat-icon>
                 {{ 'settings.apiAccess.upgradeCta' | transloco }}
               </button>
             </div>

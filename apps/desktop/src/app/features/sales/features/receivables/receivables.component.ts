@@ -10,6 +10,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
+import { StatCardComponent } from '@shared/components/stat-card/stat-card.component';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
@@ -44,6 +45,7 @@ import { PaymentReceiptPreviewComponent } from './payment-receipt-preview.compon
     TranslocoPipe,
     EmptyStateComponent,
     TableSkeletonComponent,
+    StatCardComponent,
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50 dark:bg-neutral-950">
@@ -73,76 +75,51 @@ import { PaymentReceiptPreviewComponent } from './payment-receipt-preview.compon
 
       <!-- Main Scrollable Content -->
       <div class="flex-auto overflow-y-auto px-6 md:px-8 py-6 space-y-6">
-        <!-- Stat Cards: Official 2-layer rounded card design -->
-        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <!-- Total por Cobrar -->
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                {{ 'commercial.receivables.stats.totalCxC' | transloco }}
-              </p>
-              <div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
-                  RD$ {{ metrics().totalPorCobrar | number: '1.2-2' }}
-                </p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                  {{ metrics().facturasPendientesCount }} facturas con saldo pendiente
-                </p>
-              </div>
-            </div>
-          </article>
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <app-stat-card
+            [title]="'commercial.receivables.stats.totalCxC' | transloco"
+            [subtitle]="metrics().facturasPendientesCount + ' facturas con saldo pendiente'"
+            prefix="RD$ "
+            [value]="(metrics().totalPorCobrar | number: '1.2-2') || '0.00'"
+            icon="clock"
+            curvePreset="asc-sigmoid"
+            color="amber"
+            (refresh)="refreshAll()"
+          />
 
-          <!-- Cartera Vencida (Mora) -->
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                {{ 'commercial.receivables.stats.overdueCxC' | transloco }}
-              </p>
-              <div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
-                  RD$ {{ metrics().totalVencido | number: '1.2-2' }}
-                </p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                  {{ metrics().facturasVencidasCount }} facturas vencidas en mora
-                </p>
-              </div>
-            </div>
-          </article>
+          <app-stat-card
+            [title]="'commercial.receivables.stats.overdueCxC' | transloco"
+            [subtitle]="metrics().facturasVencidasCount + ' facturas vencidas en mora'"
+            prefix="RD$ "
+            [value]="(metrics().totalVencido | number: '1.2-2') || '0.00'"
+            icon="alert-circle"
+            curvePreset="trough-wave"
+            color="rose"
+            (refresh)="refreshAll()"
+          />
 
-          <!-- Cobrado en el Mes -->
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                {{ 'commercial.receivables.stats.monthCollected' | transloco }}
-              </p>
-              <div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
-                  RD$ {{ metrics().cobradoMes | number: '1.2-2' }}
-                </p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                  {{ metrics().cobrosMesCount }} cobros efectuados este mes
-                </p>
-              </div>
-            </div>
-          </article>
+          <app-stat-card
+            [title]="'commercial.receivables.stats.monthCollected' | transloco"
+            [subtitle]="metrics().cobrosMesCount + ' cobros efectuados este mes'"
+            prefix="RD$ "
+            [value]="(metrics().cobradoMes | number: '1.2-2') || '0.00'"
+            icon="check-circle-2"
+            curvePreset="peak-wave"
+            color="emerald"
+            (refresh)="refreshAll()"
+          />
 
-          <!-- Clientes con Saldo Deudor -->
-          <article class="rounded-2xl bg-neutral-100 p-1 dark:bg-neutral-900">
-            <div class="flex h-full min-h-[132px] flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-              <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                {{ 'commercial.receivables.stats.clientsWithBalance' | transloco }}
-              </p>
-              <div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-neutral-950 dark:text-white">
-                  {{ metrics().clientesConSaldoCount | number }}
-                </p>
-                <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                  Clientes con crédito activo
-                </p>
-              </div>
-            </div>
-          </article>
-        </section>
+          <app-stat-card
+            [title]="'commercial.receivables.stats.clientsWithBalance' | transloco"
+            subtitle="Clientes con crédito activo"
+            [value]="metrics().clientesConSaldoCount"
+            icon="users"
+            curvePreset="s-curve"
+            color="blue"
+            (refresh)="refreshAll()"
+          />
+        </div>
 
         <!-- View Switcher Tabs -->
         <div class="flex items-center gap-2 border-b border-neutral-200 dark:border-neutral-800 pb-2">

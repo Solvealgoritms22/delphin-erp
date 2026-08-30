@@ -154,7 +154,7 @@ export interface PurchasesResponse {
 @Injectable({ providedIn: 'root' })
 export class PurchasesService {
   private http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/v1/purchases`;
+  private readonly apiUrl = `${environment.apiUrl}/purchases`;
 
   purchases = signal<FacturaCompra[]>([]);
   metrics = signal<PurchaseMetrics>({

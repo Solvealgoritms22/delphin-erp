@@ -398,4 +398,319 @@ export class AiToolsService {
       })),
     };
   }
+
+  /**
+   * Query sales and POS invoices
+   */
+  async querySalesAndInvoices(
+    empresaId: string,
+    params?: { search?: string; limit?: number; estado?: string },
+  ) {
+    const limit = Math.min(params?.limit || 20, 50);
+    this.logger.debug(`[AI-TOOL] querySalesAndInvoices for empresaId: ${empresaId}`);
+
+    const where: any = { empresaId };
+    if (params?.estado) {
+      where.estado = params.estado;
+    }
+    if (params?.search) {
+      where.OR = [
+        { numeroFactura: { contains: params.search, mode: 'insensitive' } },
+        { ncf: { contains: params.search, mode: 'insensitive' } },
+        { cliente: { nombreRazonSocial: { contains: params.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [invoices, totalVentasCount, sumVentas] = await Promise.all([
+      this.prisma.facturaVenta.findMany({
+        where,
+        take: limit,
+        orderBy: { creadoEn: 'desc' },
+        include: {
+          cliente: { select: { nombreRazonSocial: true, numeroDocumento: true } },
+          detalles: {
+            take: 5,
+            select: {
+              cantidad: true,
+              precioUnitario: true,
+              total: true,
+              producto: { select: { nombre: true, codigo: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.facturaVenta.count({ where: { empresaId, estado: { not: 'ANULADA' } } }),
+      this.prisma.facturaVenta.aggregate({
+        where: { empresaId, estado: { not: 'ANULADA' } },
+        _sum: { total: true, subtotal: true, itbis: true },
+      }),
+    ]);
+
+    return {
+      resumenVentasGlobal: {
+        totalFacturasEmitidas: totalVentasCount,
+        montoTotalFacturado: sumVentas._sum.total ? Number(sumVentas._sum.total) : 0,
+        subtotalTotal: sumVentas._sum.subtotal ? Number(sumVentas._sum.subtotal) : 0,
+        itbisTotal: sumVentas._sum.itbis ? Number(sumVentas._sum.itbis) : 0,
+      },
+      facturasRecientes: invoices.map((inv) => ({
+        id: inv.id,
+        numero: inv.numeroFactura,
+        ncf: inv.ncf || 'Sin NCF',
+        tipoNcf: inv.tipoNcf || 'N/A',
+        fecha: inv.fecha.toISOString().split('T')[0],
+        cliente: inv.cliente?.nombreRazonSocial || 'Cliente General',
+        total: Number(inv.total),
+        subtotal: Number(inv.subtotal),
+        itbis: Number(inv.itbis),
+        estado: inv.estado,
+        metodoPago: inv.metodoPago || 'EFECTIVO',
+        tipoPago: inv.tipoPago || 'CONTADO',
+        items: inv.detalles.map((d) => `${d.cantidad}x ${d.producto?.nombre || 'Artículo'} (RD$ ${Number(d.total)})`),
+      })),
+    };
+  }
+
+  /**
+   * Query quotes / cotizaciones
+   */
+  async queryQuotes(
+    empresaId: string,
+    params?: { search?: string; limit?: number },
+  ) {
+    const limit = Math.min(params?.limit || 15, 30);
+    this.logger.debug(`[AI-TOOL] queryQuotes for empresaId: ${empresaId}`);
+
+    const where: any = { empresaId };
+    if (params?.search) {
+      where.OR = [
+        { numeroCotizacion: { contains: params.search, mode: 'insensitive' } },
+        { cliente: { nombreRazonSocial: { contains: params.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const quotes = await this.prisma.cotizacion.findMany({
+      where,
+      take: limit,
+      orderBy: { creadoEn: 'desc' },
+      include: {
+        cliente: { select: { nombreRazonSocial: true } },
+      },
+    });
+
+    return {
+      totalCotizaciones: quotes.length,
+      cotizaciones: quotes.map((q) => ({
+        numero: q.numeroCotizacion,
+        cliente: q.cliente?.nombreRazonSocial || 'Cliente General',
+        fecha: q.fecha.toISOString().split('T')[0],
+        fechaVencimiento: q.fechaVencimiento ? q.fechaVencimiento.toISOString().split('T')[0] : 'N/A',
+        total: Number(q.total),
+        estado: q.estado,
+      })),
+    };
+  }
+
+  /**
+   * Query purchases and accounts payable (CxP)
+   */
+  async queryPurchases(
+    empresaId: string,
+    params?: { search?: string; limit?: number },
+  ) {
+    const limit = Math.min(params?.limit || 15, 30);
+    this.logger.debug(`[AI-TOOL] queryPurchases for empresaId: ${empresaId}`);
+
+    const where: any = { empresaId };
+    if (params?.search) {
+      where.OR = [
+        { numeroFactura: { contains: params.search, mode: 'insensitive' } },
+        { ncf: { contains: params.search, mode: 'insensitive' } },
+        { proveedor: { nombreRazonSocial: { contains: params.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [purchases, pendingPurchases] = await Promise.all([
+      this.prisma.facturaCompra.findMany({
+        where,
+        take: limit,
+        orderBy: { creadoEn: 'desc' },
+        include: {
+          proveedor: { select: { nombreRazonSocial: true, numeroDocumento: true } },
+        },
+      }),
+      this.prisma.facturaCompra.aggregate({
+        where: { empresaId, balancePendiente: { gt: 0 } },
+        _sum: { balancePendiente: true },
+        _count: true,
+      }),
+    ]);
+
+    return {
+      resumenCuentasPorPagar: {
+        totalPendientePago: pendingPurchases._sum.balancePendiente ? Number(pendingPurchases._sum.balancePendiente) : 0,
+        facturasPendientesCount: pendingPurchases._count || 0,
+      },
+      comprasRecientes: purchases.map((p) => ({
+        numero: p.numeroFactura,
+        ncf: p.ncf || 'Sin NCF',
+        proveedor: p.proveedor?.nombreRazonSocial || 'Proveedor General',
+        fecha: p.fecha.toISOString().split('T')[0],
+        total: Number(p.total),
+        balancePendiente: Number(p.balancePendiente),
+        estado: p.estado,
+      })),
+    };
+  }
+
+  /**
+   * Query accounts receivable (CxC / Cuentas por Cobrar)
+   */
+  async queryReceivables(empresaId: string) {
+    this.logger.debug(`[AI-TOOL] queryReceivables for empresaId: ${empresaId}`);
+
+    const pendingInvoices = await this.prisma.facturaVenta.findMany({
+      where: {
+        empresaId,
+        estado: { not: 'ANULADA' },
+        balancePendiente: { gt: 0 },
+      },
+      orderBy: { fechaVencimiento: 'asc' },
+      take: 20,
+      include: {
+        cliente: { select: { nombreRazonSocial: true, telefono: true, email: true } },
+      },
+    });
+
+    const sumPending = pendingInvoices.reduce((acc, inv) => acc + Number(inv.balancePendiente), 0);
+
+    return {
+      totalPorCobrar: sumPending,
+      totalFacturasPorCobrar: pendingInvoices.length,
+      facturasPendientes: pendingInvoices.map((inv) => ({
+        numero: inv.numeroFactura,
+        ncf: inv.ncf || 'N/A',
+        cliente: inv.cliente?.nombreRazonSocial || 'Cliente General',
+        telefono: inv.cliente?.telefono || 'N/A',
+        total: Number(inv.total),
+        balancePendiente: Number(inv.balancePendiente),
+        fechaEmision: inv.fecha.toISOString().split('T')[0],
+        fechaVencimiento: inv.fechaVencimiento ? inv.fechaVencimiento.toISOString().split('T')[0] : 'Sin vencimiento',
+      })),
+    };
+  }
+
+  /**
+   * Query inventory stock levels, warehouses, and low stock warnings
+   */
+  async queryInventoryStock(
+    empresaId: string,
+    params?: { search?: string; lowStockOnly?: boolean; limit?: number },
+  ) {
+    const limit = Math.min(params?.limit || 25, 50);
+    this.logger.debug(`[AI-TOOL] queryInventoryStock for empresaId: ${empresaId}`);
+
+    const where: any = { empresaId };
+    if (params?.search) {
+      where.producto = {
+        OR: [
+          { nombre: { contains: params.search, mode: 'insensitive' } },
+          { codigo: { contains: params.search, mode: 'insensitive' } },
+        ],
+      };
+    }
+
+    const inventoryItems = await this.prisma.inventarioStock.findMany({
+      where,
+      take: limit,
+      include: {
+        producto: {
+          select: {
+            nombre: true,
+            codigo: true,
+            precioVenta: true,
+            costo: true,
+            categoria: { select: { nombre: true } },
+          },
+        },
+        almacen: { select: { nombre: true } },
+      },
+    });
+
+    const lowStock = inventoryItems.filter(
+      (item) => Number(item.cantidad) <= Number(item.stockMinimo),
+    );
+
+    const itemsToReturn = params?.lowStockOnly ? lowStock : inventoryItems;
+
+    return {
+      totalItemsAnalizados: inventoryItems.length,
+      alertasBajoStockCount: lowStock.length,
+      inventario: itemsToReturn.map((item) => ({
+        producto: item.producto.nombre,
+        codigo: item.producto.codigo,
+        categoria: item.producto.categoria?.nombre || 'General',
+        almacen: item.almacen.nombre,
+        cantidadActual: Number(item.cantidad),
+        stockMinimo: Number(item.stockMinimo),
+        bajoStock: Number(item.cantidad) <= Number(item.stockMinimo),
+        precioVenta: Number(item.producto.precioVenta),
+        costo: Number(item.producto.costo),
+      })),
+    };
+  }
+
+  /**
+   * Query active commercial promotions
+   */
+  async queryPromotions(empresaId: string) {
+    this.logger.debug(`[AI-TOOL] queryPromotions for empresaId: ${empresaId}`);
+
+    const promotions = await this.prisma.promocion.findMany({
+      where: { empresaId, estado: 'ACTIVA' },
+    });
+
+    return {
+      totalPromocionesActivas: promotions.length,
+      promociones: promotions.map((p) => ({
+        nombre: p.nombre,
+        tipo: p.tipoDescuento,
+        valorDescuento: p.tipoDescuento === 'PORCENTAJE' ? `${p.valorDescuento}%` : `RD$ ${p.valorDescuento}`,
+        alcance: p.alcance,
+        fechaInicio: p.fechaInicio.toISOString().split('T')[0],
+        fechaFin: p.fechaFin ? p.fechaFin.toISOString().split('T')[0] : 'Indefinido',
+      })),
+    };
+  }
+
+  /**
+   * Query DGII Fiscal NCF Sequences
+   */
+  async queryFiscalSequences(empresaId: string) {
+    this.logger.debug(`[AI-TOOL] queryFiscalSequences for empresaId: ${empresaId}`);
+
+    const secuencias = await this.prisma.secuenciaNCF.findMany({
+      where: { empresaId },
+      orderBy: { tipo: 'asc' },
+    });
+
+    return {
+      totalSecuencias: secuencias.length,
+      secuencias: secuencias.map((s) => {
+        const remaining = s.numeroHasta - s.numeroActual;
+        return {
+          nombre: s.nombre,
+          tipo: s.tipo,
+          prefijo: s.prefijo,
+          numeroActual: s.numeroActual,
+          numeroFinal: s.numeroHasta,
+          disponibles: remaining,
+          alertaAgotamiento: remaining < 50,
+          fechaVencimiento: s.fechaVencimiento ? s.fechaVencimiento.toISOString().split('T')[0] : 'Sin vencimiento',
+          estado: s.activa ? 'ACTIVA' : 'INACTIVA',
+        };
+      }),
+    };
+  }
 }
+

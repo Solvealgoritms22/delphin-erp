@@ -12,6 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { NgApexchartsModule } from 'ng-apexcharts';
 import {
   ReportsService,
   SalesReportResponse,
@@ -52,6 +53,7 @@ export type ReportTab =
     TranslocoPipe,
     StatCardComponent,
     DecimalPipe,
+    NgApexchartsModule,
   ],
   template: `
     <div class="no-print flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
@@ -275,25 +277,21 @@ export type ReportTab =
                   </p>
                 </div>
 
-                <!-- SVG Bar Chart -->
-                <div *ngIf="salesData().timeSeries.length > 0" class="h-64 flex items-end gap-2 pt-6 pb-2 overflow-x-auto">
-                  <div
-                    *ngFor="let point of salesData().timeSeries"
-                    class="flex flex-col items-center flex-1 min-w-[32px] group relative h-full justify-end"
-                  >
-                    <!-- Tooltip -->
-                    <div class="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center bg-neutral-900 text-white text-[10px] rounded-lg px-2 py-1.5 z-20 pointer-events-none shadow-lg whitespace-nowrap">
-                      <span class="font-bold">RD$ {{ point.total | number:'1.2-2' }}</span>
-                      <span class="text-neutral-400">{{ point.date }} ({{ point.count }} facturas)</span>
-                    </div>
-
-                    <!-- Bar -->
-                    <div
-                      class="w-full rounded-t-lg bg-blue-600 hover:bg-blue-700 transition-all cursor-pointer"
-                      [style.height.%]="getBarHeightPercent(point.total, maxSalesPoint())"
-                    ></div>
-                    <span class="mt-2 text-[10px] font-mono text-neutral-400 truncate w-full text-center">{{ point.date | slice:5:10 }}</span>
-                  </div>
+                <!-- ApexChart Smooth Area Timeline -->
+                <div *ngIf="salesData().timeSeries.length > 0" class="w-full h-64 -ml-2">
+                  <apx-chart
+                    [series]="salesChartOptions().series"
+                    [chart]="salesChartOptions().chart"
+                    [colors]="salesChartOptions().colors"
+                    [stroke]="salesChartOptions().stroke"
+                    [fill]="salesChartOptions().fill"
+                    [grid]="salesChartOptions().grid"
+                    [xaxis]="salesChartOptions().xaxis"
+                    [yaxis]="salesChartOptions().yaxis"
+                    [tooltip]="salesChartOptions().tooltip"
+                    [dataLabels]="salesChartOptions().dataLabels"
+                    [markers]="salesChartOptions().markers"
+                  ></apx-chart>
                 </div>
               </div>
 
@@ -1263,6 +1261,91 @@ export default class ReportsComponent implements OnInit {
     const points = this.salesData().timeSeries || [];
     if (points.length === 0) return 1;
     return Math.max(...points.map((p) => p.total), 1);
+  });
+
+  readonly salesChartOptions = computed(() => {
+    const timeSeries = this.salesData().timeSeries || [];
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+
+    const categories = timeSeries.map((p) => {
+      const parts = p.date.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}`;
+      }
+      return p.date;
+    });
+
+    const values = timeSeries.map((p) => p.total);
+
+    return {
+      series: [
+        {
+          name: 'Ventas',
+          data: values,
+        },
+      ],
+      chart: {
+        type: 'area' as const,
+        height: 250,
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        fontFamily: 'Inter, system-ui, sans-serif',
+        background: 'transparent',
+      },
+      colors: ['#2563eb'],
+      dataLabels: { enabled: false },
+      stroke: {
+        curve: 'smooth' as const,
+        width: 3,
+      },
+      fill: {
+        type: 'gradient' as const,
+        gradient: {
+          shadeIntensity: 1,
+          opacityFrom: 0.35,
+          opacityTo: 0.05,
+          stops: [0, 90, 100],
+        },
+      },
+      grid: {
+        borderColor: isDark ? '#262626' : '#f3f4f6',
+        strokeDashArray: 4,
+        padding: { top: 0, right: 12, bottom: 0, left: 12 },
+      },
+      xaxis: {
+        categories: categories.length > 0 ? categories : ['Hoy'],
+        labels: {
+          style: {
+            colors: isDark ? '#a3a3a3' : '#737373',
+            fontSize: '11px',
+          },
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+      },
+      yaxis: {
+        labels: {
+          style: {
+            colors: isDark ? '#a3a3a3' : '#737373',
+            fontSize: '11px',
+          },
+          formatter: (val: number) => `RD$ ${Number(val || 0).toLocaleString('es-DO', { maximumFractionDigits: 0 })}`,
+        },
+      },
+      tooltip: {
+        theme: isDark ? 'dark' : 'light',
+        y: {
+          formatter: (val: number) => `RD$ ${Number(val || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        },
+      },
+      markers: {
+        size: timeSeries.length === 1 ? 6 : 4,
+        colors: ['#2563eb'],
+        strokeColors: '#fff',
+        strokeWidth: 2,
+        hover: { size: 7 },
+      },
+    };
   });
 
   private getDefaultTaxPeriod(): string {

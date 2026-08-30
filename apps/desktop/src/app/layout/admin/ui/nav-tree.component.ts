@@ -87,20 +87,38 @@ import { PermissionService } from '@core/permissions/permission.service';
               [class.opacity-0]="!section.expanded"
             >
               <div class="overflow-hidden">
-                <div class="relative ml-5.5 pl-3.5 flex flex-col gap-y-0.5 pt-1 pb-1.5">
-                  <!-- Vertical Tree Spine Guide Line -->
-                  <div class="absolute left-0 top-2 bottom-3 w-[1.5px] bg-neutral-200/90 dark:bg-neutral-800/80 rounded-full"></div>
-
-                  @for (child of section.children; track child.id) {
-                    <div class="relative flex items-center group/branch">
-                      <!-- Curved Branch Elbow Connecting Line -->
-                      <span class="absolute -left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-[1.5px] bg-neutral-200/90 dark:bg-neutral-800/80 group-hover/branch:bg-blue-500/60 transition-colors rounded-full"></span>
+                <div class="relative ml-5.5 pl-3.5 flex flex-col pt-0.5 pb-1">
+                  @for (child of section.children; track child.id; let isLast = $last) {
+                    <div class="relative flex items-center py-0.5 group/branch">
+                      <!-- Precision SVG Tree Branch (Seamless single-stroke fillet arc, zero stray lines) -->
+                      <svg
+                        class="pointer-events-none absolute -left-3.5 top-0 h-full w-3.5 overflow-visible text-neutral-300 dark:text-neutral-700"
+                        viewBox="0 0 14 36"
+                        preserveAspectRatio="none"
+                        fill="none"
+                      >
+                        @if (!isLast) {
+                          <path
+                            d="M 1 0 V 36"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                          />
+                        }
+                        <path
+                          d="M 1 0 V 9 A 9 9 0 0 0 10 18 H 14"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          fill="none"
+                        />
+                      </svg>
 
                       <a
                         [routerLink]="child.route"
                         [routerLinkActiveOptions]="child.activeOptions ?? { exact: false }"
                         routerLinkActive="!text-blue-600 dark:!text-blue-400 !font-semibold !bg-blue-500/10 dark:!bg-blue-500/15 shadow-2xs"
-                        class="flex-1 flex items-center justify-between py-1.5 px-3 rounded-lg text-[13px] text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100/80 dark:hover:bg-neutral-800/50 transition-all select-none"
+                        class="flex-1 flex items-center justify-between py-1.5 px-3 rounded-xl text-[13px] text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100/80 dark:hover:bg-neutral-800/50 transition-all select-none"
                       >
                         <span class="truncate">{{ child.label | transloco }}</span>
                         @if (child.badge) {

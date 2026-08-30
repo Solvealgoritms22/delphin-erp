@@ -10,6 +10,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
+import { StatCardComponent } from '@shared/components/stat-card/stat-card.component';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
@@ -40,6 +41,7 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
     TranslocoPipe,
     EmptyStateComponent,
     TableSkeletonComponent,
+    StatCardComponent,
   ],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
@@ -74,41 +76,45 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
       <div class="flex min-h-0 flex-auto flex-col overflow-y-auto">
         <!-- Stat Cards -->
         <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:px-8 lg:grid-cols-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30">
-          <div class="flex flex-col rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-            <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-              {{ 'commercial.promotions.stats.total' | transloco }}
-            </span>
-            <span class="mt-2 text-2xl font-extrabold text-neutral-900 dark:text-white font-mono">
-              {{ totalPromotions() }}
-            </span>
-          </div>
+          <app-stat-card
+            [title]="'commercial.promotions.stats.total' | transloco"
+            subtitle="Campañas registradas"
+            [value]="totalPromotions()"
+            icon="tag"
+            curvePreset="asc-sigmoid"
+            color="blue"
+            (refresh)="loadPromotions()"
+          />
 
-          <div class="flex flex-col rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-              {{ 'commercial.promotions.stats.active' | transloco }}
-            </span>
-            <span class="mt-2 text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
-              {{ activePromotions() }}
-            </span>
-          </div>
+          <app-stat-card
+            [title]="'commercial.promotions.stats.active' | transloco"
+            subtitle="Vigentes y aplicables"
+            [value]="activePromotions()"
+            icon="zap"
+            curvePreset="asc-sigmoid"
+            color="emerald"
+            (refresh)="loadPromotions()"
+          />
 
-          <div class="flex flex-col rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-            <span class="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-              {{ 'commercial.promotions.stats.scheduled' | transloco }}
-            </span>
-            <span class="mt-2 text-2xl font-extrabold text-blue-600 dark:text-blue-400 font-mono">
-              {{ scheduledPromotions() }}
-            </span>
-          </div>
+          <app-stat-card
+            [title]="'commercial.promotions.stats.scheduled' | transloco"
+            subtitle="Próximo lanzamiento"
+            [value]="scheduledPromotions()"
+            icon="calendar"
+            curvePreset="peak-wave"
+            color="purple"
+            (refresh)="loadPromotions()"
+          />
 
-          <div class="flex flex-col rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-            <span class="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-              {{ 'commercial.promotions.stats.expired' | transloco }}
-            </span>
-            <span class="mt-2 text-2xl font-extrabold text-neutral-600 dark:text-neutral-300 font-mono">
-              {{ expiredPromotions() }}
-            </span>
-          </div>
+          <app-stat-card
+            [title]="'commercial.promotions.stats.expired' | transloco"
+            subtitle="Fuera de vigencia"
+            [value]="expiredPromotions()"
+            icon="clock"
+            curvePreset="trough-wave"
+            color="amber"
+            (refresh)="loadPromotions()"
+          />
         </div>
 
         <!-- Filter Bar -->

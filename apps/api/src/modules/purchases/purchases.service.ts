@@ -3,9 +3,11 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ActivityLogService } from '../activity-log/activity-log.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   CreatePurchaseDto,
   PurchasePaymentType,
@@ -21,6 +23,7 @@ export class PurchasesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activityLog: ActivityLogService,
+    @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
   async create(empresaId: string, usuarioId: string, dto: CreatePurchaseDto) {
@@ -309,6 +312,24 @@ export class PurchasesService {
         tipoPago: compra.tipoPago,
       },
     });
+
+    if (this.notifications) {
+      await this.notifications.create({
+        empresaId,
+        tipo: 'PURCHASE_REGISTERED',
+        titulo: 'Nueva Factura de Compra',
+        mensaje: `Compra ${compra.numeroFactura} registrada de ${proveedor.nombreRazonSocial} por ${Number(compra.total).toLocaleString('es-DO', { style: 'currency', currency: compra.moneda || 'DOP' })}.`,
+        severidad: 'INFO',
+        icono: 'shopping-bag',
+        payload: {
+          compraId: compra.id,
+          numeroFactura: compra.numeroFactura,
+          proveedor: proveedor.nombreRazonSocial,
+          total: Number(compra.total),
+        },
+        canales: ['IN_APP'],
+      });
+    }
 
     return compra;
   }

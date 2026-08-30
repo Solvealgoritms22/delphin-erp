@@ -16,6 +16,23 @@ export type AppNotification = {
   payload?: Record<string, unknown> | null;
 };
 
+export interface NotificationCatalogItem {
+  id: string;
+  category: string;
+  categoryLabel: string;
+  name: string;
+  description: string;
+  icon: string;
+  severity: string;
+  defaultChannels: string[];
+}
+
+export interface UserNotificationPreference {
+  tipo: string;
+  canal: string;
+  habilitado: boolean;
+}
+
 type NotificationResponse = {
   items: AppNotification[];
   total: number;
@@ -160,6 +177,22 @@ export class NotificationService {
       userAgent: navigator.userAgent,
     }));
     return true;
+  }
+
+  getCatalog() {
+    return this.http.get<NotificationCatalogItem[]>(`${environment.apiUrl}/notifications/catalog`);
+  }
+
+  getPreferences() {
+    return this.http.get<UserNotificationPreference[]>(`${environment.apiUrl}/notifications/preferences`);
+  }
+
+  savePreferencesBatch(preferences: UserNotificationPreference[]) {
+    return this.http.post(`${environment.apiUrl}/notifications/preferences/batch`, { preferences });
+  }
+
+  resetPreferences() {
+    return this.http.post<{ success: boolean }>(`${environment.apiUrl}/notifications/preferences/reset`, {});
   }
 
   savePreference(tipo: string, canal: string, habilitado: boolean) {

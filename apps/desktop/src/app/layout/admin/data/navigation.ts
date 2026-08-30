@@ -113,6 +113,14 @@ export const NAVIGATION: NavigationItem[] = [
     expanded: false,
     children: [
       {
+        id: 'commercial/pos',
+        label: 'nav.pos',
+        icon: 'calculator',
+        route: '/admin/commercial/pos',
+        activeOptions: { exact: false },
+        requiredPermission: 'invoices:read',
+      },
+      {
         id: 'commercial/invoices',
         label: 'nav.invoices',
         icon: 'file-text',
@@ -216,6 +224,13 @@ export const NAVIGATION: NavigationItem[] = [
         route: '/admin/settings/billing',
         activeOptions: { exact: false },
         requiredPermission: 'billing:read',
+      },
+      {
+        id: 'settings/notifications',
+        label: 'nav.notificationsSettings',
+        icon: 'bell',
+        route: '/admin/settings/notifications',
+        activeOptions: { exact: false },
       },
       {
         id: 'settings/api-access',

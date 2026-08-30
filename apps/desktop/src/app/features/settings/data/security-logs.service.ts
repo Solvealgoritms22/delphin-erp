@@ -15,15 +15,17 @@ export type SecurityLog = {
   sourceIp: string;
   destinationIp: string;
   severity: SecuritySeverity;
+  usuarioNombre?: string;
   usuarioEmail?: string;
-}
+  usuarioAvatar?: string;
+};
 
 type SecurityLogsResponse = {
   items: Array<Omit<SecurityLog, 'eventIcon' | 'eventColor'> & { timestamp: string }>;
   total: number;
   page: number;
   limit: number;
-}
+};
 
 @Injectable({ providedIn: 'root' })
 export class SecurityLogsService {

@@ -121,6 +121,12 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
                 </button>
 
                 <mat-menu #columnsMenu="matMenu" class="!rounded-xl !p-1">
+                  <button mat-menu-item (click)="toggleColumn('user')">
+                    <span class="inline-flex items-center gap-2">
+                      <input type="checkbox" [checked]="columns().user" (click)="$event.stopPropagation()" class="rounded text-blue-600">
+                      Usuario
+                    </span>
+                  </button>
                   <button mat-menu-item (click)="toggleColumn('timestamp')">
                     <span class="inline-flex items-center gap-2">
                       <input type="checkbox" [checked]="columns().timestamp" (click)="$event.stopPropagation()" class="rounded text-blue-600">
@@ -168,6 +174,9 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
                     <th class="py-4 px-4 w-12 text-center">
                       <input type="checkbox" class="rounded border-neutral-300 text-primary-600 focus:ring-primary-500 w-4 h-4 cursor-pointer">
                     </th>
+                    @if (columns().user) {
+                      <th class="py-4 px-4">Usuario</th>
+                    }
                     @if (columns().timestamp) {
                       <th class="py-4 px-4">
                         <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200">
@@ -231,6 +240,25 @@ import { SearchIcon, TrashIcon, SlidersHorizontalIcon, ArrowDownIcon, RefreshCwI
                       <td class="py-4 px-4 text-center">
                         <input type="checkbox" class="rounded border-neutral-300 text-primary-600 focus:ring-primary-500 w-4 h-4 cursor-pointer">
                       </td>
+                      @if (columns().user) {
+                        <td class="py-4 px-4">
+                          <div class="flex items-center gap-2.5">
+                            @if (log.usuarioAvatar) {
+                              <img [src]="log.usuarioAvatar" [alt]="log.usuarioNombre || 'Usuario'" class="size-7 rounded-full object-cover border border-neutral-200 dark:border-neutral-700 shrink-0" />
+                            } @else {
+                              <div class="size-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0" [ngClass]="getAvatarColor(log.usuarioNombre || log.usuarioEmail)">
+                                {{ getInitials(log.usuarioNombre || log.usuarioEmail) }}
+                              </div>
+                            }
+                            <div class="flex flex-col min-w-0">
+                              <span class="font-semibold text-neutral-900 dark:text-white truncate max-w-[130px]">{{ log.usuarioNombre || log.usuarioEmail || 'Sistema' }}</span>
+                              @if (log.usuarioNombre && log.usuarioEmail) {
+                                <span class="text-[11px] text-neutral-400 truncate max-w-[130px]">{{ log.usuarioEmail }}</span>
+                              }
+                            </div>
+                          </div>
+                        </td>
+                      }
                       @if (columns().timestamp) {
                         <td class="py-4 px-4 font-medium">{{ log.timestamp }}</td>
                       }
@@ -329,6 +357,7 @@ export default class SecurityLogsComponent implements OnInit {
   pageSize = signal(10);
 
   columns = signal({
+    user: true,
     timestamp: true,
     eventType: true,
     actionTaken: true,
@@ -337,11 +366,38 @@ export default class SecurityLogsComponent implements OnInit {
     severity: true
   });
 
-  toggleColumn(col: 'timestamp' | 'eventType' | 'actionTaken' | 'sourceIp' | 'destinationIp' | 'severity') {
+  toggleColumn(col: 'user' | 'timestamp' | 'eventType' | 'actionTaken' | 'sourceIp' | 'destinationIp' | 'severity') {
     this.columns.update(curr => ({
       ...curr,
       [col]: !curr[col]
     }));
+  }
+
+  getInitials(nameOrEmail: string | null | undefined): string {
+    if (!nameOrEmail) return 'SYS';
+    const parts = nameOrEmail.trim().split(/[\s@._-]+/);
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return nameOrEmail.slice(0, 2).toUpperCase();
+  }
+
+  getAvatarColor(nameOrEmail: string | null | undefined): string {
+    const colors = [
+      'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+      'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
+      'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+      'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+      'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
+      'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300',
+      'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
+    ];
+    if (!nameOrEmail) return colors[0];
+    let hash = 0;
+    for (let i = 0; i < nameOrEmail.length; i++) {
+      hash = nameOrEmail.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
   }
 
   togglePushAlerts(enabled: boolean) {

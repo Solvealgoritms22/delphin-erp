@@ -282,7 +282,7 @@ export interface ReportIt1Response {
 })
 export class ReportsService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/v1/reports`;
+  private apiUrl = `${environment.apiUrl}/reports`;
 
   salesReport = signal<SalesReportResponse>({
     summary: { totalVentas: 0, totalItbis: 0, totalDescuento: 0, totalSubtotal: 0, totalFacturas: 0, promedioTicket: 0 },

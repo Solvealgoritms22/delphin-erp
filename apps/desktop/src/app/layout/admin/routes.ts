@@ -36,6 +36,15 @@ const routes: Routes = [
         path: 'commercial',
         children: [
           {
+            path: 'pos',
+            canActivate: [permissionGuard],
+            data: { permissions: ['invoices:read', 'commercial:read'] },
+            loadComponent: () =>
+              import('@features/sales/features/pos/pos.component').then(
+                (c) => c.PosComponent
+              ),
+          },
+          {
             path: 'invoices',
             canActivate: [permissionGuard],
             data: { permissions: ['invoices:read'] },

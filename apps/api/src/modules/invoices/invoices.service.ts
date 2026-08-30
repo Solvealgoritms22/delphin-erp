@@ -3,12 +3,15 @@ import {
   BadRequestException,
   NotFoundException,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SequencesService } from '../sequences/sequences.service';
 import { FiscalBridgeService } from './fiscalbridge.service';
 import { BillingConfigService } from '../billing-config/billing-config.service';
 import { FiscalOutboxService } from './fiscal-outbox.service';
+import { ActivityLogService } from '../activity-log/activity-log.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateInvoiceDto, FilterInvoiceDto } from './dto/invoice.dto';
 import { Response } from 'express';
 import { Prisma } from '@prisma/client';
@@ -41,6 +44,8 @@ export class InvoicesService {
     private readonly fiscalBridgeService: FiscalBridgeService,
     private readonly billingConfig: BillingConfigService,
     private readonly fiscalOutbox: FiscalOutboxService,
+    private readonly activityLog: ActivityLogService,
+    @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
   async create(empresaId: string, usuarioId: string, dto: CreateInvoiceDto) {
@@ -395,6 +400,7 @@ export class InvoicesService {
           },
         },
         include: {
+          empresa: true,
           cliente: true,
           almacen: true,
           sucursal: true,
@@ -458,6 +464,41 @@ export class InvoicesService {
             `Outbox fiscal inicial para ${invoice.numeroFactura}: ${error?.message}`,
           ),
         );
+    }
+
+    await this.activityLog.log({
+      empresaId,
+      usuarioId,
+      modulo: 'invoices',
+      accion: isDraft ? 'DRAFT' : 'CREATE',
+      resourceId: invoice.id,
+      resourceName: invoice.ncf ? `${invoice.numeroFactura} (${invoice.ncf})` : invoice.numeroFactura,
+      resourceType: isDraft ? 'Borrador de Factura' : 'Factura de Venta',
+      metadata: {
+        ncf: invoice.ncf,
+        cliente: invoice.cliente?.nombreRazonSocial || 'Consumidor Final',
+        total: Number(invoice.total),
+        moneda: invoice.moneda,
+        estado: invoice.estado,
+      },
+    });
+
+    if (this.notifications && !isDraft) {
+      await this.notifications.create({
+        empresaId,
+        tipo: 'INVOICE_EMITTED',
+        titulo: 'Nueva Factura Emitida',
+        mensaje: `Factura ${invoice.numeroFactura} (${invoice.ncf || 'Emitida'}) emitida exitosamente.`,
+        severidad: 'SUCCESS',
+        icono: 'file-text',
+        payload: {
+          facturaId: invoice.id,
+          numeroFactura: invoice.numeroFactura,
+          ncf: invoice.ncf,
+          total: Number(invoice.total),
+        },
+        canales: ['IN_APP'],
+      });
     }
 
     return invoice;
@@ -769,6 +810,21 @@ export class InvoicesService {
         );
     }
 
+    await this.activityLog.log({
+      empresaId,
+      usuarioId,
+      modulo: 'invoices',
+      accion: 'EMIT',
+      resourceId: emitted.id,
+      resourceName: `${emitted.numeroFactura} (${emitted.ncf})`,
+      resourceType: 'Factura Emitida',
+      metadata: {
+        ncf: emitted.ncf,
+        tipoNcf: emitted.tipoNcf,
+        total: Number(emitted.total),
+      },
+    });
+
     return emitted;
   }
 
@@ -785,7 +841,7 @@ export class InvoicesService {
       );
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const cancelled = await this.prisma.$transaction(async (tx) => {
       const claimed = await tx.facturaVenta.updateMany({
         where: { id, empresaId, estado: { not: 'ANULADA' } },
         data: { estado: 'ANULADA', balancePendiente: new Prisma.Decimal(0) },
@@ -835,6 +891,38 @@ export class InvoicesService {
 
       return tx.facturaVenta.findUnique({ where: { id } });
     });
+
+    await this.activityLog.log({
+      empresaId,
+      usuarioId,
+      modulo: 'invoices',
+      accion: 'VOID',
+      resourceId: id,
+      resourceName: invoice.ncf ? `${invoice.numeroFactura} (${invoice.ncf})` : invoice.numeroFactura,
+      resourceType: 'Factura Anulada',
+      metadata: {
+        ncf: invoice.ncf,
+        total: Number(invoice.total),
+      },
+    });
+
+    if (this.notifications) {
+      await this.notifications.create({
+        empresaId,
+        tipo: 'INVOICE_VOIDED',
+        titulo: 'Factura Anulada',
+        mensaje: `La factura ${invoice.numeroFactura} (${invoice.ncf || ''}) fue anulada y su stock restaurado.`,
+        severidad: 'WARNING',
+        icono: 'x-circle',
+        payload: {
+          facturaId: id,
+          numeroFactura: invoice.numeroFactura,
+        },
+        canales: ['IN_APP'],
+      });
+    }
+
+    return cancelled;
   }
 
   private async generateNextNumeroFactura(

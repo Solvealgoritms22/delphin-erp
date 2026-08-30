@@ -68,12 +68,20 @@ export class NotificationsController {
     return this.notifications.remove(user.id, id);
   }
 
+  @Get('catalog')
+  @ApiOperation({ summary: 'Obtener catálogo de notificaciones configurables' })
+  catalog() {
+    return this.notifications.getCatalog();
+  }
+
   @Get('preferences')
+  @ApiOperation({ summary: 'Obtener preferencias de notificación del usuario' })
   preferences(@CurrentUser() user: any) {
     return this.notifications.preferences(user.id);
   }
 
   @Patch('preferences')
+  @ApiOperation({ summary: 'Actualizar una preferencia de notificación' })
   savePreference(
     @CurrentUser() user: any,
     @Body() body: { tipo: string; canal: string; habilitado: boolean },
@@ -84,6 +92,27 @@ export class NotificationsController {
       body.canal,
       body.habilitado,
     );
+  }
+
+  @Post('preferences/batch')
+  @ApiOperation({ summary: 'Guardar preferencias de notificación en lote' })
+  savePreferencesBatch(
+    @CurrentUser() user: any,
+    @Body()
+    body: {
+      preferences: Array<{ tipo: string; canal: string; habilitado: boolean }>;
+    },
+  ) {
+    return this.notifications.savePreferencesBatch(
+      user.id,
+      body.preferences || [],
+    );
+  }
+
+  @Post('preferences/reset')
+  @ApiOperation({ summary: 'Restablecer preferencias a los valores por defecto' })
+  resetPreferences(@CurrentUser() user: any) {
+    return this.notifications.resetPreferences(user.id);
   }
 
   @Post('push-subscriptions')

@@ -138,7 +138,6 @@ type BackupSettings = {
             class="!rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold !h-10 !px-4 shadow-sm"
             [disabled]="busy()"
           >
-            <mat-icon svgIcon="plus" class="mr-1.5 icon-size-4"></mat-icon>
             <span class="text-xs sm:text-sm">{{ 'backups.createAction' | transloco }}</span>
             <mat-icon svgIcon="chevron-down" class="ml-1.5 icon-size-3.5 opacity-80"></mat-icon>
           </button>

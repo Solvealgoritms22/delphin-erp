@@ -10,11 +10,13 @@ import * as bcrypt from 'bcrypt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { createHash, randomBytes } from 'crypto';
 import { TenantMailerService } from '../../common/tenant-mailer.service';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
+    private readonly activityLog: ActivityLogService,
     @Optional() private readonly tenantMailer?: TenantMailerService,
     @Optional() private readonly mailer?: MailerService,
   ) {}
@@ -219,6 +221,20 @@ export class UsersService {
         assignedCompanies,
       );
     }
+
+    await this.activityLog.log({
+      empresaId: companyIds[0] || empresaId,
+      usuarioId: actorUserId,
+      modulo: 'users',
+      accion: invitationToken ? 'INVITE' : 'CREATE',
+      resourceId: user.id,
+      resourceName: user.nombre || user.email,
+      resourceType: 'Usuario',
+      metadata: {
+        email: user.email,
+        nombre: user.nombre,
+      },
+    });
 
     return memberships[0];
   }
@@ -472,10 +488,26 @@ export class UsersService {
       );
     }
 
-    return this.prisma.membresia.delete({
+    const member = await this.prisma.membresia.findUnique({
+      where: { usuarioId_empresaId: { usuarioId: id, empresaId } },
+      include: { usuario: true },
+    });
+
+    const deleted = await this.prisma.membresia.delete({
       where: {
         usuarioId_empresaId: { usuarioId: id, empresaId },
       },
     });
+
+    await this.activityLog.log({
+      empresaId,
+      modulo: 'users',
+      accion: 'DELETE',
+      resourceId: id,
+      resourceName: member?.usuario?.nombre || member?.usuario?.email || 'Usuario',
+      resourceType: 'Usuario',
+    });
+
+    return deleted;
   }
 }

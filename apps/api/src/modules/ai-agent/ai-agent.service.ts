@@ -47,6 +47,57 @@ export class AiAgentService {
       lowerQuery.includes('estado') ||
       lowerQuery.length < 10;
 
+    const needsSales =
+      lowerQuery.includes('venta') ||
+      lowerQuery.includes('factura') ||
+      lowerQuery.includes('pos') ||
+      lowerQuery.includes('cobro') ||
+      lowerQuery.includes('ingreso') ||
+      lowerQuery.includes('ncf') ||
+      lowerQuery.includes('ticket') ||
+      lowerQuery.includes('ganancia');
+
+    const needsQuotes =
+      lowerQuery.includes('cotiza') ||
+      lowerQuery.includes('quote') ||
+      lowerQuery.includes('propuesta');
+
+    const needsPurchases =
+      lowerQuery.includes('compra') ||
+      lowerQuery.includes('cxp') ||
+      lowerQuery.includes('gasto') ||
+      lowerQuery.includes('cuentas por pagar') ||
+      lowerQuery.includes('pago a proveedor');
+
+    const needsReceivables =
+      lowerQuery.includes('cxc') ||
+      lowerQuery.includes('por cobrar') ||
+      lowerQuery.includes('deuda') ||
+      lowerQuery.includes('pendiente') ||
+      lowerQuery.includes('mora') ||
+      lowerQuery.includes('vencid');
+
+    const needsInventory =
+      lowerQuery.includes('inventario') ||
+      lowerQuery.includes('almacen') ||
+      lowerQuery.includes('stock') ||
+      lowerQuery.includes('existencia') ||
+      lowerQuery.includes('agotad') ||
+      lowerQuery.includes('bajo stock');
+
+    const needsPromotions =
+      lowerQuery.includes('promo') ||
+      lowerQuery.includes('descuento') ||
+      lowerQuery.includes('oferta') ||
+      lowerQuery.includes('rebaja');
+
+    const needsFiscalSequences =
+      lowerQuery.includes('secuencia') ||
+      lowerQuery.includes('comprobante fiscal') ||
+      lowerQuery.includes('dgii') ||
+      lowerQuery.includes('e-ncf') ||
+      lowerQuery.includes('ecf');
+
     const needsProducts =
       lowerQuery.includes('producto') ||
       lowerQuery.includes('precio') ||
@@ -54,9 +105,7 @@ export class AiAgentService {
       lowerQuery.includes('costo') ||
       lowerQuery.includes('categoria') ||
       lowerQuery.includes('marca') ||
-      lowerQuery.includes('inventario') ||
-      lowerQuery.includes('item') ||
-      lowerQuery.includes('stock');
+      lowerQuery.includes('item');
 
     const needsClients =
       lowerQuery.includes('cliente') ||
@@ -97,7 +146,14 @@ export class AiAgentService {
     try {
       if (
         needsOverview ||
-        (!needsProducts &&
+        (!needsSales &&
+          !needsQuotes &&
+          !needsPurchases &&
+          !needsReceivables &&
+          !needsInventory &&
+          !needsPromotions &&
+          !needsFiscalSequences &&
+          !needsProducts &&
           !needsClients &&
           !needsSuppliers &&
           !needsLogs &&
@@ -109,32 +165,59 @@ export class AiAgentService {
         dbContext.metricas = await this.tools.getExecutiveMetrics(empresaId);
       }
 
+      if (needsSales) {
+        toolsUsed.push('querySalesAndInvoices');
+        dbContext.ventas = await this.tools.querySalesAndInvoices(empresaId, { limit: 20 });
+      }
+
+      if (needsQuotes) {
+        toolsUsed.push('queryQuotes');
+        dbContext.cotizaciones = await this.tools.queryQuotes(empresaId, { limit: 15 });
+      }
+
+      if (needsPurchases) {
+        toolsUsed.push('queryPurchases');
+        dbContext.compras = await this.tools.queryPurchases(empresaId, { limit: 15 });
+      }
+
+      if (needsReceivables) {
+        toolsUsed.push('queryReceivables');
+        dbContext.cuentasPorCobrar = await this.tools.queryReceivables(empresaId);
+      }
+
+      if (needsInventory) {
+        toolsUsed.push('queryInventoryStock');
+        dbContext.inventario = await this.tools.queryInventoryStock(empresaId, { limit: 25 });
+      }
+
+      if (needsPromotions) {
+        toolsUsed.push('queryPromotions');
+        dbContext.promociones = await this.tools.queryPromotions(empresaId);
+      }
+
+      if (needsFiscalSequences) {
+        toolsUsed.push('queryFiscalSequences');
+        dbContext.secuenciasFiscales = await this.tools.queryFiscalSequences(empresaId);
+      }
+
       if (needsProducts) {
         toolsUsed.push('queryProducts');
-        dbContext.productos = await this.tools.queryProducts(empresaId, {
-          limit: 20,
-        });
+        dbContext.productos = await this.tools.queryProducts(empresaId, { limit: 20 });
       }
 
       if (needsClients) {
         toolsUsed.push('queryClients');
-        dbContext.clientes = await this.tools.queryClients(empresaId, {
-          limit: 20,
-        });
+        dbContext.clientes = await this.tools.queryClients(empresaId, { limit: 20 });
       }
 
       if (needsSuppliers) {
         toolsUsed.push('querySuppliers');
-        dbContext.proveedores = await this.tools.querySuppliers(empresaId, {
-          limit: 20,
-        });
+        dbContext.proveedores = await this.tools.querySuppliers(empresaId, { limit: 20 });
       }
 
       if (needsLogs) {
         toolsUsed.push('queryActivityLogs');
-        dbContext.actividades = await this.tools.queryActivityLogs(empresaId, {
-          limit: 15,
-        });
+        dbContext.actividades = await this.tools.queryActivityLogs(empresaId, { limit: 15 });
       }
 
       if (needsTeam) {
@@ -868,19 +951,134 @@ ${JSON.stringify(dbContext, null, 2)}
       return table;
     }
 
-    // 6. Sucursales
-    if (data.sucursales) {
-      const list = data.sucursales.sucursales || [];
-      let table = `### 🏢 Sucursales y Ubicaciones (${list.length} registradas)\n\n`;
-      table += `| Nombre de Sucursal | Ciudad / Ubicación | Teléfono | Estado |\n`;
-      table += `| :--- | :--- | :--- | :---: |\n`;
-      for (const s of list) {
-        table += `| **${s.nombre}** | ${s.ciudad || s.direccion || 'Principal'} | ${s.telefono || 'N/A'} | \`${s.estado}\` |\n`;
+    // 7. Ventas y Facturación / POS
+    if (data.ventas) {
+      const res = data.ventas.resumenVentasGlobal || {};
+      const list = data.ventas.facturasRecientes || [];
+      if (list.length === 0) {
+        return prefix + `### 💰 Ventas y Facturación\n\n> [!NOTE]\n> Aún no se han emitido facturas en esta empresa. Puedes registrar ventas desde el módulo [Ventas > Facturas](/admin/sales/invoices) o realizar cobros en el [Punto de Venta (POS)](/admin/sales/pos).`;
+      }
+
+      let table = prefix + `### 💰 Resumen General de Ventas y Facturación\n\n`;
+      table += `- **Total de Facturas Emitidas:** **${res.totalFacturasEmitidas || list.length}**\n`;
+      table += `- **Monto Total Facturado:** **RD$ ${Number(res.montoTotalFacturado || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}**\n`;
+      table += `- **ITBIS Total Recaudado:** **RD$ ${Number(res.itbisTotal || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}**\n\n`;
+      table += `#### 📋 Facturas y Ventas Recientes:\n\n`;
+      table += `| Factura | NCF | Cliente | Total | Método Pago | Estado |\n`;
+      table += `| :--- | :--- | :--- | :---: | :---: | :---: |\n`;
+      for (const inv of list) {
+        table += `| **${inv.numero}** | \`${inv.ncf}\` | ${inv.cliente} | **RD$ ${Number(inv.total).toLocaleString('es-DO', { minimumFractionDigits: 2 })}** | \`${inv.metodoPago}\` | \`${inv.estado}\` |\n`;
       }
       return table;
     }
 
-    // 7. Resumen Ejecutivo / Overview por defecto
+    // 8. Cotizaciones
+    if (data.cotizaciones) {
+      const list = data.cotizaciones.cotizaciones || [];
+      if (list.length === 0) {
+        return prefix + `### 📑 Cotizaciones y Propuestas\n\n> [!NOTE]\n> No hay cotizaciones registradas actualmente. Puedes crear cotizaciones en [Ventas > Cotizaciones](/admin/sales/quotes).`;
+      }
+
+      let table = prefix + `### 📑 Cotizaciones Comerciales (${list.length} registros)\n\n`;
+      table += `| Cotización | Cliente | Fecha | Vence | Total | Estado |\n`;
+      table += `| :--- | :--- | :---: | :---: | :---: | :---: |\n`;
+      for (const q of list) {
+        table += `| **${q.numero}** | ${q.cliente} | ${q.fecha} | ${q.fechaVencimiento} | **RD$ ${Number(q.total).toLocaleString('es-DO', { minimumFractionDigits: 2 })}** | \`${q.estado}\` |\n`;
+      }
+      return table;
+    }
+
+    // 9. Compras y CxP
+    if (data.compras) {
+      const res = data.compras.resumenCuentasPorPagar || {};
+      const list = data.compras.comprasRecientes || [];
+      if (list.length === 0) {
+        return prefix + `### 🛒 Compras y Cuentas por Pagar (CxP)\n\n> [!NOTE]\n> No hay facturas de compra registradas. Puedes crearlas en [Compras > Facturas de Compra](/admin/purchases/invoices).`;
+      }
+
+      let table = prefix + `### 🛒 Compras y Cuentas por Pagar (CxP)\n\n`;
+      table += `- **Total Pendiente por Pagar:** **RD$ ${Number(res.totalPendientePago || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}**\n`;
+      table += `- **Facturas Pendientes:** **${res.facturasPendientesCount || 0}**\n\n`;
+      table += `| Factura Compra | Proveedor | Total | Pendiente | Estado |\n`;
+      table += `| :--- | :--- | :---: | :---: | :---: |\n`;
+      for (const p of list) {
+        table += `| **${p.numero}** | ${p.proveedor} | RD$ ${Number(p.total).toLocaleString('es-DO', { minimumFractionDigits: 2 })} | **RD$ ${Number(p.balancePendiente).toLocaleString('es-DO', { minimumFractionDigits: 2 })}** | \`${p.estado}\` |\n`;
+      }
+      return table;
+    }
+
+    // 10. Cuentas por Cobrar (CxC)
+    if (data.cuentasPorCobrar) {
+      const list = data.cuentasPorCobrar.facturasPendientes || [];
+      if (list.length === 0) {
+        return prefix + `### 💳 Cuentas por Cobrar (CxC)\n\n> [!TIP]\n> 🎉 **Excelente:** No hay facturas con saldos pendientes por cobrar en este momento. Todas las cuentas están al día.`;
+      }
+
+      let table = prefix + `### 💳 Cuentas por Cobrar (CxC)\n\n`;
+      table += `- **Monto Total por Cobrar:** **RD$ ${Number(data.cuentasPorCobrar.totalPorCobrar || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}**\n`;
+      table += `- **Facturas Pendientes:** **${data.cuentasPorCobrar.totalFacturasPorCobrar}**\n\n`;
+      table += `| Factura | Cliente | Teléfono | Total | Balance Pendiente | Vencimiento |\n`;
+      table += `| :--- | :--- | :--- | :---: | :---: | :---: |\n`;
+      for (const f of list) {
+        table += `| **${f.numero}** | ${f.cliente} | ${f.telefono} | RD$ ${Number(f.total).toLocaleString('es-DO', { minimumFractionDigits: 2 })} | **RD$ ${Number(f.balancePendiente).toLocaleString('es-DO', { minimumFractionDigits: 2 })}** | ${f.fechaVencimiento} |\n`;
+      }
+      return table;
+    }
+
+    // 11. Inventario y Existencias
+    if (data.inventario) {
+      const list = data.inventario.inventario || [];
+      if (list.length === 0) {
+        return prefix + `### 📦 Control de Inventario y Almacenes\n\n> [!NOTE]\n> No hay existencias registradas en los almacenes. Gestiona tu stock en [Inventario](/admin/inventory).`;
+      }
+
+      let table = prefix + `### 📦 Control de Inventario y Stock (${data.inventario.totalItemsAnalizados} items)\n\n`;
+      if (data.inventario.alertasBajoStockCount > 0) {
+        table += `> [!WARNING]\n> ⚠️ **Atención:** Se detectaron **${data.inventario.alertasBajoStockCount} producto(s)** con existencias en o por debajo del stock mínimo.\n\n`;
+      }
+      table += `| Producto | Código | Almacén | Stock Actual | Mínimo | Precio Venta | Alerta |\n`;
+      table += `| :--- | :--- | :--- | :---: | :---: | :---: | :---: |\n`;
+      for (const item of list) {
+        const alerta = item.bajoStock ? '🔴 **Bajo Stock**' : '🟢 Normal';
+        table += `| **${item.producto}** | \`${item.codigo}\` | ${item.almacen} | **${item.cantidadActual}** | ${item.stockMinimo} | RD$ ${Number(item.precioVenta).toLocaleString('es-DO', { minimumFractionDigits: 2 })} | ${alerta} |\n`;
+      }
+      return table;
+    }
+
+    // 12. Promociones
+    if (data.promociones) {
+      const list = data.promociones.promociones || [];
+      if (list.length === 0) {
+        return prefix + `### 🏷️ Promociones Comerciales\n\n> [!NOTE]\n> Actualmente no hay promociones activas registradas. Configura descuentos en [Ventas > Promociones](/admin/sales/promotions).`;
+      }
+
+      let table = prefix + `### 🏷️ Promociones y Descuentos Activos (${list.length} activas)\n\n`;
+      table += `| Promoción | Tipo | Beneficio | Aplica A | Vigencia |\n`;
+      table += `| :--- | :---: | :---: | :--- | :---: |\n`;
+      for (const p of list) {
+        table += `| **${p.nombre}** | \`${p.tipo}\` | **${p.valorDescuento}** | ${p.aplicaA} | Hasta ${p.fechaFin} |\n`;
+      }
+      return table;
+    }
+
+    // 13. Secuencias Fiscales DGII
+    if (data.secuenciasFiscales) {
+      const list = data.secuenciasFiscales.secuencias || [];
+      if (list.length === 0) {
+        return prefix + `### 🧾 Secuencias de Comprobantes Fiscales (NCF)\n\n> [!NOTE]\n> No hay secuencias NCF configuradas. Puedes agregarlas en [Ajustes > Secuencias](/admin/settings/sequences).`;
+      }
+
+      let table = prefix + `### 🧾 Secuencias Fiscales DGII (${list.length} configuradas)\n\n`;
+      table += `| Tipo NCF | Actual | Final | Disponibles | Vencimiento | Estado |\n`;
+      table += `| :--- | :---: | :---: | :---: | :---: | :---: |\n`;
+      for (const s of list) {
+        const alerta = s.alertaAgotamiento ? '⚠️ Por Agotar' : '🟢 Disponible';
+        table += `| **${s.tipoNcf}** | ${s.numeroActual} | ${s.numeroFinal} | **${s.disponibles}** (${alerta}) | ${s.fechaVencimiento} | \`${s.estado}\` |\n`;
+      }
+      return table;
+    }
+
+    // 14. Resumen Ejecutivo / Overview por defecto
     const emp = data.empresa || {};
     const met = data.metricas?.metricasGenerales || {};
     const categorias = data.metricas?.distribucionCategorias || [];

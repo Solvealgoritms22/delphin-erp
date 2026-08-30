@@ -6,6 +6,7 @@ export interface LogActivityDto {
   usuarioId?: string;
   usuarioNombre?: string;
   usuarioEmail?: string;
+  usuarioAvatar?: string;
   modulo: string;
   accion: string;
   resourceId?: string;
@@ -47,7 +48,7 @@ export class ActivityLogService {
   }
 
   /**
-   * Query activity logs with filtering and pagination.
+   * Query activity logs with filtering, pagination and enriched user avatar photos.
    */
   async findMany(params: {
     empresaId?: string;
@@ -90,11 +91,36 @@ export class ActivityLogService {
       }),
     ]);
 
-    // Parse metadata JSON
-    const parsed = items.map((item) => ({
-      ...item,
-      metadata: item.metadata ? JSON.parse(item.metadata) : null,
-    }));
+    // Lookup user avatars and names for all actors
+    const userIds = [
+      ...new Set(
+        items
+          .map((i) => i.usuarioId)
+          .filter((id): id is string => Boolean(id) && typeof id === 'string'),
+      ),
+    ];
+
+    const users =
+      userIds.length > 0
+        ? await this.prisma.usuario.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, nombre: true, email: true, avatar: true },
+          })
+        : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    // Parse metadata JSON & attach user avatar
+    const parsed = items.map((item) => {
+      const user = item.usuarioId ? userMap.get(item.usuarioId) : null;
+      return {
+        ...item,
+        usuarioNombre:
+          item.usuarioNombre || user?.nombre || item.usuarioEmail || user?.email || 'Sistema',
+        usuarioEmail: item.usuarioEmail || user?.email,
+        usuarioAvatar: user?.avatar || null,
+        metadata: item.metadata ? JSON.parse(item.metadata) : null,
+      };
+    });
 
     return { total, page, limit, items: parsed };
   }
@@ -152,7 +178,9 @@ export class ActivityLogService {
           sourceIp: item.ipAddress || 'No disponible',
           destinationIp: metadata.destinationIp || 'No disponible',
           severity,
+          usuarioNombre: item.usuarioNombre,
           usuarioEmail: item.usuarioEmail,
+          usuarioAvatar: item.usuarioAvatar,
         };
       })
       .filter((item: any) => {
@@ -163,6 +191,8 @@ export class ActivityLogService {
           item.actionTaken,
           item.sourceIp,
           item.destinationIp,
+          item.usuarioNombre,
+          item.usuarioEmail,
         ]
           .join(' ')
           .toLowerCase()

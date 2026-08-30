@@ -113,7 +113,7 @@ export interface FilterCustomerPaymentsDto {
 })
 export class CustomerPaymentsService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/v1/customer-payments`;
+  private apiUrl = `${environment.apiUrl}/customer-payments`;
 
   payments = signal<PagoCliente[]>([]);
   pendingInvoices = signal<PendingInvoice[]>([]);

@@ -3,10 +3,12 @@ import {
   Injectable,
   NotFoundException,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ActivityLogService } from '../activity-log/activity-log.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   CreateCustomerPaymentDto,
   PaymentApplicationDto,
@@ -20,6 +22,7 @@ export class CustomerPaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activity: ActivityLogService,
+    @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
   /**
@@ -199,6 +202,24 @@ export class CustomerPaymentsService {
         metodo: dto.metodo,
       },
     });
+
+    if (this.notifications) {
+      await this.notifications.create({
+        empresaId,
+        tipo: 'PAYMENT_RECEIVED',
+        titulo: 'Cobro de Cliente Registrado',
+        mensaje: `Cobro de ${Number(montoFinal).toLocaleString('es-DO', { style: 'currency', currency: result.moneda || 'DOP' })} (${result.numeroRecibo || 'Recibo'}) recibido de ${cliente.nombreRazonSocial}.`,
+        severidad: 'SUCCESS',
+        icono: 'dollar-sign',
+        payload: {
+          pagoId: result.id,
+          numeroRecibo: result.numeroRecibo,
+          monto: Number(montoFinal),
+          cliente: cliente.nombreRazonSocial,
+        },
+        canales: ['IN_APP'],
+      });
+    }
 
     return this.findOne(empresaId, result.id);
   }

@@ -18,6 +18,7 @@ type ActivityItem = {
   id: string;
   usuarioNombre: string | null;
   usuarioEmail: string | null;
+  usuarioAvatar: string | null;
   modulo: string;
   accion: string;
   resourceId: string | null;
@@ -25,26 +26,47 @@ type ActivityItem = {
   resourceType: string | null;
   metadata: Record<string, any> | null;
   creadoEn: string;
-}
+};
 
 const MODULE_CONFIG: Record<string, { icon: string; color: string; label: string; bgColor: string }> = {
-  products:   { icon: 'package',       color: 'text-blue-500',   bgColor: 'bg-blue-50 dark:bg-blue-500/10',    label: 'activity.modules.products'   },
-  clients:    { icon: 'users',         color: 'text-green-500',  bgColor: 'bg-green-50 dark:bg-green-500/10',  label: 'activity.modules.clients'    },
-  suppliers:  { icon: 'truck',         color: 'text-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-500/10',label: 'activity.modules.suppliers' },
-  users:      { icon: 'user-cog',      color: 'text-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-500/10',label: 'activity.modules.users'    },
-  billing:    { icon: 'credit-card',   color: 'text-pink-500',   bgColor: 'bg-pink-50 dark:bg-pink-500/10',    label: 'activity.modules.billing' },
-  auth:       { icon: 'log-in',        color: 'text-teal-500',   bgColor: 'bg-teal-50 dark:bg-teal-500/10',    label: 'activity.modules.auth'      },
-  roles:      { icon: 'shield-check',  color: 'text-indigo-500', bgColor: 'bg-indigo-50 dark:bg-indigo-500/10',label: 'activity.modules.roles'       },
-  sucursales: { icon: 'store',         color: 'text-amber-500',  bgColor: 'bg-amber-50 dark:bg-amber-500/10',  label: 'activity.modules.branches'  },
+  invoices:          { icon: 'file-text',     color: 'text-blue-500',   bgColor: 'bg-blue-50 dark:bg-blue-500/10',     label: 'Facturación / Ventas' },
+  quotes:            { icon: 'send',          color: 'text-amber-500',  bgColor: 'bg-amber-50 dark:bg-amber-500/10',   label: 'Cotizaciones' },
+  purchases:         { icon: 'shopping-bag',  color: 'text-emerald-500',bgColor: 'bg-emerald-50 dark:bg-emerald-500/10',label: 'Compras / CxP' },
+  'customer-payments':{ icon: 'dollar-sign',  color: 'text-cyan-500',   bgColor: 'bg-cyan-50 dark:bg-cyan-500/10',     label: 'Cobros / CxC' },
+  'supplier-payments':{ icon: 'credit-card',  color: 'text-rose-500',   bgColor: 'bg-rose-50 dark:bg-rose-500/10',     label: 'Pagos a Proveedores' },
+  products:          { icon: 'package',       color: 'text-indigo-500', bgColor: 'bg-indigo-50 dark:bg-indigo-500/10', label: 'Productos' },
+  categories:        { icon: 'tag',           color: 'text-violet-500', bgColor: 'bg-violet-50 dark:bg-violet-500/10', label: 'Categorías' },
+  inventory:         { icon: 'package',       color: 'text-sky-500',    bgColor: 'bg-sky-50 dark:bg-sky-500/10',       label: 'Inventario' },
+  promotions:        { icon: 'percent',       color: 'text-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-500/10',label: 'Promociones' },
+  'credit-notes':    { icon: 'file-text',     color: 'text-red-500',    bgColor: 'bg-red-50 dark:bg-red-500/10',       label: 'Notas de Crédito' },
+  clients:           { icon: 'users',         color: 'text-green-500',  bgColor: 'bg-green-50 dark:bg-green-500/10',   label: 'Clientes' },
+  suppliers:         { icon: 'truck',         color: 'text-amber-600',  bgColor: 'bg-amber-50 dark:bg-amber-500/10',   label: 'Proveedores' },
+  users:             { icon: 'user-check',    color: 'text-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-500/10', label: 'Usuarios' },
+  roles:             { icon: 'shield-check',  color: 'text-blue-600',   bgColor: 'bg-blue-50 dark:bg-blue-500/10',     label: 'Roles y Permisos' },
+  sucursales:        { icon: 'building',      color: 'text-teal-500',   bgColor: 'bg-teal-50 dark:bg-teal-500/10',     label: 'Sucursales' },
+  backups:           { icon: 'database',      color: 'text-emerald-600',bgColor: 'bg-emerald-50 dark:bg-emerald-500/10',label: 'Copias de Seguridad' },
+  'tenant-api':      { icon: 'rocket',        color: 'text-amber-500',  bgColor: 'bg-amber-50 dark:bg-amber-500/10',   label: 'API Pública' },
+  billing:           { icon: 'credit-card',   color: 'text-pink-500',   bgColor: 'bg-pink-50 dark:bg-pink-500/10',     label: 'Suscripción / Planes' },
+  auth:              { icon: 'lock',          color: 'text-teal-500',   bgColor: 'bg-teal-50 dark:bg-teal-500/10',     label: 'Autenticación' },
+  SECURITY:          { icon: 'shield-check',  color: 'text-red-500',    bgColor: 'bg-red-50 dark:bg-red-500/10',       label: 'Seguridad' },
+  'ai-agent':        { icon: 'sparkles',      color: 'text-purple-600', bgColor: 'bg-purple-50 dark:bg-purple-500/10', label: 'Asistente IA' },
 };
 
 const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; text: string }> = {
-  CREATE: { label: 'activity.actions.create', verb: 'creó',          bg: 'bg-green-100 dark:bg-green-500/20',   text: 'text-green-700 dark:text-green-400'   },
-  UPDATE: { label: 'activity.actions.update', verb: 'actualizó',     bg: 'bg-blue-100 dark:bg-blue-500/20',    text: 'text-blue-700 dark:text-blue-400'     },
-  DELETE: { label: 'activity.actions.delete', verb: 'eliminó',       bg: 'bg-red-100 dark:bg-red-500/20',      text: 'text-red-700 dark:text-red-400'       },
-  LOGIN:  { label: 'activity.actions.login',  verb: 'inició sesión', bg: 'bg-teal-100 dark:bg-teal-500/20',   text: 'text-teal-700 dark:text-teal-400'     },
-  LOGOUT: { label: 'activity.actions.logout', verb: 'cerró sesión',  bg: 'bg-neutral-100 dark:bg-neutral-700', text: 'text-neutral-600 dark:text-neutral-300'},
-  EXPORT: { label: 'activity.actions.export', verb: 'exportó',       bg: 'bg-yellow-100 dark:bg-yellow-500/20',text: 'text-yellow-700 dark:text-yellow-400'  },
+  CREATE:        { label: 'Creación',       verb: 'creó',              bg: 'bg-green-100 dark:bg-green-500/20',   text: 'text-green-700 dark:text-green-400'   },
+  UPDATE:        { label: 'Actualización',  verb: 'actualizó',         bg: 'bg-blue-100 dark:bg-blue-500/20',    text: 'text-blue-700 dark:text-blue-400'     },
+  DELETE:        { label: 'Eliminación',    verb: 'eliminó',           bg: 'bg-red-100 dark:bg-red-500/20',      text: 'text-red-700 dark:text-red-400'       },
+  VOID:          { label: 'Anulación',      verb: 'anuló',             bg: 'bg-red-100 dark:bg-red-500/20',      text: 'text-red-700 dark:text-red-400'       },
+  DRAFT:         { label: 'Borrador',       verb: 'guardó borrador',   bg: 'bg-neutral-100 dark:bg-neutral-800', text: 'text-neutral-700 dark:text-neutral-300'},
+  EMIT:          { label: 'Emisión',        verb: 'emitió',            bg: 'bg-emerald-100 dark:bg-emerald-500/20',text: 'text-emerald-700 dark:text-emerald-400'},
+  LOGIN:         { label: 'Inicio Sesión',  verb: 'inició sesión',     bg: 'bg-teal-100 dark:bg-teal-500/20',   text: 'text-teal-700 dark:text-teal-400'     },
+  LOGIN_SUCCESS: { label: 'Acceso Exitoso', verb: 'inició sesión',     bg: 'bg-teal-100 dark:bg-teal-500/20',   text: 'text-teal-700 dark:text-teal-400'     },
+  LOGOUT:        { label: 'Cierre Sesión',  verb: 'cerró sesión',      bg: 'bg-neutral-100 dark:bg-neutral-700', text: 'text-neutral-600 dark:text-neutral-300'},
+  INVITE:        { label: 'Invitación',     verb: 'invitó a',          bg: 'bg-purple-100 dark:bg-purple-500/20',text: 'text-purple-700 dark:text-purple-400'},
+  SEND:          { label: 'Envío',          verb: 'envió',             bg: 'bg-amber-100 dark:bg-amber-500/20',  text: 'text-amber-700 dark:text-amber-400'  },
+  PAYMENT:       { label: 'Cobro / Pago',   verb: 'procesó pago',      bg: 'bg-cyan-100 dark:bg-cyan-500/20',    text: 'text-cyan-700 dark:text-cyan-400'    },
+  EXPORT:        { label: 'Exportación',    verb: 'exportó',           bg: 'bg-yellow-100 dark:bg-yellow-500/20',text: 'text-yellow-700 dark:text-yellow-400'  },
+  BACKUP:        { label: 'Respaldo',       verb: 'generó backup',     bg: 'bg-emerald-100 dark:bg-emerald-500/20',text: 'text-emerald-700 dark:text-emerald-400'},
 };
 
 @Component({
@@ -93,7 +115,7 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
               >
                 <div class="flex items-center gap-2">
                   <i-sliders-horizontal [size]="15" class="text-neutral-500 dark:text-neutral-400" />
-                  <span>{{ selectedModule ? (MODULE_CONFIG[selectedModule]?.label | transloco) : ('activity.allModules' | transloco) }}</span>
+                  <span>{{ selectedModule ? (MODULE_CONFIG[selectedModule]?.label || selectedModule) : ('activity.allModules' | transloco) }}</span>
                 </div>
                 <i-chevron-down [size]="14" class="text-neutral-400" />
               </button>
@@ -103,7 +125,7 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
                 </button>
                 @for (entry of moduleEntries; track entry[0]) {
                   <button mat-menu-item (click)="setModuleFilter(entry[0])">
-                    <span>{{ entry[1].label | transloco }}</span>
+                    <span>{{ entry[1].label }}</span>
                   </button>
                 }
               </mat-menu>
@@ -115,7 +137,7 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
               >
                 <div class="flex items-center gap-2">
                   <i-sliders-horizontal [size]="15" class="text-neutral-500 dark:text-neutral-400" />
-                  <span>{{ selectedAction ? (ACTION_CONFIG[selectedAction]?.label | transloco) : ('activity.allActions' | transloco) }}</span>
+                  <span>{{ selectedAction ? (ACTION_CONFIG[selectedAction]?.label || selectedAction) : ('activity.allActions' | transloco) }}</span>
                 </div>
                 <i-chevron-down [size]="14" class="text-neutral-400" />
               </button>
@@ -125,7 +147,7 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
                 </button>
                 @for (entry of actionEntries; track entry[0]) {
                   <button mat-menu-item (click)="setActionFilter(entry[0])">
-                    <span>{{ entry[1].label | transloco }}</span>
+                    <span>{{ entry[1].label }}</span>
                   </button>
                 }
               </mat-menu>
@@ -151,7 +173,7 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
             <div class="flex flex-col gap-0">
               @for (i of [1,2,3,4,5,6]; track i) {
                 <div class="flex gap-4 py-4 animate-pulse">
-                  <div class="w-9 h-9 rounded-full bg-neutral-200 dark:bg-neutral-700 shrink-0"></div>
+                  <div class="w-10 h-10 rounded-full bg-neutral-200 dark:bg-neutral-700 shrink-0"></div>
                   <div class="flex flex-col gap-2 flex-1 pt-1">
                     <div class="h-4 rounded-lg bg-neutral-200 dark:bg-neutral-700" [style.width]="(60 + i * 5) + '%'"></div>
                     <div class="flex gap-2">
@@ -177,29 +199,48 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
           @if (items().length > 0) {
             <div class="relative">
 
-              <div class="absolute left-[17px] top-5 bottom-5 w-px bg-neutral-200 dark:bg-neutral-700 z-0"></div>
+              <div class="absolute left-[19px] top-6 bottom-6 w-px bg-neutral-200 dark:bg-neutral-700 z-0"></div>
 
               <div class="flex flex-col">
                 @for (item of items(); track item.id; let isLast = $last) {
-                  <div class="flex gap-4 group py-3.5">
+                  <div class="flex gap-4 group py-3.5 items-start">
 
-                    <div
-                      class="relative z-10 flex items-center justify-center w-9 h-9 rounded-full border-2 border-white dark:border-neutral-900 shadow-sm shrink-0"
-                      [ngClass]="getModule(item.modulo).bgColor"
-                    >
-                      <mat-icon
-                        [svgIcon]="getModule(item.modulo).icon"
-                        class="!w-4 !h-4 !text-[16px] shrink-0"
-                        [class]="getModule(item.modulo).color"
-                      ></mat-icon>
+                    <!-- User Avatar Thumbnail with Module Icon Overlay Badge -->
+                    <div class="relative z-10 shrink-0">
+                      @if (item.usuarioAvatar) {
+                        <img
+                          [src]="item.usuarioAvatar"
+                          [alt]="item.usuarioNombre || 'Usuario'"
+                          class="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-neutral-900 shadow-sm"
+                        />
+                      } @else {
+                        <div
+                          class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs border-2 border-white dark:border-neutral-900 shadow-sm"
+                          [ngClass]="getAvatarColor(item.usuarioNombre || item.usuarioEmail)"
+                        >
+                          {{ getInitials(item.usuarioNombre || item.usuarioEmail) }}
+                        </div>
+                      }
+
+                      <!-- Mini badge with module icon -->
+                      <div
+                        class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-neutral-900 flex items-center justify-center shadow-xs"
+                        [ngClass]="getModule(item.modulo).bgColor"
+                      >
+                        <mat-icon
+                          [svgIcon]="getModule(item.modulo).icon"
+                          class="!w-3 !h-3 !text-[12px]"
+                          [class]="getModule(item.modulo).color"
+                        ></mat-icon>
+                      </div>
                     </div>
 
-                    <div class="flex flex-col flex-1 min-w-0 pt-1">
+                    <div class="flex flex-col flex-1 min-w-0 pt-0.5">
 
                       <p class="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
-                        <span class="font-semibold">{{ item.usuarioNombre || item.usuarioEmail || 'Sistema' }}</span>
+                        <span class="font-semibold text-neutral-900 dark:text-white">{{ item.usuarioNombre || item.usuarioEmail || 'Sistema' }}</span>
                         <span class="text-neutral-400 mx-1.5">·</span>
-                        <span class="text-neutral-500">{{ getAction(item.accion).verb }}</span>
+                        <span class="text-neutral-600 dark:text-neutral-300">{{ getAction(item.accion).verb }}</span>
                         @if (item.resourceType) {
                           <span class="text-neutral-500 ml-1 lowercase">{{ item.resourceType }}</span>
                         }
@@ -218,7 +259,7 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
                         >
                           {{ getAction(item.accion).label }}
                         </span>
-                        <span class="inline-flex items-center text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 font-medium">
+                        <span class="inline-flex items-center text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 font-medium">
                           {{ getModule(item.modulo).label }}
                         </span>
                       </div>
@@ -326,13 +367,38 @@ export default class ActivityComponent implements OnInit, OnDestroy {
   }
 
   getModule(modulo: string) {
-    const module = MODULE_CONFIG[modulo] ?? { icon: 'activity', color: 'text-neutral-500', bgColor: 'bg-neutral-100 dark:bg-neutral-800', label: modulo };
-    return { ...module, label: this.transloco.translate(module.label) };
+    return MODULE_CONFIG[modulo] ?? { icon: 'activity', color: 'text-neutral-500', bgColor: 'bg-neutral-100 dark:bg-neutral-800', label: modulo };
   }
 
   getAction(accion: string) {
-    const action = ACTION_CONFIG[accion] ?? { label: accion, verb: accion.toLowerCase(), bg: 'bg-neutral-100 dark:bg-neutral-700', text: 'text-neutral-600 dark:text-neutral-300' };
-    return { ...action, label: this.transloco.translate(action.label) };
+    return ACTION_CONFIG[accion] ?? { label: accion, verb: accion.toLowerCase(), bg: 'bg-neutral-100 dark:bg-neutral-700', text: 'text-neutral-600 dark:text-neutral-300' };
+  }
+
+  getInitials(nameOrEmail: string | null | undefined): string {
+    if (!nameOrEmail) return 'SYS';
+    const parts = nameOrEmail.trim().split(/[\s@._-]+/);
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return nameOrEmail.slice(0, 2).toUpperCase();
+  }
+
+  getAvatarColor(nameOrEmail: string | null | undefined): string {
+    const colors = [
+      'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+      'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
+      'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+      'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+      'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
+      'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300',
+      'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
+    ];
+    if (!nameOrEmail) return colors[0];
+    let hash = 0;
+    for (let i = 0; i < nameOrEmail.length; i++) {
+      hash = nameOrEmail.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
   }
 
   hasMetadata(meta: Record<string, any> | null): boolean {
