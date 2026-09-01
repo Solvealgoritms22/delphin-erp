@@ -122,25 +122,26 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
         </div>
 
         <!-- Filter Controls (Standard MatMenu + Search) -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <!-- Filter Controls (Standard MatMenu + Search) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <!-- Search input -->
-          <div class="relative w-full sm:w-80">
+          <div class="relative flex-1 min-w-[200px] max-w-sm">
             <mat-icon svgIcon="search" class="icon-size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400"></mat-icon>
             <input
               type="text"
               [placeholder]="'commercial.purchases.search' | transloco"
               [value]="searchQuery"
               (input)="onSearchInput($event)"
-              class="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500 outline-none"
+              class="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl pl-10 pr-4 py-2 text-xs font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
 
           <!-- Dropdown Filter Buttons -->
-          <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
             <!-- Estado Filter Menu -->
             <button
               [matMenuTriggerFor]="statusMenu"
-              class="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+              class="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap"
             >
               <span>{{ getStatusLabel() }}</span>
               <mat-icon svgIcon="chevron-down" class="icon-size-3.5 text-neutral-500"></mat-icon>
@@ -156,7 +157,7 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
             <!-- Tipo Pago Filter Menu -->
             <button
               [matMenuTriggerFor]="tipoPagoMenu"
-              class="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+              class="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap"
             >
               <span>{{ getTipoPagoLabel() }}</span>
               <mat-icon svgIcon="chevron-down" class="icon-size-3.5 text-neutral-500"></mat-icon>
@@ -170,7 +171,7 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
             <!-- Proveedor Filter Menu -->
             <button
               [matMenuTriggerFor]="supplierMenu"
-              class="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer max-w-[220px]"
+              class="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer max-w-[180px] whitespace-nowrap"
             >
               <span class="truncate">{{ getSupplierLabel() }}</span>
               <mat-icon svgIcon="chevron-down" class="icon-size-3.5 text-neutral-500 shrink-0"></mat-icon>
@@ -181,15 +182,6 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
                 <button mat-menu-item (click)="setProveedor(sup.id)">{{ sup.nombreRazonSocial }}</button>
               }
             </mat-menu>
-
-            <!-- Refresh Button -->
-            <button
-              (click)="loadPurchases()"
-              matTooltip="Refrescar lista"
-              class="w-10 h-10 flex items-center justify-center rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
-            >
-              <mat-icon svgIcon="rotate-cw" class="icon-size-4"></mat-icon>
-            </button>
           </div>
         </div>
 

@@ -67,7 +67,7 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
               {{ 'pos.title' | transloco }}
             </h1>
             <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
-              <span class="size-1.5 rounded-full bg-emerald-500"></span>
+              <mat-icon svgIcon="check" class="!w-3.5 !h-3.5 text-emerald-600 dark:text-emerald-400"></mat-icon>
               Caja activa
             </span>
           </div>

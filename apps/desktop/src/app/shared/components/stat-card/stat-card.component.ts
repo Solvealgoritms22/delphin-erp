@@ -57,7 +57,10 @@ let nextId = 0;
 
             <ng-content select="[slot=header-icon]" />
 
-            <span class="truncate tracking-tight font-semibold text-neutral-800 dark:text-neutral-200">
+            <span
+              class="truncate tracking-tight font-semibold text-neutral-800 dark:text-neutral-200 cursor-default"
+              [matTooltip]="title() || domain() || label() || ''"
+            >
               {{ title() || domain() || label() }}
             </span>
           </div>
@@ -99,8 +102,11 @@ let nextId = 0;
           <!-- Metric Number & Trend Pill & Subtitle -->
           <div class="flex flex-col min-w-0 flex-1 overflow-hidden pr-0.5">
             <div class="flex items-baseline gap-1.5 flex-wrap">
-              <span class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-neutral-900 dark:text-white truncate max-w-full">
-                {{ prefix() }}@if (isNumeric(value())) { {{ +value() | number }} } @else { {{ value() }} }{{ suffix() }}
+              <span
+                class="text-xl sm:text-2xl font-extrabold tracking-tight text-neutral-900 dark:text-white truncate max-w-full cursor-default"
+                [matTooltip]="formattedFullValue()"
+              >
+                {{ prefix() }}@if (isNumeric(value())) { {{ +value() | number:'1.2-2' }} } @else { {{ value() }} }{{ suffix() }}
               </span>
 
               <!-- Trend Pill Badge -->
@@ -126,13 +132,16 @@ let nextId = 0;
             </div>
 
             <!-- Subtitle / Label (Clean & readable) -->
-            <p class="mt-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 truncate max-w-full" [title]="subtitle() || label()">
+            <p
+              class="mt-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 truncate max-w-full cursor-default"
+              [matTooltip]="subtitle() || label() || ''"
+            >
               {{ subtitle() || label() }}
             </p>
           </div>
 
           <!-- SVG Sparkline Wave Curve -->
-          <div class="relative flex h-11 w-20 sm:w-24 shrink-0 items-end justify-end overflow-hidden pb-0.5 opacity-90">
+          <div class="relative flex h-11 w-16 sm:w-20 shrink-0 items-end justify-end overflow-hidden pb-0.5 opacity-90">
             <svg class="h-full w-full" viewBox="0 0 140 60" preserveAspectRatio="none">
               <defs>
                 <linearGradient [id]="gradientId()" x1="0" y1="0" x2="0" y2="1">
@@ -254,6 +263,16 @@ export class StatCardComponent {
   isNumeric(val: unknown): boolean {
     return !isNaN(Number(val)) && val !== '' && val !== null;
   }
+
+  readonly formattedFullValue = computed(() => {
+    const p = this.prefix() || '';
+    const s = this.suffix() || '';
+    const v = this.value();
+    if (this.isNumeric(v)) {
+      return `${p}${Number(v).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${s}`;
+    }
+    return `${p}${v || ''}${s}`;
+  });
 
   resolvedColor = computed<'emerald' | 'rose' | 'blue' | 'amber' | 'purple' | 'indigo'>(() => {
     const c = this.color();

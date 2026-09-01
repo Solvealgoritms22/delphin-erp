@@ -300,11 +300,21 @@ export type RolePermissions = {
             <div class="flex flex-col gap-6">
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-bold text-neutral-500">Role name</label>
-                <input type="text" [(ngModel)]="modalRoleData.name" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white outline-none transition-colors">
+                <input
+                  type="text"
+                  [(ngModel)]="modalRoleData.name"
+                  placeholder="Ej. Supervisor de Ventas, Administrador, Cajero..."
+                  class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white placeholder:font-normal placeholder:text-neutral-400 outline-none transition-colors"
+                />
               </div>
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-bold text-neutral-500">Description</label>
-                <textarea [(ngModel)]="modalRoleData.description" rows="3" class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white outline-none resize-none transition-colors"></textarea>
+                <textarea
+                  [(ngModel)]="modalRoleData.description"
+                  rows="3"
+                  placeholder="Describe brevemente las funciones y responsabilidades de este rol..."
+                  class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white placeholder:font-normal placeholder:text-neutral-400 outline-none resize-none transition-colors"
+                ></textarea>
               </div>
             </div>
 
