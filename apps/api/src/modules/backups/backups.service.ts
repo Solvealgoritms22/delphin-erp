@@ -63,7 +63,7 @@ export class BackupsService {
     private readonly prisma: PrismaService,
     private readonly activity: ActivityLogService,
     @Optional() private readonly notifications?: NotificationsService,
-  ) {}
+  ) { }
 
   async list(userId: string, empresaId?: string) {
     if (!empresaId) throw new BadRequestException('Empresa activa requerida');
@@ -114,7 +114,7 @@ export class BackupsService {
     const pad = (n: number) => String(n).padStart(2, '0');
     const now = new Date();
     const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    const name = `backup_${timestamp}.backup`;
+    const name = `${timestamp}.backup`;
     await this.prisma.backup.create({
       data: {
         id,
@@ -587,11 +587,11 @@ export class BackupsService {
         where: { empresaId },
         ...(model === 'facturaVenta'
           ? {
-              include: {
-                impuestos: true,
-                pagosAplicados: { include: { pago: true } },
-              },
-            }
+            include: {
+              impuestos: true,
+              pagosAplicados: { include: { pago: true } },
+            },
+          }
           : {}),
       });
     }
