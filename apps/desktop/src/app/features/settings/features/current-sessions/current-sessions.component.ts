@@ -16,7 +16,20 @@ import { CurrentSessionsService, SessionLog } from '../../data/current-sessions.
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { AuthState } from '@core/auth/auth.state';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, MonitorCheckIcon, TrashIcon } from 'ng-animated-icons';
+import {
+  SearchIcon,
+  SlidersHorizontalIcon,
+  LogOutIcon,
+  ArrowUpIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MonitorCheckIcon,
+  TrashIcon,
+  CheckIcon,
+  XIcon,
+  RefreshCwIcon
+} from 'ng-animated-icons';
 
 @Component({
   selector: 'current-sessions',
@@ -42,274 +55,511 @@ import { SearchIcon, SlidersHorizontalIcon, LogOutIcon, ArrowUpIcon, ChevronDown
     ChevronRightIcon,
     MonitorCheckIcon,
     TrashIcon,
+    CheckIcon,
+    XIcon,
+    RefreshCwIcon,
   ],
   template: `
     <div class="flex flex-col w-full h-full bg-white dark:bg-neutral-900 overflow-hidden relative border-t sm:border-t-0 sm:border-l border-neutral-200 dark:border-neutral-800">
 
+      <!-- Page Header -->
       <div class="shrink-0 p-6 sm:py-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
         <h2 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'sessions.title' | transloco }}</h2>
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'sessions.description' | transloco }}</p>
       </div>
 
+      <!-- Main Content Area -->
       <div class="flex-auto min-h-0 overflow-y-auto p-4 sm:p-6 sm:pb-8">
-        <div class="flex flex-col flex-auto bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
+        <div class="flex flex-col flex-auto bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700/80 shadow-sm overflow-hidden">
 
-            <div class="flex flex-wrap items-center justify-between p-4 sm:p-5 border-b border-neutral-200 dark:border-neutral-700 gap-4">
+          <!-- CONTEXTUAL SELECTION BAR (When rows are checked) -->
+          @if (selectedIds().size > 0) {
+            <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-blue-50/80 dark:bg-blue-950/40 border-b border-blue-200 dark:border-blue-800/60 animate-fadeIn">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center justify-center size-6 rounded-full bg-blue-600 text-white text-xs font-bold shadow-xs">
+                  {{ selectedIds().size }}
+                </span>
+                <span class="text-sm font-semibold text-blue-950 dark:text-blue-200">
+                  {{ selectedIds().size === 1 ? ('sessions.selectedCountOne' | transloco) : ('sessions.selectedCount' | transloco: { count: selectedIds().size }) }}
+                </span>
+              </div>
 
-              <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="clearSelection()"
+                  class="px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200/50 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                >
+                  {{ 'sessions.deselectAll' | transloco }}
+                </button>
+                <button
+                  type="button"
+                  (click)="revokeSelected()"
+                  [disabled]="loading()"
+                  class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <i-trash [size]="14" />
+                  <span>{{ 'sessions.closeSelected' | transloco }} ({{ selectedIds().size }})</span>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <!-- STANDARD CLEAN TOOLBAR -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 border-b border-neutral-200 dark:border-neutral-700/80 gap-3">
 
-                <div class="relative flex items-center h-10 px-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent min-w-[200px] sm:min-w-64 max-w-full flex-auto sm:flex-initial">
-                  <i-search [size]="18" class="absolute left-3 text-neutral-400" />
+              <!-- Left Section: Search Input + Filters Popover + Columns Toggle -->
+              <div class="flex items-center gap-2.5 flex-1 min-w-0 flex-wrap sm:flex-nowrap">
+
+                <!-- Search Input with Clear Button -->
+                <div class="relative flex items-center h-10 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/40 min-w-[200px] sm:min-w-64 max-w-sm flex-1 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                  <i-search [size]="16" class="text-neutral-400 shrink-0 mr-2" />
                   <input
                     type="text"
                     [ngModel]="searchQuery()"
                     (ngModelChange)="searchQuery.set($event)"
-                    class="w-full h-full pl-7 bg-transparent border-none outline-none text-sm placeholder:text-neutral-400 text-neutral-700 dark:text-neutral-200"
-                    [placeholder]="'sessions.search' | transloco">
+                    class="w-full h-full bg-transparent border-none outline-none text-sm placeholder:text-neutral-400 text-neutral-800 dark:text-neutral-200"
+                    [placeholder]="'sessions.search' | transloco"
+                  />
+                  @if (searchQuery()) {
+                    <button
+                      type="button"
+                      (click)="searchQuery.set('')"
+                      class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer p-0.5 ml-1"
+                    >
+                      <i-x [size]="14" />
+                    </button>
+                  }
                 </div>
 
-                <button [matMenuTriggerFor]="browserMenu" type="button"
-                  class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
-                  <i-sliders-horizontal [size]="16" />
-                  <span>{{ selectedBrowser() ? selectedBrowser() : ('sessions.browser' | transloco) }}</span>
-                  <i-chevron-down [size]="14" class="text-neutral-400" />
+                <!-- Unified Filters Popover Button with Badge Counter -->
+                <button
+                  [matMenuTriggerFor]="filtersMenu"
+                  type="button"
+                  class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 hover:bg-neutral-50 dark:hover:bg-neutral-700/60 transition-colors text-sm font-medium text-neutral-700 dark:text-neutral-200 shrink-0 cursor-pointer shadow-2xs"
+                  [class.border-blue-500]="activeFilterCount() > 0"
+                  [class.text-blue-600]="activeFilterCount() > 0"
+                  [class.dark:text-blue-400]="activeFilterCount() > 0"
+                >
+                  <i-sliders-horizontal [size]="15" />
+                  <span>{{ 'sessions.filters' | transloco }}</span>
+                  @if (activeFilterCount() > 0) {
+                    <span class="size-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shadow-xs">
+                      {{ activeFilterCount() }}
+                    </span>
+                  }
+                  <i-chevron-down [size]="13" class="text-neutral-400" />
                 </button>
-                <mat-menu #browserMenu="matMenu" class="!rounded-xl !p-1">
-                  <button mat-menu-item (click)="selectedBrowser.set('')">
-                    <span>{{ 'common.all' | transloco }} ({{ 'sessions.browser' | transloco }})</span>
-                  </button>
-                  @for (b of availableBrowsers(); track b) {
-                    <button mat-menu-item (click)="selectedBrowser.set(b)">
-                      <span>{{ b }}</span>
-                    </button>
+
+                <!-- Filters Menu Content -->
+                <mat-menu #filtersMenu="matMenu" class="!rounded-2xl !p-2 min-w-64">
+                  <div class="px-3 py-2 text-xs font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 mb-1 flex items-center justify-between">
+                    <span>{{ 'sessions.filters' | transloco }}</span>
+                    @if (activeFilterCount() > 0) {
+                      <button
+                        (click)="clearAllFilters()"
+                        class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer lowercase font-medium"
+                      >
+                        {{ 'sessions.clearAll' | transloco }}
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Status Filter -->
+                  <div class="px-2 py-1.5">
+                    <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 px-1">{{ 'sessions.filterStatus' | transloco }}</span>
+                    <div class="mt-1 flex flex-col gap-0.5">
+                      <button
+                        mat-menu-item
+                        (click)="statusFilter.set('active')"
+                        class="!h-8 !rounded-lg text-xs"
+                        [class.font-bold]="statusFilter() === 'active'"
+                      >
+                        <span class="flex items-center justify-between w-full">
+                          <span>{{ 'sessions.onlyActiveSessions' | transloco }}</span>
+                          @if (statusFilter() === 'active') {
+                            <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" />
+                          }
+                        </span>
+                      </button>
+                      <button
+                        mat-menu-item
+                        (click)="statusFilter.set('all')"
+                        class="!h-8 !rounded-lg text-xs"
+                        [class.font-bold]="statusFilter() === 'all'"
+                      >
+                        <span class="flex items-center justify-between w-full">
+                          <span>{{ 'sessions.allStatuses' | transloco }}</span>
+                          @if (statusFilter() === 'all') {
+                            <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" />
+                          }
+                        </span>
+                      </button>
+                      <button
+                        mat-menu-item
+                        (click)="statusFilter.set('revoked')"
+                        class="!h-8 !rounded-lg text-xs"
+                        [class.font-bold]="statusFilter() === 'revoked'"
+                      >
+                        <span class="flex items-center justify-between w-full">
+                          <span>{{ 'sessions.onlyRevokedSessions' | transloco }}</span>
+                          @if (statusFilter() === 'revoked') {
+                            <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" />
+                          }
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Browser Filter -->
+                  @if (availableBrowsers().length > 0) {
+                    <div class="px-2 py-1.5 border-t border-neutral-100 dark:border-neutral-800">
+                      <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 px-1">{{ 'sessions.filterBrowser' | transloco }}</span>
+                      <div class="mt-1 flex flex-col gap-0.5 max-h-40 overflow-y-auto">
+                        <button
+                          mat-menu-item
+                          (click)="selectedBrowser.set('')"
+                          class="!h-8 !rounded-lg text-xs"
+                          [class.font-bold]="!selectedBrowser()"
+                        >
+                          <span class="flex items-center justify-between w-full">
+                            <span>{{ 'sessions.allBrowsers' | transloco }}</span>
+                            @if (!selectedBrowser()) {
+                              <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" />
+                            }
+                          </span>
+                        </button>
+                        @for (b of availableBrowsers(); track b) {
+                          <button
+                            mat-menu-item
+                            (click)="selectedBrowser.set(b)"
+                            class="!h-8 !rounded-lg text-xs"
+                            [class.font-bold]="selectedBrowser() === b"
+                          >
+                            <span class="flex items-center justify-between w-full">
+                              <span class="truncate">{{ b }}</span>
+                              @if (selectedBrowser() === b) {
+                                <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" />
+                              }
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Location Filter -->
+                  @if (availableLocations().length > 0) {
+                    <div class="px-2 py-1.5 border-t border-neutral-100 dark:border-neutral-800">
+                      <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 px-1">{{ 'sessions.filterLocation' | transloco }}</span>
+                      <div class="mt-1 flex flex-col gap-0.5 max-h-40 overflow-y-auto">
+                        <button
+                          mat-menu-item
+                          (click)="selectedLocation.set('')"
+                          class="!h-8 !rounded-lg text-xs"
+                          [class.font-bold]="!selectedLocation()"
+                        >
+                          <span class="flex items-center justify-between w-full">
+                            <span>{{ 'sessions.allLocations' | transloco }}</span>
+                            @if (!selectedLocation()) {
+                              <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" />
+                            }
+                          </span>
+                        </button>
+                        @for (loc of availableLocations(); track loc) {
+                          <button
+                            mat-menu-item
+                            (click)="selectedLocation.set(loc)"
+                            class="!h-8 !rounded-lg text-xs"
+                            [class.font-bold]="selectedLocation() === loc"
+                          >
+                            <span class="flex items-center justify-between w-full">
+                              <span class="truncate">{{ loc }}</span>
+                              @if (selectedLocation() === loc) {
+                                <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" />
+                              }
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    </div>
                   }
                 </mat-menu>
 
-                <button [matMenuTriggerFor]="locationMenu" type="button"
-                  class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
-                  <i-sliders-horizontal [size]="16" />
-                  <span>{{ selectedLocation() ? selectedLocation() : ('sessions.location' | transloco) }}</span>
-                  <i-chevron-down [size]="14" class="text-neutral-400" />
-                </button>
-                <mat-menu #locationMenu="matMenu" class="!rounded-xl !p-1">
-                  <button mat-menu-item (click)="selectedLocation.set('')">
-                    <span>{{ 'common.all' | transloco }} ({{ 'sessions.location' | transloco }})</span>
-                  </button>
-                  @for (loc of availableLocations(); track loc) {
-                    <button mat-menu-item (click)="selectedLocation.set(loc)">
-                      <span>{{ loc }}</span>
-                    </button>
-                  }
-                </mat-menu>
-              </div>
-
-              <div class="flex flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto justify-start lg:justify-end">
-                @if (selectedIds().size > 0) {
-                  <button mat-stroked-button type="button" (click)="revokeSelected()" [disabled]="loading()"
-                    class="!rounded-xl !border-red-300 !text-red-600 dark:!border-red-800 dark:!text-red-400 !whitespace-nowrap shrink-0 !h-10">
-                    <i-trash [size]="16" class="mr-1.5 text-red-500" />
-                    <span class="whitespace-nowrap">Cerrar seleccionadas ({{ selectedIds().size }})</span>
-                  </button>
-                }
-
-                <button mat-stroked-button type="button" (click)="revokeOthers()" [disabled]="loading()"
-                  class="!rounded-xl !border-red-200 !text-red-600 dark:!border-red-900 dark:!text-red-400 !whitespace-nowrap shrink-0 !h-10">
-                  <i-log-out [size]="16" class="mr-1.5 text-red-500" />
-                  <span class="whitespace-nowrap">{{ 'sessions.closeOthers' | transloco }}</span>
-                </button>
-
-                <div class="flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap shrink-0">
-                  <span>{{ 'sessions.onlyActive' | transloco }}</span>
-                  <mat-slide-toggle [checked]="onlyActive()" (change)="onlyActive.set($event.checked)"></mat-slide-toggle>
-                </div>
-
-                <button [matMenuTriggerFor]="columnsMenu" type="button"
-                  class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm font-medium text-neutral-600 dark:text-neutral-300 whitespace-nowrap shrink-0 cursor-pointer">
-                  <i-sliders-horizontal [size]="16" />
+                <!-- Column Visibility Menu -->
+                <button
+                  [matMenuTriggerFor]="columnsMenu"
+                  type="button"
+                  class="flex items-center gap-1.5 h-10 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 hover:bg-neutral-50 dark:hover:bg-neutral-700/60 transition-colors text-sm font-medium text-neutral-700 dark:text-neutral-200 shrink-0 cursor-pointer shadow-2xs"
+                >
                   <span>{{ 'sessions.columns' | transloco }}</span>
+                  <i-chevron-down [size]="13" class="text-neutral-400" />
                 </button>
 
-                <mat-menu #columnsMenu="matMenu" class="!rounded-xl !p-1">
+                <mat-menu #columnsMenu="matMenu" class="!rounded-2xl !p-2 min-w-44">
+                  <div class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 mb-1">
+                    {{ 'sessions.columns' | transloco }}
+                  </div>
                   <button mat-menu-item (click)="toggleColumn('person')">
-                    <span class="inline-flex items-center gap-2">
-                      <input type="checkbox" [checked]="columns().person" (click)="$event.stopPropagation()" class="rounded text-blue-600">
-                      Person
+                    <span class="inline-flex items-center gap-2 text-xs">
+                      <input type="checkbox" [checked]="columns().person" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
+                      {{ 'sessions.person' | transloco }}
                     </span>
                   </button>
                   <button mat-menu-item (click)="toggleColumn('browser')">
-                    <span class="inline-flex items-center gap-2">
-                      <input type="checkbox" [checked]="columns().browser" (click)="$event.stopPropagation()" class="rounded text-blue-600">
-                      Browser
+                    <span class="inline-flex items-center gap-2 text-xs">
+                      <input type="checkbox" [checked]="columns().browser" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
+                      {{ 'sessions.browser' | transloco }}
                     </span>
                   </button>
                   <button mat-menu-item (click)="toggleColumn('ipAddress')">
-                    <span class="inline-flex items-center gap-2">
-                      <input type="checkbox" [checked]="columns().ipAddress" (click)="$event.stopPropagation()" class="rounded text-blue-600">
-                      IP Address
+                    <span class="inline-flex items-center gap-2 text-xs">
+                      <input type="checkbox" [checked]="columns().ipAddress" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
+                      {{ 'sessions.ipAddress' | transloco }}
                     </span>
                   </button>
                   <button mat-menu-item (click)="toggleColumn('location')">
-                    <span class="inline-flex items-center gap-2">
-                      <input type="checkbox" [checked]="columns().location" (click)="$event.stopPropagation()" class="rounded text-blue-600">
-                      Location
+                    <span class="inline-flex items-center gap-2 text-xs">
+                      <input type="checkbox" [checked]="columns().location" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
+                      {{ 'sessions.location' | transloco }}
                     </span>
                   </button>
                 </mat-menu>
               </div>
 
-            </div>
+              <!-- Right Section: Actions Menu -->
+              <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <button
+                  [matMenuTriggerFor]="tableActionsMenu"
+                  type="button"
+                  class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 hover:bg-neutral-50 dark:hover:bg-neutral-700/60 transition-colors text-sm font-medium text-neutral-700 dark:text-neutral-200 cursor-pointer shadow-2xs"
+                >
+                  <span>{{ 'sessions.actions' | transloco }}</span>
+                  <i-chevron-down [size]="13" class="text-neutral-400" />
+                </button>
 
-            <div class="w-full overflow-x-auto">
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                    <th class="w-14 px-4 py-3.5 text-center">
-                      <mat-checkbox [checked]="allSelected()" (change)="toggleAll()"></mat-checkbox>
+                <mat-menu #tableActionsMenu="matMenu" class="!rounded-2xl !p-1.5 min-w-56">
+                  <button mat-menu-item (click)="loadSessions()" [disabled]="loading()">
+                    <i-refresh-cw [size]="15" class="mr-2 text-neutral-500" />
+                    <span class="text-sm">{{ 'sessions.refresh' | transloco }}</span>
+                  </button>
+                  <button mat-menu-item (click)="revokeOthers()" [disabled]="loading()" class="!text-red-600 dark:!text-red-400">
+                    <i-log-out [size]="15" class="mr-2 text-red-500" />
+                    <span class="text-sm font-medium">{{ 'sessions.closeOthers' | transloco }}</span>
+                  </button>
+                </mat-menu>
+              </div>
+
+            </div>
+          }
+
+          <!-- DISMISSIBLE ACTIVE FILTER CHIPS -->
+          @if (hasActiveFilterChips()) {
+            <div class="flex flex-wrap items-center gap-2 px-4 sm:px-5 py-2.5 bg-neutral-50/70 dark:bg-neutral-800/40 border-b border-neutral-200 dark:border-neutral-800 text-xs animate-fadeIn">
+              <span class="text-neutral-400 font-medium mr-1">{{ 'sessions.activeFilters' | transloco }}:</span>
+
+              @if (statusFilter() !== 'all') {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 font-medium shadow-2xs">
+                  <span>{{ statusFilter() === 'active' ? ('sessions.onlyActiveSessions' | transloco) : ('sessions.onlyRevokedSessions' | transloco) }}</span>
+                  <button type="button" (click)="statusFilter.set('all')" class="hover:text-blue-900 dark:hover:text-blue-200 cursor-pointer"><i-x [size]="12" /></button>
+                </span>
+              }
+
+              @if (selectedBrowser()) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200/60 dark:border-neutral-700/50 font-medium shadow-2xs">
+                  <span>{{ 'sessions.browser' | transloco }}: {{ selectedBrowser() }}</span>
+                  <button type="button" (click)="selectedBrowser.set('')" class="hover:text-neutral-900 dark:hover:text-white cursor-pointer"><i-x [size]="12" /></button>
+                </span>
+              }
+
+              @if (selectedLocation()) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200/60 dark:border-neutral-700/50 font-medium shadow-2xs">
+                  <span>{{ 'sessions.location' | transloco }}: {{ selectedLocation() }}</span>
+                  <button type="button" (click)="selectedLocation.set('')" class="hover:text-neutral-900 dark:hover:text-white cursor-pointer"><i-x [size]="12" /></button>
+                </span>
+              }
+
+              <button
+                type="button"
+                (click)="clearAllFilters()"
+                class="text-blue-600 dark:text-blue-400 hover:underline font-semibold ml-1 cursor-pointer"
+              >
+                {{ 'sessions.clearAll' | transloco }}
+              </button>
+            </div>
+          }
+
+          <!-- DATA TABLE -->
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                  <th class="w-14 px-4 py-3.5 text-center">
+                    <mat-checkbox [checked]="allSelected()" (change)="toggleAll()"></mat-checkbox>
+                  </th>
+                  @if (columns().person) {
+                    <th class="px-4 py-3.5">
+                      <div class="flex items-center gap-1">
+                        <span>{{ 'sessions.person' | transloco }}</span>
+                        <i-arrow-up [size]="13" class="text-neutral-400" />
+                      </div>
                     </th>
+                  }
+                  @if (columns().browser) {
+                    <th class="px-4 py-3.5">
+                      <div class="flex items-center gap-1">
+                        <span>{{ 'sessions.browser' | transloco }}</span>
+                      </div>
+                    </th>
+                  }
+                  @if (columns().ipAddress) {
+                    <th class="px-4 py-3.5">
+                      <div class="flex items-center gap-1">
+                        <span>{{ 'sessions.ipAddress' | transloco }}</span>
+                      </div>
+                    </th>
+                  }
+                  @if (columns().location) {
+                    <th class="px-4 py-3.5">
+                      <div class="flex items-center gap-1">
+                        <span>{{ 'sessions.location' | transloco }}</span>
+                      </div>
+                    </th>
+                  }
+                  <th class="w-16 px-4 py-3.5 text-right"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                @for (session of filteredSessions(); track session.id) {
+                  <tr class="hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 transition-colors" [class.opacity-60]="!session.isActive">
+                    <td class="w-14 px-4 py-3.5 text-center">
+                      <mat-checkbox [checked]="isSelected(session.id)" (change)="toggleSelection(session.id)"></mat-checkbox>
+                    </td>
                     @if (columns().person) {
-                      <th class="px-4 py-3.5">
-                        <div class="flex items-center gap-1 cursor-pointer">
-                          <span>Person</span>
-                          <i-arrow-up [size]="14" class="text-neutral-400" />
-                        </div>
-                      </th>
-                    }
-                    @if (columns().browser) {
-                      <th class="px-4 py-3.5">
-                        <div class="flex items-center gap-1 cursor-pointer">
-                          <span>Browser</span>
-                          <i-chevron-down [size]="14" class="text-neutral-400" />
-                        </div>
-                      </th>
-                    }
-                    @if (columns().ipAddress) {
-                      <th class="px-4 py-3.5">
-                        <div class="flex items-center gap-1 cursor-pointer">
-                          <span>IP Address</span>
-                          <i-chevron-down [size]="14" class="text-neutral-400" />
-                        </div>
-                      </th>
-                    }
-                    @if (columns().location) {
-                      <th class="px-4 py-3.5">
-                        <div class="flex items-center gap-1 cursor-pointer">
-                          <span>Location</span>
-                          <i-chevron-down [size]="14" class="text-neutral-400" />
-                        </div>
-                      </th>
-                    }
-                    <th class="w-16 px-4 py-3.5 text-right"></th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
-                  @for (session of filteredSessions(); track session.id) {
-                    <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50 transition-colors" [class.opacity-60]="!session.isActive">
-                      <td class="w-14 px-4 py-4 text-center">
-                        <mat-checkbox [checked]="isSelected(session.id)" (change)="toggleSelection(session.id)"></mat-checkbox>
-                      </td>
-                      @if (columns().person) {
-                        <td class="px-4 py-4">
-                          <div class="flex items-center gap-3">
-                            @if (session.personAvatar) {
-                              <img [src]="session.personAvatar" class="w-8 h-8 rounded-full object-cover" alt="">
-                            } @else {
-                              <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-xs shrink-0">
-                                {{ initials(session.personName) }}
-                              </div>
-                            }
-                            <div class="flex flex-col">
-                              <div class="flex items-center gap-2">
-                                <span class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{{ session.personName }}</span>
-                                @if (isCurrentSession(session)) {
-                                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                                    Esta sesión
-                                  </span>
-                                }
-                                @if (!session.isActive) {
-                                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                                    Revocada
-                                  </span>
-                                }
-                              </div>
+                      <td class="px-4 py-3.5">
+                        <div class="flex items-center gap-3">
+                          @if (session.personAvatar) {
+                            <img [src]="session.personAvatar" class="w-8 h-8 rounded-full object-cover border border-neutral-200 dark:border-neutral-700" alt="">
+                          } @else {
+                            <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-xs shrink-0 border border-blue-200/50 dark:border-blue-700/30">
+                              {{ initials(session.personName) }}
+                            </div>
+                          }
+                          <div class="flex flex-col">
+                            <div class="flex items-center gap-2 flex-wrap">
+                              <span class="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{{ session.personName }}</span>
+                              @if (isCurrentSession(session)) {
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 shadow-2xs">
+                                  {{ 'sessions.thisSession' | transloco }}
+                                </span>
+                              }
+                              @if (!session.isActive) {
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400 border border-neutral-200/60 dark:border-neutral-700/50">
+                                  {{ 'sessions.statusRevoked' | transloco }}
+                                </span>
+                              }
                             </div>
                           </div>
-                        </td>
-                      }
-                      @if (columns().browser) {
-                        <td class="px-4 py-4">
-                          <div class="flex items-center gap-2">
-                              <mat-icon [svgIcon]="session.browserIcon" class="!w-4 !h-4 text-neutral-400 dark:text-neutral-500"></mat-icon>
-                              <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.browserName }} {{ 'sessions.on' | transloco }} {{ session.osName }}</span>
-                          </div>
-                        </td>
-                      }
-                      @if (columns().ipAddress) {
-                        <td class="px-4 py-4">
-                          <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.ipAddress }}</span>
-                        </td>
-                      }
-                      @if (columns().location) {
-                        <td class="px-4 py-4">
-                          <div class="flex items-center gap-2">
-                            @if (session.locationFlagUrl) {
-                              <img [src]="session.locationFlagUrl" class="w-4 h-3 rounded-sm object-cover" [alt]="session.locationCountry">
-                            }
-                            <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.locationCountry }}</span>
-                          </div>
-                        </td>
-                      }
-                      <td class="px-4 py-4 text-right">
-                         <button mat-icon-button type="button" [matMenuTriggerFor]="rowMenu" class="!w-8 !h-8 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
-                            <mat-icon svgIcon="ellipsis-vertical" class="!w-5 !h-5"></mat-icon>
-                         </button>
-                         <mat-menu #rowMenu="matMenu" class="!rounded-xl !p-1">
-                           <button mat-menu-item (click)="revokeSession(session)" [disabled]="!session.isActive" class="!text-red-600 dark:!text-red-400">
-                             <mat-icon svgIcon="log-out" class="!w-4 !h-4 mr-2 text-red-500"></mat-icon>
-                             <span>{{ isCurrentSession(session) ? ('sessions.revokeCurrent' | transloco) : ('sessions.revoke' | transloco) }}</span>
-                           </button>
-                         </mat-menu>
-                      </td>
-                    </tr>
-                  } @empty {
-                    <tr>
-                      <td colspan="6" class="px-4 py-8 text-center">
-                        <div class="flex flex-col items-center justify-center p-6 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl border border-dashed border-neutral-300 dark:border-neutral-600 m-4">
-                          <i-monitor-check [size]="48" class="text-neutral-400 mb-3" />
-                           <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-1">{{ 'sessions.emptyTitle' | transloco }}</h3>
-                           <p class="text-sm text-neutral-500 text-center max-w-sm">{{ 'sessions.emptyDescription' | transloco }}</p>
                         </div>
                       </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-
-            <div class="flex items-center justify-between px-6 py-4 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
-              <span class="text-sm text-neutral-500">
-                {{ 'sessions.showing' | transloco }}
-                <span class="font-medium text-neutral-900 dark:text-white">
-                  {{ filteredSessions().length > 0 ? 1 : 0 }} - {{ filteredSessions().length }}
-                </span>
-                {{ 'sessions.of' | transloco }}
-                <span class="font-medium text-neutral-900 dark:text-white">
-                  {{ sessions().length }}
-                </span>
-              </span>
-
-              <div class="flex gap-2">
-                <button mat-icon-button disabled class="!w-8 !h-8 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex items-center justify-center">
-                  <i-chevron-left [size]="16" class="text-neutral-400" />
-                </button>
-                <button mat-icon-button disabled class="!w-8 !h-8 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex items-center justify-center">
-                  <i-chevron-right [size]="16" class="text-neutral-400" />
-                </button>
-              </div>
-            </div>
-
+                    }
+                    @if (columns().browser) {
+                      <td class="px-4 py-3.5">
+                        <div class="flex items-center gap-2">
+                          <mat-icon [svgIcon]="session.browserIcon" class="!w-4 !h-4 text-neutral-400 dark:text-neutral-500"></mat-icon>
+                          <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.browserName }} {{ 'sessions.on' | transloco }} {{ session.osName }}</span>
+                        </div>
+                      </td>
+                    }
+                    @if (columns().ipAddress) {
+                      <td class="px-4 py-3.5">
+                        <span class="text-sm text-neutral-700 dark:text-neutral-300 font-mono text-xs">{{ session.ipAddress }}</span>
+                      </td>
+                    }
+                    @if (columns().location) {
+                      <td class="px-4 py-3.5">
+                        <div class="flex items-center gap-2">
+                          @if (session.locationFlagUrl) {
+                            <img [src]="session.locationFlagUrl" class="w-4 h-3 rounded-xs object-cover" [alt]="session.locationCountry">
+                          }
+                          <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ session.locationCountry }}</span>
+                        </div>
+                      </td>
+                    }
+                    <td class="px-4 py-3.5 text-right">
+                       <button
+                         mat-icon-button
+                         type="button"
+                         [matMenuTriggerFor]="rowMenu"
+                         class="!w-8 !h-8 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                       >
+                          <mat-icon svgIcon="ellipsis-vertical" class="!w-4 !h-4"></mat-icon>
+                       </button>
+                       <mat-menu #rowMenu="matMenu" class="!rounded-2xl !p-1">
+                         <button mat-menu-item (click)="revokeSession(session)" [disabled]="!session.isActive" class="!text-red-600 dark:!text-red-400">
+                           <i-log-out [size]="15" class="mr-2 text-red-500" />
+                           <span class="text-sm">{{ isCurrentSession(session) ? ('sessions.revokeCurrent' | transloco) : ('sessions.revoke' | transloco) }}</span>
+                         </button>
+                       </mat-menu>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="px-4 py-12 text-center">
+                      <div class="flex flex-col items-center justify-center p-8 bg-neutral-50/60 dark:bg-neutral-800/30 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 max-w-md mx-auto">
+                        <i-monitor-check [size]="44" class="text-neutral-400 mb-3" />
+                         <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-1">{{ 'sessions.emptyTitle' | transloco }}</h3>
+                         <p class="text-xs text-neutral-500 text-center">{{ 'sessions.emptyDescription' | transloco }}</p>
+                         @if (activeFilterCount() > 0 || searchQuery()) {
+                           <button
+                             type="button"
+                             (click)="clearAllFilters(); searchQuery.set('')"
+                             class="mt-4 px-3.5 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                           >
+                             {{ 'sessions.clearFilters' | transloco }}
+                           </button>
+                         }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
+
+          <!-- PAGINATION / FOOTER -->
+          <div class="flex items-center justify-between px-6 py-4 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/30">
+            <span class="text-xs text-neutral-500">
+              {{ 'sessions.showing' | transloco }}
+              <span class="font-semibold text-neutral-900 dark:text-white">
+                {{ filteredSessions().length > 0 ? 1 : 0 }} - {{ filteredSessions().length }}
+              </span>
+              {{ 'sessions.of' | transloco }}
+              <span class="font-semibold text-neutral-900 dark:text-white">
+                {{ sessions().length }}
+              </span>
+            </span>
+
+            <div class="flex gap-1.5">
+              <button
+                mat-icon-button
+                disabled
+                class="!w-8 !h-8 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex items-center justify-center !rounded-lg"
+              >
+                <i-chevron-left [size]="15" class="text-neutral-400" />
+              </button>
+              <button
+                mat-icon-button
+                disabled
+                class="!w-8 !h-8 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex items-center justify-center !rounded-lg"
+              >
+                <i-chevron-right [size]="15" class="text-neutral-400" />
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
+    </div>
   `,
 })
 export default class CurrentSessionsComponent implements OnInit {
@@ -323,7 +573,7 @@ export default class CurrentSessionsComponent implements OnInit {
   sessions = this._sessionsService.sessions;
 
   searchQuery = signal<string>('');
-  onlyActive = signal<boolean>(true);
+  statusFilter = signal<'all' | 'active' | 'revoked'>('active');
   selectedBrowser = signal<string>('');
   selectedLocation = signal<string>('');
 
@@ -352,6 +602,28 @@ export default class CurrentSessionsComponent implements OnInit {
   selectedIds = signal<Set<string>>(new Set<string>());
   loading = signal(false);
   error = signal(false);
+
+  activeFilterCount = computed(() => {
+    let count = 0;
+    if (this.statusFilter() !== 'all') count++;
+    if (this.selectedBrowser()) count++;
+    if (this.selectedLocation()) count++;
+    return count;
+  });
+
+  hasActiveFilterChips = computed(() => {
+    return this.statusFilter() !== 'all' || !!this.selectedBrowser() || !!this.selectedLocation();
+  });
+
+  clearAllFilters() {
+    this.statusFilter.set('all');
+    this.selectedBrowser.set('');
+    this.selectedLocation.set('');
+  }
+
+  clearSelection() {
+    this.selectedIds.set(new Set());
+  }
 
   ngOnInit(): void {
     this.loadSessions();
@@ -415,9 +687,9 @@ export default class CurrentSessionsComponent implements OnInit {
     this.dialog.open(ConfirmDialogComponent, {
       width: 'min(460px, calc(100vw - 32px))',
       data: {
-        title: 'Cerrar sesiones seleccionadas',
+        title: this.transloco.translate('sessions.closeSelected'),
         message: `¿Estás seguro de que deseas revocar <strong>${ids.length}</strong> sesiones seleccionadas?`,
-        confirmLabel: 'Cerrar sesiones',
+        confirmLabel: this.transloco.translate('sessions.closeSelected'),
         destructive: true,
       },
     }).afterClosed().subscribe((confirmed: boolean) => {
@@ -438,7 +710,7 @@ export default class CurrentSessionsComponent implements OnInit {
                 this.authState.clearSession();
                 this.router.navigate(['/auth/sign-in']);
               } else {
-                this.snackBar.open('Sesiones revocadas exitosamente', this.transloco.translate('common.close'), { duration: 3000 });
+                this.snackBar.open(this.transloco.translate('sessions.revoked'), this.transloco.translate('common.close'), { duration: 3000 });
                 this.loadSessions();
               }
             }
@@ -500,8 +772,11 @@ export default class CurrentSessionsComponent implements OnInit {
       );
     }
 
-    if (this.onlyActive()) {
+    const status = this.statusFilter();
+    if (status === 'active') {
       current = current.filter(s => s.isActive);
+    } else if (status === 'revoked') {
+      current = current.filter(s => !s.isActive);
     }
 
     if (this.selectedBrowser()) {

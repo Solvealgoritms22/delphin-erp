@@ -411,8 +411,9 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
               mat-stroked-button
               (click)="openDiscountDialog()"
               [disabled]="posService.items().length === 0"
-              class="!rounded-lg !text-xs !px-1 !h-8"
+              class="!rounded-lg !text-xs !px-1 !h-8 inline-flex items-center justify-center"
             >
+              <mat-icon svgIcon="percent" class="!w-3.5 !h-3.5 mr-1 text-neutral-400 dark:text-neutral-500"></mat-icon>
               <span>{{ 'pos.discount' | transloco }}</span>
             </button>
 
@@ -421,8 +422,9 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
               mat-stroked-button
               (click)="openNoteDialog()"
               [disabled]="posService.items().length === 0"
-              class="!rounded-lg !text-xs !px-1 !h-8"
+              class="!rounded-lg !text-xs !px-1 !h-8 inline-flex items-center justify-center"
             >
+              <mat-icon svgIcon="file-text" class="!w-3.5 !h-3.5 mr-1 text-neutral-400 dark:text-neutral-500"></mat-icon>
               <span>{{ 'pos.note' | transloco }}</span>
             </button>
 
@@ -431,8 +433,9 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
               mat-stroked-button
               (click)="pauseSale()"
               [disabled]="posService.items().length === 0"
-              class="!rounded-lg !text-xs !px-1 !h-8"
+              class="!rounded-lg !text-xs !px-1 !h-8 inline-flex items-center justify-center"
             >
+              <mat-icon svgIcon="pause" class="!w-3.5 !h-3.5 mr-1 text-neutral-400 dark:text-neutral-500"></mat-icon>
               <span>{{ 'pos.holdSale' | transloco }}</span>
             </button>
           </div>

@@ -34,17 +34,17 @@ import { TranslocoPipe } from '@jsverse/transloco';
       <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col p-6 overflow-y-auto">
         <div class="grid grid-cols-1 gap-4">
 
-          <mat-form-field class="w-full">
-           <mat-label>{{ 'common.name' | transloco }}</mat-label>
-            <input matInput formControlName="nombre" />
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>{{ 'common.name' | transloco }}</mat-label>
+            <input matInput formControlName="nombre" placeholder="Kilogramo, Unidad, Metro..." />
           </mat-form-field>
 
-          <mat-form-field class="w-full">
-           <mat-label>{{ 'catalogs.units.abbreviation' | transloco }}</mat-label>
-            <input matInput formControlName="abreviatura" />
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>{{ 'catalogs.units.abbreviation' | transloco }}</mat-label>
+            <input matInput formControlName="abreviatura" placeholder="kg, und, m..." />
           </mat-form-field>
 
-          <mat-form-field class="w-full">
+          <mat-form-field appearance="outline" class="w-full">
             <mat-label>{{ 'catalogs.units.type' | transloco }}</mat-label>
             <mat-select formControlName="tipo" placeholder="Seleccionar tipo">
               <mat-option value="PRODUCTO">{{ 'catalogs.units.typeProduct' | transloco }}</mat-option>
@@ -52,19 +52,19 @@ import { TranslocoPipe } from '@jsverse/transloco';
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field class="w-full">
-           <mat-label>{{ 'common.status' | transloco }}</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>{{ 'common.status' | transloco }}</mat-label>
             <mat-select formControlName="estado" placeholder="Seleccionar estado">
-             <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
-             <mat-option value="INACTIVO">{{ 'common.inactive' | transloco }}</mat-option>
+              <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
+              <mat-option value="INACTIVO">{{ 'common.inactive' | transloco }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
 
         <div class="flex items-center justify-end gap-3 mt-6">
-           <button mat-button type="button" (click)="dialogRef.close()">{{ 'common.cancel' | transloco }}</button>
+          <button mat-button type="button" (click)="dialogRef.close()">{{ 'common.cancel' | transloco }}</button>
           <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
-             {{ 'common.save' | transloco }}
+            {{ 'common.save' | transloco }}
           </button>
         </div>
       </form>

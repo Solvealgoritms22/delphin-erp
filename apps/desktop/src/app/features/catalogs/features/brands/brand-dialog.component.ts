@@ -34,29 +34,29 @@ import { TranslocoPipe } from '@jsverse/transloco';
       <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col p-6 overflow-y-auto">
         <div class="grid grid-cols-1 gap-4">
 
-          <mat-form-field class="w-full">
-           <mat-label>{{ 'common.name' | transloco }}</mat-label>
-            <input matInput formControlName="nombre" />
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>{{ 'common.name' | transloco }}</mat-label>
+            <input matInput formControlName="nombre" placeholder="Apple, Samsung, Nike..." />
           </mat-form-field>
 
-          <mat-form-field class="w-full">
-           <mat-label>{{ 'common.description' | transloco }}</mat-label>
-            <textarea matInput formControlName="descripcion" rows="3"></textarea>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>{{ 'common.description' | transloco }}</mat-label>
+            <textarea matInput formControlName="descripcion" rows="3" placeholder="Descripción breve o notas sobre la marca..."></textarea>
           </mat-form-field>
 
-          <mat-form-field class="w-full">
-           <mat-label>{{ 'common.status' | transloco }}</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>{{ 'common.status' | transloco }}</mat-label>
             <mat-select formControlName="estado" placeholder="Seleccionar estado">
-             <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
-             <mat-option value="INACTIVO">{{ 'common.inactive' | transloco }}</mat-option>
+              <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
+              <mat-option value="INACTIVO">{{ 'common.inactive' | transloco }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
 
         <div class="flex items-center justify-end gap-3 mt-6">
-           <button mat-button type="button" (click)="dialogRef.close()">{{ 'common.cancel' | transloco }}</button>
+          <button mat-button type="button" (click)="dialogRef.close()">{{ 'common.cancel' | transloco }}</button>
           <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
-             {{ 'common.save' | transloco }}
+            {{ 'common.save' | transloco }}
           </button>
         </div>
       </form>

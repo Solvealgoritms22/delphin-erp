@@ -907,7 +907,46 @@
     color-mix(in oklch, var(--color-black) 40%, transparent),
     color-mix(in oklch, var(--color-white) 40%, transparent)
   );
-  --mat-slide-toggle-selected-icon-color: var(--color-neutral-950);
+  --mat-slide-toggle-selected-icon-color: var(--color-primary-600, #0284c7);
+  --mat-slide-toggle-selected-hover-state-layer-color: light-dark(rgba(37, 99, 235, 0.1), rgba(56, 189, 248, 0.15));
+  --mat-slide-toggle-selected-focus-state-layer-color: light-dark(rgba(37, 99, 235, 0.14), rgba(56, 189, 248, 0.2));
+  --mat-slide-toggle-selected-pressed-state-layer-color: light-dark(rgba(37, 99, 235, 0.18), rgba(56, 189, 248, 0.25));
+  --mat-slide-toggle-unselected-hover-state-layer-color: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.08));
+  --mat-slide-toggle-unselected-focus-state-layer-color: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.12));
+  --mat-slide-toggle-unselected-pressed-state-layer-color: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.16));
+
+  .mat-mdc-slide-toggle {
+    /* Clean white thumb with subtle shadow */
+    .mdc-switch__handle::after {
+      background: #ffffff !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* Selected state: Crisp primary blue checkmark on white thumb */
+    .mdc-switch--selected .mdc-switch__icon {
+      fill: var(--color-primary-600, #0284c7) !important;
+      stroke: var(--color-primary-600, #0284c7) !important;
+      color: var(--color-primary-600, #0284c7) !important;
+    }
+
+    /* Unselected state: Subtle neutral icon */
+    .mdc-switch:not(.mdc-switch--selected) .mdc-switch__icon {
+      fill: var(--color-neutral-400, #9ca3af) !important;
+      stroke: var(--color-neutral-400, #9ca3af) !important;
+      color: var(--color-neutral-400, #9ca3af) !important;
+    }
+
+    /* Hover halo in dark mode: subtle light blue glow instead of black smudge */
+    .mdc-switch--selected:hover:not(:disabled) .mdc-switch__ripple::before,
+    .mdc-switch--selected:hover:not(:disabled) .mdc-switch__ripple::after {
+      background-color: light-dark(rgba(37, 99, 235, 0.12), rgba(56, 189, 248, 0.16)) !important;
+    }
+
+    .mdc-switch:not(.mdc-switch--selected):hover:not(:disabled) .mdc-switch__ripple::before,
+    .mdc-switch:not(.mdc-switch--selected):hover:not(:disabled) .mdc-switch__ripple::after {
+      background-color: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.08)) !important;
+    }
+  }
 
   .update-snackbar {
     background: transparent !important;

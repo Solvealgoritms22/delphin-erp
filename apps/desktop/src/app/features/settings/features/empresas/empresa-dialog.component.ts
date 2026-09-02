@@ -17,6 +17,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HttpClient } from '@angular/common/http';
@@ -26,6 +27,8 @@ import {
   UploadIcon,
   TrashIcon,
   RefreshCwIcon,
+  CopyIcon,
+  CheckIcon,
 } from 'ng-animated-icons';
 
 import { CountryFlagComponent } from '@shared/components/country-flag/country-flag.component';
@@ -43,11 +46,14 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
     MatSelectModule,
     MatSlideToggleModule,
     MatIconModule,
+    MatTooltipModule,
     TranslocoPipe,
     BriefcaseIcon,
     UploadIcon,
     TrashIcon,
     RefreshCwIcon,
+    CopyIcon,
+    CheckIcon,
     CountryFlagComponent,
   ],
   template: `
@@ -304,7 +310,22 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
                 matInput
                 [value]="webhookUrl()"
                 readonly
+                class="pr-2 font-mono text-xs"
               />
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="copyWebhookUrl()"
+                [matTooltip]="copiedWebhook() ? '¡Copiado!' : 'Copiar URL'"
+                class="!w-8 !h-8 text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 mr-1"
+              >
+                @if (copiedWebhook()) {
+                  <i-check [size]="16" class="text-emerald-500" />
+                } @else {
+                  <i-copy [size]="16" />
+                }
+              </button>
               <mat-hint
                 >Copia esta URL en FiscalBridge → Configuración →
                 Webhooks.</mat-hint
@@ -565,6 +586,17 @@ export class EmpresaDialogComponent implements OnInit {
     return this.data?.id
       ? `${environment.apiUrl}/fiscalbridge/webhook/${this.data.id}`
       : '';
+  }
+
+  copiedWebhook = signal(false);
+
+  copyWebhookUrl(): void {
+    const url = this.webhookUrl();
+    if (!url) return;
+    void navigator.clipboard?.writeText(url);
+    this.copiedWebhook.set(true);
+    this.snackBar.open('URL del webhook copiada al portapapeles', 'Cerrar', { duration: 2500 });
+    setTimeout(() => this.copiedWebhook.set(false), 2000);
   }
 
   logoPreview = signal<string>('');
