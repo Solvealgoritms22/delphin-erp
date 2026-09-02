@@ -303,7 +303,7 @@ export type RolePermissions = {
                 <input
                   type="text"
                   [(ngModel)]="modalRoleData.name"
-                  placeholder="Ej. Supervisor de Ventas, Administrador, Cajero..."
+                  placeholder="Supervisor de Ventas, Administrador, Cajero..."
                   class="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-neutral-900 dark:text-white placeholder:font-normal placeholder:text-neutral-400 outline-none transition-colors"
                 />
               </div>
@@ -656,7 +656,7 @@ export class RolesComponent implements OnInit {
 
   changeAccountRole(accountId: string, newRoleId: string) {
     this.usersService.update(accountId, { roleId: newRoleId }).subscribe({
-        next: () => this.snackBar.open(this.transloco.translate('roles.updated'), this.transloco.translate('common.close'), { duration: 2000 })
+      next: () => this.snackBar.open(this.transloco.translate('roles.updated'), this.transloco.translate('common.close'), { duration: 2000 })
     });
   }
 
@@ -787,14 +787,14 @@ export class RolesComponent implements OnInit {
     if (this.editingRole) {
       this.rolesService.update(this.editingRole.id, payload).subscribe({
         next: () => {
-           this.snackBar.open(this.transloco.translate('roles.updated'), this.transloco.translate('common.close'), { duration: 2000 });
+          this.snackBar.open(this.transloco.translate('roles.updated'), this.transloco.translate('common.close'), { duration: 2000 });
           this.closeRoleModal();
         }
       });
     } else {
       this.rolesService.create(payload).subscribe({
         next: () => {
-           this.snackBar.open(this.transloco.translate('roles.created'), this.transloco.translate('common.close'), { duration: 2000 });
+          this.snackBar.open(this.transloco.translate('roles.created'), this.transloco.translate('common.close'), { duration: 2000 });
           this.closeRoleModal();
         }
       });
