@@ -195,7 +195,7 @@ type BackupSettings = {
                     [class.dark:bg-neutral-800]="!settings.backupAutoEnabled"
                     [class.dark:text-neutral-400]="!settings.backupAutoEnabled"
                   >
-                    {{ settings.backupAutoEnabled ? 'Activo' : 'Desactivado' }}
+                    {{ settings.backupAutoEnabled ? ('common.active' | transloco) : ('common.inactive' | transloco) }}
                   </span>
                 </div>
                 <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
@@ -250,9 +250,9 @@ type BackupSettings = {
                     <mat-option value="GOOGLE_DRIVE">
                       {{ 'backups.destDrive' | transloco }}
                       @if (settings.googleDriveConnected) {
-                        (Conectado)
+                        ({{ 'backups.driveConnectedStatus' | transloco }})
                       } @else {
-                        (Requiere conexión)
+                        ({{ 'backups.driveRequiresConnection' | transloco }})
                       }
                     </mat-option>
                   </mat-select>
@@ -279,7 +279,7 @@ type BackupSettings = {
               <div class="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 p-3 text-xs text-amber-800 dark:text-amber-300">
                 <mat-icon svgIcon="alert-triangle" class="icon-size-4 shrink-0 text-amber-600 dark:text-amber-400"></mat-icon>
                 <span class="flex-1">
-                  Google Drive no está conectado. Para guardar copias automáticas en la nube, vincula tu cuenta de Google.
+                  {{ 'backups.driveNotConnectedWarning' | transloco }}
                 </span>
                 <button
                   mat-stroked-button
@@ -324,10 +324,10 @@ type BackupSettings = {
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-bold text-neutral-900 dark:text-white">
-              Historial de Copias de Seguridad
+              {{ 'backups.historyTitle' | transloco }}
             </h2>
             <span class="text-xs font-semibold text-neutral-500">
-              Total: {{ backups().length }}
+              {{ 'common.total' | transloco }}: {{ backups().length }}
             </span>
           </div>
 

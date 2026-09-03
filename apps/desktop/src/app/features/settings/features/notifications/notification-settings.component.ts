@@ -37,36 +37,36 @@ type CategoryGroup = {
   template: `
     <div class="flex h-full w-full min-w-0 flex-col bg-white dark:bg-neutral-900 overflow-hidden">
       <!-- Header Estándar-->
-      <header class="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 gap-4">
-        <div>
-          <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+      <header class="shrink-0 flex flex-col lg:flex-row lg:items-center lg:justify-between py-6 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 gap-4">
+        <div class="min-w-0 flex-1 max-w-2xl">
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
             {{ 'notificationSettings.title' | transloco }}
           </h1>
-          <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <p class="mt-1 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
             {{ 'notificationSettings.description' | transloco }}
           </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2.5 shrink-0 self-start lg:self-center flex-wrap sm:flex-nowrap">
           <button
             mat-stroked-button
             type="button"
-            class="!rounded-xl"
+            class="!rounded-xl !h-10 !px-3.5 text-xs font-medium"
             (click)="resetToDefaults()"
             [disabled]="loading() || saving()"
           >
-            <mat-icon svgIcon="refresh-cw" class="!w-4 !h-4 mr-2 text-neutral-500"></mat-icon>
+            <mat-icon svgIcon="refresh-cw" class="!w-4 !h-4 mr-1.5 text-neutral-500"></mat-icon>
             <span>{{ 'notificationSettings.reset' | transloco }}</span>
           </button>
 
           <button
             mat-stroked-button
             type="button"
-            class="!rounded-xl"
+            class="!rounded-xl !h-10 !px-3.5 text-xs font-medium"
             (click)="requestPushPermission()"
             [disabled]="loading()"
           >
-            <mat-icon svgIcon="smartphone" class="!w-4 !h-4 mr-2 text-blue-500"></mat-icon>
+            <mat-icon svgIcon="smartphone" class="!w-4 !h-4 mr-1.5 text-blue-500"></mat-icon>
             <span>{{ 'notificationSettings.enablePush' | transloco }}</span>
           </button>
 
@@ -74,11 +74,11 @@ type CategoryGroup = {
             mat-flat-button
             color="primary"
             type="button"
-            class="!rounded-xl !px-5"
+            class="!rounded-xl !h-10 !px-4 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
             (click)="saveChanges()"
             [disabled]="loading() || saving() || !isDirty()"
           >
-            <mat-icon [svgIcon]="saving() ? 'refresh-cw' : 'check-circle'" class="!w-4 !h-4 mr-2" [class.animate-spin]="saving()"></mat-icon>
+            <mat-icon [svgIcon]="saving() ? 'refresh-cw' : 'check'" class="!w-4 !h-4 mr-1.5" [class.animate-spin]="saving()"></mat-icon>
             <span>{{ (saving() ? 'notificationSettings.saving' : 'notificationSettings.saveChanges') | transloco }}</span>
           </button>
         </div>

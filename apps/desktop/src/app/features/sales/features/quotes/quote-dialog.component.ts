@@ -41,7 +41,7 @@ type QuoteLineItem = {
     DecimalPipe,
   ],
   template: `
-    <div class="flex flex-col max-h-[92vh] w-[1180px] max-w-[96vw] bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl">
+    <div class="flex flex-col max-h-[92vh] w-full min-w-0 bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl">
       <!-- Modal Header -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/60 shrink-0">
         <div class="flex items-center gap-3">
