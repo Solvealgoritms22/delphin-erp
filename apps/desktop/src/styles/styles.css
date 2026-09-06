@@ -22,6 +22,15 @@
   pointer-events: auto;
 }
 
+.cdk-overlay-connected-position-bounding-box {
+  z-index: 100001 !important;
+}
+
+.cdk-overlay-pane:has(.mat-mdc-select-panel),
+.mat-mdc-select-panel {
+  z-index: 100002 !important;
+}
+
 @import './base/base.css';
 @import './base/typography.css';
 

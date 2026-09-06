@@ -826,7 +826,7 @@
       "noImages": "Sin imágenes adjuntas",
       "profitMargin": "Margen de ganancia",
       "discountsAndOffers": "Ofertas y Descuentos",
-      "enableOffer": "Activar Oferta / Descuento Directo",
+      "enableOffer": "Activar Oferta",
       "discountPercentage": "Porcentaje de Descuento (%)",
       "specialOfferPrice": "Precio Especial de Oferta",
       "offerValidFrom": "Válido Desde",
@@ -932,7 +932,7 @@
         "optimal": "Óptimo"
       },
       "warehouses": {
-        "mainBadge": "Principal / CEDI",
+        "mainBadge": "Principal",
         "type": "Tipo",
         "branch": "Sucursal",
         "central": "Almacén Central",
@@ -1057,12 +1057,12 @@
         "suppliersCount": "Proveedores"
       },
       "dialog": {
-        "title": "Registrar Factura de Compra / Gasto",
+        "title": "Registrar Factura de Compra",
         "subtitle": "Ingresa los datos fiscales y líneas de detalle de la compra del proveedor.",
         "supplier": "Proveedor",
         "ncf": "NCF del Proveedor",
         "warehouse": "Almacén de Destino",
-        "expenseType": "Clasificación de Costo / Gasto",
+        "expenseType": "Clasificación de Costo",
         "paymentType": "Condición de Pago",
         "paymentMethod": "Método de Pago",
         "date": "Fecha de Emisión",
@@ -1074,9 +1074,9 @@
       },
       "payment": {
         "title": "Registrar Abono a Proveedor",
-        "amount": "Monto a Abonar (RD$)",
+        "amount": "Monto a Abonar",
         "method": "Método de Pago",
-        "reference": "No. Cheque / Referencia Bancaria",
+        "reference": "No. Cheque",
         "date": "Fecha de Pago",
         "submit": "Registrar Pago"
       }
@@ -1096,7 +1096,7 @@
         "clientsWithBalance": "Clientes con Saldo"
       },
       "dialog": {
-        "title": "Registrar Recibo de Ingreso / Cobro",
+        "title": "Registrar Recibo de Ingreso",
         "subtitle": "Selecciona el cliente y aplica el cobro a una o múltiples facturas pendientes.",
         "client": "Cliente",
         "method": "Método de Cobro",
@@ -1124,8 +1124,8 @@
       "description": "Administración de secuencias NCF tradicionales y e-CF electrónicos autorizados por la DGII.",
       "newSequence": "Nueva Secuencia NCF",
       "columns": {
-        "name": "Tipo / Nombre",
-        "prefix": "Prefijo / Tipo",
+        "name": "Tipo",
+        "prefix": "Prefijo",
         "environment": "Ambiente",
         "nextNumber": "Próximo a Emitir",
         "expiration": "Vencimiento",

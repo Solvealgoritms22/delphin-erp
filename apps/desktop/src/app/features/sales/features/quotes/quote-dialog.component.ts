@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
@@ -13,6 +13,9 @@ import { ClientsService, Client } from '../../data/clients';
 import { ProductsService, Product } from '../../../catalogs/data/products.service';
 import { InventoryService, Warehouse } from '../../../catalogs/data/inventory.service';
 import { CurrencyConfigService } from '@core/currency/currency-config.service';
+
+type CatalogProduct = Product & { displayLabel?: string };
+type CatalogClient = Client & { displayLabel?: string };
 
 type QuoteLineItem = {
   productoId?: string;
@@ -30,6 +33,7 @@ type QuoteLineItem = {
 @Component({
   selector: 'app-quote-dialog',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -80,11 +84,12 @@ type QuoteLineItem = {
                 [(ngModel)]="selectedClienteId"
                 (selectionChange)="onClienteSelected($event.value)"
                 placeholder="Seleccionar cliente..."
+                disableOptionCentering
               >
                 <mat-option [value]="null">Consumidor Final / General</mat-option>
                 @for (c of clients(); track c.id) {
                   <mat-option [value]="c.id">
-                    {{ c.nombreRazonSocial }} {{ c.numeroDocumento ? '(' + c.numeroDocumento + ')' : '' }}
+                    {{ c.displayLabel || c.nombreRazonSocial }}
                   </mat-option>
                 }
               </mat-select>
@@ -101,7 +106,7 @@ type QuoteLineItem = {
           <div class="md:col-span-3">
             <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
               <mat-label>Almacén de Despacho</mat-label>
-              <mat-select [(ngModel)]="selectedAlmacenId" placeholder="Seleccionar almacén...">
+              <mat-select [(ngModel)]="selectedAlmacenId" placeholder="Seleccionar almacén..." disableOptionCentering>
                 @for (alm of warehouses(); track alm.id) {
                   <mat-option [value]="alm.id">{{ alm.nombre }}</mat-option>
                 }
@@ -117,6 +122,7 @@ type QuoteLineItem = {
                 [ngModel]="selectedMoneda()"
                 (selectionChange)="onMonedaChanged($event.value)"
                 placeholder="Moneda..."
+                disableOptionCentering
               >
                 <mat-option value="DOP">DOP (RD$)</mat-option>
                 <mat-option value="USD">USD ($)</mat-option>
@@ -133,6 +139,7 @@ type QuoteLineItem = {
                 [(ngModel)]="validityDays"
                 (selectionChange)="onValidityDaysChanged($event.value)"
                 placeholder="Vigencia..."
+                disableOptionCentering
               >
                 <mat-option [value]="15">15 Días</mat-option>
                 <mat-option [value]="30">30 Días (Estándar)</mat-option>
@@ -193,11 +200,12 @@ type QuoteLineItem = {
                             [(ngModel)]="item.productoId"
                             (selectionChange)="onProductSelected(item)"
                             placeholder="Seleccionar producto del catálogo o libre..."
+                            disableOptionCentering
                           >
                             <mat-option [value]="undefined">-- Producto Libre / Personalizado --</mat-option>
                             @for (p of products(); track p.id) {
                               <mat-option [value]="p.id">
-                                {{ p.nombre }} ({{ formatProductPrice(p) }})
+                                {{ p.displayLabel || p.nombre }}
                               </mat-option>
                             }
                           </mat-select>
@@ -267,6 +275,7 @@ type QuoteLineItem = {
                           [(ngModel)]="item.tasaItbis"
                           (selectionChange)="recalculateLine(item)"
                           placeholder="Tasa..."
+                          disableOptionCentering
                         >
                           @for (tax of availableTaxes(); track tax.id) {
                             <mat-option [value]="tax.tasa">{{ tax.nombre }} ({{ tax.tasa }}%)</mat-option>
@@ -402,12 +411,13 @@ export class QuoteDialogComponent implements OnInit {
   snackBar = inject(MatSnackBar);
   dialog = inject(MatDialog);
   currencyConfig = inject(CurrencyConfigService);
+  cdr = inject(ChangeDetectorRef);
 
   isEdit = Boolean(this.data?.quote);
   quote = this.data?.quote;
 
-  clients = signal<Client[]>([]);
-  products = signal<Product[]>([]);
+  clients = signal<CatalogClient[]>([]);
+  products = signal<CatalogProduct[]>([]);
   warehouses = signal<Warehouse[]>([]);
 
   selectedClienteId: string | null = null;
@@ -440,6 +450,11 @@ export class QuoteDialogComponent implements OnInit {
       { id: 'tax-ex', nombre: 'Exento', tasa: 0 },
     ];
   });
+
+  formatProductLabel(p: Product): string {
+    const sym = p.moneda === 'USD' ? 'USD $' : p.moneda === 'EUR' ? '€' : 'RD$';
+    return `${p.nombre} (${sym} ${(p.precioVenta || 0).toFixed(2)})`;
+  }
 
   formatProductPrice(p: Product): string {
     const sym = p.moneda === 'USD' ? 'USD $' : p.moneda === 'EUR' ? '€' : 'RD$';
@@ -496,11 +511,21 @@ export class QuoteDialogComponent implements OnInit {
 
   loadCatalogData(): void {
     this.clientsService.findAll().subscribe((res: any) => {
-      this.clients.set(res || []);
+      const cls: CatalogClient[] = (res || []).map((c: Client) => ({
+        ...c,
+        displayLabel: `${c.nombreRazonSocial}${c.numeroDocumento ? ' (' + c.numeroDocumento + ')' : ''}`,
+      }));
+      this.clients.set(cls);
+      this.cdr.markForCheck();
     });
 
     this.productsService.findAll().subscribe((res: any) => {
-      this.products.set(res || []);
+      const prods: CatalogProduct[] = (res || []).map((p: Product) => ({
+        ...p,
+        displayLabel: this.formatProductLabel(p),
+      }));
+      this.products.set(prods);
+      this.cdr.markForCheck();
     });
 
     this.inventoryService.getWarehouses().subscribe((res: any) => {
@@ -508,20 +533,24 @@ export class QuoteDialogComponent implements OnInit {
       if (res && res.length > 0 && !this.selectedAlmacenId) {
         this.selectedAlmacenId = res[0].id;
       }
+      this.cdr.markForCheck();
     });
   }
 
   onClienteSelected(clienteId: string | null): void {
     if (!clienteId) {
       this.selectedClientEmail = null;
+      this.cdr.markForCheck();
       return;
     }
     const c = this.clients().find((cl) => cl.id === clienteId);
     this.selectedClientEmail = c?.email || null;
+    this.cdr.markForCheck();
   }
 
   onValidityDaysChanged(days: number): void {
     this.validityDays = days;
+    this.cdr.markForCheck();
   }
 
   onMonedaChanged(newCur: string): void {
@@ -538,6 +567,7 @@ export class QuoteDialogComponent implements OnInit {
       }
     }
     this.itemsTrigger.update((n) => n + 1);
+    this.cdr.markForCheck();
   }
 
   addItemLine(): void {
@@ -553,12 +583,14 @@ export class QuoteDialogComponent implements OnInit {
       total: 0,
     });
     this.itemsTrigger.update((n) => n + 1);
+    this.cdr.markForCheck();
   }
 
   removeItemLine(index: number): void {
     if (this.items.length > 1) {
       this.items.splice(index, 1);
       this.itemsTrigger.update((n) => n + 1);
+      this.cdr.markForCheck();
     }
   }
 
@@ -574,16 +606,19 @@ export class QuoteDialogComponent implements OnInit {
       item.tasaItbis = prod.taxRate !== undefined && prod.taxRate !== null ? Number(prod.taxRate) : this.currencyConfig.defaultTaxRate();
       this.recalculateLine(item);
     }
+    this.cdr.markForCheck();
   }
 
   onDiscountPercentChanged(item: QuoteLineItem): void {
     const gross = item.cantidad * item.precioUnitario;
     item.descuento = (gross * (item.descuentoPorcentaje || 0)) / 100;
     this.recalculateLine(item);
+    this.cdr.markForCheck();
   }
 
   onGlobalDiscountChanged(val: any): void {
     this.globalDiscount.set(Number(val || 0));
+    this.cdr.markForCheck();
   }
 
   recalculateLine(item: QuoteLineItem): void {
@@ -596,6 +631,7 @@ export class QuoteDialogComponent implements OnInit {
     item.itbis = itbis;
     item.total = net + itbis;
     this.itemsTrigger.update((n) => n + 1);
+    this.cdr.markForCheck();
   }
 
   close(): void {
@@ -635,6 +671,7 @@ export class QuoteDialogComponent implements OnInit {
     };
 
     this.saving.set(true);
+    this.cdr.markForCheck();
 
     const request$ = this.isEdit && this.quote
       ? this.quotesService.updateQuote(this.quote.id, payload)
@@ -643,6 +680,7 @@ export class QuoteDialogComponent implements OnInit {
     request$.subscribe({
       next: (created) => {
         this.saving.set(false);
+        this.cdr.markForCheck();
         this.snackBar.open(
           this.isEdit ? 'Cotización actualizada exitosamente.' : 'Cotización creada exitosamente.',
           'Cerrar',
@@ -652,6 +690,7 @@ export class QuoteDialogComponent implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
+        this.cdr.markForCheck();
         const msg = err.error?.message || 'Error al guardar la cotización.';
         this.snackBar.open(msg, 'Cerrar', { duration: 4500 });
       },

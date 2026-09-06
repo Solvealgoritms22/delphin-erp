@@ -10,7 +10,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { OVERLAY_DEFAULT_CONFIG } from '@angular/cdk/overlay';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import {
   provideRouter,
   withComponentInputBinding,
@@ -28,7 +28,7 @@ import { provideAngularQuery, QueryClient } from '@tanstack/angular-query-experi
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideAnimationsAsync(),
+    provideAnimations(),
     provideAngularQuery(new QueryClient()),
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(

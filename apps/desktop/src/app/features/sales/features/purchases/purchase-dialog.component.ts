@@ -77,7 +77,7 @@ export type PurchaseItemRow = {
           <div class="lg:col-span-2">
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'commercial.purchases.dialog.supplier' | transloco }} *</mat-label>
-              <mat-select [(ngModel)]="purchaseData.proveedorId" [placeholder]="'common.select' | transloco">
+              <mat-select [(ngModel)]="purchaseData.proveedorId" [placeholder]="'common.select' | transloco" disableOptionCentering>
                 @for (sup of suppliers(); track sup.id) {
                   <mat-option [value]="sup.id">
                     {{ sup.nombreRazonSocial }} ({{ sup.numeroDocumento }})
@@ -103,7 +103,7 @@ export type PurchaseItemRow = {
           <div>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'commercial.purchases.dialog.warehouse' | transloco }} *</mat-label>
-              <mat-select [(ngModel)]="purchaseData.almacenId" [placeholder]="'common.select' | transloco">
+              <mat-select [(ngModel)]="purchaseData.almacenId" [placeholder]="'common.select' | transloco" disableOptionCentering>
                 @for (wh of warehouses(); track wh.id) {
                   <mat-option [value]="wh.id">
                     {{ wh.nombre }} {{ wh.esPrincipal ? '(Principal)' : '' }}
@@ -117,7 +117,7 @@ export type PurchaseItemRow = {
           <div class="lg:col-span-2">
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'commercial.purchases.dialog.expenseType' | transloco }} (DGII 606)</mat-label>
-              <mat-select [(ngModel)]="purchaseData.tipoGasto" [placeholder]="'common.select' | transloco">
+              <mat-select [(ngModel)]="purchaseData.tipoGasto" [placeholder]="'common.select' | transloco" disableOptionCentering>
                 <mat-option value="09">09 - Compras que forman parte del costo de venta</mat-option>
                 <mat-option value="02">02 - Gastos por trabajos, suministros y servicios</mat-option>
                 <mat-option value="01">01 - Gastos de personal</mat-option>
@@ -137,7 +137,7 @@ export type PurchaseItemRow = {
           <div>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'commercial.purchases.dialog.paymentType' | transloco }}</mat-label>
-              <mat-select [(ngModel)]="purchaseData.tipoPago" [placeholder]="'common.select' | transloco">
+              <mat-select [(ngModel)]="purchaseData.tipoPago" [placeholder]="'common.select' | transloco" disableOptionCentering>
                 <mat-option value="CONTADO">Contado</mat-option>
                 <mat-option value="CREDITO">Crédito</mat-option>
               </mat-select>
@@ -148,7 +148,7 @@ export type PurchaseItemRow = {
           <div>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'commercial.purchases.dialog.paymentMethod' | transloco }}</mat-label>
-              <mat-select [(ngModel)]="purchaseData.metodoPago" [placeholder]="'common.select' | transloco">
+              <mat-select [(ngModel)]="purchaseData.metodoPago" [placeholder]="'common.select' | transloco" disableOptionCentering>
                 <mat-option value="TRANSFERENCIA">Transferencia Bancaria</mat-option>
                 <mat-option value="CHEQUE">Cheque</mat-option>
                 <mat-option value="EFECTIVO">Efectivo</mat-option>
@@ -221,7 +221,7 @@ export type PurchaseItemRow = {
             <table class="w-full text-left text-sm">
               <thead class="bg-neutral-50 dark:bg-neutral-800/40 text-neutral-500 dark:text-neutral-400 text-xs border-b border-neutral-200 dark:border-neutral-800">
                 <tr>
-                  <th class="py-3 px-4 min-w-[200px]">Producto / Descripción</th>
+                  <th class="py-3 px-4 min-w-[200px]">Descripción</th>
                   <th class="py-3 px-2 w-24">Cant.</th>
                   <th class="py-3 px-2 w-28">Costo Unit.</th>
                   <th class="py-3 px-2 w-24">% ITBIS</th>
@@ -233,82 +233,98 @@ export type PurchaseItemRow = {
               <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
                 @for (item of items(); track $index; let i = $index) {
                   <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20">
-                    <!-- Selector de Producto / Descripción -->
-                    <td class="py-2.5 px-4">
-                      <div class="space-y-1.5">
-                        <select
-                          [ngModel]="item.productoId"
-                          (ngModelChange)="onProductSelected(i, $event)"
-                          class="w-full text-xs font-medium bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-2 outline-none focus:border-blue-500"
-                        >
-                          <option [ngValue]="undefined">-- Línea de Gasto / Servicio Libre --</option>
-                          @for (p of products(); track p.id) {
-                            <option [ngValue]="p.id">
-                              {{ p.codigo ? '[' + p.codigo + '] ' : '' }}{{ p.nombre }}
-                            </option>
-                          }
-                        </select>
-                        <input
-                          type="text"
-                          [(ngModel)]="item.descripcion"
-                          placeholder="Descripción del item / servicio..."
-                          class="w-full text-xs bg-transparent border-b border-neutral-200 dark:border-neutral-700 pb-1 focus:border-blue-500 outline-none"
-                        />
+                    <!-- Selector de Producto -->
+                    <td class="py-2.5 px-4 align-middle">
+                      <div class="space-y-2">
+                        <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                          <mat-select
+                            [ngModel]="item.productoId"
+                            (ngModelChange)="onProductSelected(i, $event)"
+                            placeholder="Seleccionar producto..."
+                            disableOptionCentering
+                          >
+                            <mat-option [value]="undefined">-- Línea de Gasto / Servicio Libre --</mat-option>
+                            @for (p of products(); track p.id) {
+                              <mat-option [value]="p.id">
+                                {{ p.codigo ? '[' + p.codigo + '] ' : '' }}{{ p.nombre }}
+                              </mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                          <input
+                            matInput
+                            type="text"
+                            [(ngModel)]="item.descripcion"
+                            placeholder="Descripción del item / servicio..."
+                          />
+                        </mat-form-field>
                       </div>
                     </td>
 
                     <!-- Cantidad -->
-                    <td class="py-2.5 px-2">
-                      <input
-                        type="number"
-                        min="0.01"
-                        step="1"
-                        [(ngModel)]="item.cantidad"
-                        (ngModelChange)="recalculate()"
-                        class="w-full text-xs font-semibold bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-2 text-right"
-                      />
+                    <td class="py-2.5 px-2 align-middle">
+                      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <input
+                          matInput
+                          type="number"
+                          min="0.01"
+                          step="1"
+                          [(ngModel)]="item.cantidad"
+                          (ngModelChange)="recalculate()"
+                          class="text-right font-mono font-bold"
+                        />
+                      </mat-form-field>
                     </td>
 
                     <!-- Costo Unitario -->
-                    <td class="py-2.5 px-2">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        [(ngModel)]="item.costoUnitario"
-                        (ngModelChange)="recalculate()"
-                        class="w-full text-xs font-semibold bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-2 text-right"
-                      />
+                    <td class="py-2.5 px-2 align-middle">
+                      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          [(ngModel)]="item.costoUnitario"
+                          (ngModelChange)="recalculate()"
+                          class="text-right font-mono font-bold"
+                        />
+                      </mat-form-field>
                     </td>
 
-                    <td class="py-2.5 px-2">
-                      <select
-                        [(ngModel)]="item.tasaItbis"
-                        (ngModelChange)="recalculate()"
-                        class="w-full text-xs font-semibold bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-2"
-                      >
-                        @for (tax of availableTaxes(); track tax.id) {
-                          <option [value]="tax.tasa">{{ tax.nombre }} ({{ tax.tasa }}%)</option>
-                        }
-                      </select>
+                    <td class="py-2.5 px-2 align-middle">
+                      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <mat-select
+                          [(ngModel)]="item.tasaItbis"
+                          (ngModelChange)="recalculate()"
+                          disableOptionCentering
+                        >
+                          @for (tax of availableTaxes(); track tax.id) {
+                            <mat-option [value]="tax.tasa">{{ tax.nombre }} ({{ tax.tasa }}%)</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
                     </td>
 
-                    <td class="py-2.5 px-2">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        [(ngModel)]="item.descuento"
-                        (ngModelChange)="recalculate()"
-                        class="w-full text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-2 text-right"
-                      />
+                    <td class="py-2.5 px-2 align-middle">
+                      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          [(ngModel)]="item.descuento"
+                          (ngModelChange)="recalculate()"
+                          class="text-right font-mono"
+                        />
+                      </mat-form-field>
                     </td>
 
-                    <td class="py-2.5 px-3 text-right font-bold text-neutral-900 dark:text-white">
+                    <td class="py-2.5 px-3 text-right font-mono font-bold text-sm text-neutral-900 dark:text-white align-middle">
                       {{ currencyConfig.currencySymbol() }} {{ getItemTotal(item) | number: '1.2-2' }}
                     </td>
 
-                    <td class="py-2.5 px-1 text-center">
+                    <td class="py-2.5 px-1 text-center align-middle">
                       <button
                         type="button"
                         mat-icon-button
