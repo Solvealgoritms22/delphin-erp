@@ -244,6 +244,18 @@ export class InvoicesService {
       );
   }
 
+  retryFiscal(id: string): Observable<FacturaVenta> {
+    return this.http
+      .post<FacturaVenta>(`${this.apiUrl}/${id}/retry-fiscal`, {})
+      .pipe(
+        tap((updated) => {
+          this.invoices.update((list) =>
+            list.map((inv) => (inv.id === id ? updated : inv))
+          );
+        })
+      );
+  }
+
   downloadPdf(id: string, fileName?: string): void {
     this.http
       .get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' })

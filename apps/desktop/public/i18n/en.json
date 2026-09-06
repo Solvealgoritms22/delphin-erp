@@ -57,7 +57,8 @@
     "lastMonth": "Last month",
     "thisYear": "This year",
     "lastYear": "Last year",
-    "customRange": "Custom range"
+    "customRange": "Custom range",
+    "total": "Total"
   },
   "paginator": {
     "rowsPerPage": "Rows per page",

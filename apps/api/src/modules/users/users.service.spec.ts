@@ -4,6 +4,10 @@ import { UsersService } from './users.service';
 import { createPrismaMock } from '../../test/mocks/prisma.mock';
 import * as bcrypt from 'bcrypt';
 
+import { ActivityLogService } from '../activity-log/activity-log.service';
+import { TenantMailerService } from '../../common/tenant-mailer.service';
+import { MailerService } from '@nestjs-modules/mailer';
+
 jest.mock('bcrypt');
 
 describe('UsersService', () => {
@@ -15,7 +19,13 @@ describe('UsersService', () => {
     prisma = mocks.prisma;
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService, mocks.provider],
+      providers: [
+        UsersService,
+        mocks.provider,
+        { provide: ActivityLogService, useValue: { log: jest.fn() } },
+        { provide: TenantMailerService, useValue: { sendMail: jest.fn() } },
+        { provide: MailerService, useValue: { sendMail: jest.fn() } },
+      ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);

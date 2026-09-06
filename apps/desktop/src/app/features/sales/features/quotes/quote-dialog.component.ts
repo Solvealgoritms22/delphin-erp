@@ -42,7 +42,7 @@ type QuoteLineItem = {
     DecimalPipe,
   ],
   template: `
-    <div class="flex flex-col max-h-[92vh] w-full min-w-0 bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl">
+    <div class="flex flex-col max-h-[92vh] w-full min-w-0 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-2xl overflow-hidden shadow-2xl">
       <!-- Modal Header -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/60 shrink-0">
         <div class="flex items-center gap-3">
@@ -69,15 +69,13 @@ type QuoteLineItem = {
       </div>
 
       <!-- Scrollable Form Body -->
-      <div class="flex-auto overflow-y-auto p-6 md:p-8 space-y-6">
-        <!-- Top Form Section: Client, Dates, Warehouse -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-800">
+      <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+        <!-- Top Form Section: Client, Warehouse, Currency, Validity -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-800">
           <!-- Client Selector -->
-          <div class="space-y-1.5 md:col-span-5">
-            <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300">
-              Cliente Destinatario
-            </label>
-            <mat-form-field appearance="outline" class="w-full fuse-mat-dense">
+          <div class="md:col-span-5">
+            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+              <mat-label>Cliente Destinatario</mat-label>
               <mat-select
                 [(ngModel)]="selectedClienteId"
                 (selectionChange)="onClienteSelected($event.value)"
@@ -86,16 +84,13 @@ type QuoteLineItem = {
                 <mat-option [value]="null">Consumidor Final / General</mat-option>
                 @for (c of clients(); track c.id) {
                   <mat-option [value]="c.id">
-                    {{ c.nombreRazonSocial }}
-                    @if (c.numeroDocumento) {
-                      <span class="text-neutral-400 font-mono text-xs">({{ c.numeroDocumento }})</span>
-                    }
+                    {{ c.nombreRazonSocial }} {{ c.numeroDocumento ? '(' + c.numeroDocumento + ')' : '' }}
                   </mat-option>
                 }
               </mat-select>
             </mat-form-field>
             @if (selectedClientEmail) {
-              <div class="text-[11px] font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1.5 mt-0.5">
+              <div class="text-[11px] font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1.5 mt-1 px-1">
                 <mat-icon svgIcon="mail" class="icon-size-3.5"></mat-icon>
                 <span>Correo registrado: <strong>{{ selectedClientEmail }}</strong></span>
               </div>
@@ -103,11 +98,9 @@ type QuoteLineItem = {
           </div>
 
           <!-- Almacén -->
-          <div class="space-y-1.5 md:col-span-3">
-            <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300">
-              Almacén de Despacho
-            </label>
-            <mat-form-field appearance="outline" class="w-full fuse-mat-dense">
+          <div class="md:col-span-3">
+            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+              <mat-label>Almacén de Despacho</mat-label>
               <mat-select [(ngModel)]="selectedAlmacenId" placeholder="Seleccionar almacén...">
                 @for (alm of warehouses(); track alm.id) {
                   <mat-option [value]="alm.id">{{ alm.nombre }}</mat-option>
@@ -117,12 +110,14 @@ type QuoteLineItem = {
           </div>
 
           <!-- Moneda de la Cotización -->
-          <div class="space-y-1.5 md:col-span-2">
-            <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300">
-              Moneda
-            </label>
-            <mat-form-field appearance="outline" class="w-full fuse-mat-dense">
-              <mat-select [(ngModel)]="selectedMoneda" (selectionChange)="onMonedaChanged($event.value)" placeholder="Moneda...">
+          <div class="md:col-span-2">
+            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+              <mat-label>Moneda</mat-label>
+              <mat-select
+                [ngModel]="selectedMoneda()"
+                (selectionChange)="onMonedaChanged($event.value)"
+                placeholder="Moneda..."
+              >
                 <mat-option value="DOP">DOP (RD$)</mat-option>
                 <mat-option value="USD">USD ($)</mat-option>
                 <mat-option value="EUR">EUR (€)</mat-option>
@@ -131,14 +126,16 @@ type QuoteLineItem = {
           </div>
 
           <!-- Validez de Oferta (Días) -->
-          <div class="space-y-1.5 md:col-span-2">
-            <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300">
-              Validez
-            </label>
-            <mat-form-field appearance="outline" class="w-full fuse-mat-dense">
-              <mat-select [(ngModel)]="validityDays" (selectionChange)="onValidityDaysChanged($event.value)" placeholder="Vigencia...">
+          <div class="md:col-span-2">
+            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+              <mat-label>Validez</mat-label>
+              <mat-select
+                [(ngModel)]="validityDays"
+                (selectionChange)="onValidityDaysChanged($event.value)"
+                placeholder="Vigencia..."
+              >
                 <mat-option [value]="15">15 Días</mat-option>
-                <mat-option [value]="30">30 Días</mat-option>
+                <mat-option [value]="30">30 Días (Estándar)</mat-option>
                 <mat-option [value]="60">60 Días</mat-option>
                 <mat-option [value]="90">90 Días</mat-option>
               </mat-select>
@@ -170,108 +167,126 @@ type QuoteLineItem = {
 
           <!-- Items Table -->
           <div class="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-2xs">
-            <table class="w-full text-left text-xs min-w-[960px]">
+            <table class="w-full text-left text-xs min-w-[980px]">
               <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 font-bold border-b border-neutral-200 dark:border-neutral-800 uppercase text-[11px] tracking-wider">
                 <tr>
-                  <th class="py-3 px-3 w-10 text-center">#</th>
-                  <th class="py-3 px-4 min-w-[340px]">Producto / Descripción</th>
-                  <th class="py-3 px-3 w-28 text-center">Cant.</th>
-                  <th class="py-3 px-3 w-40 text-right">Precio Unit. ({{ currencySymbol() }})</th>
-                  <th class="py-3 px-3 w-28 text-center">Desc. %</th>
-                  <th class="py-3 px-3 w-32 text-center">{{ currencyConfig.defaultTaxLabel() }}</th>
-                  <th class="py-3 px-4 w-36 text-right font-bold">Total ({{ currencySymbol() }})</th>
-                  <th class="py-3 px-2 w-12 text-center"></th>
+                  <th class="py-3.5 px-3 w-12 text-center">#</th>
+                  <th class="py-3.5 px-3 min-w-[340px]">Producto / Descripción</th>
+                  <th class="py-3.5 px-2.5 w-28 text-center">Cant.</th>
+                  <th class="py-3.5 px-2.5 w-36 text-right">Precio Unit. ({{ currencySymbol() }})</th>
+                  <th class="py-3.5 px-2.5 w-28 text-center">Desc. %</th>
+                  <th class="py-3.5 px-2.5 w-36 text-center">{{ currencyConfig.defaultTaxLabel() }}</th>
+                  <th class="py-3.5 px-3 w-36 text-right font-bold">Total ({{ currencySymbol() }})</th>
+                  <th class="py-3.5 px-2 w-12 text-center"></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
                 @for (item of items; track $index; let idx = $index) {
                   <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                    <td class="py-3 px-3 text-neutral-400 font-mono text-center font-bold">{{ idx + 1 }}</td>
+                    <td class="py-3 px-3 text-neutral-400 font-mono text-center font-bold align-middle">{{ idx + 1 }}</td>
 
                     <!-- Product Select / Description Input -->
-                    <td class="py-3 px-4">
-                      <div class="space-y-1.5">
-                        <select
-                          [(ngModel)]="item.productoId"
-                          (change)="onProductSelected(item)"
-                          class="w-full h-9 px-3 text-xs font-semibold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-neutral-900 transition-colors"
-                        >
-                          <option [value]="undefined">-- Producto / Personalizado --</option>
-                          @for (p of products(); track p.id) {
-                            <option [value]="p.id">
-                              {{ p.nombre }} ({{ formatProductPrice(p) }})
-                            </option>
-                          }
-                        </select>
-                        <input
-                          type="text"
-                          [(ngModel)]="item.descripcion"
-                          placeholder="Descripción detallada del ítem..."
-                          class="w-full h-8 px-3 text-[11px] rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/60 text-neutral-800 dark:text-neutral-200 outline-none focus:border-blue-500"
-                        />
+                    <td class="py-3 px-3 align-middle min-w-[340px]">
+                      <div class="space-y-2">
+                        <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                          <mat-select
+                            [(ngModel)]="item.productoId"
+                            (selectionChange)="onProductSelected(item)"
+                            placeholder="Seleccionar producto del catálogo o libre..."
+                          >
+                            <mat-option [value]="undefined">-- Producto Libre / Personalizado --</mat-option>
+                            @for (p of products(); track p.id) {
+                              <mat-option [value]="p.id">
+                                {{ p.nombre }} ({{ formatProductPrice(p) }})
+                              </mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                          <input
+                            matInput
+                            type="text"
+                            [(ngModel)]="item.descripcion"
+                            placeholder="Descripción detallada del ítem..."
+                          />
+                        </mat-form-field>
                       </div>
                     </td>
 
                     <!-- Cantidad -->
-                    <td class="py-3 px-3 align-top">
-                      <input
-                        type="number"
-                        [(ngModel)]="item.cantidad"
-                        (ngModelChange)="recalculateLine(item)"
-                        min="1"
-                        class="w-full h-9 text-center px-2 text-xs font-mono font-bold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-neutral-900 transition-colors"
-                      />
+                    <td class="py-3 px-2.5 align-middle w-28">
+                      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <input
+                          matInput
+                          type="number"
+                          [(ngModel)]="item.cantidad"
+                          (ngModelChange)="recalculateLine(item)"
+                          min="1"
+                          placeholder="1"
+                          class="text-center font-mono font-bold"
+                        />
+                      </mat-form-field>
                     </td>
 
                     <!-- Precio Unitario -->
-                    <td class="py-3 px-3 align-top">
-                      <input
-                        type="number"
-                        [(ngModel)]="item.precioUnitario"
-                        (ngModelChange)="recalculateLine(item)"
-                        min="0"
-                        step="0.01"
-                        class="w-full h-9 text-right px-3 text-xs font-mono font-bold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-neutral-900 transition-colors"
-                      />
+                    <td class="py-3 px-2.5 align-middle w-36">
+                      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <input
+                          matInput
+                          type="number"
+                          [(ngModel)]="item.precioUnitario"
+                          (ngModelChange)="recalculateLine(item)"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          class="text-right font-mono font-bold"
+                        />
+                      </mat-form-field>
                     </td>
 
                     <!-- Descuento % -->
-                    <td class="py-3 px-3 align-top">
-                      <input
-                        type="number"
-                        [(ngModel)]="item.descuentoPorcentaje"
-                        (ngModelChange)="onDiscountPercentChanged(item)"
-                        min="0"
-                        max="100"
-                        class="w-full h-9 text-center px-2 text-xs font-mono rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-neutral-900 transition-colors"
-                      />
+                    <td class="py-3 px-2.5 align-middle w-28">
+                      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <input
+                          matInput
+                          type="number"
+                          [(ngModel)]="item.descuentoPorcentaje"
+                          (ngModelChange)="onDiscountPercentChanged(item)"
+                          min="0"
+                          max="100"
+                          placeholder="0"
+                          class="text-center font-mono"
+                        />
+                      </mat-form-field>
                     </td>
 
                     <!-- Tasa ITBIS -->
-                    <td class="py-3 px-3 align-top">
-                      <select
-                        [(ngModel)]="item.tasaItbis"
-                        (change)="recalculateLine(item)"
-                        class="w-full h-9 text-center px-2 text-xs font-bold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-neutral-900 transition-colors cursor-pointer"
-                      >
-                        @for (tax of availableTaxes(); track tax.id) {
-                          <option [value]="tax.tasa">{{ tax.nombre }} ({{ tax.tasa }}%)</option>
-                        }
-                      </select>
+                    <td class="py-3 px-2.5 align-middle w-36">
+                      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <mat-select
+                          [(ngModel)]="item.tasaItbis"
+                          (selectionChange)="recalculateLine(item)"
+                          placeholder="Tasa..."
+                        >
+                          @for (tax of availableTaxes(); track tax.id) {
+                            <mat-option [value]="tax.tasa">{{ tax.nombre }} ({{ tax.tasa }}%)</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
                     </td>
 
                     <!-- Total de Línea -->
-                    <td class="py-3 px-4 text-right font-mono font-bold text-sm text-neutral-900 dark:text-white align-top pt-4">
+                    <td class="py-3 px-3 text-right font-mono font-bold text-sm text-neutral-900 dark:text-white align-middle w-36">
                       {{ currencySymbol() }} {{ item.total | number: '1.2-2' }}
                     </td>
 
                     <!-- Delete Button -->
-                    <td class="py-3 px-2 text-center align-top pt-3.5">
+                    <td class="py-3 px-2 text-center align-middle w-12">
                       @if (items.length > 1) {
                         <button
                           type="button"
                           (click)="removeItemLine(idx)"
-                          class="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                          class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
                         >
                           <mat-icon svgIcon="trash-2" class="icon-size-4"></mat-icon>
                         </button>
@@ -285,62 +300,65 @@ type QuoteLineItem = {
         </div>
 
         <!-- Bottom Section: Commercial Notes & Financial Summary -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-3">
           <!-- Commercial Conditions -->
-          <div class="space-y-4">
-            <div class="space-y-1">
-              <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                Condiciones y Observaciones
-              </label>
+          <div class="lg:col-span-7 space-y-4">
+            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+              <mat-label>Condiciones y Observaciones</mat-label>
               <textarea
+                matInput
                 [(ngModel)]="notas"
                 rows="2"
                 placeholder="Tiempo de entrega, garantía, forma de pago (ej: 50% anticipo)..."
-                class="w-full px-3 py-2 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 resize-none"
               ></textarea>
-            </div>
+            </mat-form-field>
 
-            <div class="space-y-1">
-              <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                Términos Comerciales Adicionales
-              </label>
+            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+              <mat-label>Términos Comerciales Adicionales</mat-label>
               <textarea
+                matInput
                 [(ngModel)]="terminosCondiciones"
                 rows="2"
                 placeholder="Precios sujetos a cambio, validez estricta..."
-                class="w-full px-3 py-2 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 resize-none"
               ></textarea>
-            </div>
+            </mat-form-field>
           </div>
 
           <!-- Financial Calculation Box -->
-          <div class="p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/80 dark:border-neutral-800 space-y-3">
-            <div class="flex justify-between text-xs text-neutral-600 dark:text-neutral-400">
-              <span>Subtotal Neto:</span>
-              <span class="font-mono font-bold text-neutral-900 dark:text-white">{{ currencySymbol() }} {{ calculatedSubtotal() | number: '1.2-2' }}</span>
+          <div class="lg:col-span-5 p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/80 dark:border-neutral-800 space-y-3.5">
+            <div class="flex justify-between items-center text-xs text-neutral-600 dark:text-neutral-400">
+              <span class="font-medium">Subtotal Neto:</span>
+              <span class="font-mono font-bold text-neutral-900 dark:text-white text-sm">
+                {{ currencySymbol() }} {{ calculatedSubtotal() | number: '1.2-2' }}
+              </span>
             </div>
 
             <div class="flex justify-between items-center text-xs text-neutral-600 dark:text-neutral-400">
-              <span>Descuento Global Adicional:</span>
-              <div class="w-32">
-                <input
-                  type="number"
-                  [(ngModel)]="globalDiscount"
-                  (ngModelChange)="onGlobalDiscountChanged()"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  class="w-full text-right py-1 px-2 text-xs font-mono font-bold rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-emerald-600 outline-none focus:border-blue-500"
-                />
+              <span class="font-medium">Descuento Global Adicional:</span>
+              <div class="w-36">
+                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                  <input
+                    matInput
+                    type="number"
+                    [ngModel]="globalDiscount()"
+                    (ngModelChange)="onGlobalDiscountChanged($event)"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    class="text-right font-mono font-bold !text-emerald-600 dark:!text-emerald-400"
+                  />
+                </mat-form-field>
               </div>
             </div>
 
-            <div class="flex justify-between text-xs text-neutral-600 dark:text-neutral-400">
-              <span>Total {{ currencyConfig.defaultTaxLabel() }}:</span>
-              <span class="font-mono font-bold text-neutral-900 dark:text-white">{{ currencySymbol() }} {{ calculatedItbis() | number: '1.2-2' }}</span>
+            <div class="flex justify-between items-center text-xs text-neutral-600 dark:text-neutral-400">
+              <span class="font-medium">Total {{ currencyConfig.defaultTaxLabel() }}:</span>
+              <span class="font-mono font-bold text-neutral-900 dark:text-white text-sm">
+                {{ currencySymbol() }} {{ calculatedItbis() | number: '1.2-2' }}
+              </span>
             </div>
 
-            <div class="pt-2 border-t border-neutral-200 dark:border-neutral-700 flex justify-between items-baseline">
+            <div class="pt-3 border-t border-neutral-200 dark:border-neutral-700 flex justify-between items-baseline">
               <span class="text-sm font-extrabold text-neutral-900 dark:text-white">TOTAL COTIZADO:</span>
               <span class="text-xl font-mono font-black text-blue-600 dark:text-blue-400">
                 {{ currencySymbol() }} {{ calculatedGrandTotal() | number: '1.2-2' }}
@@ -395,18 +413,19 @@ export class QuoteDialogComponent implements OnInit {
   selectedClienteId: string | null = null;
   selectedClientEmail: string | null = null;
   selectedAlmacenId: string | null = null;
-  selectedMoneda: string = this.quote?.moneda || this.currencyConfig.currency();
+  selectedMoneda = signal<string>(this.quote?.moneda || 'DOP');
   validityDays = 30;
 
   notas = '';
   terminosCondiciones = '';
-  globalDiscount = 0;
+  globalDiscount = signal<number>(0);
 
   items: QuoteLineItem[] = [];
+  itemsTrigger = signal<number>(0);
   saving = signal<boolean>(false);
 
   currencySymbol = computed(() => {
-    const c = this.selectedMoneda;
+    const c = this.selectedMoneda();
     return c === 'USD' ? 'USD $' : c === 'EUR' ? '€' : 'RD$';
   });
 
@@ -428,17 +447,19 @@ export class QuoteDialogComponent implements OnInit {
   }
 
   calculatedSubtotal = computed(() => {
-    return this.items.reduce((acc, i) => acc + (i.cantidad * i.precioUnitario - i.descuento), 0);
+    this.itemsTrigger();
+    return this.items.reduce((acc, i) => acc + (Number(i.cantidad || 0) * Number(i.precioUnitario || 0) - Number(i.descuento || 0)), 0);
   });
 
   calculatedItbis = computed(() => {
-    return this.items.reduce((acc, i) => acc + i.itbis, 0);
+    this.itemsTrigger();
+    return this.items.reduce((acc, i) => acc + Number(i.itbis || 0), 0);
   });
 
   calculatedGrandTotal = computed(() => {
     const sub = this.calculatedSubtotal();
     const itbis = this.calculatedItbis();
-    const grand = sub - this.globalDiscount + itbis;
+    const grand = sub - this.globalDiscount() + itbis;
     return Math.max(0, grand);
   });
 
@@ -449,10 +470,10 @@ export class QuoteDialogComponent implements OnInit {
       this.selectedClienteId = this.quote.clienteId || null;
       this.selectedClientEmail = this.quote.cliente?.email || null;
       this.selectedAlmacenId = this.quote.almacenId || null;
-      this.selectedMoneda = this.quote.moneda || this.currencyConfig.currency();
+      this.selectedMoneda.set(this.quote.moneda || this.currencyConfig.currency());
       this.notas = this.quote.notas || '';
       this.terminosCondiciones = this.quote.terminosCondiciones || '';
-      this.globalDiscount = Number(this.quote.descuento || 0);
+      this.globalDiscount.set(Number(this.quote.descuento || 0));
 
       this.items = this.quote.detalles.map((d) => ({
         productoId: d.productoId || undefined,
@@ -466,8 +487,9 @@ export class QuoteDialogComponent implements OnInit {
         subtotal: Number(d.subtotal),
         total: Number(d.total),
       }));
+      this.itemsTrigger.update((n) => n + 1);
     } else {
-      this.selectedMoneda = this.currencyConfig.currency();
+      this.selectedMoneda.set(this.currencyConfig.currency());
       this.addItemLine();
     }
   }
@@ -503,7 +525,7 @@ export class QuoteDialogComponent implements OnInit {
   }
 
   onMonedaChanged(newCur: string): void {
-    // Si ya hay productos agregados, convertir precios según tasa de cambio
+    this.selectedMoneda.set(newCur);
     for (const item of this.items) {
       if (item.productoId) {
         const prod = this.products().find((p) => p.id === item.productoId);
@@ -515,6 +537,7 @@ export class QuoteDialogComponent implements OnInit {
         }
       }
     }
+    this.itemsTrigger.update((n) => n + 1);
   }
 
   addItemLine(): void {
@@ -529,11 +552,13 @@ export class QuoteDialogComponent implements OnInit {
       subtotal: 0,
       total: 0,
     });
+    this.itemsTrigger.update((n) => n + 1);
   }
 
   removeItemLine(index: number): void {
     if (this.items.length > 1) {
       this.items.splice(index, 1);
+      this.itemsTrigger.update((n) => n + 1);
     }
   }
 
@@ -542,7 +567,7 @@ export class QuoteDialogComponent implements OnInit {
     const prod = this.products().find((p) => p.id === item.productoId);
     if (prod) {
       item.descripcion = prod.nombre;
-      const targetCur = this.selectedMoneda || this.currencyConfig.currency();
+      const targetCur = this.selectedMoneda() || this.currencyConfig.currency();
       const prodCur = prod.moneda || 'DOP';
       const rawPrice = Number(prod.precioVenta || 0);
       item.precioUnitario = this.currencyConfig.convertAmount(rawPrice, prodCur, targetCur);
@@ -557,8 +582,8 @@ export class QuoteDialogComponent implements OnInit {
     this.recalculateLine(item);
   }
 
-  onGlobalDiscountChanged(): void {
-    // triggers computed signals
+  onGlobalDiscountChanged(val: any): void {
+    this.globalDiscount.set(Number(val || 0));
   }
 
   recalculateLine(item: QuoteLineItem): void {
@@ -570,6 +595,7 @@ export class QuoteDialogComponent implements OnInit {
     item.subtotal = net;
     item.itbis = itbis;
     item.total = net + itbis;
+    this.itemsTrigger.update((n) => n + 1);
   }
 
   close(): void {
@@ -585,7 +611,8 @@ export class QuoteDialogComponent implements OnInit {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + this.validityDays);
 
-    const exchangeRate = this.selectedMoneda === 'DOP' ? 1 : (this.currencyConfig.exchangeRates()[this.selectedMoneda] || 1);
+    const currentMoneda = this.selectedMoneda();
+    const exchangeRate = currentMoneda === 'DOP' ? 1 : (this.currencyConfig.exchangeRates()[currentMoneda] || 1);
 
     const payload: CreateQuoteDto = {
       clienteId: this.selectedClienteId || undefined,
@@ -593,8 +620,8 @@ export class QuoteDialogComponent implements OnInit {
       fechaVencimiento: dueDate.toISOString(),
       notas: this.notas?.trim() || undefined,
       terminosCondiciones: this.terminosCondiciones?.trim() || undefined,
-      descuento: Number(this.globalDiscount || 0),
-      moneda: this.selectedMoneda,
+      descuento: Number(this.globalDiscount() || 0),
+      moneda: currentMoneda,
       tasaCambio: exchangeRate,
       items: this.items.map((i) => ({
         productoId: i.productoId || undefined,

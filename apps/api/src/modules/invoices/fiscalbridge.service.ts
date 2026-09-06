@@ -273,6 +273,64 @@ export class FiscalBridgeService {
   }
 
   /**
+   * Extrae y formatea detalladamente cualquier estructura de error devuelta por FiscalBridge / DGII
+   */
+  parseFiscalBridgeError(errData: any, statusText: string, statusHttp?: number): string {
+    if (!errData) {
+      return statusText ? `${statusText} (HTTP ${statusHttp || 500})` : 'Error desconocido de FiscalBridge';
+    }
+
+    // 1. Array de errores de validación (ej: [{ field, message }, { path, message }])
+    if (Array.isArray(errData.errors) && errData.errors.length > 0) {
+      const details = errData.errors
+        .map((e: any) => {
+          if (typeof e === 'string') return e;
+          const f = e.field || e.campo || e.property || e.path || '';
+          const m = e.message || e.mensaje || e.error || JSON.stringify(e);
+          return f ? `[${f}]: ${m}` : m;
+        })
+        .join('; ');
+      const baseMsg = errData.message || 'Error de validación fiscal';
+      return `${baseMsg} -> ${details}`;
+    }
+
+    // 2. Diccionario de errores por campo (ej: { errors: { RNCComprador: ['RNC no válido'] } })
+    if (errData.errors && typeof errData.errors === 'object' && !Array.isArray(errData.errors)) {
+      const entries = Object.entries(errData.errors)
+        .map(([field, val]) => {
+          const text = Array.isArray(val) ? val.join(', ') : String(val);
+          return `[${field}]: ${text}`;
+        })
+        .join('; ');
+      if (entries) {
+        return `${errData.message || 'Errores de validación'}: ${entries}`;
+      }
+    }
+
+    // 3. Campo 'details' o 'errores'
+    if (errData.details || errData.detail || errData.errores) {
+      const d = errData.details || errData.detail || errData.errores;
+      if (typeof d === 'string') {
+        return `${errData.message ? errData.message + ': ' : ''}${d}`;
+      }
+      if (Array.isArray(d)) {
+        return `${errData.message || 'Detalle'}: ${d.map((x) => (typeof x === 'object' ? x.message || x.mensaje || JSON.stringify(x) : x)).join('; ')}`;
+      }
+    }
+
+    // 4. Error explícito devuelto por DGII (ej: rechazo con código tributario)
+    if (errData.dgii_error || errData.dgii_message || errData.codigoDgii || errData.dgiiCode) {
+      const code = errData.dgiiCode || errData.codigoDgii || '';
+      const msg = errData.dgii_message || errData.dgii_error || errData.message || '';
+      return `Rechazo DGII${code ? ' [' + code + ']' : ''}: ${msg}`;
+    }
+
+    // 5. Mensaje directo o error general
+    const finalMsg = errData.message || errData.error || errData.title || statusText || 'Error no especificado por FiscalBridge';
+    return statusHttp ? `${finalMsg} (HTTP ${statusHttp})` : finalMsg;
+  }
+
+  /**
    * Transmite una factura electrónica a FiscalBridge
    */
   async transmitInvoice(invoice: any, empresa: any) {
@@ -290,11 +348,13 @@ export class FiscalBridgeService {
     });
 
     if (!res.ok) {
-      const errData = await res
-        .json()
-        .catch(() => ({ message: 'Error desconocido de FiscalBridge' }));
+      const errData = await res.json().catch(() => null);
+      const formattedError = this.parseFiscalBridgeError(errData, res.statusText, res.status);
+      this.logger.error(
+        `FiscalBridge rechazó factura ${invoice.numeroFactura}: ${formattedError}`,
+      );
       throw new BadRequestException(
-        `FiscalBridge rechazó la factura: ${errData.message || res.statusText}`,
+        `FiscalBridge rechazó la factura: ${formattedError}`,
       );
     }
 

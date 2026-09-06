@@ -49,6 +49,12 @@ export class InvoicesController {
     return this.invoicesService.sendToFiscalBridge(user.empresaId, id);
   }
 
+  @Post(':id/retry-fiscal')
+  @RequirePermissions('invoices:write')
+  retryFiscal(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.invoicesService.sendToFiscalBridge(user.empresaId, id);
+  }
+
   @Get(':id/pdf')
   @RequirePermissions('invoices:read')
   getPdf(

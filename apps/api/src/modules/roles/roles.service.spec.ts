@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { createPrismaMock } from '../../test/mocks/prisma.mock';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 describe('RolesService', () => {
   let service: RolesService;
@@ -12,7 +13,11 @@ describe('RolesService', () => {
     prisma = mocks.prisma;
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RolesService, mocks.provider],
+      providers: [
+        RolesService,
+        mocks.provider,
+        { provide: ActivityLogService, useValue: { log: jest.fn() } },
+      ],
     }).compile();
 
     service = module.get<RolesService>(RolesService);

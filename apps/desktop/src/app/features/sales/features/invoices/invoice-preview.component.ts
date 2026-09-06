@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { FacturaVenta, InvoicesService } from '../../data/invoices.service';
 import { AuthState } from '../../../../core/auth/auth.state';
 import { CurrencyConfigService } from '../../../../core/currency/currency-config.service';
@@ -113,6 +114,33 @@ import { CurrencyConfigService } from '../../../../core/currency/currency-config
       <!-- Scrollable Canvas Area -->
       <div class="overflow-y-auto flex-auto bg-neutral-100/90 dark:bg-neutral-950 p-4 sm:p-8 md:p-10 print-container">
         
+        @if (invoice.fiscalbridgeStatus === 'FAILED') {
+          <div class="no-print max-w-[760px] mx-auto mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 shadow-sm flex items-start gap-3.5 animate-in fade-in duration-200">
+            <div class="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+              <mat-icon svgIcon="alert-triangle" class="icon-size-4" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-3 flex-wrap">
+                <span class="text-xs font-bold uppercase tracking-wider text-rose-800 dark:text-rose-300">
+                  Rechazo de Facturación Electrónica (DGII / FiscalBridge)
+                </span>
+                <button
+                  type="button"
+                  (click)="retryFiscal()"
+                  [disabled]="retrying()"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-semibold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  <mat-icon [class.animate-spin]="retrying()" svgIcon="rotate-cw" class="icon-size-3.5" />
+                  <span>{{ retrying() ? 'Reintentando...' : 'Reintentar Transmisión' }}</span>
+                </button>
+              </div>
+              <p class="text-xs text-rose-700 dark:text-rose-300 mt-2 font-mono break-words bg-white/80 dark:bg-black/30 p-2.5 rounded-xl border border-rose-100 dark:border-rose-900/30 select-text leading-relaxed">
+                {{ invoice.fiscalbridgeError || 'Error no especificado devuelto por la API de FiscalBridge.' }}
+              </p>
+            </div>
+          </div>
+        }
+
         <!-- Modern Minimalist Invoice Sheet (Inspired by reference mockup) -->
         <div class="invoice-sheet max-w-[760px] mx-auto bg-white text-neutral-900 rounded-3xl shadow-xl border border-neutral-200/60 p-8 sm:p-12 md:p-14 space-y-8">
 
@@ -362,12 +390,41 @@ import { CurrencyConfigService } from '../../../../core/currency/currency-config
   `,
 })
 export class InvoicePreviewComponent {
-  readonly invoice: FacturaVenta = inject(MAT_DIALOG_DATA);
+  private readonly initialInvoice: FacturaVenta = inject(MAT_DIALOG_DATA);
+  readonly currentInvoice = signal<FacturaVenta>(this.initialInvoice);
+  readonly retrying = signal<boolean>(false);
   readonly dialogRef = inject(MatDialogRef<InvoicePreviewComponent>);
   private readonly invoicesService = inject(InvoicesService);
   private readonly authState = inject(AuthState);
+  private readonly snackBar = inject(MatSnackBar);
   readonly currencyConfig = inject(CurrencyConfigService);
   readonly now = new Date();
+
+  get invoice(): FacturaVenta {
+    return this.currentInvoice();
+  }
+
+  retryFiscal() {
+    this.retrying.set(true);
+    const id = this.invoice.id;
+    this.invoicesService.retryFiscal(id).subscribe({
+      next: (updated) => {
+        this.retrying.set(false);
+        this.currentInvoice.set(updated);
+        this.snackBar.open('Factura transmitida a FiscalBridge con éxito', 'Cerrar', { duration: 3000 });
+      },
+      error: (err) => {
+        this.retrying.set(false);
+        const errorMsg = err.error?.message || 'Error al reintentar transmisión';
+        this.invoicesService.findOne(id).subscribe({
+          next: (fresh) => {
+            if (fresh) this.currentInvoice.set(fresh);
+          },
+        });
+        this.snackBar.open(errorMsg, 'Cerrar', { duration: 6000 });
+      },
+    });
+  }
 
   readonly currentEmpresa = computed(() => {
     const user = this.authState.user() as any;

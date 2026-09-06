@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { TenantContextMiddleware } from './common/tenant/tenant-context.middleware';
 import { MaintenanceMiddleware } from './maintenance.middleware';
 import { LoggerModule } from 'nestjs-pino';
 
@@ -118,6 +119,6 @@ import { QuotesModule } from './modules/quotes/quotes.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(MaintenanceMiddleware).forRoutes('*');
+    consumer.apply(TenantContextMiddleware, MaintenanceMiddleware).forRoutes('*');
   }
 }

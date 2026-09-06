@@ -9,6 +9,7 @@ import {
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
+import { OVERLAY_DEFAULT_CONFIG } from '@angular/cdk/overlay';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {
   provideRouter,
@@ -55,6 +56,10 @@ export const appConfig: ApplicationConfig = {
         enterAnimationDuration: '280ms',
         exitAnimationDuration: '240ms',
       },
+    },
+    {
+      provide: OVERLAY_DEFAULT_CONFIG,
+      useValue: { usePopover: false },
     },
     provideNativeDateAdapter(),
 

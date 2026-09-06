@@ -7,6 +7,7 @@ import {
   OnInit,
   signal,
   ViewChild,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -34,6 +35,7 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
 @Component({
   selector: 'app-pos',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden' },
   imports: [
     CommonModule,

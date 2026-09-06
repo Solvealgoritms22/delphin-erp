@@ -5,6 +5,7 @@ import {
   signal,
   TemplateRef,
   ViewChild,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,6 +22,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import {
@@ -46,6 +48,7 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
 @Component({
   selector: 'app-invoices',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
   },
@@ -61,6 +64,7 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
     MatInputModule,
     MatMenuModule,
     MatCheckboxModule,
+    MatTooltipModule,
     TranslocoPipe,
     EmptyStateComponent,
     PaginatorComponent,
@@ -450,11 +454,13 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
                     inv.fiscalbridgeStatus === 'FAILED'
                   ) {
                     <span
-                      class="flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-200/60 dark:border-red-500/20"
+                      class="flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-200/60 dark:border-red-500/20 cursor-pointer hover:bg-red-100 transition-colors"
+                      [matTooltip]="inv.fiscalbridgeError ? ('Rechazo FiscalBridge: ' + inv.fiscalbridgeError) : 'Transmisión fallida a FiscalBridge'"
+                      (click)="$event.stopPropagation(); showFiscalError(inv)"
                     >
                       <mat-icon
                         svgIcon="alert-triangle"
-                        class="icon-size-3.5"
+                        class="icon-size-3.5 text-red-600"
                       ></mat-icon>
                       {{
                         'commercial.invoices.status.transmissionFailed'
@@ -559,12 +565,13 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
                         (click)="sendFiscalBridge(inv.id)"
                       >
                         <mat-icon
-                          svgIcon="send"
-                          class="icon-size-4 text-blue-600"
+                          [svgIcon]="inv.fiscalbridgeStatus === 'FAILED' ? 'rotate-cw' : 'send'"
+                          [class]="inv.fiscalbridgeStatus === 'FAILED' ? 'icon-size-4 text-amber-600' : 'icon-size-4 text-blue-600'"
                         ></mat-icon>
                         <span>{{
-                          'commercial.invoices.actions.transmitFiscalBridge'
-                            | transloco
+                          inv.fiscalbridgeStatus === 'FAILED'
+                            ? 'Reintentar Transmisión e-CF'
+                            : ('commercial.invoices.actions.transmitFiscalBridge' | transloco)
                         }}</span>
                       </button>
                     }
@@ -1307,6 +1314,10 @@ export class InvoicesComponent implements OnInit {
       .subscribe();
   }
 
+  loadInvoices() {
+    this.filterInvoices();
+  }
+
   applyAdvancedFilters() {
     this.currentPage = 1;
     this.invoicesService.findAll({
@@ -1755,16 +1766,29 @@ export class InvoicesComponent implements OnInit {
           this.i18n.translate('common.close'),
           { duration: 3000 }
         );
+        this.loadInvoices();
       },
       error: (err) => {
-        this.snackBar.open(
+        const errorMsg =
           err.error?.message ||
-            this.i18n.translate('commercial.invoices.messages.transmitError'),
-          this.i18n.translate('common.close'),
-          { duration: 4000 }
-        );
+          this.i18n.translate('commercial.invoices.messages.transmitError');
+        this.snackBar.open(errorMsg, this.i18n.translate('common.close'), {
+          duration: 6000,
+        });
+        this.loadInvoices();
       },
     });
+  }
+
+  showFiscalError(inv: any) {
+    const errorMsg =
+      inv.fiscalbridgeError ||
+      'No se recibió detalle específico de FiscalBridge / DGII.';
+    this.snackBar.open(
+      `Error FiscalBridge (${inv.ncf || inv.numeroFactura}): ${errorMsg}`,
+      this.i18n.translate('common.close'),
+      { duration: 9000 }
+    );
   }
 
   cancelInvoice(inv: any) {

@@ -7,7 +7,19 @@
 @import '@angular/cdk/overlay-prebuilt.css';
 
 .cdk-overlay-container {
-  z-index: 9999 !important;
+  position: fixed !important;
+  z-index: 99999 !important;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.cdk-overlay-pane {
+  position: absolute !important;
+  z-index: 100000 !important;
+  pointer-events: auto;
 }
 
 @import './base/base.css';
@@ -138,15 +150,11 @@
 @keyframes modalZoomIn {
   0% {
     opacity: 0;
-    transform: scale(0.65);
-  }
-  70% {
-    opacity: 1;
-    transform: scale(1.02);
+    transform: scale(0.92);
   }
   100% {
     opacity: 1;
-    transform: scale(1);
+    transform: none;
   }
 }
 
@@ -215,8 +223,6 @@ dialog[open]::backdrop {
 .mat-mdc-dialog-surface,
 .cdk-dialog-container {
   transform-origin: center center !important;
-  animation: modalZoomIn 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-  will-change: transform, opacity !important;
   border-radius: 1.25rem !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
 }
@@ -226,20 +232,6 @@ dialog[open]::backdrop {
 .dark .mat-mdc-dialog-surface,
 .dark .cdk-dialog-container {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
-}
-
-.mat-mdc-dialog-container.mdc-dialog--closing .mdc-dialog__surface,
-.mat-mdc-dialog-container.mdc-dialog--closing .mat-mdc-dialog-surface,
-.mat-mdc-dialog-container.mdc-dialog--closing,
-.mat-mdc-dialog-container.mat-mdc-dialog-container-exit .mdc-dialog__surface,
-.mat-mdc-dialog-container.mat-mdc-dialog-container-exit .mat-mdc-dialog-surface,
-.mat-mdc-dialog-container.mat-mdc-dialog-container-exit,
-.cdk-overlay-pane.mat-mdc-dialog-exit .mdc-dialog__surface,
-.cdk-overlay-pane.mat-mdc-dialog-exit .mat-mdc-dialog-surface,
-.cdk-overlay-pane.mat-mdc-dialog-exit,
-.cdk-overlay-pane:has(.mat-mdc-dialog-container-exit) .mdc-dialog__surface,
-.cdk-overlay-pane:has(.mdc-dialog--closing) .mdc-dialog__surface {
-  animation: modalZoomOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
 }
 
 .cdk-overlay-backdrop.cdk-overlay-backdrop-hiding {

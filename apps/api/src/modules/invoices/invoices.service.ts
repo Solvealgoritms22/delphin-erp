@@ -650,15 +650,27 @@ export class InvoicesService {
     if (
       invoice.fiscalbridgeStatus === 'SENT' ||
       invoice.fiscalbridgeStatus === 'ACCEPTED'
-    )
+    ) {
       throw new BadRequestException(
-        'La factura ya fue transmitida a FiscalBridge.',
+        'La factura ya fue transmitida a FiscalBridge con éxito.',
       );
+    }
 
     // Reintento manual a través del outbox: respeta idempotencia y reintentos.
     await this.fiscalOutbox.transmitNow(id, empresaId);
 
-    return this.findOne(empresaId, id);
+    const updated = await this.findOne(empresaId, id);
+    if (updated.fiscalbridgeStatus === 'FAILED') {
+      throw new BadRequestException(
+        updated.fiscalbridgeError || 'Error al transmitir la factura a FiscalBridge.',
+      );
+    }
+
+    return updated;
+  }
+
+  async retryFiscal(empresaId: string, id: string) {
+    return this.sendToFiscalBridge(empresaId, id);
   }
 
   async proxyPdf(empresaId: string, id: string, res: Response) {

@@ -72,7 +72,11 @@ export class FiscalOutboxService {
         aggregateId: facturaId,
         payload: JSON.stringify({ facturaId }),
       },
-      update: {},
+      update: {
+        estado: 'PENDING',
+        intentos: 0,
+        proximoIntentoEn: new Date(),
+      },
     });
     return this.processEvent(event.id);
   }
@@ -177,7 +181,7 @@ export class FiscalOutboxService {
     } catch (error: any) {
       const intentos = event.intentos + 1;
       const message =
-        error?.message?.slice(0, 500) || 'Error transmitiendo a FiscalBridge';
+        error?.message?.slice(0, 2000) || 'Error transmitiendo a FiscalBridge';
       if (intentos >= MAX_ATTEMPTS) {
         await this.prisma.$transaction([
           this.prisma.facturaVenta.update({
