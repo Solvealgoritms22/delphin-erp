@@ -19,6 +19,7 @@ import {
   PromotionsService,
   Promocion,
 } from '../../data/promotions.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 import { PromotionDialogComponent } from './promotion-dialog.component';
 
 @Component({
@@ -251,11 +252,11 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
                     </span>
                   } @else if (promo.tipoDescuento === 'MONTO_FIJO') {
                     <span class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                      - RD$ {{ promo.valorDescuento | number:'1.2-2' }}
+                      - {{ currencyConfig.currencySymbol() }} {{ promo.valorDescuento | number:'1.2-2' }}
                     </span>
                   } @else {
                     <span class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                      Precio RD$ {{ promo.valorDescuento | number:'1.2-2' }}
+                      Precio {{ currencyConfig.currencySymbol() }} {{ promo.valorDescuento | number:'1.2-2' }}
                     </span>
                   }
                   @if (promo.esAcumulable) {
@@ -363,6 +364,7 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
 })
 export class PromotionsComponent implements OnInit {
   public promotionsService = inject(PromotionsService);
+  public currencyConfig = inject(CurrencyConfigService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);

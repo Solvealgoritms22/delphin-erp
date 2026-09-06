@@ -8,6 +8,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { FacturaCompra } from '../../data/purchases.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 export type PurchasePreviewData = {
   purchase: FacturaCompra;
@@ -161,13 +162,13 @@ export type PurchasePreviewData = {
                     }
                   </td>
                   <td class="py-3 px-3 text-center">{{ det.cantidad | number: '1.0-2' }}</td>
-                  <td class="py-3 px-3 text-right">RD$ {{ det.costoUnitario | number: '1.2-2' }}</td>
+                  <td class="py-3 px-3 text-right">{{ currencyConfig.currencySymbol() }} {{ det.costoUnitario | number: '1.2-2' }}</td>
                   <td class="py-3 px-3 text-right">{{ det.tasaItbis }}%</td>
                   <td class="py-3 px-3 text-right text-red-600 dark:text-red-400">
-                    {{ det.descuento > 0 ? ('- RD$ ' + (det.descuento | number: '1.2-2')) : '-' }}
+                    {{ det.descuento > 0 ? ('- ' + currencyConfig.currencySymbol() + ' ' + (det.descuento | number: '1.2-2')) : '-' }}
                   </td>
                   <td class="py-3 px-4 text-right font-bold text-neutral-900 dark:text-white">
-                    RD$ {{ det.total | number: '1.2-2' }}
+                    {{ currencyConfig.currencySymbol() }} {{ det.total | number: '1.2-2' }}
                   </td>
                 </tr>
               }
@@ -181,46 +182,46 @@ export type PurchasePreviewData = {
             <div class="flex justify-between text-neutral-600 dark:text-neutral-400">
               <span>Subtotal:</span>
               <span class="font-bold text-neutral-900 dark:text-white">
-                RD$ {{ data.purchase.subtotal | number: '1.2-2' }}
+                {{ currencyConfig.currencySymbol() }} {{ data.purchase.subtotal | number: '1.2-2' }}
               </span>
             </div>
             @if (data.purchase.descuento > 0) {
               <div class="flex justify-between text-red-600 dark:text-red-400">
                 <span>Descuento:</span>
-                <span class="font-bold">- RD$ {{ data.purchase.descuento | number: '1.2-2' }}</span>
+                <span class="font-bold">- {{ currencyConfig.currencySymbol() }} {{ data.purchase.descuento | number: '1.2-2' }}</span>
               </div>
             }
             <div class="flex justify-between text-neutral-600 dark:text-neutral-400">
-              <span>ITBIS:</span>
+              <span>{{ currencyConfig.defaultTaxLabel() }}:</span>
               <span class="font-bold text-neutral-900 dark:text-white">
-                RD$ {{ data.purchase.itbis | number: '1.2-2' }}
+                {{ currencyConfig.currencySymbol() }} {{ data.purchase.itbis | number: '1.2-2' }}
               </span>
             </div>
             @if (data.purchase.itbisRetenido > 0) {
               <div class="flex justify-between text-neutral-600 dark:text-neutral-400">
-                <span>Retención ITBIS:</span>
-                <span class="font-bold">- RD$ {{ data.purchase.itbisRetenido | number: '1.2-2' }}</span>
+                <span>Retención {{ currencyConfig.defaultTaxLabel() }}:</span>
+                <span class="font-bold">- {{ currencyConfig.currencySymbol() }} {{ data.purchase.itbisRetenido | number: '1.2-2' }}</span>
               </div>
             }
             @if (data.purchase.retencionRenta > 0) {
               <div class="flex justify-between text-neutral-600 dark:text-neutral-400">
                 <span>Retención ISR:</span>
-                <span class="font-bold">- RD$ {{ data.purchase.retencionRenta | number: '1.2-2' }}</span>
+                <span class="font-bold">- {{ currencyConfig.currencySymbol() }} {{ data.purchase.retencionRenta | number: '1.2-2' }}</span>
               </div>
             }
             <div class="pt-2 border-t border-neutral-300 dark:border-neutral-700 flex justify-between text-sm font-black">
               <span>Total Factura:</span>
               <span class="text-blue-600 dark:text-blue-400">
-                RD$ {{ data.purchase.total | number: '1.2-2' }}
+                {{ currencyConfig.currencySymbol() }} {{ data.purchase.total | number: '1.2-2' }}
               </span>
             </div>
             <div class="flex justify-between text-emerald-600 dark:text-emerald-400 pt-1">
               <span>Monto Pagado:</span>
-              <span class="font-bold">RD$ {{ data.purchase.montoPagado | number: '1.2-2' }}</span>
+              <span class="font-bold">{{ currencyConfig.currencySymbol() }} {{ data.purchase.montoPagado | number: '1.2-2' }}</span>
             </div>
             <div class="flex justify-between text-amber-600 dark:text-amber-400 font-bold">
               <span>Balance Pendiente:</span>
-              <span>RD$ {{ data.purchase.balancePendiente | number: '1.2-2' }}</span>
+              <span>{{ currencyConfig.currencySymbol() }} {{ data.purchase.balancePendiente | number: '1.2-2' }}</span>
             </div>
           </div>
         </div>
@@ -238,6 +239,7 @@ export type PurchasePreviewData = {
 export class PurchasePreviewComponent {
   dialogRef = inject(MatDialogRef<PurchasePreviewComponent>);
   data = inject<PurchasePreviewData>(MAT_DIALOG_DATA);
+  currencyConfig = inject(CurrencyConfigService);
 
   printReceipt() {
     window.print();

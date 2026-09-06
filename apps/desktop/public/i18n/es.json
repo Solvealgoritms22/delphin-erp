@@ -1733,7 +1733,7 @@
     "title": "Reportes y Estadísticas",
     "subtitle": "Análisis financiero, volumen de ventas, cobranzas y control de inventario.",
     "exportCsv": "Exportar CSV",
-    "printPdf": "Imprimir / PDF",
+    "printPdf": "Imprimir",
     "noDataForPeriod": "No se encontraron registros para el período seleccionado.",
     "tabs": {
       "sales": "Ventas",
@@ -1862,7 +1862,7 @@
     "transfer": "Transferencia",
     "split": "Mixto",
     "cashReceived": "Monto Recibido en Efectivo",
-    "change": "Cambio / Devuelta",
+    "change": "Cambio",
     "missing": "Faltante",
     "exact": "Exacto",
     "ncfType": "Comprobante Fiscal DGII",
@@ -1872,6 +1872,17 @@
     "printTicket": "Imprimir Ticket",
     "newSale": "Nueva Venta",
     "saleHeldSuccess": "Venta pausada correctamente",
-    "saleError": "No se pudo completar la venta. Inténtalo de nuevo."
+    "saleError": "No se pudo completar la venta. Inténtalo de nuevo.",
+    "splitCardAmount": "Monto en Tarjeta",
+    "splitCashAmount": "Monto en Efectivo",
+    "splitCashReceived": "Efectivo Recibido",
+    "cardReference": "No. Autorización",
+    "transferReference": "No. Referencia de Transferencia",
+    "splitSummary": "Desglose de Cobro Mixto",
+    "splitFiftyPercent": "Dividir",
+    "cardPaymentNotice": "Cobro total con tarjeta en terminal o verifone",
+    "transferPaymentNotice": "Cobro total mediante transferencia bancaria",
+    "splitTotalMismatch": "La suma de tarjeta y efectivo debe ser igual al total a pagar",
+    "splitRemainingCash": "Saldo restante a cubrir en efectivo"
   }
 }

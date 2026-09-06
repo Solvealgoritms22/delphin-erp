@@ -24,6 +24,7 @@ export type Product = {
   descripcion?: string | null;
   precioVenta: number;
   costo?: number | null;
+  moneda?: string;
   estado: string;
   categoriaId?: string | null;
   marcaId?: string | null;

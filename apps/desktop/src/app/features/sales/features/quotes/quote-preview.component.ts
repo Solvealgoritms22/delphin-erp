@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Cotizacion } from '../../data/quotes.service';
 import { AuthState } from '@core/auth/auth.state';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 @Component({
   selector: 'app-quote-preview',
@@ -145,7 +146,7 @@ import { AuthState } from '@core/auth/auth.state';
                   <th class="py-3 px-4">Descripción del Producto / Servicio</th>
                   <th class="py-3 px-4 text-center">Cant.</th>
                   <th class="py-3 px-4 text-right">Precio Unitario</th>
-                  <th class="py-3 px-4 text-right">ITBIS (18%)</th>
+                  <th class="py-3 px-4 text-right">{{ getTaxLabel() }}</th>
                   <th class="py-3 px-4 text-right">Total</th>
                 </tr>
               </thead>
@@ -157,14 +158,14 @@ import { AuthState } from '@core/auth/auth.state';
                       {{ d.descripcion }}
                       @if (d.descuento > 0) {
                         <div class="text-[10px] text-emerald-600 dark:text-emerald-400">
-                          Descuento aplicado: -RD$ {{ d.descuento | number: '1.2-2' }}
+                          Descuento aplicado: -{{ getCurrencySymbol() }} {{ d.descuento | number: '1.2-2' }}
                         </div>
                       }
                     </td>
                     <td class="py-3 px-4 text-center font-mono font-bold">{{ d.cantidad }}</td>
-                    <td class="py-3 px-4 text-right font-mono">RD$ {{ d.precioUnitario | number: '1.2-2' }}</td>
-                    <td class="py-3 px-4 text-right font-mono text-neutral-500">RD$ {{ d.itbis | number: '1.2-2' }}</td>
-                    <td class="py-3 px-4 text-right font-mono font-bold text-neutral-900 dark:text-white">RD$ {{ d.total | number: '1.2-2' }}</td>
+                    <td class="py-3 px-4 text-right font-mono">{{ getCurrencySymbol() }} {{ d.precioUnitario | number: '1.2-2' }}</td>
+                    <td class="py-3 px-4 text-right font-mono text-neutral-500">{{ getCurrencySymbol() }} {{ d.itbis | number: '1.2-2' }}</td>
+                    <td class="py-3 px-4 text-right font-mono font-bold text-neutral-900 dark:text-white">{{ getCurrencySymbol() }} {{ d.total | number: '1.2-2' }}</td>
                   </tr>
                 }
               </tbody>
@@ -191,21 +192,21 @@ import { AuthState } from '@core/auth/auth.state';
             <div class="w-full sm:w-72 space-y-2 text-xs">
               <div class="flex justify-between py-1 border-b border-neutral-100 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400">
                 <span>Subtotal Neto:</span>
-                <span class="font-mono font-bold text-neutral-900 dark:text-white">RD$ {{ quote.subtotal | number: '1.2-2' }}</span>
+                <span class="font-mono font-bold text-neutral-900 dark:text-white">{{ getCurrencySymbol() }} {{ quote.subtotal | number: '1.2-2' }}</span>
               </div>
               @if (quote.descuento > 0) {
                 <div class="flex justify-between py-1 border-b border-neutral-100 dark:border-neutral-800 text-emerald-600 dark:text-emerald-400">
                   <span>Descuento:</span>
-                  <span class="font-mono font-bold">-RD$ {{ quote.descuento | number: '1.2-2' }}</span>
+                  <span class="font-mono font-bold">-{{ getCurrencySymbol() }} {{ quote.descuento | number: '1.2-2' }}</span>
                 </div>
               }
               <div class="flex justify-between py-1 border-b border-neutral-100 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400">
-                <span>ITBIS (18%):</span>
-                <span class="font-mono font-bold text-neutral-900 dark:text-white">RD$ {{ quote.itbis | number: '1.2-2' }}</span>
+                <span>{{ getTaxLabel() }}:</span>
+                <span class="font-mono font-bold text-neutral-900 dark:text-white">{{ getCurrencySymbol() }} {{ quote.itbis | number: '1.2-2' }}</span>
               </div>
               <div class="flex justify-between p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-300 text-sm font-black">
                 <span>TOTAL COTIZADO:</span>
-                <span class="font-mono text-base">RD$ {{ quote.total | number: '1.2-2' }}</span>
+                <span class="font-mono text-base">{{ getCurrencySymbol() }} {{ quote.total | number: '1.2-2' }}</span>
               </div>
             </div>
           </div>
@@ -224,7 +225,7 @@ import { AuthState } from '@core/auth/auth.state';
         <button
           type="button"
           (click)="printQuote()"
-          class="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+          class="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
         >
           <mat-icon svgIcon="printer" class="icon-size-4"></mat-icon>
           <span>Imprimir Cotización</span>
@@ -237,8 +238,25 @@ export class QuotePreviewComponent {
   dialogRef = inject(MatDialogRef<QuotePreviewComponent>);
   data = inject<{ quote: Cotizacion }>(MAT_DIALOG_DATA);
   authState = inject(AuthState);
+  currencyConfig = inject(CurrencyConfigService);
 
   quote: Cotizacion = this.data.quote;
+
+  getCurrencySymbol(): string {
+    const c = this.quote.moneda || this.currencyConfig.currency();
+    return c === 'USD' ? 'USD $' : c === 'EUR' ? '€' : 'RD$';
+  }
+
+  getCurrencyName(): string {
+    const c = this.quote.moneda || this.currencyConfig.currency();
+    return c === 'USD' ? 'Dólares Estadounidenses (USD)' : c === 'EUR' ? 'Euros (EUR)' : 'Pesos Dominicanos (DOP)';
+  }
+
+  getTaxLabel(): string {
+    const foundRate = this.quote.detalles?.find((d) => Number(d.tasaItbis) > 0)?.tasaItbis;
+    const rate = foundRate !== undefined ? Number(foundRate) : this.currencyConfig.defaultTaxRate();
+    return `${this.currencyConfig.defaultTaxLabel()} (${rate}%)`;
+  }
 
   currentEmpresa = () => {
     const user = this.authState.user();
@@ -252,17 +270,23 @@ export class QuotePreviewComponent {
   }
 
   printQuote(): void {
+    const quote = this.quote;
+    if (!quote) return;
     const empresa = this.currentEmpresa();
     const empresaNombre = empresa?.razonSocial || 'Dolphin ERP';
     const empresaRnc = empresa?.rnc ? `RNC: ${empresa.rnc}` : '';
-    const formattedDate = new Date(this.quote.fecha).toLocaleDateString('es-DO');
-    const formattedDueDate = this.quote.fechaVencimiento
-      ? new Date(this.quote.fechaVencimiento).toLocaleDateString('es-DO')
+    const formattedDate = new Date(quote.fecha).toLocaleDateString('es-DO');
+    const formattedDueDate = quote.fechaVencimiento
+      ? new Date(quote.fechaVencimiento).toLocaleDateString('es-DO')
       : '30 días';
+
+    const curSymbol = this.getCurrencySymbol();
+    const curName = this.getCurrencyName();
+    const taxLabel = this.getTaxLabel();
 
     const formatCurrency = (val: number | undefined | null) => {
       const num = Number(val || 0);
-      return 'RD$ ' + num.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return curSymbol + ' ' + num.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
     const html = `
@@ -270,7 +294,7 @@ export class QuotePreviewComponent {
       <html lang="es">
       <head>
         <meta charset="UTF-8" />
-        <title>Cotización ${this.quote.numeroCotizacion} - ${empresaNombre}</title>
+        <title>Cotización ${quote.numeroCotizacion} - ${empresaNombre}</title>
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 28px; color: #1e293b; font-size: 12px; }
@@ -299,7 +323,7 @@ export class QuotePreviewComponent {
           </div>
           <div>
             <div class="quote-title">COTIZACIÓN</div>
-            <div style="font-family: monospace; font-size: 14px; font-weight: bold; text-align: right;">${this.quote.numeroCotizacion}</div>
+            <div style="font-family: monospace; font-size: 14px; font-weight: bold; text-align: right;">${quote.numeroCotizacion}</div>
             <div style="text-align: right; margin-top: 4px;">Emisión: <strong>${formattedDate}</strong></div>
             <div style="text-align: right;">Válida hasta: <strong>${formattedDueDate}</strong></div>
           </div>
@@ -308,13 +332,13 @@ export class QuotePreviewComponent {
         <div class="grid">
           <div>
             <div style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: bold;">Cliente:</div>
-            <div style="font-size: 13px; font-weight: bold;">${this.quote.cliente?.nombreRazonSocial || 'Consumidor Final'}</div>
-            <div style="font-family: monospace; color: #475569;">${this.quote.cliente?.numeroDocumento ? 'RNC/Céd: ' + this.quote.cliente.numeroDocumento : ''}</div>
-            <div>${this.quote.cliente?.email || ''}</div>
+            <div style="font-size: 13px; font-weight: bold;">${quote.cliente?.nombreRazonSocial || 'Consumidor Final'}</div>
+            <div style="font-family: monospace; color: #475569;">${quote.cliente?.numeroDocumento ? 'RNC/Céd: ' + quote.cliente.numeroDocumento : ''}</div>
+            <div>${quote.cliente?.email || ''}</div>
           </div>
           <div style="text-align: right;">
             <div style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: bold;">Moneda:</div>
-            <div style="font-weight: bold;">Pesos Dominicanos (DOP)</div>
+            <div style="font-weight: bold;">${curName}</div>
           </div>
         </div>
 
@@ -325,12 +349,12 @@ export class QuotePreviewComponent {
               <th>Descripción</th>
               <th class="text-center" style="width: 50px;">Cant.</th>
               <th class="text-right" style="width: 100px;">Precio Unit.</th>
-              <th class="text-right" style="width: 90px;">ITBIS</th>
+              <th class="text-right" style="width: 90px;">${taxLabel}</th>
               <th class="text-right" style="width: 110px;">Total</th>
             </tr>
           </thead>
           <tbody>
-            ${this.quote.detalles.map((d, i) => `
+            ${(quote.detalles || []).map((d, i) => `
               <tr>
                 <td style="color: #94a3b8;">${i + 1}</td>
                 <td><strong>${d.descripcion}</strong></td>
@@ -346,28 +370,28 @@ export class QuotePreviewComponent {
         <div class="totals">
           <div class="totals-row">
             <span>Subtotal:</span>
-            <span style="font-family: monospace;">${formatCurrency(this.quote.subtotal)}</span>
+            <span style="font-family: monospace;">${formatCurrency(quote.subtotal)}</span>
           </div>
-          ${this.quote.descuento > 0 ? `
+          ${(quote.descuento || 0) > 0 ? `
             <div class="totals-row" style="color: #059669;">
               <span>Descuento:</span>
-              <span style="font-family: monospace;">-${formatCurrency(this.quote.descuento)}</span>
+              <span style="font-family: monospace;">-${formatCurrency(quote.descuento)}</span>
             </div>
           ` : ''}
           <div class="totals-row">
-            <span>ITBIS (18%):</span>
-            <span style="font-family: monospace;">${formatCurrency(this.quote.itbis)}</span>
+            <span>${taxLabel}:</span>
+            <span style="font-family: monospace;">${formatCurrency(quote.itbis)}</span>
           </div>
           <div class="totals-row grand-total">
             <span>TOTAL:</span>
-            <span style="font-family: monospace;">${formatCurrency(this.quote.total)}</span>
+            <span style="font-family: monospace;">${formatCurrency(quote.total)}</span>
           </div>
         </div>
 
-        ${this.quote.notas || this.quote.terminosCondiciones ? `
+        ${quote.notas || quote.terminosCondiciones ? `
           <div style="margin-top: 24px; padding: 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 11px;">
-            ${this.quote.notas ? `<div><strong>Condiciones:</strong> ${this.quote.notas}</div>` : ''}
-            ${this.quote.terminosCondiciones ? `<div style="margin-top: 4px;"><strong>Términos:</strong> ${this.quote.terminosCondiciones}</div>` : ''}
+            ${quote.notas ? `<div><strong>Condiciones:</strong> ${quote.notas}</div>` : ''}
+            ${quote.terminosCondiciones ? `<div style="margin-top: 4px;"><strong>Términos:</strong> ${quote.terminosCondiciones}</div>` : ''}
           </div>
         ` : ''}
 

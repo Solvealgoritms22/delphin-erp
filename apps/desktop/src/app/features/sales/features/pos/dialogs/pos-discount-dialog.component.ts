@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 export type PosDiscountData = {
   subtotal: number;
@@ -46,7 +47,7 @@ export type PosDiscountData = {
             class="py-2 text-xs font-bold rounded-lg transition-all"
             [ngClass]="type === 'FIXED' ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'"
           >
-            Monto Fijo (RD$)
+            Monto Fijo ({{ currencySymbol() }})
           </button>
           <button
             type="button"
@@ -61,11 +62,11 @@ export type PosDiscountData = {
         <!-- Input de Valor con espaciado correcto -->
         <div class="space-y-1.5">
           <label class="block text-xs font-semibold text-neutral-600 dark:text-neutral-300">
-            {{ type === 'PERCENT' ? 'Porcentaje de descuento (%)' : 'Monto de descuento (RD$)' }}
+            {{ type === 'PERCENT' ? 'Porcentaje de descuento (%)' : 'Monto de descuento (' + currencySymbol() + ')' }}
           </label>
           <div class="relative">
             <span class="absolute left-3.5 top-2.5 text-xs font-bold text-neutral-400">
-              {{ type === 'PERCENT' ? '%' : 'RD$' }}
+              {{ type === 'PERCENT' ? '%' : currencySymbol() }}
             </span>
             <input
               type="number"
@@ -85,7 +86,7 @@ export type PosDiscountData = {
         <div class="p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/80 dark:border-neutral-700/60 flex items-center justify-between text-xs">
           <span class="text-neutral-500 dark:text-neutral-400">Descuento aplicado:</span>
           <span class="font-bold text-rose-600 dark:text-rose-400 text-sm font-mono">
-            - RD$ {{ calculatedDiscount | number:'1.2-2' }}
+            - {{ currencySymbol() }} {{ calculatedDiscount | number:'1.2-2' }}
           </span>
         </div>
       </div>
@@ -116,6 +117,8 @@ export type PosDiscountData = {
 export class PosDiscountDialogComponent {
   readonly dialogRef = inject(MatDialogRef<PosDiscountDialogComponent>);
   readonly data: PosDiscountData = inject(MAT_DIALOG_DATA);
+  private readonly currencyConfig = inject(CurrencyConfigService);
+  readonly currencySymbol = this.currencyConfig.currencySymbol;
 
   value = this.data.currentValue || 0;
   type: 'PERCENT' | 'FIXED' = this.data.currentType || 'FIXED';

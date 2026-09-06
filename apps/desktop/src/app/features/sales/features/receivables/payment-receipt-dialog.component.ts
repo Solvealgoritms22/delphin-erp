@@ -22,6 +22,7 @@ import {
   PaymentApplicationDto,
 } from '../../data/customer-payments.service';
 import { ClientsService } from '../../data/clients';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 export type PaymentReceiptDialogData = {
   clienteId?: string;
@@ -182,7 +183,7 @@ type InvoiceSelectionRow = {
                     <th class="py-3 px-3">Vencimiento</th>
                     <th class="py-3 px-3 text-right">Total Factura</th>
                     <th class="py-3 px-3 text-right">Balance Adeudado</th>
-                    <th class="py-3 px-4 text-right w-36">Monto a Cobrar (RD$)</th>
+                    <th class="py-3 px-4 text-right w-36">Monto a Cobrar ({{ currencyConfig.currencySymbol() }})</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -219,10 +220,10 @@ type InvoiceSelectionRow = {
                         }
                       </td>
                       <td class="py-3 px-3 text-right text-neutral-600 dark:text-neutral-400">
-                        RD$ {{ row.invoice.total | number: '1.2-2' }}
+                        {{ getInvoiceCurrencySymbol(row.invoice) }} {{ row.invoice.total | number: '1.2-2' }}
                       </td>
                       <td class="py-3 px-3 text-right font-bold text-amber-600 dark:text-amber-400">
-                        RD$ {{ row.invoice.balancePendiente | number: '1.2-2' }}
+                        {{ getInvoiceCurrencySymbol(row.invoice) }} {{ row.invoice.balancePendiente | number: '1.2-2' }}
                       </td>
                       <td class="py-3 px-4 text-right">
                         <input
@@ -270,7 +271,7 @@ type InvoiceSelectionRow = {
                 TOTAL A COBRAR:
               </span>
               <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                RD$ {{ totalToCollect() | number: '1.2-2' }}
+                {{ currencyConfig.currencySymbol() }} {{ totalToCollect() | number: '1.2-2' }}
               </span>
             </div>
           </div>
@@ -303,6 +304,12 @@ export class PaymentReceiptDialogComponent implements OnInit {
   data = inject<PaymentReceiptDialogData>(MAT_DIALOG_DATA, { optional: true });
   paymentsService = inject(CustomerPaymentsService);
   clientsService = inject(ClientsService);
+  currencyConfig = inject(CurrencyConfigService);
+
+  getInvoiceCurrencySymbol(inv?: any): string {
+    const c = inv?.moneda || this.currencyConfig.currency();
+    return c === 'USD' ? 'USD $' : c === 'EUR' ? '€' : 'RD$';
+  }
 
   clients = this.clientsService.clients;
   selectedClienteId?: string;

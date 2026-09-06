@@ -14,6 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FacturaCompra, CreateSupplierPaymentDto } from '../../data/purchases.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 export type SupplierPaymentDialogData = {
   purchase: FacturaCompra;
@@ -62,19 +63,19 @@ export type SupplierPaymentDialogData = {
           <div>
             <span class="text-[11px] font-semibold text-neutral-500 uppercase">Total Factura</span>
             <p class="text-sm font-bold text-neutral-900 dark:text-white mt-0.5">
-              RD$ {{ data.purchase.total | number: '1.2-2' }}
+              {{ currencyConfig.currencySymbol() }} {{ data.purchase.total | number: '1.2-2' }}
             </p>
           </div>
           <div>
             <span class="text-[11px] font-semibold text-neutral-500 uppercase">Abonado</span>
             <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-              RD$ {{ data.purchase.montoPagado | number: '1.2-2' }}
+              {{ currencyConfig.currencySymbol() }} {{ data.purchase.montoPagado | number: '1.2-2' }}
             </p>
           </div>
           <div>
             <span class="text-[11px] font-semibold text-neutral-500 uppercase">Pendiente</span>
             <p class="text-sm font-bold text-amber-600 dark:text-amber-400 mt-0.5">
-              RD$ {{ data.purchase.balancePendiente | number: '1.2-2' }}
+              {{ currencyConfig.currencySymbol() }} {{ data.purchase.balancePendiente | number: '1.2-2' }}
             </p>
           </div>
         </div>
@@ -95,7 +96,7 @@ export type SupplierPaymentDialogData = {
               />
             </mat-form-field>
             <div class="flex justify-between items-center px-1 -mt-1 text-[11px] text-neutral-500">
-              <span>Máximo a abonar: RD$ {{ data.purchase.balancePendiente | number: '1.2-2' }}</span>
+              <span>Máximo a abonar: {{ currencyConfig.currencySymbol() }} {{ data.purchase.balancePendiente | number: '1.2-2' }}</span>
               <button
                 type="button"
                 (click)="paymentData.monto = data.purchase.balancePendiente"
@@ -186,6 +187,7 @@ export type SupplierPaymentDialogData = {
 export class SupplierPaymentDialogComponent implements OnInit {
   dialogRef = inject(MatDialogRef<SupplierPaymentDialogComponent>);
   data = inject<SupplierPaymentDialogData>(MAT_DIALOG_DATA);
+  currencyConfig = inject(CurrencyConfigService);
 
   isSubmitting = signal(false);
   fechaPago: Date = new Date();

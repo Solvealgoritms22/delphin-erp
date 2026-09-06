@@ -200,11 +200,11 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
 
                     <div class="flex items-baseline justify-between pt-1 border-t border-neutral-100 dark:border-neutral-800/60">
                       <div class="text-sm sm:text-base font-bold text-neutral-900 dark:text-white font-mono">
-                        RD$ {{ (product.enOferta && product.precioOferta ? product.precioOferta : product.precioVenta) | number:'1.2-2' }}
+                        {{ posService.currencySymbol() }} {{ (product.enOferta && product.precioOferta ? product.precioOferta : product.precioVenta) | number:'1.2-2' }}
                       </div>
                       @if (product.enOferta && product.precioOferta) {
                         <span class="text-[10px] line-through text-neutral-400">
-                          RD$ {{ product.precioVenta | number:'1.2-2' }}
+                          {{ posService.currencySymbol() }} {{ product.precioVenta | number:'1.2-2' }}
                         </span>
                       }
                     </div>
@@ -320,7 +320,7 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
                       {{ item.product.nombre }}
                     </h4>
                     <div class="text-[11px] text-neutral-500 font-mono">
-                      RD$ {{ item.precioUnitario | number:'1.2-2' }} c/u
+                      {{ posService.currencySymbol() }} {{ item.precioUnitario | number:'1.2-2' }} c/u
                     </div>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
                 <!-- Subtotal y Eliminar -->
                 <div class="text-right shrink-0 min-w-[70px]">
                   <div class="text-xs font-bold font-mono text-neutral-900 dark:text-white">
-                    RD$ {{ item.subtotal | number:'1.2-2' }}
+                    {{ posService.currencySymbol() }} {{ item.subtotal | number:'1.2-2' }}
                   </div>
                   <button
                     type="button"
@@ -376,7 +376,7 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
             <div class="flex justify-between">
               <span>{{ 'pos.subtotal' | transloco }}:</span>
               <span class="font-mono font-medium text-neutral-800 dark:text-neutral-200">
-                RD$ {{ posService.rawSubtotal() | number:'1.2-2' }}
+                {{ posService.currencySymbol() }} {{ posService.rawSubtotal() | number:'1.2-2' }}
               </span>
             </div>
 
@@ -384,22 +384,22 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
               <div class="flex justify-between text-rose-600 dark:text-rose-400">
                 <span>{{ 'pos.discount' | transloco }}:</span>
                 <span class="font-mono font-medium">
-                  - RD$ {{ posService.discountTotal() | number:'1.2-2' }}
+                  - {{ posService.currencySymbol() }} {{ posService.discountTotal() | number:'1.2-2' }}
                 </span>
               </div>
             }
 
             <div class="flex justify-between">
-              <span>{{ 'pos.itbis' | transloco }} (18%):</span>
+              <span>{{ posService.taxLabel() }}:</span>
               <span class="font-mono font-medium text-neutral-800 dark:text-neutral-200">
-                RD$ {{ posService.taxTotal() | number:'1.2-2' }}
+                {{ posService.currencySymbol() }} {{ posService.taxTotal() | number:'1.2-2' }}
               </span>
             </div>
 
             <div class="flex justify-between items-baseline pt-2 border-t border-neutral-200 dark:border-neutral-800">
               <span class="text-sm font-bold text-neutral-900 dark:text-white">{{ 'pos.total' | transloco }}:</span>
               <span class="text-xl font-bold font-mono text-neutral-900 dark:text-white">
-                RD$ {{ posService.grandTotal() | number:'1.2-2' }}
+                {{ posService.currencySymbol() }} {{ posService.grandTotal() | number:'1.2-2' }}
               </span>
             </div>
           </div>

@@ -25,6 +25,7 @@ import {
 import { QuoteDialogComponent } from './quote-dialog.component';
 import { SendQuoteEmailDialogComponent } from './send-quote-email-dialog.component';
 import { QuotePreviewComponent } from './quote-preview.component';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 @Component({
   selector: 'app-quotes',
@@ -111,7 +112,7 @@ import { QuotePreviewComponent } from './quote-preview.component';
 
           <app-stat-card
             title="Monto Total Cotizado"
-            prefix="RD$ "
+            [prefix]="currencyConfig.currencySymbol() + ' '"
             [value]="(metrics().montoTotalCotizado | number: '1.2-2') || '0.00'"
             subtitle="Volumen en propuestas comerciales"
             icon="dollar-sign"
@@ -255,7 +256,7 @@ import { QuotePreviewComponent } from './quote-preview.component';
 
                       <!-- Total -->
                       <td class="py-3.5 px-4 text-right font-mono font-bold text-neutral-900 dark:text-white">
-                        RD$ {{ q.total | number: '1.2-2' }}
+                        {{ getQuoteCurrencySymbol(q) }} {{ q.total | number: '1.2-2' }}
                       </td>
 
                       <!-- Estado -->
@@ -371,6 +372,7 @@ export class QuotesComponent implements OnInit {
   dialog = inject(MatDialog);
   snackBar = inject(MatSnackBar);
   router = inject(Router);
+  currencyConfig = inject(CurrencyConfigService);
 
   quotes = this.quotesService.quotes;
   loading = this.quotesService.loading;
@@ -381,6 +383,11 @@ export class QuotesComponent implements OnInit {
 
   searchQuery = '';
   selectedStatus = '';
+
+  getQuoteCurrencySymbol(quote?: Cotizacion): string {
+    const c = quote?.moneda || this.currencyConfig.currency();
+    return c === 'USD' ? 'USD $' : c === 'EUR' ? '€' : 'RD$';
+  }
 
   statusTabs = [
     { label: 'Todas', value: '' },
@@ -483,7 +490,7 @@ export class QuotesComponent implements OnInit {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Convertir Cotización a Factura',
-        message: `¿Deseas convertir la cotización ${quote.numeroCotizacion} por un total de RD$ ${quote.total.toLocaleString('es-DO', { minimumFractionDigits: 2 })} en una Factura de Venta formal?`,
+        message: `¿Deseas convertir la cotización ${quote.numeroCotizacion} por un total de ${this.getQuoteCurrencySymbol(quote)} ${quote.total.toLocaleString('es-DO', { minimumFractionDigits: 2 })} en una Factura de Venta formal?`,
         confirmText: 'Convertir a Factura',
         confirmColor: 'primary',
       } as ConfirmDialogData,

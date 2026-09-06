@@ -24,6 +24,7 @@ import {
 import { ClientsService } from '../../data/clients';
 import { PaymentReceiptDialogComponent } from './payment-receipt-dialog.component';
 import { PaymentReceiptPreviewComponent } from './payment-receipt-preview.component';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 @Component({
   selector: 'app-receivables',
@@ -80,7 +81,7 @@ import { PaymentReceiptPreviewComponent } from './payment-receipt-preview.compon
           <app-stat-card
             [title]="'commercial.receivables.stats.totalCxC' | transloco"
             [subtitle]="metrics().facturasPendientesCount + ' facturas con saldo pendiente'"
-            prefix="RD$ "
+            [prefix]="currencyConfig.currencySymbol() + ' '"
             [value]="(metrics().totalPorCobrar | number: '1.2-2') || '0.00'"
             icon="clock"
             curvePreset="asc-sigmoid"
@@ -91,7 +92,7 @@ import { PaymentReceiptPreviewComponent } from './payment-receipt-preview.compon
           <app-stat-card
             [title]="'commercial.receivables.stats.overdueCxC' | transloco"
             [subtitle]="metrics().facturasVencidasCount + ' facturas vencidas en mora'"
-            prefix="RD$ "
+            [prefix]="currencyConfig.currencySymbol() + ' '"
             [value]="(metrics().totalVencido | number: '1.2-2') || '0.00'"
             icon="alert-circle"
             curvePreset="trough-wave"
@@ -102,7 +103,7 @@ import { PaymentReceiptPreviewComponent } from './payment-receipt-preview.compon
           <app-stat-card
             [title]="'commercial.receivables.stats.monthCollected' | transloco"
             [subtitle]="metrics().cobrosMesCount + ' cobros efectuados este mes'"
-            prefix="RD$ "
+            [prefix]="currencyConfig.currencySymbol() + ' '"
             [value]="(metrics().cobradoMes | number: '1.2-2') || '0.00'"
             icon="check-circle-2"
             curvePreset="peak-wave"
@@ -278,12 +279,12 @@ import { PaymentReceiptPreviewComponent } from './payment-receipt-preview.compon
 
                         <!-- Total Factura -->
                         <td class="py-3.5 px-4 text-right font-medium text-neutral-700 dark:text-neutral-300">
-                          RD$ {{ inv.total | number: '1.2-2' }}
+                          {{ getInvoiceCurrencySymbol(inv) }} {{ inv.total | number: '1.2-2' }}
                         </td>
 
                         <!-- Balance Adeudado -->
                         <td class="py-3.5 px-4 text-right font-extrabold text-amber-600 dark:text-amber-400">
-                          RD$ {{ inv.balancePendiente | number: '1.2-2' }}
+                          {{ getInvoiceCurrencySymbol(inv) }} {{ inv.balancePendiente | number: '1.2-2' }}
                         </td>
 
                         <!-- Acción Cobrar -->
@@ -442,7 +443,7 @@ import { PaymentReceiptPreviewComponent } from './payment-receipt-preview.compon
 
                         <!-- Monto Recibido -->
                         <td class="py-3.5 px-4 text-right font-black text-emerald-600 dark:text-emerald-400">
-                          RD$ {{ p.monto | number: '1.2-2' }}
+                          {{ currencyConfig.currencySymbol() }} {{ p.monto | number: '1.2-2' }}
                         </td>
 
                         <!-- Acciones -->
@@ -500,6 +501,12 @@ export class ReceivablesComponent implements OnInit {
   metrics = this.paymentsService.metrics;
   isLoading = this.paymentsService.isLoading;
   clients = this.clientsService.clients;
+  currencyConfig = inject(CurrencyConfigService);
+
+  getInvoiceCurrencySymbol(inv?: any): string {
+    const c = inv?.moneda || this.currencyConfig.currency();
+    return c === 'USD' ? 'USD $' : c === 'EUR' ? '€' : 'RD$';
+  }
 
   searchPendingQuery = '';
   selectedPendingClientId = 'ALL';

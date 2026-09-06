@@ -21,6 +21,7 @@ import {
   FilterPurchasesDto,
 } from '../../data/purchases.service';
 import { SuppliersService } from '../../data/suppliers.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 import { PurchaseDialogComponent } from './purchase-dialog.component';
 import { SupplierPaymentDialogComponent } from './supplier-payment-dialog.component';
 import { PurchasePreviewComponent } from './purchase-preview.component';
@@ -80,7 +81,7 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
           <app-stat-card
             [title]="'commercial.purchases.stats.monthPurchases' | transloco"
             [subtitle]="metrics().cantidadComprasMes + ' compras registradas este mes'"
-            prefix="RD$ "
+            [prefix]="currencyConfig.currencySymbol() + ' '"
             [value]="(metrics().totalComprasMes | number: '1.2-2') || '0.00'"
             icon="shopping-bag"
             curvePreset="asc-sigmoid"
@@ -91,7 +92,7 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
           <app-stat-card
             [title]="'commercial.purchases.stats.pendingCxP' | transloco"
             [subtitle]="metrics().facturasPendientesCount + ' facturas con saldo pendiente'"
-            prefix="RD$ "
+            [prefix]="currencyConfig.currencySymbol() + ' '"
             [value]="(metrics().totalCxPPendiente | number: '1.2-2') || '0.00'"
             icon="clock"
             curvePreset="asc-sigmoid"
@@ -102,7 +103,7 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
           <app-stat-card
             [title]="'commercial.purchases.stats.overdueCxP' | transloco"
             [subtitle]="metrics().facturasVencidasCount + ' facturas vencidas'"
-            prefix="RD$ "
+            [prefix]="currencyConfig.currencySymbol() + ' '"
             [value]="(metrics().totalVencido | number: '1.2-2') || '0.00'"
             icon="alert-triangle"
             curvePreset="trough-wave"
@@ -288,17 +289,17 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
 
                       <!-- Total Factura -->
                       <td class="py-3.5 px-4 text-right font-bold text-neutral-900 dark:text-white">
-                        RD$ {{ p.total | number: '1.2-2' }}
+                        {{ currencyConfig.currencySymbol() }} {{ p.total | number: '1.2-2' }}
                       </td>
 
                       <!-- Balance Pendiente -->
                       <td class="py-3.5 px-4 text-right">
                         @if (p.balancePendiente > 0 && p.estado !== 'ANULADA') {
                           <span class="font-extrabold text-amber-600 dark:text-amber-400">
-                            RD$ {{ p.balancePendiente | number: '1.2-2' }}
+                            {{ currencyConfig.currencySymbol() }} {{ p.balancePendiente | number: '1.2-2' }}
                           </span>
                         } @else {
-                          <span class="text-neutral-400 font-medium">RD$ 0.00</span>
+                          <span class="text-neutral-400 font-medium">{{ currencyConfig.currencySymbol() }} 0.00</span>
                         }
                       </td>
 
@@ -359,6 +360,7 @@ export class PurchasesComponent implements OnInit {
   dialog = inject(MatDialog);
   snackBar = inject(MatSnackBar);
   transloco = inject(TranslocoService);
+  currencyConfig = inject(CurrencyConfigService);
 
   purchases = this.purchasesService.purchases;
   metrics = this.purchasesService.metrics;

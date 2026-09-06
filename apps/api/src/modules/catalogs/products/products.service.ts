@@ -405,6 +405,9 @@ export class ProductsService {
           ? Number(costo)
           : null;
     }
+    if (data.moneda !== undefined) {
+      result.moneda = typeof data.moneda === 'string' && data.moneda.trim() ? data.moneda.trim().toUpperCase() : 'DOP';
+    }
     if (categoriaId !== undefined)
       result.categoriaId = cleanString(categoriaId);
     if (marcaId !== undefined) result.marcaId = cleanString(marcaId);

@@ -406,6 +406,7 @@ model Producto {
   descripcion      String?       @db.Text
   precioVenta      Decimal       @map("precio_venta") @db.Decimal(12, 2)
   costo            Decimal?      @db.Decimal(12, 2)
+  moneda           String        @default("DOP") @db.VarChar(3)
   taxRate          Decimal?      @default(0) @map("tax_rate") @db.Decimal(5, 2)
   impuestoId       String?       @map("impuesto_id")
   imagenes         String?       @db.Text // JSON stringified array of URLs / Base64
@@ -813,6 +814,7 @@ model ConfiguracionEmpresa {
   redondeoPor        String   @default("LINEA") @map("redondeo_por")
   preciosIncluyenImpuesto Boolean @default(false) @map("precios_incluyen_impuesto")
   diasGracia         Int      @default(0) @map("dias_gracia")
+  tasasCambio        Json?    @map("tasas_cambio")
   
   // Configuración de Backups Automáticos
   backupAutoEnabled    Boolean   @default(false) @map("backup_auto_enabled")

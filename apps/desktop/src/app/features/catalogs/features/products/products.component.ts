@@ -158,7 +158,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
                 <!-- Costo -->
                 <div class="hidden lg:block text-right font-medium text-neutral-500">
-                  {{ (product.costo !== null && product.costo !== undefined) ? (product.costo | currency) : '-' }}
+                  {{ (product.costo !== null && product.costo !== undefined) ? (product.costo | currency:(product.moneda || 'DOP')) : '-' }}
                 </div>
 
                 <!-- Precio -->
@@ -166,15 +166,15 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                   @if (product.enOferta && (product.precioOferta || (product.descuentoPorcentaje && product.descuentoPorcentaje > 0))) {
                     <div class="flex flex-col items-end">
                       <span class="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
-                        {{ (product.precioOferta ? product.precioOferta : (product.precioVenta - (product.precioVenta * (product.descuentoPorcentaje || 0) / 100))) | currency }}
+                        {{ (product.precioOferta ? product.precioOferta : (product.precioVenta - (product.precioVenta * (product.descuentoPorcentaje || 0) / 100))) | currency:(product.moneda || 'DOP') }}
                       </span>
                       <span class="text-[11px] line-through text-neutral-400 font-normal">
-                        {{ product.precioVenta | currency }}
+                        {{ product.precioVenta | currency:(product.moneda || 'DOP') }}
                       </span>
                     </div>
                   } @else {
                     <span class="text-neutral-900 dark:text-white">
-                      {{ product.precioVenta | currency }}
+                      {{ product.precioVenta | currency:(product.moneda || 'DOP') }}
                     </span>
                   }
                 </div>

@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthState } from '@core/auth/auth.state';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 import { FacturaVenta } from '@features/sales/data/invoices.service';
 import { environment } from '@/environments/environment';
 
@@ -18,6 +19,7 @@ export type ActiveCompanyData = {
 export class PosReceiptService {
   private readonly authState = inject(AuthState);
   private readonly http = inject(HttpClient);
+  private readonly currencyConfig = inject(CurrencyConfigService);
   readonly currentEmpresa = signal<ActiveCompanyData | null>(null);
 
   constructor() {
@@ -29,15 +31,22 @@ export class PosReceiptService {
       next: (emp) => {
         if (emp) this.currentEmpresa.set(emp);
       },
-      error: () => {},
+      error: () => { },
     });
   }
 
   printThermalTicket(
     invoice: FacturaVenta,
     receivedAmount = 0,
-    changeAmount = 0
+    changeAmount = 0,
+    splitPayment?: { cardAmount: number; cashAmount: number }
   ): void {
+    const cur = invoice.moneda ? this.currencyConfig.getSymbol(invoice.moneda) : this.currencyConfig.currencySymbol();
+    const rates = Array.from(new Set((invoice.detalles || []).map((d: any) => Number(d.tasaItbis || 0)).filter((r: number) => r > 0)));
+    const taxRateLabel = rates.length === 1 ? ` (${rates[0]}%)` : (rates.length === 0 ? ` (${this.currencyConfig.defaultTaxRate()}%)` : '');
+    const taxName = this.currencyConfig.defaultTaxName();
+    const taxLabel = `${taxName}${taxRateLabel}`;
+
     const cachedEmpresa = this.currentEmpresa();
     const user = this.authState.user() as any;
     const activeEmpresaId = this.authState.empresaId();
@@ -71,10 +80,10 @@ export class PosReceiptService {
           <tr>
             <td style="padding: 2px 0; vertical-align: top;">
               <div style="font-weight: bold;">${desc}</div>
-              <div style="font-size: 10px; color: #444;">${qty} x RD$ ${price}</div>
+              <div style="font-size: 10px; color: #444;">${qty} x ${cur} ${price}</div>
             </td>
             <td style="text-align: right; vertical-align: top; font-weight: bold; white-space: nowrap;">
-              RD$ ${lineTotal}
+              ${cur} ${lineTotal}
             </td>
           </tr>
         `;
@@ -179,25 +188,24 @@ export class PosReceiptService {
           <table style="font-size: 11px;">
             <tr>
               <td>Subtotal:</td>
-              <td class="text-right">RD$ ${Number(invoice.subtotal).toFixed(2)}</td>
+              <td class="text-right">${cur} ${Number(invoice.subtotal).toFixed(2)}</td>
             </tr>
-            ${
-              Number(invoice.descuento) > 0
-                ? `
+            ${Number(invoice.descuento) > 0
+        ? `
               <tr>
                 <td>Descuento:</td>
-                <td class="text-right">- RD$ ${Number(invoice.descuento).toFixed(2)}</td>
+                <td class="text-right">- ${cur} ${Number(invoice.descuento).toFixed(2)}</td>
               </tr>
             `
-                : ''
-            }
+        : ''
+      }
             <tr>
-              <td>ITBIS (18%):</td>
-              <td class="text-right">RD$ ${Number(invoice.itbis).toFixed(2)}</td>
+              <td>${taxLabel}:</td>
+              <td class="text-right">${cur} ${Number(invoice.itbis).toFixed(2)}</td>
             </tr>
             <tr class="total-row">
               <td style="padding-top: 4px;">TOTAL:</td>
-              <td class="text-right" style="padding-top: 4px;">RD$ ${Number(invoice.total).toFixed(2)}</td>
+              <td class="text-right" style="padding-top: 4px;">${cur} ${Number(invoice.total).toFixed(2)}</td>
             </tr>
           </table>
 
@@ -205,20 +213,43 @@ export class PosReceiptService {
 
           <div style="font-size: 11px;">
             <div><span class="bold">FORMA PAGO:</span> ${invoice.metodoPago || 'EFECTIVO'}</div>
-            ${
-              receivedAmount > 0
+            ${splitPayment
+        ? `
+              <div style="display: flex; justify-content: space-between;">
+                <span>- TARJETA:</span>
+                <span class="bold">${cur} ${Number(splitPayment.cardAmount).toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>- EFECTIVO:</span>
+                <span class="bold">${cur} ${Number(splitPayment.cashAmount).toFixed(2)}</span>
+              </div>
+              ${receivedAmount > 0
                 ? `
+                  <div style="display: flex; justify-content: space-between;">
+                    <span>RECIBIDO (EFEC.):</span>
+                    <span class="bold">${cur} ${receivedAmount.toFixed(2)}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold;">
+                    <span>CAMBIO:</span>
+                    <span>${cur} ${changeAmount.toFixed(2)}</span>
+                  </div>
+                `
+                : ''
+              }
+            `
+        : receivedAmount > 0
+        ? `
               <div style="display: flex; justify-content: space-between;">
                 <span>RECIBIDO:</span>
-                <span class="bold">RD$ ${receivedAmount.toFixed(2)}</span>
+                <span class="bold">${cur} ${receivedAmount.toFixed(2)}</span>
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold;">
-                <span>CAMBIO / DEVUELTA:</span>
-                <span>RD$ ${changeAmount.toFixed(2)}</span>
+                <span>CAMBIO:</span>
+                <span>${cur} ${changeAmount.toFixed(2)}</span>
               </div>
             `
-                : ''
-            }
+        : ''
+      }
           </div>
 
           ${qrBlock}

@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { Cotizacion, QuotesService, SmtpStatusResponse } from '../../data/quotes.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 @Component({
   selector: 'app-send-quote-email-dialog',
@@ -33,7 +34,7 @@ import { Cotizacion, QuotesService, SmtpStatusResponse } from '../../data/quotes
               Enviar Cotización por Correo
             </h2>
             <p class="text-xs text-neutral-500">
-              Cotización {{ quote.numeroCotizacion }} · RD$ {{ quote.total | number: '1.2-2' }}
+              Cotización {{ quote.numeroCotizacion }} · {{ currencySymbol() }} {{ quote.total | number: '1.2-2' }}
             </p>
           </div>
         </div>
@@ -192,8 +193,14 @@ export class SendQuoteEmailDialogComponent implements OnInit {
   quotesService = inject(QuotesService);
   snackBar = inject(MatSnackBar);
   router = inject(Router);
+  currencyConfig = inject(CurrencyConfigService);
 
   quote: Cotizacion = this.data.quote;
+
+  currencySymbol(): string {
+    const c = this.quote.moneda || this.currencyConfig.currency();
+    return c === 'USD' ? 'USD $' : c === 'EUR' ? '€' : 'RD$';
+  }
 
   smtpStatus = signal<SmtpStatusResponse | null>(null);
   loadingSmtp = signal<boolean>(true);

@@ -13,6 +13,7 @@ export type CotizacionDetalle = {
     codigo: string;
     precioVenta: number;
     taxRate: number;
+    moneda?: string;
     enOferta?: boolean;
     precioOferta?: number | null;
     descuentoPorcentaje?: number | null;
@@ -87,6 +88,8 @@ export type CreateQuoteDto = {
   notas?: string;
   terminosCondiciones?: string;
   descuento?: number;
+  moneda?: string;
+  tasaCambio?: number;
   items: CreateQuoteItemDto[];
 };
 

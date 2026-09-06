@@ -10,6 +10,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { environment } from '@/environments/environment';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 type BillingData = {
   configuracion: any;
@@ -185,6 +186,34 @@ type BillingData = {
                       max="365"
                       [(ngModel)]="config.configuracion.diasGracia"
                       placeholder="0"
+                    />
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Tasa de Cambio USD (1 USD = X DOP)</mat-label>
+                    <span matTextPrefix class="mr-1 text-neutral-400 font-semibold">RD$</span>
+                    <input
+                      matInput
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      [ngModel]="config.configuracion.tasasCambio?.USD ?? 60.0"
+                      (ngModelChange)="onRateChange(config.configuracion, 'USD', $event)"
+                      placeholder="60.00"
+                    />
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Tasa de Cambio EUR (1 EUR = X DOP)</mat-label>
+                    <span matTextPrefix class="mr-1 text-neutral-400 font-semibold">RD$</span>
+                    <input
+                      matInput
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      [ngModel]="config.configuracion.tasasCambio?.EUR ?? 65.0"
+                      (ngModelChange)="onRateChange(config.configuracion, 'EUR', $event)"
+                      placeholder="65.00"
                     />
                   </mat-form-field>
                 </div>
@@ -421,6 +450,7 @@ export class BillingSettingsComponent {
   private readonly http = inject(HttpClient);
   private readonly snack = inject(MatSnackBar);
   private readonly i18n = inject(TranslocoService);
+  private readonly currencyConfig = inject(CurrencyConfigService);
   readonly data = signal<BillingData | null>(null);
   readonly saving = signal(false);
   readonly loading = signal(true);
@@ -454,6 +484,7 @@ export class BillingSettingsComponent {
         const current = this.data();
         if (current) this.data.set({ ...current, configuracion: value });
         this.saving.set(false);
+        this.currencyConfig.refresh();
         this.notice('billingConfig.saved');
       },
       error: () => {
@@ -468,6 +499,7 @@ export class BillingSettingsComponent {
     this.http.patch(`${this.api}/taxes/${tax.id}`, tax).subscribe({
       next: () => {
         this.saving.set(false);
+        this.currencyConfig.refresh();
         this.notice('billingConfig.saved');
       },
       error: () => {
@@ -482,6 +514,7 @@ export class BillingSettingsComponent {
     this.http.patch(`${this.api}/payment-terms/${term.id}`, term).subscribe({
       next: () => {
         this.saving.set(false);
+        this.currencyConfig.refresh();
         this.notice('billingConfig.saved');
       },
       error: () => {
@@ -489,6 +522,13 @@ export class BillingSettingsComponent {
         this.notice('billingConfig.saveError');
       },
     });
+  }
+
+  onRateChange(config: any, currency: string, value: any) {
+    if (!config.tasasCambio || typeof config.tasasCambio !== 'object') {
+      config.tasasCambio = { USD: 60.0, EUR: 65.0 };
+    }
+    config.tasasCambio[currency] = Number(value) || 1;
   }
 
   private notice(key: string) {

@@ -572,7 +572,8 @@ export class AiToolsService {
     const pendingInvoices = await this.prisma.facturaVenta.findMany({
       where: {
         empresaId,
-        estado: { not: 'ANULADA' },
+        tipoPago: { not: 'CONTADO' },
+        estado: { notIn: ['ANULADA', 'BORRADOR', 'PAGADA'] },
         balancePendiente: { gt: 0 },
       },
       orderBy: { fechaVencimiento: 'asc' },

@@ -167,17 +167,38 @@ export class InvoicesService {
       }
 
       const cantidad = new Prisma.Decimal(item.cantidad);
-      const precioLista = new Prisma.Decimal(
-        item.precioLista !== undefined ? item.precioLista : producto.precioVenta,
-      );
-      const precio = new Prisma.Decimal(
-        item.precioUnitario !== undefined ? item.precioUnitario : producto.precioVenta,
-      );
+      const productCurrency = ((producto as any).moneda || 'DOP').toUpperCase();
+      const tasas = ((configuration as any).tasasCambio as Record<string, number>) || {};
+
+      let effectivePrice = item.precioUnitario !== undefined ? Number(item.precioUnitario) : Number(producto.precioVenta);
+      let effectiveListPrice = item.precioLista !== undefined ? Number(item.precioLista) : Number(producto.precioVenta);
+
+      // Conversión automática si el producto no trajo precio forzado y su moneda difiere de la factura
+      if (item.precioUnitario === undefined && productCurrency !== currency) {
+        const usdRate = exchangeRate.toNumber() > 1 ? exchangeRate.toNumber() : (tasas['USD'] || 60);
+        if (productCurrency === 'USD' && currency === 'DOP') {
+          effectivePrice = effectivePrice * usdRate;
+          effectiveListPrice = effectiveListPrice * usdRate;
+        } else if (productCurrency === 'DOP' && currency === 'USD') {
+          effectivePrice = effectivePrice / usdRate;
+          effectiveListPrice = effectiveListPrice / usdRate;
+        }
+      }
+
+      const precioLista = new Prisma.Decimal(effectiveListPrice);
+      const precio = new Prisma.Decimal(effectivePrice);
+
+      const defaultTax =
+        billing.impuestos.find((tax) => tax.activo && tax.indicadorFacturacion === '1' && Number(tax.tasa) > 0)
+        || billing.impuestos.find((tax) => tax.activo && Number(tax.tasa) > 0)
+        || billing.impuestos.find((tax) => tax.codigo === 'ITBIS18')
+        || billing.impuestos[0];
+
       const configuredTax = item.impuestoId
         ? billing.impuestos.find((tax) => tax.id === item.impuestoId)
         : producto.impuesto?.empresaId === empresaId
           ? producto.impuesto
-          : billing.impuestos.find((tax) => tax.codigo === 'ITBIS18');
+          : defaultTax;
       if (item.impuestoId && !configuredTax)
         throw new BadRequestException('El impuesto no pertenece a la empresa.');
       const tasaItbis = new Prisma.Decimal(
@@ -347,6 +368,12 @@ export class InvoicesService {
       }
 
       // Crear Factura
+      const tipoPago = dto.tipoPago || 'CONTADO';
+      const isContado = tipoPago === 'CONTADO';
+      const estadoFactura = isDraft ? 'BORRADOR' : (isContado ? 'PAGADA' : 'EMITIDA');
+      const montoPagado = (!isDraft && isContado) ? totalAfterDiscount : new Prisma.Decimal(0);
+      const balancePendiente = (!isDraft && isContado) ? new Prisma.Decimal(0) : totalAfterDiscount;
+
       const created = await tx.facturaVenta.create({
         data: {
           empresaId,
@@ -357,8 +384,8 @@ export class InvoicesService {
           numeroFactura,
           ncf: isDraft ? null : ncf,
           tipoNcf,
-          estado: isDraft ? 'BORRADOR' : 'EMITIDA',
-          tipoPago: dto.tipoPago || 'CONTADO',
+          estado: estadoFactura,
+          tipoPago,
           metodoPago: dto.metodoPago || 'EFECTIVO',
           subtotal: subtotalBrutoAcc,
           descuento: totalDiscount,
@@ -371,11 +398,13 @@ export class InvoicesService {
           terminoPagoId: selectedTerm?.id || null,
           fechaVencimiento: dto.fechaVencimiento
             ? new Date(dto.fechaVencimiento)
-            : selectedTerm && selectedTerm.diasCredito > 0
-              ? new Date(Date.now() + selectedTerm.diasCredito * 86400000)
-              : null,
-          montoPagado: new Prisma.Decimal(0),
-          balancePendiente: totalAfterDiscount,
+            : isContado
+              ? null
+              : selectedTerm && selectedTerm.diasCredito > 0
+                ? new Date(Date.now() + selectedTerm.diasCredito * 86400000)
+                : null,
+          montoPagado,
+          balancePendiente,
           ncfModificado: dto.ncfModificado?.trim() || null,
           motivoModificacion: dto.motivoModificacion?.trim() || null,
           notas: dto.notas?.trim() || null,
@@ -769,12 +798,15 @@ export class InvoicesService {
       }
 
       // Actualizar Factura
+      const isContado = invoice.tipoPago === 'CONTADO';
       const updated = await tx.facturaVenta.update({
         where: { id },
         data: {
           ncf,
           tipoNcf,
-          estado: 'EMITIDA',
+          estado: isContado ? 'PAGADA' : 'EMITIDA',
+          montoPagado: isContado ? invoice.total : invoice.montoPagado,
+          balancePendiente: isContado ? new Prisma.Decimal(0) : invoice.balancePendiente,
           fiscalbridgeStatus: needsFiscal ? 'PENDING' : 'NOT_TRANSMITTED',
         },
         include: {

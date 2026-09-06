@@ -396,7 +396,8 @@ export class CustomerPaymentsService {
       this.prisma.facturaVenta.aggregate({
         where: {
           empresaId,
-          estado: { not: 'ANULADA' },
+          tipoPago: { not: 'CONTADO' },
+          estado: { notIn: ['ANULADA', 'BORRADOR', 'PAGADA'] },
           balancePendiente: { gt: 0 },
         },
         _sum: { balancePendiente: true },
@@ -406,7 +407,8 @@ export class CustomerPaymentsService {
       this.prisma.facturaVenta.aggregate({
         where: {
           empresaId,
-          estado: { not: 'ANULADA' },
+          tipoPago: { not: 'CONTADO' },
+          estado: { notIn: ['ANULADA', 'BORRADOR', 'PAGADA'] },
           balancePendiente: { gt: 0 },
           fechaVencimiento: { lt: now },
         },
@@ -428,7 +430,8 @@ export class CustomerPaymentsService {
         by: ['clienteId'],
         where: {
           empresaId,
-          estado: { not: 'ANULADA' },
+          tipoPago: { not: 'CONTADO' },
+          estado: { notIn: ['ANULADA', 'BORRADOR', 'PAGADA'] },
           balancePendiente: { gt: 0 },
           clienteId: { not: null },
         },
@@ -457,7 +460,8 @@ export class CustomerPaymentsService {
   async getPendingInvoices(empresaId: string, clienteId?: string) {
     const where: Prisma.FacturaVentaWhereInput = {
       empresaId,
-      estado: { not: 'ANULADA' },
+      tipoPago: { not: 'CONTADO' },
+      estado: { notIn: ['ANULADA', 'BORRADOR', 'PAGADA'] },
       balancePendiente: { gt: 0 },
     };
 

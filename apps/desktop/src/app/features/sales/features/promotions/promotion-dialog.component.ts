@@ -22,6 +22,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PromotionsService, Promocion } from '../../data/promotions.service';
 import { ProductsService } from '../../../catalogs/data/products.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 export type PromotionDialogData = {
   promotion?: Promocion | null;
@@ -137,10 +138,10 @@ export type PromotionDialogData = {
                   {{ 'commercial.promotions.types.percentage' | transloco }} (%)
                 </mat-option>
                 <mat-option value="MONTO_FIJO">
-                  {{ 'commercial.promotions.types.fixedAmount' | transloco }} (RD$)
+                  {{ 'commercial.promotions.types.fixedAmount' | transloco }} ({{ currencyConfig.currencySymbol() }})
                 </mat-option>
                 <mat-option value="PRECIO_FIJO">
-                  {{ 'commercial.promotions.types.fixedPrice' | transloco }} (RD$)
+                  {{ 'commercial.promotions.types.fixedPrice' | transloco }} ({{ currencyConfig.currencySymbol() }})
                 </mat-option>
               </mat-select>
             </mat-form-field>
@@ -150,7 +151,7 @@ export type PromotionDialogData = {
               @if (form.get('tipoDescuento')?.value === 'PORCENTAJE') {
                 <span matTextSuffix class="pr-2 font-semibold text-neutral-500">%</span>
               } @else {
-                <span matTextPrefix class="mr-1 font-semibold text-neutral-500">RD$</span>
+                <span matTextPrefix class="mr-1 font-semibold text-neutral-500">{{ currencyConfig.currencySymbol() }}</span>
               }
               <input
                 matInput
@@ -227,7 +228,7 @@ export type PromotionDialogData = {
               >
                 @for (p of productsService.products(); track p.id) {
                   <mat-option [value]="p.id">
-                    {{ p.codigo }} - {{ p.nombre }} (RD$ {{ p.precioVenta | number:'1.2-2' }})
+                    {{ p.codigo }} - {{ p.nombre }} ({{ getCurrencySymbol(p.moneda) }} {{ p.precioVenta | number:'1.2-2' }})
                   </mat-option>
                 }
               </mat-select>
@@ -263,7 +264,7 @@ export type PromotionDialogData = {
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>{{ 'commercial.promotions.minAmount' | transloco }}</mat-label>
-            <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">RD$</span>
+            <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">{{ currencyConfig.currencySymbol() }}</span>
             <input
               matInput
               type="number"
@@ -339,12 +340,18 @@ export class PromotionDialogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private promotionsService = inject(PromotionsService);
   public productsService = inject(ProductsService);
+  public currencyConfig = inject(CurrencyConfigService);
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
   form!: FormGroup;
   isEdit = false;
   isSaving = signal(false);
+
+  getCurrencySymbol(code?: string): string {
+    const c = code || this.currencyConfig.currencyCode();
+    return c === 'USD' ? 'USD $' : c === 'EUR' ? '€' : 'RD$';
+  }
 
   ngOnInit(): void {
     this.isEdit = Boolean(this.data?.isEdit && this.data?.promotion);

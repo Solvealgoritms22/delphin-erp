@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -20,6 +20,7 @@ import {
 import { SuppliersService } from '../../data/suppliers.service';
 import { ProductsService, Product } from '../../../catalogs/data/products.service';
 import { InventoryService, Warehouse } from '../../../catalogs/data/inventory.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 export type PurchaseItemRow = {
   productoId?: string;
@@ -280,20 +281,18 @@ export type PurchaseItemRow = {
                       />
                     </td>
 
-                    <!-- % ITBIS -->
                     <td class="py-2.5 px-2">
                       <select
                         [(ngModel)]="item.tasaItbis"
                         (ngModelChange)="recalculate()"
                         class="w-full text-xs font-semibold bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-2"
                       >
-                        <option [value]="18">18%</option>
-                        <option [value]="16">16%</option>
-                        <option [value]="0">0% (Exento)</option>
+                        @for (tax of availableTaxes(); track tax.id) {
+                          <option [value]="tax.tasa">{{ tax.nombre }} ({{ tax.tasa }}%)</option>
+                        }
                       </select>
                     </td>
 
-                    <!-- Descuento de Línea -->
                     <td class="py-2.5 px-2">
                       <input
                         type="number"
@@ -305,22 +304,21 @@ export type PurchaseItemRow = {
                       />
                     </td>
 
-                    <!-- Subtotal de Línea -->
                     <td class="py-2.5 px-3 text-right font-bold text-neutral-900 dark:text-white">
-                      RD$ {{ getItemTotal(item) | number: '1.2-2' }}
+                      {{ currencyConfig.currencySymbol() }} {{ getItemTotal(item) | number: '1.2-2' }}
                     </td>
 
-                    <!-- Eliminar fila -->
-                    <td class="py-2.5 px-2 text-center">
-                      @if (items().length > 1) {
-                        <button
-                          type="button"
-                          (click)="removeItem(i)"
-                          class="text-neutral-400 hover:text-rose-500 transition-colors p-1"
-                        >
-                          <mat-icon svgIcon="trash-2" class="icon-size-4"></mat-icon>
-                        </button>
-                      }
+                    <td class="py-2.5 px-1 text-center">
+                      <button
+                        type="button"
+                        mat-icon-button
+                        color="warn"
+                        (click)="removeItem($index)"
+                        [disabled]="items().length === 1"
+                        class="!w-7 !h-7 text-neutral-400 hover:text-rose-500 transition-colors"
+                      >
+                        <mat-icon svgIcon="trash-2" class="icon-size-4" />
+                      </button>
                     </td>
                   </tr>
                 }
@@ -329,9 +327,7 @@ export type PurchaseItemRow = {
           </div>
         </div>
 
-        <!-- Resumen de Totales y Retenciones -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-          <!-- Notas -->
           <div>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Notas u Observaciones</mat-label>
@@ -344,32 +340,30 @@ export type PurchaseItemRow = {
             </mat-form-field>
           </div>
 
-          <!-- Cuadro de Totales Fiscales -->
           <div class="bg-neutral-50 dark:bg-neutral-800/40 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 space-y-2 text-sm">
             <div class="flex justify-between text-neutral-600 dark:text-neutral-400 text-xs">
               <span>Subtotal Bruto</span>
               <span class="font-medium text-neutral-900 dark:text-white">
-                RD$ {{ subtotalBruto() | number: '1.2-2' }}
+                {{ currencyConfig.currencySymbol() }} {{ subtotalBruto() | number: '1.2-2' }}
               </span>
             </div>
             <div class="flex justify-between text-rose-600 dark:text-rose-400 text-xs">
               <span>Descuento Total</span>
               <span class="font-medium">
-                - RD$ {{ totalDescuento() | number: '1.2-2' }}
+                - {{ currencyConfig.currencySymbol() }} {{ totalDescuento() | number: '1.2-2' }}
               </span>
             </div>
             <div class="flex justify-between text-neutral-600 dark:text-neutral-400 text-xs">
-              <span>ITBIS Facturado</span>
+              <span>{{ currencyConfig.defaultTaxLabel() }} Facturado</span>
               <span class="font-medium text-neutral-900 dark:text-white">
-                RD$ {{ totalItbis() | number: '1.2-2' }}
+                {{ currencyConfig.currencySymbol() }} {{ totalItbis() | number: '1.2-2' }}
               </span>
             </div>
 
-            <!-- Retenciones Fiscales (606) -->
             <div class="pt-2 border-t border-neutral-200 dark:border-neutral-700 grid grid-cols-2 gap-3">
               <div>
                 <mat-form-field appearance="outline" class="w-full">
-                  <mat-label>Retención ITBIS (RD$)</mat-label>
+                  <mat-label>Retención ITBIS ({{ currencyConfig.currencySymbol() }})</mat-label>
                   <input
                     matInput
                     type="number"
@@ -382,7 +376,7 @@ export type PurchaseItemRow = {
               </div>
               <div>
                 <mat-form-field appearance="outline" class="w-full">
-                  <mat-label>Retención ISR (RD$)</mat-label>
+                  <mat-label>Retención ISR ({{ currencyConfig.currencySymbol() }})</mat-label>
                   <input
                     matInput
                     type="number"
@@ -395,18 +389,16 @@ export type PurchaseItemRow = {
               </div>
             </div>
 
-            <!-- Gran Total -->
             <div class="pt-2 border-t border-neutral-300 dark:border-neutral-700 flex justify-between items-baseline">
               <span class="text-base font-bold text-neutral-900 dark:text-white">Total a Pagar</span>
               <span class="text-xl font-black text-blue-600 dark:text-blue-400">
-                RD$ {{ grandTotal() | number: '1.2-2' }}
+                {{ currencyConfig.currencySymbol() }} {{ grandTotal() | number: '1.2-2' }}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Modal Footer -->
       <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 shrink-0">
         <button
           type="button"
@@ -432,6 +424,19 @@ export class PurchaseDialogComponent implements OnInit {
   suppliersService = inject(SuppliersService);
   productsService = inject(ProductsService);
   inventoryService = inject(InventoryService);
+  currencyConfig = inject(CurrencyConfigService);
+
+  availableTaxes = computed(() => {
+    const taxes = this.currencyConfig.taxes();
+    if (taxes && taxes.length > 0) {
+      const active = taxes.filter((t) => t.activo);
+      if (active.length > 0) return active;
+    }
+    return [
+      { id: 'tax-def', nombre: this.currencyConfig.defaultTaxName(), tasa: this.currencyConfig.defaultTaxRate() },
+      { id: 'tax-ex', nombre: 'Exento', tasa: 0 },
+    ];
+  });
 
   suppliers = this.suppliersService.suppliers;
   warehouses = signal<Warehouse[]>([]);
@@ -459,7 +464,7 @@ export class PurchaseDialogComponent implements OnInit {
       cantidad: 1,
       costoUnitario: 0,
       descuento: 0,
-      tasaItbis: 18,
+      tasaItbis: this.currencyConfig.defaultTaxRate(),
       afectaInventario: true,
     },
   ]);
@@ -493,7 +498,7 @@ export class PurchaseDialogComponent implements OnInit {
         cantidad: 1,
         costoUnitario: 0,
         descuento: 0,
-        tasaItbis: 18,
+        tasaItbis: this.currencyConfig.defaultTaxRate(),
         afectaInventario: true,
       },
     ]);
@@ -514,7 +519,7 @@ export class PurchaseDialogComponent implements OnInit {
           productoId: product.id,
           descripcion: product.nombre,
           costoUnitario: Number(product.costo) || 0,
-          tasaItbis: Number(product.taxRate) || 18,
+          tasaItbis: Number(product.taxRate !== undefined && product.taxRate !== null ? product.taxRate : this.currencyConfig.defaultTaxRate()),
           afectaInventario: product.tipo !== 'SERVICIO',
         };
       } else {

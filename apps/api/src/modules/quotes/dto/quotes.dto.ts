@@ -86,6 +86,16 @@ export class CreateQuoteDto {
   @Type(() => Number)
   descuento?: number;
 
+  @IsOptional()
+  @IsString()
+  moneda?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  tasaCambio?: number;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateQuoteItemDto)

@@ -22,6 +22,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
 import { CommonModule } from '@angular/common';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 export type InsumoRow = {
   insumoProductoId: string;
@@ -227,10 +228,19 @@ export type InsumoRow = {
               {{ 'catalogs.products.pricing' | transloco }}
             </h2>
 
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-4">
+              <mat-form-field class="w-full">
+                <mat-label>Moneda del Precio</mat-label>
+                <mat-select formControlName="moneda" placeholder="Selecciona la moneda">
+                  <mat-option value="DOP">DOP - Peso Dominicano (RD$)</mat-option>
+                  <mat-option value="USD">USD - Dólar Estadounidense ($)</mat-option>
+                  <mat-option value="EUR">EUR - Euro (€)</mat-option>
+                </mat-select>
+              </mat-form-field>
+
               <mat-form-field class="w-full">
                 <mat-label>{{ 'common.price' | transloco }}</mat-label>
-                <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">$</span>
+                <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">{{ currencyConfig.getSymbol(form.get('moneda')?.value) }}</span>
                 <input
                   matInput
                   type="number"
@@ -245,7 +255,7 @@ export type InsumoRow = {
                 <mat-label>
                   {{ isService() ? ('catalogs.products.laborOrBaseCost' | transloco) : ('catalogs.products.costPrice' | transloco) }}
                 </mat-label>
-                <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">$</span>
+                <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">{{ currencyConfig.getSymbol(form.get('moneda')?.value) }}</span>
                 <input
                   matInput
                   type="number"
@@ -321,7 +331,7 @@ export type InsumoRow = {
 
                   <mat-form-field class="w-full">
                     <mat-label>{{ 'catalogs.products.specialOfferPrice' | transloco }}</mat-label>
-                    <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">RD$</span>
+                    <span matTextPrefix class="mr-1 text-neutral-500 font-semibold">{{ currencyConfig.getSymbol(form.get('moneda')?.value) }}</span>
                     <input
                       matInput
                       type="number"
@@ -358,7 +368,7 @@ export type InsumoRow = {
                 <div class="flex items-center justify-between p-3 rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40 text-xs font-semibold">
                   <span>{{ 'catalogs.products.customerSavings' | transloco }}:</span>
                   <span class="font-mono font-bold text-sm">
-                    RD$ {{ calculatedSavings() | number:'1.2-2' }} ({{ calculatedDiscountPercent() | number:'1.0-1' }}% OFF)
+                    {{ currencyConfig.getSymbol(form.get('moneda')?.value) }} {{ calculatedSavings() | number:'1.2-2' }} ({{ calculatedDiscountPercent() | number:'1.0-1' }}% OFF)
                   </span>
                 </div>
               </div>
@@ -851,6 +861,7 @@ export default class ProductFormComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
   private http = inject(HttpClient);
+  readonly currencyConfig = inject(CurrencyConfigService);
 
   form!: FormGroup;
   isEdit = false;
@@ -945,6 +956,7 @@ export default class ProductFormComponent implements OnInit {
       tipo: ['PRODUCTO', Validators.required],
       codigoBarras: [''],
       descripcion: [''],
+      moneda: [this.currencyConfig.currencyCode() || 'DOP', Validators.required],
       precioVenta: [0, [Validators.required, Validators.min(0)]],
       costo: [0, [Validators.min(0)]],
       stockInicial: [0, [Validators.min(0)]],
@@ -977,6 +989,7 @@ export default class ProductFormComponent implements OnInit {
             tipo: data.tipo || 'PRODUCTO',
             codigoBarras: data.codigoBarras || '',
             descripcion: data.descripcion || '',
+            moneda: data.moneda || this.currencyConfig.currencyCode() || 'DOP',
             precioVenta: Number(data.precioVenta),
             costo:
               data.costo !== null && data.costo !== undefined

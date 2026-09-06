@@ -8,6 +8,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { PagoCliente } from '../../data/customer-payments.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 export type PaymentReceiptPreviewData = {
   payment: PagoCliente;
@@ -147,10 +148,10 @@ export type PaymentReceiptPreviewData = {
                       {{ app.factura && app.factura.ncf ? app.factura.ncf : 'Sin NCF' }}
                     </td>
                     <td class="py-3 px-3 text-right text-neutral-600 dark:text-neutral-400">
-                      RD$ {{ (app.factura ? app.factura.total : app.monto) | number: '1.2-2' }}
+                      {{ currencyConfig.currencySymbol() }} {{ (app.factura ? app.factura.total : app.monto) | number: '1.2-2' }}
                     </td>
                     <td class="py-3 px-4 text-right font-black text-emerald-600 dark:text-emerald-400">
-                      RD$ {{ app.monto | number: '1.2-2' }}
+                      {{ currencyConfig.currencySymbol() }} {{ app.monto | number: '1.2-2' }}
                     </td>
                   </tr>
                 }
@@ -165,7 +166,7 @@ export type PaymentReceiptPreviewData = {
             TOTAL RECIBIDO:
           </span>
           <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-            RD$ {{ data.payment.monto | number: '1.2-2' }}
+            {{ currencyConfig.currencySymbol() }} {{ data.payment.monto | number: '1.2-2' }}
           </span>
         </div>
 
@@ -194,6 +195,7 @@ export type PaymentReceiptPreviewData = {
 export class PaymentReceiptPreviewComponent {
   dialogRef = inject(MatDialogRef<PaymentReceiptPreviewComponent>);
   data = inject<PaymentReceiptPreviewData>(MAT_DIALOG_DATA);
+  currencyConfig = inject(CurrencyConfigService);
 
   printReceipt() {
     window.print();

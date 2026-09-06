@@ -280,7 +280,8 @@ export class ReportsService {
     const invoices = await this.prisma.facturaVenta.findMany({
       where: {
         empresaId,
-        estado: { notIn: ['ANULADA', 'PAGADA'] },
+        tipoPago: { not: 'CONTADO' },
+        estado: { notIn: ['ANULADA', 'BORRADOR', 'PAGADA'] },
         balancePendiente: { gt: 0 },
       },
       include: {

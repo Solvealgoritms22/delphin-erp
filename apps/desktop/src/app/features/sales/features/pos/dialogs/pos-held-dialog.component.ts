@@ -66,7 +66,7 @@ import { PosService } from '../data/pos.service';
 
                 <div class="text-right">
                   <div class="text-base font-black text-neutral-900 dark:text-white">
-                    RD$ {{ held.total | number:'1.2-2' }}
+                    {{ posService.currencySymbol() }} {{ held.total | number:'1.2-2' }}
                   </div>
                 </div>
               </div>

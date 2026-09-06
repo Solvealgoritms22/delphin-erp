@@ -104,7 +104,7 @@ import { Product } from '../../data/products.service';
                 <div>
                   <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">Precio Venta</span>
                   <div class="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-0.5">
-                    {{ product.precioVenta | currency }}
+                    {{ product.precioVenta | currency:(product.moneda || 'DOP') }}
                   </div>
                 </div>
                 <div>
@@ -112,7 +112,7 @@ import { Product } from '../../data/products.service';
                     {{ product.tipo === 'SERVICIO' ? 'Costo Base' : 'Costo' }}
                   </span>
                   <div class="text-lg font-bold text-neutral-700 dark:text-neutral-300 mt-0.5">
-                    {{ (product.costo !== null && product.costo !== undefined) ? (product.costo | currency) : '-' }}
+                    {{ (product.costo !== null && product.costo !== undefined) ? (product.costo | currency:(product.moneda || 'DOP')) : '-' }}
                   </div>
                 </div>
                 <div>

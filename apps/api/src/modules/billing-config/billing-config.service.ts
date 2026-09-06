@@ -66,6 +66,7 @@ export class BillingConfigService {
       'redondeoPor',
       'preciosIncluyenImpuesto',
       'diasGracia',
+      'tasasCambio',
     ];
     const updateData: Record<string, unknown> = {};
     for (const field of allowed)

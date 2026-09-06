@@ -33,6 +33,7 @@ import {
   FacturaVenta,
 } from '../../data/invoices.service';
 import { SequencesService } from '../../data/sequences.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 import { ProductsService } from '../../../catalogs/data/products.service';
 import { InventoryService } from '../../../catalogs/data/inventory.service';
 import { ClientsService } from '../../data/clients';
@@ -799,7 +800,7 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
                           @for (p of productsService.products(); track p.id) {
                             <mat-option [value]="p.id"
                               >{{ p.codigo }} - {{ p.nombre }} ({{
-                                currencySymbol
+                                getCurrencySymbol(p.moneda || currencyCode)
                               }}
                               {{ p.precioVenta }})</mat-option
                             >
@@ -1231,6 +1232,7 @@ export class InvoicesComponent implements OnInit {
   }
 
   promotionsService = inject(PromotionsService);
+  readonly currencyConfig = inject(CurrencyConfigService);
 
   newInvoice: CreateInvoiceDto = {
     clienteId: '',
@@ -1259,9 +1261,9 @@ export class InvoicesComponent implements OnInit {
   calculatedSubtotalNeto = 0;
   calculatedItbis = 0;
   calculatedTotal = 0;
-  currencyCode = 'DOP';
-  currencySymbol = 'RD$';
-  defaultTaxRate = 18;
+  currencyCode = this.currencyConfig.currencyCode();
+  currencySymbol = this.currencyConfig.currencySymbol();
+  defaultTaxRate = this.currencyConfig.defaultTaxRate();
   fiscalbridgeEnabled = false;
 
   ngOnInit() {
@@ -1275,10 +1277,10 @@ export class InvoicesComponent implements OnInit {
       next: (config) => {
         this.currencyCode = config.configuracion?.monedaBase || 'DOP';
         this.currencySymbol = this.getCurrencySymbol(this.currencyCode);
-        this.defaultTaxRate = Number(
-          config.impuestos?.find((tax: any) => tax.codigo === 'ITBIS18')
-            ?.tasa ?? 18
-        );
+        const activeGravado = config.impuestos?.find((tax: any) => tax.activo && tax.indicadorFacturacion === '1' && Number(tax.tasa) > 0)
+          || config.impuestos?.find((tax: any) => tax.activo && Number(tax.tasa) > 0)
+          || config.impuestos?.find((tax: any) => tax.codigo === 'ITBIS18');
+        this.defaultTaxRate = activeGravado ? Number(activeGravado.tasa) : this.currencyConfig.defaultTaxRate();
       },
     });
     this.http.get<any>(`${environment.apiUrl}/empresas/current`).subscribe({
@@ -1435,7 +1437,11 @@ export class InvoicesComponent implements OnInit {
       .products()
       .find((p) => p.id === productId);
     if (product) {
-      const price = Number(product.precioVenta) || 0;
+      const rawPrice = Number(product.precioVenta) || 0;
+      const productCur = product.moneda || this.currencyCode;
+      const invoiceCur = this.currencyCode;
+      const price = this.currencyConfig.convertAmount(rawPrice, productCur, invoiceCur);
+
       this.invoiceRows[index].precioLista = price;
       this.invoiceRows[index].precioUnitario = price;
       this.invoiceRows[index].tasaItbis = Number(

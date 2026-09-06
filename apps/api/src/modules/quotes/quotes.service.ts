@@ -163,6 +163,21 @@ export class QuotesService {
       throw new BadRequestException('La cotización debe incluir al menos una línea de producto o servicio.');
     }
 
+    // Obtener configuración de facturación para la moneda base e impuesto por defecto
+    const configEmpresa = await this.prisma.configuracionEmpresa.findUnique({
+      where: { empresaId },
+    });
+    const defaultMoneda = configEmpresa?.monedaBase || 'DOP';
+
+    let defaultTaxRate = 18;
+    const defaultTax = await this.prisma.impuesto.findFirst({
+      where: { empresaId, activo: true },
+      orderBy: { tasa: 'desc' },
+    });
+    if (defaultTax) {
+      defaultTaxRate = Number(defaultTax.tasa);
+    }
+
     // Calcular líneas
     let subtotalAcc = new Prisma.Decimal(0);
     let itbisAcc = new Prisma.Decimal(0);
@@ -172,7 +187,7 @@ export class QuotesService {
       const cantidad = new Prisma.Decimal(item.cantidad);
       const precioUnitario = new Prisma.Decimal(item.precioUnitario);
       const itemDescuento = new Prisma.Decimal(item.descuento || 0);
-      const tasaItbis = new Prisma.Decimal(item.tasaItbis !== undefined ? item.tasaItbis : 18);
+      const tasaItbis = new Prisma.Decimal(item.tasaItbis !== undefined ? item.tasaItbis : defaultTaxRate);
 
       const grossLine = cantidad.mul(precioUnitario);
       const netLine = grossLine.sub(itemDescuento);
@@ -231,8 +246,8 @@ export class QuotesService {
           descuento: totalDescuento,
           itbis: itbisAcc,
           total: totalCotizacion,
-          moneda: 'DOP',
-          tasaCambio: new Prisma.Decimal(1),
+          moneda: dto.moneda || defaultMoneda,
+          tasaCambio: new Prisma.Decimal(dto.tasaCambio || 1),
           notas: dto.notas || null,
           terminosCondiciones: dto.terminosCondiciones || null,
           detalles: {
@@ -409,6 +424,15 @@ export class QuotesService {
       throw new BadRequestException('No se puede modificar una cotización que ya fue convertida a Factura.');
     }
 
+    let defaultTaxRate = 18;
+    const defaultTax = await this.prisma.impuesto.findFirst({
+      where: { empresaId, activo: true },
+      orderBy: { tasa: 'desc' },
+    });
+    if (defaultTax) {
+      defaultTaxRate = Number(defaultTax.tasa);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       // Si se actualizaron los items, recalcular
       if (dto.items && dto.items.length > 0) {
@@ -422,7 +446,7 @@ export class QuotesService {
           const cantidad = new Prisma.Decimal(item.cantidad);
           const precioUnitario = new Prisma.Decimal(item.precioUnitario);
           const itemDescuento = new Prisma.Decimal(item.descuento || 0);
-          const tasaItbis = new Prisma.Decimal(item.tasaItbis !== undefined ? item.tasaItbis : 18);
+          const tasaItbis = new Prisma.Decimal(item.tasaItbis !== undefined ? item.tasaItbis : defaultTaxRate);
 
           const grossLine = cantidad.mul(precioUnitario);
           const netLine = grossLine.sub(itemDescuento);
@@ -476,6 +500,8 @@ export class QuotesService {
             descuento: totalDescuento,
             itbis: itbisAcc,
             total: totalCotizacion,
+            moneda: dto.moneda !== undefined ? dto.moneda : existing.moneda,
+            tasaCambio: dto.tasaCambio !== undefined ? new Prisma.Decimal(dto.tasaCambio) : existing.tasaCambio,
           },
           include: {
             cliente: true,
@@ -492,6 +518,8 @@ export class QuotesService {
           fechaVencimiento: dto.fechaVencimiento ? new Date(dto.fechaVencimiento) : existing.fechaVencimiento,
           notas: dto.notas !== undefined ? dto.notas : existing.notas,
           terminosCondiciones: dto.terminosCondiciones !== undefined ? dto.terminosCondiciones : existing.terminosCondiciones,
+          moneda: dto.moneda !== undefined ? dto.moneda : existing.moneda,
+          tasaCambio: dto.tasaCambio !== undefined ? new Prisma.Decimal(dto.tasaCambio) : existing.tasaCambio,
         },
         include: {
           cliente: true,
@@ -714,7 +742,7 @@ export class QuotesService {
           fecha: new Date(),
           fechaVencimiento: quote.fechaVencimiento,
           estado: 'EMITIDA',
-          tipoPago: 'CONTADO',
+          tipoPago: 'CREDITO',
           metodoPago: 'EFECTIVO',
           subtotal: quote.subtotal,
           descuento: quote.descuento,
@@ -722,8 +750,8 @@ export class QuotesService {
           total: quote.total,
           montoPagado: new Prisma.Decimal(0),
           balancePendiente: quote.total,
-          moneda: 'DOP',
-          tasaCambio: new Prisma.Decimal(1),
+          moneda: quote.moneda || 'DOP',
+          tasaCambio: quote.tasaCambio || new Prisma.Decimal(1),
           notas: `Generada a partir de la Cotización ${quote.numeroCotizacion}.${quote.notas ? ' ' + quote.notas : ''}`,
           detalles: {
             create: quote.detalles.map((d) => ({
@@ -810,9 +838,10 @@ export class QuotesService {
       })
       : '30 días desde la emisión';
 
+    const currencySym = quote.moneda === 'USD' ? 'USD $ ' : quote.moneda === 'EUR' ? '€ ' : 'RD$ ';
     const formatCurrency = (val: any) => {
       const num = Number(val || 0);
-      return 'RD$ ' + num.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return currencySym + num.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
     return `
@@ -913,7 +942,7 @@ export class QuotesService {
           </div>
         ` : ''}
         <div class="totals-row">
-          <span>ITBIS (18%):</span>
+          <span>ITBIS:</span>
           <span style="font-family: monospace;">${formatCurrency(quote.itbis)}</span>
         </div>
         <div class="totals-row grand-total">

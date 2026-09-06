@@ -12,6 +12,7 @@ import { Cotizacion, QuotesService, CreateQuoteDto } from '../../data/quotes.ser
 import { ClientsService, Client } from '../../data/clients';
 import { ProductsService, Product } from '../../../catalogs/data/products.service';
 import { InventoryService, Warehouse } from '../../../catalogs/data/inventory.service';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 type QuoteLineItem = {
   productoId?: string;
@@ -72,7 +73,7 @@ type QuoteLineItem = {
         <!-- Top Form Section: Client, Dates, Warehouse -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-5 p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-800">
           <!-- Client Selector -->
-          <div class="space-y-1.5 md:col-span-6">
+          <div class="space-y-1.5 md:col-span-5">
             <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300">
               Cliente Destinatario
             </label>
@@ -115,15 +116,29 @@ type QuoteLineItem = {
             </mat-form-field>
           </div>
 
-          <!-- Validez de Oferta (Días) -->
-          <div class="space-y-1.5 md:col-span-3">
+          <!-- Moneda de la Cotización -->
+          <div class="space-y-1.5 md:col-span-2">
             <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300">
-              Validez de la Oferta
+              Moneda
+            </label>
+            <mat-form-field appearance="outline" class="w-full fuse-mat-dense">
+              <mat-select [(ngModel)]="selectedMoneda" (selectionChange)="onMonedaChanged($event.value)" placeholder="Moneda...">
+                <mat-option value="DOP">DOP (RD$)</mat-option>
+                <mat-option value="USD">USD ($)</mat-option>
+                <mat-option value="EUR">EUR (€)</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Validez de Oferta (Días) -->
+          <div class="space-y-1.5 md:col-span-2">
+            <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300">
+              Validez
             </label>
             <mat-form-field appearance="outline" class="w-full fuse-mat-dense">
               <mat-select [(ngModel)]="validityDays" (selectionChange)="onValidityDaysChanged($event.value)" placeholder="Vigencia...">
                 <mat-option [value]="15">15 Días</mat-option>
-                <mat-option [value]="30">30 Días (Estándar)</mat-option>
+                <mat-option [value]="30">30 Días</mat-option>
                 <mat-option [value]="60">60 Días</mat-option>
                 <mat-option [value]="90">90 Días</mat-option>
               </mat-select>
@@ -161,10 +176,10 @@ type QuoteLineItem = {
                   <th class="py-3 px-3 w-10 text-center">#</th>
                   <th class="py-3 px-4 min-w-[340px]">Producto / Descripción</th>
                   <th class="py-3 px-3 w-28 text-center">Cant.</th>
-                  <th class="py-3 px-3 w-40 text-right">Precio Unit. (RD$)</th>
+                  <th class="py-3 px-3 w-40 text-right">Precio Unit. ({{ currencySymbol() }})</th>
                   <th class="py-3 px-3 w-28 text-center">Desc. %</th>
-                  <th class="py-3 px-3 w-32 text-center">ITBIS</th>
-                  <th class="py-3 px-4 w-36 text-right font-bold">Total (RD$)</th>
+                  <th class="py-3 px-3 w-32 text-center">{{ currencyConfig.defaultTaxLabel() }}</th>
+                  <th class="py-3 px-4 w-36 text-right font-bold">Total ({{ currencySymbol() }})</th>
                   <th class="py-3 px-2 w-12 text-center"></th>
                 </tr>
               </thead>
@@ -184,7 +199,7 @@ type QuoteLineItem = {
                           <option [value]="undefined">-- Producto / Personalizado --</option>
                           @for (p of products(); track p.id) {
                             <option [value]="p.id">
-                              {{ p.nombre }} (RD$ {{ p.precioVenta | number: '1.2-2' }})
+                              {{ p.nombre }} ({{ formatProductPrice(p) }})
                             </option>
                           }
                         </select>
@@ -239,15 +254,15 @@ type QuoteLineItem = {
                         (change)="recalculateLine(item)"
                         class="w-full h-9 text-center px-2 text-xs font-bold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-neutral-900 transition-colors cursor-pointer"
                       >
-                        <option [value]="18">18% (ITBIS)</option>
-                        <option [value]="16">16%</option>
-                        <option [value]="0">0% (Exento)</option>
+                        @for (tax of availableTaxes(); track tax.id) {
+                          <option [value]="tax.tasa">{{ tax.nombre }} ({{ tax.tasa }}%)</option>
+                        }
                       </select>
                     </td>
 
                     <!-- Total de Línea -->
                     <td class="py-3 px-4 text-right font-mono font-bold text-sm text-neutral-900 dark:text-white align-top pt-4">
-                      RD$ {{ item.total | number: '1.2-2' }}
+                      {{ currencySymbol() }} {{ item.total | number: '1.2-2' }}
                     </td>
 
                     <!-- Delete Button -->
@@ -302,7 +317,7 @@ type QuoteLineItem = {
           <div class="p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/80 dark:border-neutral-800 space-y-3">
             <div class="flex justify-between text-xs text-neutral-600 dark:text-neutral-400">
               <span>Subtotal Neto:</span>
-              <span class="font-mono font-bold text-neutral-900 dark:text-white">RD$ {{ calculatedSubtotal() | number: '1.2-2' }}</span>
+              <span class="font-mono font-bold text-neutral-900 dark:text-white">{{ currencySymbol() }} {{ calculatedSubtotal() | number: '1.2-2' }}</span>
             </div>
 
             <div class="flex justify-between items-center text-xs text-neutral-600 dark:text-neutral-400">
@@ -321,14 +336,14 @@ type QuoteLineItem = {
             </div>
 
             <div class="flex justify-between text-xs text-neutral-600 dark:text-neutral-400">
-              <span>Total ITBIS (18%):</span>
-              <span class="font-mono font-bold text-neutral-900 dark:text-white">RD$ {{ calculatedItbis() | number: '1.2-2' }}</span>
+              <span>Total {{ currencyConfig.defaultTaxLabel() }}:</span>
+              <span class="font-mono font-bold text-neutral-900 dark:text-white">{{ currencySymbol() }} {{ calculatedItbis() | number: '1.2-2' }}</span>
             </div>
 
             <div class="pt-2 border-t border-neutral-200 dark:border-neutral-700 flex justify-between items-baseline">
               <span class="text-sm font-extrabold text-neutral-900 dark:text-white">TOTAL COTIZADO:</span>
               <span class="text-xl font-mono font-black text-blue-600 dark:text-blue-400">
-                RD$ {{ calculatedGrandTotal() | number: '1.2-2' }}
+                {{ currencySymbol() }} {{ calculatedGrandTotal() | number: '1.2-2' }}
               </span>
             </div>
           </div>
@@ -368,6 +383,7 @@ export class QuoteDialogComponent implements OnInit {
   inventoryService = inject(InventoryService);
   snackBar = inject(MatSnackBar);
   dialog = inject(MatDialog);
+  currencyConfig = inject(CurrencyConfigService);
 
   isEdit = Boolean(this.data?.quote);
   quote = this.data?.quote;
@@ -379,6 +395,7 @@ export class QuoteDialogComponent implements OnInit {
   selectedClienteId: string | null = null;
   selectedClientEmail: string | null = null;
   selectedAlmacenId: string | null = null;
+  selectedMoneda: string = this.quote?.moneda || this.currencyConfig.currency();
   validityDays = 30;
 
   notas = '';
@@ -387,6 +404,28 @@ export class QuoteDialogComponent implements OnInit {
 
   items: QuoteLineItem[] = [];
   saving = signal<boolean>(false);
+
+  currencySymbol = computed(() => {
+    const c = this.selectedMoneda;
+    return c === 'USD' ? 'USD $' : c === 'EUR' ? '€' : 'RD$';
+  });
+
+  availableTaxes = computed(() => {
+    const taxes = this.currencyConfig.taxes();
+    if (taxes && taxes.length > 0) {
+      const active = taxes.filter((t) => t.activo);
+      if (active.length > 0) return active;
+    }
+    return [
+      { id: 'tax-def', nombre: this.currencyConfig.defaultTaxName(), tasa: this.currencyConfig.defaultTaxRate() },
+      { id: 'tax-ex', nombre: 'Exento', tasa: 0 },
+    ];
+  });
+
+  formatProductPrice(p: Product): string {
+    const sym = p.moneda === 'USD' ? 'USD $' : p.moneda === 'EUR' ? '€' : 'RD$';
+    return `${sym} ${(p.precioVenta || 0).toFixed(2)}`;
+  }
 
   calculatedSubtotal = computed(() => {
     return this.items.reduce((acc, i) => acc + (i.cantidad * i.precioUnitario - i.descuento), 0);
@@ -410,6 +449,7 @@ export class QuoteDialogComponent implements OnInit {
       this.selectedClienteId = this.quote.clienteId || null;
       this.selectedClientEmail = this.quote.cliente?.email || null;
       this.selectedAlmacenId = this.quote.almacenId || null;
+      this.selectedMoneda = this.quote.moneda || this.currencyConfig.currency();
       this.notas = this.quote.notas || '';
       this.terminosCondiciones = this.quote.terminosCondiciones || '';
       this.globalDiscount = Number(this.quote.descuento || 0);
@@ -421,12 +461,13 @@ export class QuoteDialogComponent implements OnInit {
         precioUnitario: Number(d.precioUnitario),
         descuentoPorcentaje: Number(d.porcentajeDescuento || 0),
         descuento: Number(d.descuento || 0),
-        tasaItbis: Number(d.tasaItbis || 18),
+        tasaItbis: Number(d.tasaItbis !== undefined ? d.tasaItbis : this.currencyConfig.defaultTaxRate()),
         itbis: Number(d.itbis || 0),
         subtotal: Number(d.subtotal),
         total: Number(d.total),
       }));
     } else {
+      this.selectedMoneda = this.currencyConfig.currency();
       this.addItemLine();
     }
   }
@@ -461,6 +502,21 @@ export class QuoteDialogComponent implements OnInit {
     this.validityDays = days;
   }
 
+  onMonedaChanged(newCur: string): void {
+    // Si ya hay productos agregados, convertir precios según tasa de cambio
+    for (const item of this.items) {
+      if (item.productoId) {
+        const prod = this.products().find((p) => p.id === item.productoId);
+        if (prod) {
+          const prodCur = prod.moneda || 'DOP';
+          const rawPrice = Number(prod.precioVenta || 0);
+          item.precioUnitario = this.currencyConfig.convertAmount(rawPrice, prodCur, newCur);
+          this.recalculateLine(item);
+        }
+      }
+    }
+  }
+
   addItemLine(): void {
     this.items.push({
       descripcion: '',
@@ -468,7 +524,7 @@ export class QuoteDialogComponent implements OnInit {
       precioUnitario: 0,
       descuentoPorcentaje: 0,
       descuento: 0,
-      tasaItbis: 18,
+      tasaItbis: this.currencyConfig.defaultTaxRate(),
       itbis: 0,
       subtotal: 0,
       total: 0,
@@ -486,8 +542,11 @@ export class QuoteDialogComponent implements OnInit {
     const prod = this.products().find((p) => p.id === item.productoId);
     if (prod) {
       item.descripcion = prod.nombre;
-      item.precioUnitario = Number(prod.precioVenta || 0);
-      item.tasaItbis = prod.taxRate !== undefined && prod.taxRate !== null ? Number(prod.taxRate) : 18;
+      const targetCur = this.selectedMoneda || this.currencyConfig.currency();
+      const prodCur = prod.moneda || 'DOP';
+      const rawPrice = Number(prod.precioVenta || 0);
+      item.precioUnitario = this.currencyConfig.convertAmount(rawPrice, prodCur, targetCur);
+      item.tasaItbis = prod.taxRate !== undefined && prod.taxRate !== null ? Number(prod.taxRate) : this.currencyConfig.defaultTaxRate();
       this.recalculateLine(item);
     }
   }
@@ -506,7 +565,8 @@ export class QuoteDialogComponent implements OnInit {
     const gross = Number(item.cantidad || 0) * Number(item.precioUnitario || 0);
     const desc = Number(item.descuento || 0);
     const net = Math.max(0, gross - desc);
-    const itbis = (net * Number(item.tasaItbis || 18)) / 100;
+    const taxRate = Number(item.tasaItbis !== undefined ? item.tasaItbis : this.currencyConfig.defaultTaxRate());
+    const itbis = (net * taxRate) / 100;
     item.subtotal = net;
     item.itbis = itbis;
     item.total = net + itbis;
@@ -525,6 +585,8 @@ export class QuoteDialogComponent implements OnInit {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + this.validityDays);
 
+    const exchangeRate = this.selectedMoneda === 'DOP' ? 1 : (this.currencyConfig.exchangeRates()[this.selectedMoneda] || 1);
+
     const payload: CreateQuoteDto = {
       clienteId: this.selectedClienteId || undefined,
       almacenId: this.selectedAlmacenId || undefined,
@@ -532,6 +594,8 @@ export class QuoteDialogComponent implements OnInit {
       notas: this.notas?.trim() || undefined,
       terminosCondiciones: this.terminosCondiciones?.trim() || undefined,
       descuento: Number(this.globalDiscount || 0),
+      moneda: this.selectedMoneda,
+      tasaCambio: exchangeRate,
       items: this.items.map((i) => ({
         productoId: i.productoId || undefined,
         descripcion: i.descripcion.trim(),

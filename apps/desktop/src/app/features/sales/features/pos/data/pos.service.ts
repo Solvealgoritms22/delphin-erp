@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { Product } from '@features/catalogs/data/products.service';
 import { Client } from '@features/sales/data/clients';
 import { AuthState } from '@core/auth/auth.state';
+import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
 export type CartItem = {
   id: string; // product id
@@ -32,6 +33,12 @@ export type HeldCart = {
 @Injectable({ providedIn: 'root' })
 export class PosService {
   private readonly authState = inject(AuthState);
+  readonly currencyConfig = inject(CurrencyConfigService);
+  readonly currencyCode = this.currencyConfig.currencyCode;
+  readonly currencySymbol = this.currencyConfig.currencySymbol;
+  readonly defaultTaxRate = this.currencyConfig.defaultTaxRate;
+  readonly defaultTaxName = this.currencyConfig.defaultTaxName;
+  readonly defaultTaxLabel = this.currencyConfig.defaultTaxLabel;
 
   readonly items = signal<CartItem[]>([]);
   readonly selectedClient = signal<Client | null>(null);
@@ -88,6 +95,24 @@ export class PosService {
     }, 0);
   });
 
+  readonly taxLabel = computed(() => {
+    const items = this.items();
+    const name = this.currencyConfig.defaultTaxName();
+    if (items.length === 0) {
+      const rate = this.currencyConfig.defaultTaxRate();
+      return `${name} (${rate}%)`;
+    }
+    const uniqueRates = Array.from(new Set(items.map((i) => i.tasaItbis)));
+    if (uniqueRates.length === 1) {
+      return `${name} (${uniqueRates[0]}%)`;
+    }
+    const positiveRates = uniqueRates.filter((r) => r > 0);
+    if (positiveRates.length === 1) {
+      return `${name} (${positiveRates[0]}%)`;
+    }
+    return name;
+  });
+
   readonly grandTotal = computed(() =>
     Number((this.taxableSubtotal() + this.taxTotal()).toFixed(2))
   );
@@ -97,13 +122,22 @@ export class PosService {
     const currentItems = [...this.items()];
     const existingIndex = currentItems.findIndex((i) => i.id === product.id);
 
-    const unitPrice =
+    const rawUnitPrice =
       product.enOferta && product.precioOferta != null && product.precioOferta > 0
         ? Number(product.precioOferta)
         : Number(product.precioVenta);
 
-    const listPrice = Number(product.precioVenta);
-    const taxRate = product.impuesto?.tasa != null ? Number(product.impuesto.tasa) : (product.taxRate ?? 18);
+    const rawListPrice = Number(product.precioVenta);
+    const productCurrency = product.moneda || this.currencyCode();
+    const posCurrency = this.currencyCode();
+    const unitPrice = this.currencyConfig.convertAmount(rawUnitPrice, productCurrency, posCurrency);
+    const listPrice = this.currencyConfig.convertAmount(rawListPrice, productCurrency, posCurrency);
+
+    const defaultRate = this.currencyConfig.defaultTaxRate();
+    const taxRate =
+      product.impuesto?.tasa != null
+        ? Number(product.impuesto.tasa)
+        : (product.taxRate != null ? Number(product.taxRate) : defaultRate);
 
     if (existingIndex > -1) {
       const existing = currentItems[existingIndex];

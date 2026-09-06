@@ -1872,6 +1872,17 @@
     "printTicket": "Print Ticket",
     "newSale": "New Sale",
     "saleHeldSuccess": "Sale placed on hold successfully",
-    "saleError": "Could not complete sale. Please try again."
+    "saleError": "Could not complete sale. Please try again.",
+    "splitCardAmount": "Card Amount",
+    "splitCashAmount": "Cash Amount",
+    "splitCashReceived": "Cash Received",
+    "cardReference": "Auth / Voucher No. (Optional)",
+    "transferReference": "Transfer Reference (Optional)",
+    "splitSummary": "Split Payment Breakdown",
+    "splitFiftyPercent": "Split 50 / 50",
+    "cardPaymentNotice": "Total payment via card terminal / POS",
+    "transferPaymentNotice": "Total payment via bank transfer",
+    "splitTotalMismatch": "The sum of card and cash must equal the total amount",
+    "splitRemainingCash": "Remaining balance to cover in cash"
   }
 }
