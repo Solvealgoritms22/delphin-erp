@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import * as crypto from 'crypto';
+import { TenantContext } from '../../../common/tenant/tenant-context';
 
 @Injectable()
 export class TenantApiKeyGuard implements CanActivate {
@@ -46,7 +47,7 @@ export class TenantApiKeyGuard implements CanActivate {
       },
     });
 
-    if (!app || app.estado !== 'ACTIVO') {
+    if (!app || app.estado !== 'ACTIVO' || app.empresa.estado !== 'ACTIVA') {
       throw new UnauthorizedException('Clave API no válida o revocada.');
     }
 
@@ -110,6 +111,8 @@ export class TenantApiKeyGuard implements CanActivate {
 
     // 6. Attach tenant context to request
     request.empresaId = app.empresaId;
+    const store = TenantContext.getStore();
+    if (store) store.empresaId = app.empresaId;
     request.tenantAppId = app.id;
     request.tenantAppName = app.nombre;
 

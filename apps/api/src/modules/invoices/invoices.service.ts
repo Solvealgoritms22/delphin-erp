@@ -131,16 +131,7 @@ export class InvoicesService {
     }
 
     let ncf: string | null = null;
-    if (!isDraft) {
-      // Reservar NCF
-      const ambiente = empresa.fiscalbridgeEnv || 'TEST';
-      const ncfResult = await this.sequencesService.getNextNCF(
-        empresaId,
-        tipoNcf,
-        ambiente,
-      );
-      ncf = ncfResult.ncf;
-    }
+
 
     // Calcular Subtotal, ITBIS, Descuentos y Total
     let subtotalBrutoAcc = new Prisma.Decimal(0);
@@ -313,6 +304,7 @@ export class InvoicesService {
 
     // Transacción de creación de factura y descuento de inventario
     const invoice = await this.prisma.$transaction(async (tx) => {
+      if (!isDraft) ncf = (await this.sequencesService.getNextNCF(empresaId, tipoNcf, empresa.fiscalbridgeEnv || 'TEST', tx)).ncf;
       const numeroFactura = await this.generateNextNumeroFactura(
         tx,
         empresaId,
@@ -974,43 +966,14 @@ export class InvoicesService {
     empresaId: string,
     prefix: 'FAC' | 'NC' = 'FAC',
   ): Promise<string> {
-    const last = await tx.facturaVenta.findFirst({
-      where: {
-        empresaId,
-        numeroFactura: { startsWith: `${prefix}-` },
-      },
-      orderBy: { creadoEn: 'desc' },
-      select: { numeroFactura: true },
-    });
-
-    let nextNum = 1;
-    if (last?.numeroFactura) {
-      const match = last.numeroFactura.match(new RegExp(`^${prefix}-(\\d+)`));
-      if (match) {
-        nextNum = parseInt(match[1], 10) + 1;
-      } else {
-        const count = await tx.facturaVenta.count({
-          where: {
-            empresaId,
-            numeroFactura: { startsWith: `${prefix}-` },
-          },
-        });
-        nextNum = count + 1;
-      }
-    }
-
-    let numero = `${prefix}-${String(nextNum).padStart(6, '0')}`;
-    while (
-      await tx.facturaVenta.findUnique({
-        where: {
-          empresaId_numeroFactura: { empresaId, numeroFactura: numero },
-        },
-      })
-    ) {
-      nextNum++;
-      numero = `${prefix}-${String(nextNum).padStart(6, '0')}`;
-    }
-
-    return numero;
+    // The counter is advanced in the same transaction as the invoice and stock.
+    const key = empresaId + ':' + prefix;
+    const rows = await tx.$queryRaw<Array<{ value: bigint }>>`
+      INSERT INTO document_counters (key, value)
+      VALUES (${key}, COALESCE((SELECT MAX(substring(numero_factura from '[0-9]+$')::bigint)
+        FROM facturas_venta WHERE empresa_id = ${empresaId} AND numero_factura ~ ${'^' + prefix + '-[0-9]+$'}), 0) + 1)
+      ON CONFLICT (key) DO UPDATE SET value = document_counters.value + 1 RETURNING value
+    `;
+    return prefix + '-' + String(rows[0].value).padStart(6, '0');
   }
 }

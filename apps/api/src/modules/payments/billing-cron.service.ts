@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BillingAttemptsService } from './billing-attempts.service';
+import { decryptSecret } from '../../common/security/secrets';
 import { AzulService } from './azul.service';
 
 @Injectable()
@@ -10,6 +12,7 @@ export class BillingCronService {
   constructor(
     private prisma: PrismaService,
     private azulService: AzulService,
+    private attempts: BillingAttemptsService,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
@@ -43,12 +46,13 @@ export class BillingCronService {
           : sub.plan.precioMensual;
       // Asumiendo que el monto viene en USD pero procesamos en una moneda base. Para simplificar, multiplicamos x 100.
       const amountCents = Math.round(Number(amountToCharge) * 100);
-      const orderNumber = `RENEW-${sub.id.substring(0, 8)}-${Date.now()}`;
+      const orderNumber = `RENEW-${sub.id}-${sub.fechaRenovacion!.getTime()}`;
 
       try {
+        await this.attempts.execute(sub.empresaId, 'SUBSCRIPTION_RENEWED', orderNumber, async () => {
         const azulRes = await this.azulService.processTokenSale({
-          dataVaultToken: sub.azulDataVaultToken,
-          dataVaultExpiration: sub.azulDataVaultExpiration,
+          dataVaultToken: decryptSecret(sub.azulDataVaultToken),
+          dataVaultExpiration: sub.azulDataVaultExpiration!,
           amountCents,
           itbisCents: Math.round(amountCents * 0.18), // Ejemplo: 18% itbis
           orderNumber,
@@ -63,12 +67,13 @@ export class BillingCronService {
             nextRenewal.setMonth(nextRenewal.getMonth() + 1);
           }
 
-          await this.prisma.suscripcion.update({
+          await this.prisma.$transaction(async tx => {
+          await tx.suscripcion.update({
             where: { id: sub.id },
             data: { fechaRenovacion: nextRenewal },
           });
 
-          await this.prisma.factura.create({
+          await tx.factura.create({
             data: {
               suscripcionId: sub.id,
               monto: amountToCharge,
@@ -78,6 +83,7 @@ export class BillingCronService {
             },
           });
 
+          });
           this.logger.log(
             `Cobro exitoso. Próxima renovación: ${nextRenewal.toISOString()}`,
           );
@@ -91,6 +97,8 @@ export class BillingCronService {
             `Cobro fallido para ${sub.empresa.razonSocial}. Estado actualizado a PAST_DUE.`,
           );
         }
+        return { approved: this.azulService.isApproved(azulRes), orderNumber };
+        });
       } catch (error) {
         this.logger.error(
           `Error procesando renovación para ${sub.empresa.razonSocial}`,

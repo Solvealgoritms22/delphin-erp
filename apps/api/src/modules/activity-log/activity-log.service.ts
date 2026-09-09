@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export interface LogActivityDto {
@@ -19,6 +19,7 @@ export interface LogActivityDto {
 
 @Injectable()
 export class ActivityLogService {
+  private readonly logger = new Logger(ActivityLogService.name);
   constructor(private readonly prisma: PrismaService) {}
 
   /**
@@ -42,8 +43,9 @@ export class ActivityLogService {
           userAgent: dto.userAgent,
         },
       });
-    } catch {
-      // Silently ignore — activity logging must never break business logic
+    } catch (error) {
+      this.logger.error('AUDIT_WRITE_FAILED', error instanceof Error ? error.stack : undefined);
+      throw error;
     }
   }
 
@@ -51,7 +53,7 @@ export class ActivityLogService {
    * Query activity logs with filtering, pagination and enriched user avatar photos.
    */
   async findMany(params: {
-    empresaId?: string;
+    empresaId: string;
     modulo?: string;
     accion?: string;
     usuarioId?: string;
@@ -69,7 +71,9 @@ export class ActivityLogService {
       limit = 30,
     } = params;
 
-    const where: any = empresaId ? { empresaId } : {};
+    if (!empresaId) throw new ForbiddenException('Empresa activa requerida');
+    if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 200) throw new BadRequestException('Paginación inválida');
+    const where: any = { empresaId };
 
     if (modulo) where.modulo = modulo;
     if (accion) where.accion = accion;
@@ -128,28 +132,21 @@ export class ActivityLogService {
   /**
    * Returns available years for sidebar navigation.
    */
-  async getYears(empresaId?: string): Promise<number[]> {
-    const logs = await this.prisma.activityLog.findMany({
-      where: empresaId ? { empresaId } : {},
-      select: { creadoEn: true },
-      orderBy: { creadoEn: 'desc' },
-    });
-
-    const years = [...new Set(logs.map((l) => l.creadoEn.getFullYear()))];
-    return years.sort((a, b) => b - a);
+  async getYears(empresaId: string): Promise<number[]> {
+    if (!empresaId) throw new ForbiddenException('Empresa activa requerida');
+    const rows = await this.prisma.$queryRaw<Array<{ year: number }>>`
+      SELECT DISTINCT EXTRACT(YEAR FROM creado_en)::int AS year
+      FROM activity_logs WHERE empresa_id = ${empresaId} ORDER BY year DESC
+    `;
+    return rows.map(row => row.year);
   }
 
-  async clear(empresaId: string, modulo?: string) {
-    return this.prisma.activityLog.deleteMany({
-      where: {
-        empresaId,
-        ...(modulo ? { modulo } : {}),
-      },
-    });
+  async clear(_empresaId: string, _modulo?: string): Promise<never> {
+    throw new ForbiddenException('Los registros de auditoría son inmutables');
   }
 
   async findSecurityLogs(params: {
-    empresaId?: string;
+    empresaId: string;
     search?: string;
     severity?: string;
     page?: number;

@@ -1,3 +1,4 @@
+import { CompanyDto, UpdateCompanyDto } from '../../common/dto/resource.dto';
 import {
   Controller,
   Get,
@@ -26,7 +27,7 @@ export class EmpresasController {
 
   @Post()
   @ApiOperation({ summary: 'Crear una nueva empresa (tenant)' })
-  create(@CurrentUser() user: any, @Body() data: any) {
+  create(@CurrentUser() user: any, @Body() data: CompanyDto) {
     return this.empresasService.create(user.id, data);
   }
 
@@ -42,7 +43,11 @@ export class EmpresasController {
     if (!user.empresaId) return null;
     return this.prisma.suscripcion.findUnique({
       where: { empresaId: user.empresaId },
-      include: { plan: true },
+      select: {
+        id: true, empresaId: true, planId: true, estado: true, periodicidad: true,
+        fechaInicio: true, fechaRenovacion: true, fechaCancelacion: true, plan: true,
+        azulCardLast4: true, azulCardBrand: true,
+      },
     });
   }
 
@@ -62,13 +67,13 @@ export class EmpresasController {
 
   @Patch('current')
   @ApiOperation({ summary: 'Actualizar datos de la empresa activa' })
-  updateCurrent(@CurrentUser() user: any, @Body() data: any) {
+  updateCurrent(@CurrentUser() user: any, @Body() data: UpdateCompanyDto) {
     return this.empresasService.updateCurrent(user.id, user.empresaId, data);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar empresa (solo propietario)' })
-  update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: any) {
+  update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: UpdateCompanyDto) {
     return this.empresasService.update(user.id, id, data);
   }
 

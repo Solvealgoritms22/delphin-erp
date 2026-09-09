@@ -36,7 +36,7 @@ export class UsersService {
       include: {
         usuario: {
           include: {
-            membresias: { select: { empresaId: true, estado: true } },
+            membresias: { where: { empresaId }, select: { empresaId: true, estado: true } },
           },
         },
         role: true,
@@ -126,17 +126,8 @@ export class UsersService {
         },
       });
     } else {
-      // Update avatar or name if provided
-      const updatePayload: any = {};
-      if (data.avatar !== undefined) updatePayload.avatar = data.avatar;
-      if (data.name || data.nombre)
-        updatePayload.nombre = data.name || data.nombre;
-      if (Object.keys(updatePayload).length > 0) {
-        user = await this.prisma.usuario.update({
-          where: { id: user.id },
-          data: updatePayload,
-        });
-      }
+      const existingMembership = await this.prisma.membresia.findUnique({ where: { usuarioId_empresaId: { usuarioId: user.id, empresaId } } });
+      if (!existingMembership) throw new ForbiddenException('La cuenta existente debe autorizar su vinculación a esta empresa');
       // If the user has not verified yet and invitation was requested, generate a new token
       if (!user.isVerified && usingInvitation) {
         invitationToken = randomBytes(32).toString('hex');
@@ -353,97 +344,52 @@ export class UsersService {
   }
 
   async update(empresaId: string, id: string, data: any, actorUserId?: string) {
-    const empresa = await this.prisma.empresa.findUnique({
-      where: { id: empresaId },
-    });
-    const isOwner = empresa?.propietarioId === id;
-
-    if (isOwner && data.estado === 'INACTIVO') {
-      throw new BadRequestException(
-        'La cuenta principal del propietario del Tenant no puede ser desactivada.',
-      );
-    }
-
-    if (data.password) {
-      const passwordHash = await bcrypt.hash(data.password, 10);
-      await this.prisma.usuario.update({
-        where: { id },
-        data: { passwordHash },
+    if (!empresaId || !actorUserId) throw new BadRequestException('Empresa y actor requeridos');
+    if (data.password) throw new BadRequestException('Utiliza el flujo de recuperación de contraseña');
+    const companyIds = data.empresaIds !== undefined
+      ? await this.validateAssignableCompanies(actorUserId, this.normalizeCompanyIds(data.empresaIds, empresaId), empresaId)
+      : [empresaId];
+    const managedIds = data.empresaIds !== undefined
+      ? (await this.findAssignableCompanies(actorUserId)).map(company => company.id) : [empresaId];
+    return this.prisma.$transaction(async tx => {
+      const member = await tx.membresia.findUnique({
+        where: { usuarioId_empresaId: { usuarioId: id, empresaId } }, include: { usuario: true, empresa: true },
       });
-    }
-
-    if (data.name !== undefined || data.nombre !== undefined) {
-      await this.prisma.usuario.update({
-        where: { id },
-        data: { nombre: data.name ?? data.nombre },
+      if (!member) throw new NotFoundException('Usuario no encontrado en la empresa');
+      if (member.empresa.propietarioId === id && (data.estado === 'INACTIVO' || data.roleId || !companyIds.includes(empresaId))) {
+        throw new BadRequestException('No se puede desactivar o cambiar el rol del propietario');
+      }
+      const nombre = data.name ?? data.nombre;
+      const identityChanged = (nombre !== undefined && nombre !== member.usuario.nombre) ||
+        (data.avatar !== undefined && data.avatar !== member.usuario.avatar);
+      if (identityChanged && id !== actorUserId) {
+        const unrelated = await tx.membresia.count({ where: { usuarioId: id, empresa: { propietarioId: { not: actorUserId } } } });
+        if (unrelated) throw new BadRequestException('La identidad compartida solo puede modificarla su titular');
+      }
+      if (data.roleId) {
+        for (const assignedId of companyIds) {
+          if (!await tx.role.findFirst({ where: { id: data.roleId, empresaId: assignedId } })) {
+            throw new BadRequestException('El rol debe pertenecer a la empresa asignada');
+          }
+        }
+      }
+      if (identityChanged) await tx.usuario.update({ where: { id }, data: {
+        nombre: nombre === undefined ? undefined : nombre, avatar: data.avatar,
+      } });
+      if (data.empresaIds !== undefined) {
+        await tx.membresia.deleteMany({ where: { usuarioId: id, empresaId: { in: managedIds, notIn: companyIds } } });
+      }
+      for (const assignedId of companyIds) await tx.membresia.upsert({
+        where: { usuarioId_empresaId: { usuarioId: id, empresaId: assignedId } },
+        create: { usuarioId: id, empresaId: assignedId, roleId: data.roleId || null, estado: data.estado || 'ACTIVO' },
+        update: { roleId: data.roleId, estado: data.estado },
       });
-    }
-
-    if (data.avatar !== undefined) {
-      await this.prisma.usuario.update({
-        where: { id },
-        data: { avatar: data.avatar },
-      });
-    }
-
-    if (data.empresaIds !== undefined) {
-      const requestedCompanyIds = this.normalizeCompanyIds(
-        data.empresaIds,
-        empresaId,
-      );
-      const companyIds = await this.validateAssignableCompanies(
-        actorUserId,
-        requestedCompanyIds,
-        empresaId,
-      );
-      const managedCompanyIds = actorUserId
-        ? (await this.findAssignableCompanies(actorUserId)).map(
-            (company) => company.id,
-          )
-        : [empresaId];
-
-      await this.prisma.$transaction(async (tx) => {
-        await tx.membresia.deleteMany({
-          where: {
-            usuarioId: id,
-            empresaId: { in: managedCompanyIds, notIn: companyIds },
-          },
-        });
-        await Promise.all(
-          companyIds.map((assignedEmpresaId) =>
-            tx.membresia.upsert({
-              where: {
-                usuarioId_empresaId: {
-                  usuarioId: id,
-                  empresaId: assignedEmpresaId,
-                },
-              },
-              create: {
-                usuarioId: id,
-                empresaId: assignedEmpresaId,
-                roleId: data.roleId || null,
-                estado: data.estado || 'ACTIVO',
-              },
-              update: {
-                roleId: data.roleId !== undefined ? data.roleId : undefined,
-                estado: data.estado !== undefined ? data.estado : undefined,
-              },
-            }),
-          ),
-        );
-      });
-
+      await tx.userSession.updateMany({ where: { usuarioId: id, revokedAt: null }, data: { revokedAt: new Date() } });
+      await tx.activityLog.create({ data: {
+        empresaId, usuarioId: actorUserId, modulo: 'SECURITY', accion: 'USER_UPDATED', resourceId: id,
+        metadata: JSON.stringify({ severity: 'Medium', actionTaken: 'Membresía actualizada y sesiones revocadas' }),
+      } });
       return { usuarioId: id, empresaIds: companyIds };
-    }
-
-    return this.prisma.membresia.update({
-      where: {
-        usuarioId_empresaId: { usuarioId: id, empresaId },
-      },
-      data: {
-        roleId: data.roleId !== undefined ? data.roleId : undefined,
-        estado: data.estado !== undefined ? data.estado : undefined,
-      },
     });
   }
 

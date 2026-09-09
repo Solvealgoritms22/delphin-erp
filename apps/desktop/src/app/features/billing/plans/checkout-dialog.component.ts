@@ -83,16 +83,19 @@ export class CheckoutDialogComponent {
   private http = inject(HttpClient);
 
   isProcessing = signal(false);
+  private readonly idempotencyKey = crypto.randomUUID();
   private _error = signal('');
   error = this._error.asReadonly();
 
   pay() {
+    if (this.isProcessing()) return;
     this.isProcessing.set(true);
     this._error.set('');
 
     this.http
       .post<any>(`${environment.apiUrl}/payments/change-plan`, {
         planId: this.data.planId,
+        idempotencyKey: this.idempotencyKey,
         billingCycle: this.data.billingCycle,
       })
       .subscribe({

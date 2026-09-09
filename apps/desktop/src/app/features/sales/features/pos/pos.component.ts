@@ -25,6 +25,7 @@ import { Product, ProductsService } from '@features/catalogs/data/products.servi
 import { CategoriesService } from '@features/catalogs/data/categories.service';
 import { ClientsService } from '@features/sales/data/clients';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
+import { ShoppingCartIcon } from 'ng-animated-icons';
 
 import { PosService } from './data/pos.service';
 import { PosCheckoutDialogComponent } from './dialogs/pos-checkout-dialog.component';
@@ -51,6 +52,7 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
     MatSnackBarModule,
     TranslocoPipe,
     SkeletonComponent,
+    ShoppingCartIcon,
   ],
   template: `
     <div class="relative flex h-full w-full min-w-0 bg-neutral-100/60 dark:bg-neutral-950 overflow-hidden">
@@ -104,7 +106,7 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
               (click)="toggleMobileCart()"
               class="lg:hidden shrink-0 relative flex items-center justify-center p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700"
             >
-              <mat-icon svgIcon="shopping-cart" class="!w-5 !h-5"></mat-icon>
+              <i-shopping-cart [size]="18"></i-shopping-cart>
               @if (posService.totalQuantity() > 0) {
                 <span class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary-600 text-[10px] font-bold text-white">
                   {{ posService.totalQuantity() }}
@@ -295,11 +297,11 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
         <div class="flex-auto min-h-0 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/80 p-3 sm:p-4 space-y-1">
           @if (posService.items().length === 0) {
             <div class="flex flex-col items-center justify-center h-full py-16 text-center text-neutral-400">
-              <mat-icon svgIcon="shopping-cart" class="!w-10 !h-10 text-neutral-300 dark:text-neutral-700 mb-2"></mat-icon>
-              <p class="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+              <i-shopping-cart [size]="32" class="text-neutral-400 dark:text-neutral-400 mb-1"></i-shopping-cart>
+              <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                 {{ 'pos.cartEmpty' | transloco }}
               </p>
-              <p class="text-[11px] text-neutral-400 max-w-[200px] mt-0.5">
+              <p class="text-[11px] text-neutral-400 dark:text-neutral-500 max-w-[210px] mt-1 leading-relaxed">
                 {{ 'pos.cartEmptyDesc' | transloco }}
               </p>
             </div>

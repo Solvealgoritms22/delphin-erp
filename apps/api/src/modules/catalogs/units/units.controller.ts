@@ -1,3 +1,4 @@
+import { UnitDto, UpdateUnitDto } from '../../../common/dto/resource.dto';
 import {
   Controller,
   Get,
@@ -26,7 +27,7 @@ export class UnitsController {
   @Post()
   @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Crear unidad de medida' })
-  create(@CurrentUser() user: any, @Body() data: any) {
+  create(@CurrentUser() user: any, @Body() data: UnitDto) {
     return this.unitsService.create(user.empresaId, data);
   }
 
@@ -47,7 +48,7 @@ export class UnitsController {
   @Patch(':id')
   @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Actualizar unidad de medida' })
-  update(@Param('id') id: string, @CurrentUser() user: any, @Body() data: any) {
+  update(@Param('id') id: string, @CurrentUser() user: any, @Body() data: UpdateUnitDto) {
     return this.unitsService.update(id, user.empresaId, data);
   }
 

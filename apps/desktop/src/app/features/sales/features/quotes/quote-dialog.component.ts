@@ -178,7 +178,7 @@ type QuoteLineItem = {
               <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 font-bold border-b border-neutral-200 dark:border-neutral-800 uppercase text-[11px] tracking-wider">
                 <tr>
                   <th class="py-3.5 px-3 w-12 text-center">#</th>
-                  <th class="py-3.5 px-3 min-w-[340px]">Producto / Descripción</th>
+                  <th class="py-3.5 px-3 min-w-[340px]">Descripción</th>
                   <th class="py-3.5 px-2.5 w-28 text-center">Cant.</th>
                   <th class="py-3.5 px-2.5 w-36 text-right">Precio Unit. ({{ currencySymbol() }})</th>
                   <th class="py-3.5 px-2.5 w-28 text-center">Desc. %</th>

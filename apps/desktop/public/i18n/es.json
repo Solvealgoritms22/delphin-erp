@@ -1154,15 +1154,15 @@
         "B04": "B04 - Nota de Crédito Tradicional"
       },
       "modal": {
-        "title": "Nueva Secuencia NCF / e-CF",
+        "title": "Nueva Secuencia e-CF",
         "name": "Nombre Descriptivo",
-        "namePlaceholder": "Crédito Fiscal Electrónico (Ventas Principales)",
+        "namePlaceholder": "Crédito Fiscal Electrónico",
         "type": "Tipo de Comprobante",
         "environment": "Ambiente",
         "envOptions": {
-          "test": "TEST (Pruebas / Sandbox)",
-          "cert": "CERT (Certificación DGII)",
-          "prod": "PROD (Producción en Vivo)"
+          "test": "TEST",
+          "cert": "CERT",
+          "prod": "PROD"
         },
         "startNumber": "Número Inicial (Desde)",
         "limitNumber": "Límite Autorizado (Hasta)",

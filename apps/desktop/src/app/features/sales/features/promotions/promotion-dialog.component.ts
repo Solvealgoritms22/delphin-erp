@@ -19,6 +19,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PromotionsService, Promocion } from '../../data/promotions.service';
 import { ProductsService } from '../../../catalogs/data/products.service';
@@ -44,6 +45,7 @@ export type PromotionDialogData = {
     MatSelectModule,
     MatSlideToggleModule,
     MatSnackBarModule,
+    MatDatepickerModule,
     TranslocoPipe,
   ],
   template: `
@@ -240,12 +242,16 @@ export type PromotionDialogData = {
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>{{ 'commercial.promotions.startDate' | transloco }}</mat-label>
-            <input matInput type="date" formControlName="fechaInicio" />
+            <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio" placeholder="dd/mm/aaaa" />
+            <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+            <mat-datepicker #pickerInicio></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>{{ 'commercial.promotions.endDate' | transloco }}</mat-label>
-            <input matInput type="date" formControlName="fechaFin" />
+            <input matInput [matDatepicker]="pickerFin" formControlName="fechaFin" placeholder="dd/mm/aaaa" />
+            <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFin></mat-datepicker>
           </mat-form-field>
         </div>
 
@@ -381,11 +387,11 @@ export class PromotionDialogComponent implements OnInit {
         promo?.productos?.map((pp) => pp.productoId) || [],
       ],
       fechaInicio: [
-        promo?.fechaInicio ? promo.fechaInicio.split('T')[0] : today,
+        promo?.fechaInicio ? new Date(promo.fechaInicio) : new Date(),
         Validators.required,
       ],
       fechaFin: [
-        promo?.fechaFin ? promo.fechaFin.split('T')[0] : nextMonth,
+        promo?.fechaFin ? new Date(promo.fechaFin) : new Date(Date.now() + 30 * 86400000),
         Validators.required,
       ],
       cantidadMinima: [
@@ -426,8 +432,8 @@ export class PromotionDialogComponent implements OnInit {
       categoriaId: formVal.alcance === 'CATEGORIA' ? formVal.categoriaId : null,
       marcaId: formVal.alcance === 'MARCA' ? formVal.marcaId : null,
       productoIds: formVal.alcance === 'PRODUCTOS' ? formVal.productoIds : [],
-      fechaInicio: new Date(`${formVal.fechaInicio}T00:00:00.000Z`).toISOString(),
-      fechaFin: new Date(`${formVal.fechaFin}T23:59:59.999Z`).toISOString(),
+      fechaInicio: new Date(formVal.fechaInicio).toISOString(),
+      fechaFin: new Date(formVal.fechaFin).toISOString(),
       cantidadMinima: Number(formVal.cantidadMinima || 1),
       montoMinimo: Number(formVal.montoMinimo || 0),
       limiteUsos: formVal.limiteUsos ? Number(formVal.limiteUsos) : null,

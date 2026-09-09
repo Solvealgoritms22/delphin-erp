@@ -15,7 +15,8 @@ import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 
 @ApiTags('Actividad')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions('activity:read')
 @Controller('v1/activity')
 export class ActivityLogController {
   constructor(private readonly activityLogService: ActivityLogService) {}
@@ -25,6 +26,7 @@ export class ActivityLogController {
     summary: 'Listar logs de actividad con filtros y paginación',
   })
   findMany(
+    @Req() request: any,
     @Query('modulo') modulo?: string,
     @Query('accion') accion?: string,
     @Query('usuarioId') usuarioId?: string,
@@ -33,6 +35,7 @@ export class ActivityLogController {
     @Query('limit') limit?: string,
   ) {
     return this.activityLogService.findMany({
+      empresaId: request.user.empresaId,
       modulo,
       accion,
       usuarioId,
@@ -44,8 +47,8 @@ export class ActivityLogController {
 
   @Get('years')
   @ApiOperation({ summary: 'Obtener años disponibles de actividad' })
-  getYears() {
-    return this.activityLogService.getYears();
+  getYears(@Req() request: any) {
+    return this.activityLogService.getYears(request.user.empresaId);
   }
 
   @Delete()

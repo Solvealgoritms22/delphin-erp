@@ -96,12 +96,12 @@ export class SequencesService {
     empresaId: string,
     tipoNcf: string,
     ambiente: string = 'TEST',
+    transaction?: Prisma.TransactionClient,
   ): Promise<{ ncf: string; secuenciaId: string }> {
     const prefijo = tipoNcf.toUpperCase();
     const env = ambiente.toUpperCase();
 
-    return this.prisma.$transaction(
-      async (tx) => {
+    const reserve = async (tx: Prisma.TransactionClient) => {
         const sequence = await tx.secuenciaNCF.findUnique({
           where: {
             empresaId_prefijo_ambiente: {
@@ -161,8 +161,7 @@ export class SequencesService {
           ncf: formattedNcf,
           secuenciaId: sequence.id,
         };
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-    );
+      };
+    return transaction ? reserve(transaction) : this.prisma.$transaction(reserve, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 }

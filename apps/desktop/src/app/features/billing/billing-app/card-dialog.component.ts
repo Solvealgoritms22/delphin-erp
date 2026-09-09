@@ -195,6 +195,7 @@ function formatExpiracion(value: string): string {
   `]
 })
 export class CardDialogComponent implements OnInit {
+  private readonly idempotencyKey = crypto.randomUUID();
   dialogRef = inject(MatDialogRef<CardDialogComponent>);
   public data = inject(MAT_DIALOG_DATA, { optional: true });
   fb = inject(FormBuilder);
@@ -265,7 +266,8 @@ export class CardDialogComponent implements OnInit {
         cardNumber: numero,
         expiration: exp,
         cvc: cvc,
-        cardHolder: nombre
+        cardHolder: nombre,
+        idempotencyKey: this.idempotencyKey
       }));
 
       this.dialogRef.close({
@@ -275,7 +277,7 @@ export class CardDialogComponent implements OnInit {
         marca: response.cardBrand || this.cardType()
       });
     } catch (error) {
-      console.error('Error tokenizing card:', error);
+      console.error('Card verification failed');
       // Ideally show a snackbar with the error message here
     } finally {
       this.loadingVault.set(false);

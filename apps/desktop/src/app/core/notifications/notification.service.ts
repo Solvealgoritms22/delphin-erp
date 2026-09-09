@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal, effect } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '@/environments/environment';
 import { AuthState } from '../auth/auth.state';
@@ -47,7 +47,20 @@ export class NotificationService {
   private readonly _notifications = signal<AppNotification[]>([]);
   private readonly _unreadCount = signal(0);
   private readonly _inAppEnabled = signal(true);
-  private eventSource?: EventSource;
+  private readonly realtimeRequested = signal(false);
+
+  constructor() {
+    effect(onCleanup => {
+      const token = this.auth.accessToken();
+      const empresaId = this.auth.empresaId();
+      this._notifications.set([]);
+      this._unreadCount.set(0);
+      if (!this.realtimeRequested() || !token || !empresaId) return;
+      const controller = new AbortController();
+      void this.consumeStream(token, controller.signal);
+      onCleanup(() => controller.abort());
+    });
+  }
 
   readonly notifications = this._notifications.asReadonly();
   readonly unreadCount = this._unreadCount.asReadonly();
@@ -140,25 +153,49 @@ export class NotificationService {
     });
   }
 
-  startRealtime(): void {
-    const token = this.auth.accessToken();
-    if (!token || this.eventSource) return;
-    this.eventSource = new EventSource(`${environment.apiUrl}/notifications/stream?access_token=${encodeURIComponent(token)}`);
-    this.eventSource.onmessage = (event) => {
-      const notification = JSON.parse(event.data) as AppNotification;
-      this._notifications.update((items) => [notification, ...items.filter((item) => item.id !== notification.id)]);
-      if (!notification.leidaEn) this._unreadCount.update((count) => count + 1);
-    };
-    this.eventSource.onerror = () => {
-      this.eventSource?.close();
-      this.eventSource = undefined;
-      window.setTimeout(() => this.startRealtime(), 10000);
-    };
-  }
+  startRealtime(): void { this.realtimeRequested.set(true); }
+  stopRealtime(): void { this.realtimeRequested.set(false); }
 
-  stopRealtime(): void {
-    this.eventSource?.close();
-    this.eventSource = undefined;
+  private async consumeStream(token: string, signal: AbortSignal): Promise<void> {
+    while (!signal.aborted) {
+      try {
+        const response = await fetch(environment.apiUrl + '/notifications/stream', {
+          headers: { Authorization: 'Bearer ' + token, Accept: 'text/event-stream' }, signal,
+        });
+        if (response.status === 401 || response.status === 403) { this.realtimeRequested.set(false); return; }
+        if (!response.ok || !response.body) throw new Error('Stream unavailable');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        try {
+          while (!signal.aborted) {
+            const chunk = await reader.read();
+            if (chunk.done) break;
+            buffer += decoder.decode(chunk.value, { stream: true });
+            buffer = buffer.replace(/\r\n/g, '\n');
+            if (buffer.length > 1024 * 1024) throw new Error('Stream frame too large');
+            let boundary: number;
+            while ((boundary = buffer.indexOf('\n\n')) >= 0) {
+              const frame = buffer.slice(0, boundary);
+              buffer = buffer.slice(boundary + 2);
+              const data = frame.split('\n').filter(line => line.startsWith('data:')).map(line => line.slice(5).trimStart()).join('\n');
+              if (!data) continue;
+              const notification = JSON.parse(data) as AppNotification;
+              if (!notification.id) continue;
+              const isNew = !this._notifications().some(item => item.id === notification.id);
+              this._notifications.update(items => [notification, ...items.filter(item => item.id !== notification.id)].slice(0, 100));
+              if (isNew && !notification.leidaEn) this._unreadCount.update(count => count + 1);
+            }
+          }
+        } finally { await reader.cancel().catch(() => undefined); reader.releaseLock(); }
+      } catch { if (signal.aborted) return; }
+      await new Promise<void>(resolve => {
+        const timer = setTimeout(done, 10_000);
+        function done() { clearTimeout(timer); signal.removeEventListener('abort', done); resolve(); }
+        signal.addEventListener('abort', done, { once: true });
+        if (signal.aborted) done();
+      });
+    }
   }
 
   async enableWebPush(publicKey: string): Promise<boolean> {

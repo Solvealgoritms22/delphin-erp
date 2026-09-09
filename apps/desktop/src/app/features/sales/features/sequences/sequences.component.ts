@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -31,6 +32,7 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
     MatSelectModule,
     MatInputModule,
     MatTooltipModule,
+    MatDatepickerModule,
     TranslocoPipe,
     EmptyStateComponent,
   ],
@@ -190,7 +192,14 @@ import { SequencesService, SecuenciaNCF, CreateSequenceDto } from '../../data/se
 
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ 'commercial.sequences.modal.expirationDate' | transloco }}</mat-label>
-              <input matInput type="date" [(ngModel)]="newSequence.fechaVencimiento">
+              <input
+                matInput
+                [matDatepicker]="pickerVencimiento"
+                [(ngModel)]="newSequence.fechaVencimiento"
+                placeholder="dd/mm/aaaa"
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerVencimiento"></mat-datepicker-toggle>
+              <mat-datepicker #pickerVencimiento></mat-datepicker>
             </mat-form-field>
 
           </div>
@@ -271,7 +280,16 @@ export class SequencesComponent implements OnInit {
       return;
     }
 
-    this.sequencesService.create(this.newSequence).subscribe({
+    const payload: CreateSequenceDto = {
+      ...this.newSequence,
+      fechaVencimiento: this.newSequence.fechaVencimiento
+        ? (this.newSequence.fechaVencimiento instanceof Date
+            ? this.newSequence.fechaVencimiento.toISOString()
+            : new Date(this.newSequence.fechaVencimiento).toISOString())
+        : undefined,
+    };
+
+    this.sequencesService.create(payload).subscribe({
       next: () => {
         this.snackBar.open(this.i18n.translate('commercial.sequences.messages.saveSuccess'), this.i18n.translate('common.close'), { duration: 3000 });
         this.closeDialog();

@@ -1,3 +1,4 @@
+import { ProductDto, UpdateProductDto } from '../../../common/dto/resource.dto';
 import {
   Controller,
   Get,
@@ -30,7 +31,7 @@ export class ProductsController {
   @Post()
   @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Crear producto o servicio' })
-  async create(@CurrentUser() user: any, @Body() data: any) {
+  async create(@CurrentUser() user: any, @Body() data: ProductDto) {
     const result = await this.productsService.create(
       user.empresaId,
       data,
@@ -83,7 +84,7 @@ export class ProductsController {
   async update(
     @CurrentUser() user: any,
     @Param('id') id: string,
-    @Body() data: any,
+    @Body() data: UpdateProductDto,
   ) {
     const result = await this.productsService.update(
       user.empresaId,

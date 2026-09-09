@@ -1,3 +1,4 @@
+import { BillingConfigDto, TaxDto, UpdateTaxDto, PaymentTermDto, UpdatePaymentTermDto } from '../../common/dto/resource.dto';
 import {
   Body,
   Controller,
@@ -29,7 +30,7 @@ export class BillingConfigController {
 
   @Patch()
   @RequirePermissions('company:write')
-  update(@CurrentUser() user: any, @Body() data: any) {
+  update(@CurrentUser() user: any, @Body() data: BillingConfigDto) {
     return this.service.update(user.empresaId, user.id, data);
   }
 
@@ -41,7 +42,7 @@ export class BillingConfigController {
 
   @Post('taxes')
   @RequirePermissions('company:write')
-  createTax(@CurrentUser() user: any, @Body() data: any) {
+  createTax(@CurrentUser() user: any, @Body() data: TaxDto) {
     return this.service.createTax(user.empresaId, user.id, data);
   }
 
@@ -50,7 +51,7 @@ export class BillingConfigController {
   updateTax(
     @CurrentUser() user: any,
     @Param('id') id: string,
-    @Body() data: any,
+    @Body() data: UpdateTaxDto,
   ) {
     return this.service.updateTax(user.empresaId, user.id, id, data);
   }
@@ -63,7 +64,7 @@ export class BillingConfigController {
 
   @Post('payment-terms')
   @RequirePermissions('company:write')
-  createPaymentTerm(@CurrentUser() user: any, @Body() data: any) {
+  createPaymentTerm(@CurrentUser() user: any, @Body() data: PaymentTermDto) {
     return this.service.createTerm(user.empresaId, user.id, data);
   }
 
@@ -72,7 +73,7 @@ export class BillingConfigController {
   updatePaymentTerm(
     @CurrentUser() user: any,
     @Param('id') id: string,
-    @Body() data: any,
+    @Body() data: UpdatePaymentTermDto,
   ) {
     return this.service.updateTerm(user.empresaId, user.id, id, data);
   }

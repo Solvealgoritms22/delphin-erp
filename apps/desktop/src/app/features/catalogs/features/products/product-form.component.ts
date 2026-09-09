@@ -17,6 +17,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ProductsService } from '../../data/products.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HttpClient } from '@angular/common/http';
@@ -48,6 +49,7 @@ export type InsumoRow = {
     MatSelectModule,
     MatChipsModule,
     MatTooltipModule,
+    MatDatepickerModule,
     MatSlideToggleModule,
     MatSnackBarModule,
     TranslocoPipe,
@@ -345,22 +347,28 @@ export type InsumoRow = {
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <mat-form-field class="w-full">
+                  <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'catalogs.products.offerValidFrom' | transloco }}</mat-label>
                     <input
                       matInput
-                      type="date"
+                      [matDatepicker]="pickerOfertaDesde"
                       formControlName="ofertaDesde"
+                      placeholder="dd/mm/aaaa"
                     />
+                    <mat-datepicker-toggle matIconSuffix [for]="pickerOfertaDesde"></mat-datepicker-toggle>
+                    <mat-datepicker #pickerOfertaDesde></mat-datepicker>
                   </mat-form-field>
 
-                  <mat-form-field class="w-full">
+                  <mat-form-field appearance="outline" class="w-full">
                     <mat-label>{{ 'catalogs.products.offerValidUntil' | transloco }}</mat-label>
                     <input
                       matInput
-                      type="date"
+                      [matDatepicker]="pickerOfertaHasta"
                       formControlName="ofertaHasta"
+                      placeholder="dd/mm/aaaa"
                     />
+                    <mat-datepicker-toggle matIconSuffix [for]="pickerOfertaHasta"></mat-datepicker-toggle>
+                    <mat-datepicker #pickerOfertaHasta></mat-datepicker>
                   </mat-form-field>
                 </div>
 
@@ -1011,8 +1019,8 @@ export default class ProductFormComponent implements OnInit {
               data.descuentoPorcentaje !== null && data.descuentoPorcentaje !== undefined
                 ? Number(data.descuentoPorcentaje)
                 : 0,
-            ofertaDesde: data.ofertaDesde ? data.ofertaDesde.split('T')[0] : null,
-            ofertaHasta: data.ofertaHasta ? data.ofertaHasta.split('T')[0] : null,
+            ofertaDesde: data.ofertaDesde ? new Date(data.ofertaDesde) : null,
+            ofertaHasta: data.ofertaHasta ? new Date(data.ofertaHasta) : null,
             descuentoMaximo:
               data.descuentoMaximo !== null && data.descuentoMaximo !== undefined
                 ? Number(data.descuentoMaximo)
@@ -1352,6 +1360,8 @@ export default class ProductFormComponent implements OnInit {
     // Build payload
     const payload: any = {
       ...this.form.value,
+      ofertaDesde: this.form.value.ofertaDesde ? new Date(this.form.value.ofertaDesde).toISOString() : null,
+      ofertaHasta: this.form.value.ofertaHasta ? new Date(this.form.value.ofertaHasta).toISOString() : null,
       codigoBarras: isServ ? null : this.form.value.codigoBarras,
       marcaId: isServ ? null : this.form.value.marcaId,
     };

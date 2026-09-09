@@ -23,7 +23,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
           @if (needsCompany()) {
             <mat-form-field appearance="outline">
                <mat-label>{{ 'auth.fields.company' | transloco }}</mat-label>
-              <input matInput formControlName="companyName" placeholder="Nombre comercial de tu empresa">
+              <input matInput formControlName="companyName" [placeholder]="'auth.fields.company' | transloco">
             </mat-form-field>
             <mat-form-field appearance="outline">
                <mat-label>{{ 'auth.googleSetup.taxId' | transloco }}</mat-label>
@@ -66,8 +66,9 @@ export default class AuthGoogleSetup implements OnInit {
   });
 
   ngOnInit(): void {
-    this.code = this.route.snapshot.queryParamMap.get('code') || '';
-    const needsCompany = this.route.snapshot.queryParamMap.get('needsCompany') === 'true';
+    const setup = this.authService.googleSetup();
+    this.code = setup?.flowId || '';
+    const needsCompany = setup?.needsCompany === true;
     this.needsCompany.set(needsCompany);
     if (needsCompany) this.form.controls.companyName.addValidators(Validators.required);
      if (!this.code) this.errorMessage.set(this.transloco.translate('auth.googleSetup.invalid'));
@@ -79,14 +80,13 @@ export default class AuthGoogleSetup implements OnInit {
     this.isSaving.set(true);
     const value = this.form.getRawValue();
     this.authService.completeGoogleSetup({
-      code: this.code,
       acceptedPolicies: value.acceptedPolicies === true,
       companyName: value.companyName || undefined,
       rnc: value.rnc || undefined,
     }).subscribe({
-      next: () => {
+      next: (response) => {
         this.isSaving.set(false);
-        this.router.navigateByUrl('/admin/dashboards');
+        this.router.navigateByUrl(response.user.mustChangePassword ? '/auth/change-password' : '/admin/dashboards');
       },
       error: (error) => {
         this.isSaving.set(false);

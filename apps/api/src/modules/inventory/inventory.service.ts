@@ -5,24 +5,26 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { IsUUID, IsNumber, IsOptional, IsString, MaxLength, Min, IsIn } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class TransferStockDto {
-  productoId!: string;
-  almacenOrigenId!: string;
-  almacenDestinoId!: string;
-  cantidad!: number;
-  motivo?: string;
-  referenciaDoc?: string;
+  @IsUUID() productoId!: string;
+  @IsUUID() almacenOrigenId!: string;
+  @IsUUID() almacenDestinoId!: string;
+  @Type(() => Number) @IsNumber() @Min(0.0001) cantidad!: number;
+  @IsOptional() @IsString() @MaxLength(2000) motivo?: string;
+  @IsOptional() @IsString() @MaxLength(100) referenciaDoc?: string;
 }
 
 export class AdjustStockDto {
-  productoId!: string;
-  almacenId!: string;
-  tipo!: 'AJUSTE_POSITIVO' | 'AJUSTE_NEGATIVO' | 'COMPRA' | 'VENTA';
-  cantidad!: number;
-  costoUnitario?: number;
-  motivo?: string;
-  referenciaDoc?: string;
+  @IsUUID() productoId!: string;
+  @IsUUID() almacenId!: string;
+  @IsIn(['AJUSTE_POSITIVO','AJUSTE_NEGATIVO','COMPRA','VENTA']) tipo!: 'AJUSTE_POSITIVO' | 'AJUSTE_NEGATIVO' | 'COMPRA' | 'VENTA';
+  @Type(() => Number) @IsNumber() @Min(0.0001) cantidad!: number;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) costoUnitario?: number;
+  @IsOptional() @IsString() @MaxLength(2000) motivo?: string;
+  @IsOptional() @IsString() @MaxLength(100) referenciaDoc?: string;
 }
 
 @Injectable()

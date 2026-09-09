@@ -1,3 +1,4 @@
+import { BackupSettingsDto } from '../../common/dto/resource.dto';
 import {
   BadRequestException,
   Body,
@@ -47,7 +48,7 @@ export class BackupsController {
   @RequirePermissions('backups:write')
   updateSettings(
     @CurrentUser() user: any,
-    @Body() body: any,
+    @Body() body: BackupSettingsDto,
     @Query('empresaId') empresaId?: string,
   ) {
     return this.backups.updateSettings(

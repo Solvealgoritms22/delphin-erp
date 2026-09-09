@@ -49,17 +49,7 @@ export class ClientsService {
   }
 
   async update(id: string, empresaId: string, data: any) {
-    const updated = await this.prisma.cliente
-      .update({
-        where: { id_empresaId: { id, empresaId } } as any,
-        data,
-      })
-      .catch(() => {
-        return this.prisma.cliente.update({
-          where: { id },
-          data,
-        });
-      });
+    const updated = await this.prisma.cliente.update({ where: { id, empresaId }, data });
 
     await this.activityLog.log({
       empresaId,
@@ -73,10 +63,10 @@ export class ClientsService {
     return updated;
   }
 
-  async remove(id: string, empresaId?: string) {
-    const client = await this.prisma.cliente.findUnique({ where: { id } });
+  async remove(id: string, empresaId: string) {
+    const client = await this.findOne(id, empresaId);
     const deleted = await this.prisma.cliente.delete({
-      where: { id },
+      where: { id, empresaId },
     });
 
     await this.activityLog.log({

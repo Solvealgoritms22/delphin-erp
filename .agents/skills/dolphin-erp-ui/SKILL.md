@@ -107,6 +107,28 @@ Antes de considerar terminado cualquier módulo, feature o componente funcional,
 
 ---
 
+## 1.3.1 Estándar de Fechas: Prohibición de Inputs Nativos (`type="date"`) -> USO OBLIGATORIO DE ANGULAR MATERIAL DATEPICKER
+
+* **Prohibido usar `<input type="date">` nativo**: Nunca uses inputs nativos de fecha del navegador (`type="date"` con `dd / mm / aaaa`). Son antiestéticos, se ven genéricos y rompen la armonía visual del sistema.
+* **Uso Obligatorio de Angular Material Datepicker (`MatDatepickerModule`)**:
+  - Utiliza siempre `<mat-form-field appearance="outline" class="w-full">` con `<input matInput [matDatepicker]="picker" placeholder="dd/mm/aaaa">`, `<mat-datepicker-toggle matIconSuffix [for]="picker">` y `<mat-datepicker #picker></mat-datepicker>`.
+  - En TypeScript, importa `MatDatepickerModule` en `imports` del componente.
+  ```html
+  <mat-form-field appearance="outline" class="w-full">
+    <mat-label>{{ 'commercial.sequences.modal.expirationDate' | transloco }}</mat-label>
+    <input
+      matInput
+      [matDatepicker]="pickerVencimiento"
+      [(ngModel)]="fechaVencimiento"
+      placeholder="dd/mm/aaaa"
+    />
+    <mat-datepicker-toggle matIconSuffix [for]="pickerVencimiento"></mat-datepicker-toggle>
+    <mat-datepicker #pickerVencimiento></mat-datepicker>
+  </mat-form-field>
+  ```
+
+---
+
 ## 1.4 Estándar de Carga: Prohibición de Spinners -> USO OBLIGATORIO DE SKELETONS
 
 * **Prohibición de Loaders Circulares Flotantes**: Queda terminantemente prohibido utilizar `<mat-spinner>` o círculos de carga flotantes en el centro de tablas, listados, dashboards o módulos de reportes.
@@ -263,6 +285,7 @@ Para evitar resultados repetitivos, genéricos y de baja calidad, la IA **NUNCA*
 8. **Datos mock inventados**: Nunca pongas series temporales falsas ni métricas simuladas en reportes financieros.
 9. **Historial IA global**: Nunca guardes chats de IA en claves genéricas sin particionar por `empresaId` y `userId`.
 10. **Íconos decorativos al lado de títulos H1**: Mantén las cabeceras tipográficas y limpias.
+11. **Inputs de fecha nativos del navegador (`type="date"`)**: Nunca uses `<input type="date">` (`dd / mm / aaaa`). Usa siempre Angular Material Datepicker (`MatDatepickerModule`) con toggle y selector de calendario flotante estilizado.
 
 ---
 

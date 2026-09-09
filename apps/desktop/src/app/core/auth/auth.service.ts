@@ -1,9 +1,12 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, tap, map, catchError, finalize } from 'rxjs';
+import { Observable, of, tap, map, catchError, finalize, firstValueFrom } from 'rxjs';
 import { AuthState } from './auth.state';
 import { AuthResponse, LoginCredentials, User } from './auth.types';
 import { SessionMonitorService } from './session-monitor.service';
+import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslocoService } from '@jsverse/transloco';
 import { environment } from '@/environments/environment';
 
 @Injectable({
@@ -11,6 +14,11 @@ import { environment } from '@/environments/environment';
 })
 export class AuthService {
   private state = inject(AuthState);
+  private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly transloco = inject(TranslocoService);
+  readonly googleLoading = signal(false);
+  private googleAttempt = 0;
   private http = inject(HttpClient);
   private sessionMonitor = inject(SessionMonitorService);
   private readonly apiUrl = `${environment.apiUrl}/auth`;
@@ -105,19 +113,64 @@ export class AuthService {
     });
   }
 
-  startGoogleSignIn(): void {
-    if (typeof window !== 'undefined') {
-      window.location.href = `${environment.apiUrl}/auth/google`;
-    }
+  async startGoogleSignIn(): Promise<void> {
+    if (this.googleLoading() || typeof window === 'undefined') return;
+    this.googleLoading.set(true);
+    const attempt = ++this.googleAttempt;
+    const bridge = (window as unknown as { dolphinWindow?: { openExternal(url: string): void } }).dolphinWindow;
+    const popup = bridge ? null : window.open('about:blank', 'dolphin-google', 'width=520,height=720');
+    try {
+      if (!bridge && !popup) throw new Error('popup_blocked');
+      const verifier = this.base64url(crypto.getRandomValues(new Uint8Array(32)));
+      const challenge = this.base64url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))));
+      const flow = await firstValueFrom(this.http.post<{ flowId: string; url: string }>(this.apiUrl + '/google/start', { challenge }));
+      const target = new URL(flow.url);
+      if (target.origin !== 'https://accounts.google.com') throw new Error('invalid_provider');
+      if (bridge) bridge.openExternal(target.href);
+      else if (popup) { popup.opener = null; popup.location.href = target.href; }
+      const expiresAt = Date.now() + 10 * 60_000;
+      while (attempt === this.googleAttempt && Date.now() < expiresAt) {
+        const result = await firstValueFrom(this.http.post<{ status: string; needsCompany?: boolean; needsPolicies?: boolean }>(
+          this.apiUrl + '/google/status', { flowId: flow.flowId, verifier }));
+        if (result.status === 'ready') {
+          popup?.close();
+          sessionStorage.setItem('google_setup', JSON.stringify({ flowId: flow.flowId, verifier, expiresAt, ...result }));
+          if (!result.needsCompany && !result.needsPolicies) {
+            const response = await firstValueFrom(this.completeGoogleSetup({ acceptedPolicies: false }));
+            await this.router.navigateByUrl(response.user.mustChangePassword ? '/auth/change-password' : '/admin/dashboards');
+          } else await this.router.navigateByUrl('/auth/google/setup');
+          return;
+        }
+        if (popup?.closed) throw new Error('cancelled');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      throw new Error('expired');
+    } catch {
+      popup?.close();
+      sessionStorage.removeItem('google_setup');
+      this.snackBar.open(this.transloco.translate('auth.googleSetup.error'), this.transloco.translate('common.close'), {
+        duration: 6000, horizontalPosition: 'center', verticalPosition: 'bottom',
+      });
+    } finally { this.googleLoading.set(false); }
+  }
+
+  private base64url(bytes: Uint8Array): string {
+    return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  googleSetup() {
+    try {
+      const setup = JSON.parse(sessionStorage.getItem('google_setup') || 'null');
+      return setup?.expiresAt > Date.now() ? setup as { flowId: string; verifier: string; needsCompany: boolean; needsPolicies: boolean } : null;
+    } catch { return null; }
   }
 
   completeGoogleSetup(data: {
-    code: string;
     acceptedPolicies: boolean;
     companyName?: string;
     rnc?: string;
   }): Observable<AuthResponse> {
-    return this.http.post<{ access_token: string; user: any }>(`${this.apiUrl}/google/complete`, data).pipe(
+    return this.http.post<{ access_token: string; user: any }>(`${this.apiUrl}/google/complete`, { ...data, flowId: this.googleSetup()?.flowId, verifier: this.googleSetup()?.verifier }).pipe(
       map((response) => {
         const user: User = {
           id: response.user.sub || response.user.id,
@@ -129,10 +182,12 @@ export class AuthService {
           plan: response.user.plan || 'Starter',
           empresaId: response.user.empresaId,
           permissions: response.user.permissions || [],
+          sessionId: response.user.sessionId,
         };
         return { accessToken: response.access_token, user };
       }),
       tap((response) => {
+        sessionStorage.removeItem('google_setup');
         this.state.setSession(response.user, response.accessToken, response.user.empresaId);
         this.sessionMonitor.start();
       }),

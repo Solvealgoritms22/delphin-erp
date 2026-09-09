@@ -1,3 +1,4 @@
+import { RoleDto, UpdateRoleDto } from '../../common/dto/resource.dto';
 import {
   Controller,
   Get,
@@ -32,14 +33,14 @@ export class RolesController {
   @RequirePermissions('roles:write')
   @Post()
   @ApiOperation({ summary: 'Crear rol' })
-  create(@CurrentUser() user: any, @Body() data: any) {
+  create(@CurrentUser() user: any, @Body() data: RoleDto) {
     return this.rolesService.create(user.empresaId, data);
   }
 
   @RequirePermissions('roles:write')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar rol' })
-  update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: any) {
+  update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: UpdateRoleDto) {
     return this.rolesService.update(user.empresaId, id, data);
   }
 

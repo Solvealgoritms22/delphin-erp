@@ -1,8 +1,14 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 
+import { decryptSecret } from '../../common/security/secrets';
+
 @Injectable()
 export class FiscalBridgeService {
   private readonly logger = new Logger(FiscalBridgeService.name);
+
+  private request(url: string, init: RequestInit = {}) {
+    return fetch(url, { ...init, redirect: 'error', signal: AbortSignal.timeout(15_000) });
+  }
 
   /**
    * Normaliza el entorno a PROD | CERT | TEST
@@ -69,7 +75,7 @@ export class FiscalBridgeService {
     ).toUpperCase();
 
     if (authMethod === 'TOKEN') {
-      const token = empresa.fiscalbridgeToken;
+      const token = decryptSecret(empresa.fiscalbridgeToken);
       if (!token) {
         throw new BadRequestException(
           'No hay un API Token de FiscalBridge configurado en la empresa.',
@@ -78,7 +84,7 @@ export class FiscalBridgeService {
       headers['Authorization'] = `Bearer ${token}`;
     } else if (authMethod === 'EMAIL') {
       const email = empresa.fiscalbridgeEmail;
-      const password = empresa.fiscalbridgePassword;
+      const password = decryptSecret(empresa.fiscalbridgePassword);
       const clientId = empresa.fiscalbridgeClientId;
 
       if (!email || !password) {
@@ -87,7 +93,7 @@ export class FiscalBridgeService {
         );
       }
 
-      const loginRes = await fetch(`${cleanedBaseUrl}/auth/login`, {
+      const loginRes = await this.request(`${cleanedBaseUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -112,7 +118,7 @@ export class FiscalBridgeService {
       if (clientId) headers['x-api-key'] = clientId;
     } else if (authMethod === 'OAUTH2') {
       const clientId = empresa.fiscalbridgeClientId;
-      const clientSecret = empresa.fiscalbridgeClientSecret;
+      const clientSecret = decryptSecret(empresa.fiscalbridgeClientSecret);
 
       if (!clientId || !clientSecret) {
         throw new BadRequestException(
@@ -120,7 +126,7 @@ export class FiscalBridgeService {
         );
       }
 
-      const tokenRes = await fetch(`${cleanedBaseUrl}/auth/token`, {
+      const tokenRes = await this.request(`${cleanedBaseUrl}/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -153,7 +159,7 @@ export class FiscalBridgeService {
   ): Promise<{ success: boolean; message: string; data?: any }> {
     try {
       const { headers, baseUrl } = await this.getAuthHeaders(empresa);
-      const res = await fetch(`${baseUrl}/documents?limit=1`, { headers });
+      const res = await this.request(`${baseUrl}/documents?limit=1`, { headers });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         return {
@@ -341,7 +347,7 @@ export class FiscalBridgeService {
       `Transmitiendo factura ${invoice.numeroFactura} (${invoice.ncf}) a FiscalBridge...`,
     );
 
-    const res = await fetch(`${baseUrl}/documents`, {
+    const res = await this.request(`${baseUrl}/documents`, {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
@@ -374,7 +380,7 @@ export class FiscalBridgeService {
    */
   async getPdfBuffer(documentUuid: string, empresa: any): Promise<Buffer> {
     const { headers, baseUrl } = await this.getAuthHeaders(empresa);
-    const res = await fetch(`${baseUrl}/documents/${documentUuid}/pdf`, {
+    const res = await this.request(`${baseUrl}/documents/${documentUuid}/pdf`, {
       headers,
     });
     if (!res.ok) {
@@ -392,7 +398,7 @@ export class FiscalBridgeService {
    */
   async getXmlBuffer(documentUuid: string, empresa: any): Promise<Buffer> {
     const { headers, baseUrl } = await this.getAuthHeaders(empresa);
-    const res = await fetch(`${baseUrl}/documents/${documentUuid}/xml`, {
+    const res = await this.request(`${baseUrl}/documents/${documentUuid}/xml`, {
       headers,
     });
     if (!res.ok) {
@@ -410,7 +416,7 @@ export class FiscalBridgeService {
    */
   async getDocumentStatus(documentUuid: string, empresa: any): Promise<any> {
     const { headers, baseUrl } = await this.getAuthHeaders(empresa);
-    const res = await fetch(`${baseUrl}/documents/${documentUuid}/status`, {
+    const res = await this.request(`${baseUrl}/documents/${documentUuid}/status`, {
       headers,
     });
     if (!res.ok) {

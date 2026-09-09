@@ -11,18 +11,13 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { PrismaService } from '../../prisma/prisma.service';
 import { normalizePermissions } from '../../common/permissions.util';
 import * as bcrypt from 'bcrypt';
+import { assertPassword } from '../../common/security/password-policy';
 import { createHash, randomInt, randomUUID } from 'crypto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { TenantMailerService } from '../../common/tenant-mailer.service';
 
 @Injectable()
 export class AuthService {
-  private readonly googleStates = new Map<string, number>();
-  private readonly googlePending = new Map<
-    string,
-    { userId: string; needsCompany: boolean; expiresAt: number }
-  >();
-
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -164,6 +159,7 @@ export class AuthService {
       email: user.email,
       sub: user.id,
       sessionId,
+      jti: randomUUID(),
       empresaId,
       roleId,
       name: user.nombre,
@@ -286,6 +282,7 @@ export class AuthService {
   }
 
   async register(data: any) {
+    assertPassword(data.password);
     if (
       data.confirmPassword !== undefined &&
       data.password !== data.confirmPassword
@@ -377,9 +374,8 @@ export class AuthService {
     });
     if (
       !user ||
-      (user.otpCode !== this.hashOtp(normalizedOtp) &&
-        user.otpCode !== normalizedOtp) ||
-      (user.otpExpiresAt && user.otpExpiresAt < new Date())
+      user.otpCode !== this.hashOtp(normalizedOtp) ||
+      (!user.otpExpiresAt || user.otpExpiresAt < new Date())
     ) {
       throw new BadRequestException('Código OTP inválido o expirado');
     }
@@ -571,8 +567,8 @@ export class AuthService {
     const user = await this.usersService.findOne(email);
     if (
       !user ||
-      (user.otpCode !== this.hashOtp(otp) && user.otpCode !== otp) ||
-      (user.otpExpiresAt && user.otpExpiresAt < new Date())
+      user.otpCode !== this.hashOtp(otp) ||
+      (!user.otpExpiresAt || user.otpExpiresAt < new Date())
     ) {
       throw new BadRequestException('Código OTP inválido o expirado');
     }
@@ -580,19 +576,24 @@ export class AuthService {
   }
 
   async resetPassword(email: string, otp: string, newPassword: string) {
+    assertPassword(newPassword);
     const user = await this.usersService.findOne(email);
     if (
       !user ||
-      (user.otpCode !== this.hashOtp(otp) && user.otpCode !== otp) ||
-      (user.otpExpiresAt && user.otpExpiresAt < new Date())
+      user.otpCode !== this.hashOtp(otp) ||
+      (!user.otpExpiresAt || user.otpExpiresAt < new Date())
     ) {
       throw new BadRequestException('Código OTP inválido o expirado');
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
-    await this.prisma.usuario.update({
-      where: { id: user.id },
-      data: { passwordHash, otpCode: null, otpExpiresAt: null },
+    await this.prisma.$transaction(async tx => {
+      const consumed = await tx.usuario.updateMany({
+        where: { id: user.id, otpCode: user.otpCode, otpExpiresAt: { gt: new Date() } },
+        data: { passwordHash, otpCode: null, otpExpiresAt: null },
+      });
+      if (consumed.count !== 1) throw new BadRequestException('Código OTP ya utilizado');
+      await tx.userSession.updateMany({ where: { usuarioId: user.id, revokedAt: null }, data: { revokedAt: new Date() } });
     });
 
     return { success: true };
@@ -660,11 +661,7 @@ export class AuthService {
     currentPassword: string,
     newPassword: string,
   ) {
-    if (!newPassword || newPassword.length < 6) {
-      throw new BadRequestException(
-        'La nueva contraseña debe tener al menos 6 caracteres',
-      );
-    }
+    assertPassword(newPassword);
 
     const user = await this.prisma.usuario.findUnique({
       where: { id: userId },
@@ -706,11 +703,7 @@ export class AuthService {
       throw new BadRequestException(
         'Debes aceptar las políticas para activar la cuenta',
       );
-    if (!newPassword || newPassword.length < 8) {
-      throw new BadRequestException(
-        'La contraseña debe tener al menos 8 caracteres',
-      );
-    }
+    assertPassword(newPassword);
     if (newPassword !== confirmPassword) {
       throw new BadRequestException('Las contraseñas no coinciden');
     }
@@ -749,197 +742,6 @@ export class AuthService {
       }),
     ]);
     return { success: true };
-  }
-
-  startGoogleOAuth(): string {
-    const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI?.trim();
-    if (!clientId || !redirectUri) {
-      throw new BadRequestException('Google OAuth no está configurado');
-    }
-
-    const state = randomUUID();
-    this.googleStates.set(state, Date.now() + 10 * 60 * 1000);
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      scope: 'openid email profile',
-      state,
-      access_type: 'offline',
-      prompt: 'select_account',
-    });
-    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-  }
-
-  async handleGoogleCallback(code: string, state: string): Promise<string> {
-    const stateExpiry = this.googleStates.get(state);
-    this.googleStates.delete(state);
-    if (!stateExpiry || stateExpiry < Date.now()) {
-      throw new UnauthorizedException('La sesión OAuth expiró');
-    }
-
-    const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI?.trim();
-    const frontendUrl =
-      process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
-    if (!clientId || !clientSecret || !redirectUri) {
-      throw new BadRequestException('Google OAuth no está configurado');
-    }
-
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
-      }),
-    });
-    if (!tokenResponse.ok)
-      throw new UnauthorizedException('No se pudo validar la cuenta de Google');
-
-    const tokens = (await tokenResponse.json()) as { access_token?: string };
-    if (!tokens.access_token)
-      throw new UnauthorizedException('Google no devolvió un token válido');
-    const profileResponse = await fetch(
-      'https://openidconnect.googleapis.com/v1/userinfo',
-      {
-        headers: { Authorization: `Bearer ${tokens.access_token}` },
-      },
-    );
-    if (!profileResponse.ok)
-      throw new UnauthorizedException('No se pudo obtener el perfil de Google');
-
-    const profile = (await profileResponse.json()) as {
-      sub?: string;
-      email?: string;
-      name?: string;
-      email_verified?: boolean;
-    };
-    if (!profile.sub || !profile.email || profile.email_verified === false) {
-      throw new UnauthorizedException('La cuenta de Google no está verificada');
-    }
-
-    let user = await this.prisma.usuario.findUnique({
-      where: { googleSub: profile.sub },
-      include: {
-        membresias: { include: { role: true } },
-        empresasPropiedad: true,
-      },
-    });
-    if (!user) {
-      user = await this.prisma.usuario.findUnique({
-        where: { email: profile.email },
-        include: {
-          membresias: { include: { role: true } },
-          empresasPropiedad: true,
-        },
-      });
-    }
-
-    if (user && user.empresasPropiedad.length === 0 && !user.googleSub) {
-      throw new UnauthorizedException(
-        'Google OAuth está disponible únicamente para propietarios',
-      );
-    }
-
-    if (!user) {
-      user = await this.prisma.usuario.create({
-        data: {
-          email: profile.email,
-          nombre: profile.name || profile.email.split('@')[0],
-          googleSub: profile.sub,
-          isVerified: true,
-          passwordHash: await bcrypt.hash(randomUUID(), 10),
-        },
-        include: {
-          membresias: { include: { role: true } },
-          empresasPropiedad: true,
-        },
-      });
-    } else if (!user.googleSub) {
-      user = await this.prisma.usuario.update({
-        where: { id: user.id },
-        data: { googleSub: profile.sub, isVerified: true },
-        include: {
-          membresias: { include: { role: true } },
-          empresasPropiedad: true,
-        },
-      });
-    }
-
-    const pendingCode = randomUUID();
-    const needsCompany = user.empresasPropiedad.length === 0;
-    this.googlePending.set(pendingCode, {
-      userId: user.id,
-      needsCompany,
-      expiresAt: Date.now() + 10 * 60 * 1000,
-    });
-    return `${frontendUrl}/auth/google/setup?code=${encodeURIComponent(pendingCode)}&needsCompany=${needsCompany}`;
-  }
-
-  async completeGoogleSetup(
-    code: string,
-    acceptedPolicies: boolean,
-    companyName?: string,
-    rnc?: string,
-    request?: any,
-  ) {
-    const pending = this.googlePending.get(code);
-    this.googlePending.delete(code);
-    if (!pending || pending.expiresAt < Date.now()) {
-      throw new UnauthorizedException('El enlace de Google expiró');
-    }
-    if (!acceptedPolicies)
-      throw new BadRequestException(
-        'Debes aceptar las políticas para continuar',
-      );
-    if (pending.needsCompany && !companyName?.trim()) {
-      throw new BadRequestException(
-        'Debes configurar el nombre de tu primera empresa',
-      );
-    }
-
-    if (pending.needsCompany) {
-      const trialExpiry = new Date();
-      trialExpiry.setDate(trialExpiry.getDate() + 15);
-      await this.prisma.empresa.create({
-        data: {
-          razonSocial: companyName!.trim(),
-          rnc: rnc?.trim() || null,
-          propietarioId: pending.userId,
-          membresias: {
-            create: { usuarioId: pending.userId, estado: 'ACTIVO' },
-          },
-          suscripcion: {
-            create: {
-              planId: 'trial',
-              estado: 'TRIAL',
-              periodicidad: 'MONTHLY',
-              fechaRenovacion: trialExpiry,
-            },
-          },
-        },
-      });
-    }
-
-    await this.prisma.usuario.update({
-      where: { id: pending.userId },
-      data: { politicasAceptadasEn: new Date() },
-    });
-    const user = await this.prisma.usuario.findUnique({
-      where: { id: pending.userId },
-      include: {
-        membresias: { include: { role: true } },
-        empresasPropiedad: true,
-      },
-    });
-    if (!user) throw new NotFoundException('Usuario de Google no encontrado');
-    return this.login(user, request);
   }
 
   async logout(user: any, request?: any) {

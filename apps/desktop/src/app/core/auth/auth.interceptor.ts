@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthState } from './auth.state';
+import { environment } from '@/environments/environment';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authState = inject(AuthState);
@@ -20,8 +21,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     req.url.includes('/auth/invitations/accept') ||
     req.url.includes('/auth/google');
 
-  const isExternalRequest = (req.url.startsWith('http://') || req.url.startsWith('https://')) &&
-    !req.url.includes('/v1/') && !req.url.includes('localhost:3000');
+  const apiBase = environment.apiUrl.replace(/\/$/, '');
+  const isExternalRequest = !(req.url === apiBase || req.url.startsWith(apiBase + '/'));
 
   if (token && !isAuthRequest && !isExternalRequest) {
     clonedReq = req.clone({

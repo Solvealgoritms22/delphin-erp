@@ -3,17 +3,20 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(empresaId: string, data: any, usuarioId?: string) {
+  async create(empresaId: string, data: any, usuarioId?: string, db: Prisma.TransactionClient = this.prisma): Promise<any> {
+    if (db === this.prisma) return this.prisma.$transaction(tx => this.create(empresaId, data, usuarioId, tx), { isolationLevel: 'Serializable' });
     const { stockInicial, stockMinimo, almacenId } = data || {};
-    const payload = await this.sanitizeProductData(empresaId, data);
+    const payload = await this.sanitizeProductData(empresaId, data, db);
 
-    const producto = await this.prisma.producto.create({
+    if (!payload.codigo) payload.codigo = await this.generateNextCode(empresaId, payload.tipo || 'PRODUCTO', db);
+    const producto = await db.producto.create({
       data: {
         ...payload,
         empresaId,
@@ -27,16 +30,16 @@ export class ProductsService {
     if (!isService && (!isNaN(parsedStock) || !isNaN(parsedMinimo))) {
       let targetAlmacenId = almacenId;
       if (!targetAlmacenId) {
-        let defaultWarehouse = await this.prisma.almacen.findFirst({
+        let defaultWarehouse = await db.almacen.findFirst({
           where: { empresaId, esPrincipal: true },
         });
         if (!defaultWarehouse) {
-          defaultWarehouse = await this.prisma.almacen.findFirst({
+          defaultWarehouse = await db.almacen.findFirst({
             where: { empresaId },
           });
         }
         if (!defaultWarehouse) {
-          defaultWarehouse = await this.prisma.almacen.create({
+          defaultWarehouse = await db.almacen.create({
             data: {
               empresaId,
               nombre: 'Almacén Principal (CEDI)',
@@ -53,7 +56,7 @@ export class ProductsService {
       const minQty =
         !isNaN(parsedMinimo) && parsedMinimo > 0 ? parsedMinimo : 0;
 
-      await this.prisma.inventarioStock.create({
+      await db.inventarioStock.create({
         data: {
           empresaId,
           productoId: producto.id,
@@ -67,14 +70,14 @@ export class ProductsService {
       if (initialQty > 0) {
         let effectiveUserId = usuarioId;
         if (!effectiveUserId) {
-          const empresa = await this.prisma.empresa.findUnique({
+          const empresa = await db.empresa.findUnique({
             where: { id: empresaId },
             select: { propietarioId: true },
           });
           effectiveUserId = empresa?.propietarioId || 'SYSTEM';
         }
 
-        await this.prisma.movimientoInventario.create({
+        await db.movimientoInventario.create({
           data: {
             empresaId,
             productoId: producto.id,
@@ -91,14 +94,14 @@ export class ProductsService {
     }
 
     if (data.insumos && Array.isArray(data.insumos)) {
-      await this.syncInsumos(empresaId, producto.id, data.insumos);
+      await this.syncInsumos(empresaId, producto.id, data.insumos, db);
     }
 
-    return this.findOne(empresaId, producto.id);
+    return this.findOne(empresaId, producto.id, db);
   }
 
-  async findAll(empresaId: string) {
-    return this.prisma.producto.findMany({
+  async findAll(empresaId: string, db: Prisma.TransactionClient = this.prisma) {
+    return db.producto.findMany({
       where: { empresaId },
       include: {
         categoria: true,
@@ -126,8 +129,8 @@ export class ProductsService {
     });
   }
 
-  async findOne(empresaId: string, id: string) {
-    const producto = await this.prisma.producto.findFirst({
+  async findOne(empresaId: string, id: string, db: Prisma.TransactionClient = this.prisma) {
+    const producto = await db.producto.findFirst({
       where: { id, empresaId },
       include: {
         categoria: true,
@@ -156,11 +159,12 @@ export class ProductsService {
     return producto;
   }
 
-  async update(empresaId: string, id: string, data: any, usuarioId?: string) {
-    const existingProduct = await this.findOne(empresaId, id); // check existence
-    const payload = await this.sanitizeProductData(empresaId, data);
+  async update(empresaId: string, id: string, data: any, usuarioId?: string, db: Prisma.TransactionClient = this.prisma): Promise<any> {
+    if (db === this.prisma) return this.prisma.$transaction(tx => this.update(empresaId, id, data, usuarioId, tx), { isolationLevel: 'Serializable' });
+    const existingProduct = await this.findOne(empresaId, id, db); // check existence
+    const payload = await this.sanitizeProductData(empresaId, data, db);
 
-    const updated = await this.prisma.producto.update({
+    const updated = await db.producto.update({
       where: { id },
       data: payload,
     });
@@ -178,16 +182,16 @@ export class ProductsService {
 
       let targetAlmacenId = data.almacenId;
       if (!targetAlmacenId) {
-        let defaultWarehouse = await this.prisma.almacen.findFirst({
+        let defaultWarehouse = await db.almacen.findFirst({
           where: { empresaId, esPrincipal: true },
         });
         if (!defaultWarehouse) {
-          defaultWarehouse = await this.prisma.almacen.findFirst({
+          defaultWarehouse = await db.almacen.findFirst({
             where: { empresaId },
           });
         }
         if (!defaultWarehouse) {
-          defaultWarehouse = await this.prisma.almacen.create({
+          defaultWarehouse = await db.almacen.create({
             data: {
               empresaId,
               nombre: 'Almacén Principal (CEDI)',
@@ -199,7 +203,7 @@ export class ProductsService {
         targetAlmacenId = defaultWarehouse.id;
       }
 
-      const existingStock = await this.prisma.inventarioStock.findFirst({
+      const existingStock = await db.inventarioStock.findFirst({
         where: {
           empresaId,
           productoId: id,
@@ -209,7 +213,7 @@ export class ProductsService {
 
       let effectiveUserId = usuarioId;
       if (!effectiveUserId) {
-        const empresa = await this.prisma.empresa.findUnique({
+        const empresa = await db.empresa.findUnique({
           where: { id: empresaId },
           select: { propietarioId: true },
         });
@@ -225,7 +229,7 @@ export class ProductsService {
             ? parsedMinimo
             : Number(existingStock.stockMinimo || 0);
 
-        await this.prisma.inventarioStock.update({
+        await db.inventarioStock.update({
           where: { id: existingStock.id },
           data: {
             cantidad: newQty,
@@ -241,7 +245,7 @@ export class ProductsService {
 
         const diff = newQty - currentQty;
         if (diff !== 0) {
-          await this.prisma.movimientoInventario.create({
+          await db.movimientoInventario.create({
             data: {
               empresaId,
               productoId: id,
@@ -262,7 +266,7 @@ export class ProductsService {
         const minQty =
           !isNaN(parsedMinimo) && parsedMinimo > 0 ? parsedMinimo : 0;
 
-        await this.prisma.inventarioStock.create({
+        await db.inventarioStock.create({
           data: {
             empresaId,
             productoId: id,
@@ -274,7 +278,7 @@ export class ProductsService {
         });
 
         if (initialQty > 0) {
-          await this.prisma.movimientoInventario.create({
+          await db.movimientoInventario.create({
             data: {
               empresaId,
               productoId: id,
@@ -292,15 +296,15 @@ export class ProductsService {
     }
 
     if (data.insumos !== undefined && Array.isArray(data.insumos)) {
-      await this.syncInsumos(empresaId, id, data.insumos);
+      await this.syncInsumos(empresaId, id, data.insumos, db);
     }
 
-    return this.findOne(empresaId, id);
+    return this.findOne(empresaId, id, db);
   }
 
-  async remove(empresaId: string, id: string) {
-    await this.findOne(empresaId, id);
-    return this.prisma.producto.delete({
+  async remove(empresaId: string, id: string, db: Prisma.TransactionClient = this.prisma) {
+    await this.findOne(empresaId, id, db);
+    return db.producto.delete({
       where: { id },
     });
   }
@@ -308,11 +312,12 @@ export class ProductsService {
   async generateNextCode(
     empresaId: string,
     tipo: string = 'PRODUCTO',
+    db: Prisma.TransactionClient = this.prisma,
   ): Promise<string> {
     const prefix =
       (tipo || 'PRODUCTO').toUpperCase() === 'SERVICIO' ? 'SRV' : 'PRD';
 
-    const products = await this.prisma.producto.findMany({
+    const products = await db.producto.findMany({
       where: {
         empresaId,
         codigo: {
@@ -339,7 +344,7 @@ export class ProductsService {
     let candidate = `${prefix}-${String(nextNumber).padStart(5, '0')}`;
 
     while (true) {
-      const exists = await this.prisma.producto.findFirst({
+      const exists = await db.producto.findFirst({
         where: { empresaId, codigo: candidate },
       });
       if (!exists) break;
@@ -350,8 +355,12 @@ export class ProductsService {
     return candidate;
   }
 
-  private async sanitizeProductData(empresaId: string, data: any) {
-    if (!data) return {};
+  private async sanitizeProductData(empresaId: string, data: any, db: Prisma.TransactionClient) {
+    if (!data) throw new BadRequestException('Datos de producto requeridos');
+    for (const [field, model] of [['categoriaId', 'categoria'], ['marcaId', 'marca'], ['unidadMedidaId', 'unidadMedida'], ['almacenId', 'almacen']] as const) {
+      const id = data[field];
+      if (id && !await (db[model] as any).findFirst({ where: { id, empresaId } })) throw new BadRequestException('La referencia no pertenece a la empresa: ' + field);
+    }
 
     const {
       nombre,
@@ -374,7 +383,7 @@ export class ProductsService {
       typeof val === 'string' && val.trim() !== '' ? val.trim() : null;
 
     const taxId = cleanString(impuestoId);
-    const tax = taxId ? await this.resolveTax(empresaId, taxId) : null;
+    const tax = taxId ? await this.resolveTax(empresaId, taxId, db) : null;
 
     const result: any = {};
 
@@ -390,6 +399,7 @@ export class ProductsService {
       result.codigo = await this.generateNextCode(
         empresaId,
         result.tipo || tipo,
+        db,
       );
     }
 
@@ -475,9 +485,9 @@ export class ProductsService {
     return JSON.stringify(images);
   }
 
-  private async resolveTax(empresaId: string, impuestoId?: string | null) {
+  private async resolveTax(empresaId: string, impuestoId: string | null | undefined, db: Prisma.TransactionClient) {
     if (!impuestoId) return null;
-    const tax = await this.prisma.impuesto.findFirst({
+    const tax = await db.impuesto.findFirst({
       where: { id: impuestoId, empresaId, activo: true },
     });
     if (!tax)
@@ -491,11 +501,12 @@ export class ProductsService {
     empresaId: string,
     productoPadreId: string,
     insumos: any[],
+    db: Prisma.TransactionClient,
   ) {
     if (!Array.isArray(insumos)) return;
 
-    await this.prisma.productoInsumo.deleteMany({
-      where: { productoPadreId },
+    await db.productoInsumo.deleteMany({
+      where: { productoPadreId, empresaId },
     });
 
     const validInsumos = insumos.filter(
@@ -505,7 +516,11 @@ export class ProductsService {
         item.insumoProductoId !== productoPadreId,
     );
 
+    if (validInsumos.length !== insumos.length || new Set(validInsumos.map(i => i.insumoProductoId)).size !== insumos.length) throw new BadRequestException('Insumos inválidos o duplicados');
     for (const item of validInsumos) {
+      if (!await db.producto.findFirst({ where: { id: item.insumoProductoId, empresaId } })) throw new BadRequestException('El insumo no pertenece a la empresa');
+      if (item.unidadMedidaId && !await db.unidadMedida.findFirst({ where: { id: item.unidadMedidaId, empresaId } })) throw new BadRequestException('La unidad no pertenece a la empresa');
+      if (!Number.isFinite(Number(item.cantidad)) || Number(item.cantidad) <= 0) throw new BadRequestException('Cantidad de insumo inválida');
       const qty = Number(item.cantidad) > 0 ? Number(item.cantidad) : 1;
       const cost =
         item.costoUnitario !== undefined &&
@@ -514,7 +529,7 @@ export class ProductsService {
           ? Number(item.costoUnitario)
           : null;
 
-      await this.prisma.productoInsumo.create({
+      await db.productoInsumo.create({
         data: {
           empresaId,
           productoPadreId,

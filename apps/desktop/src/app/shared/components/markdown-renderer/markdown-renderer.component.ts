@@ -7,7 +7,6 @@ import {
   viewChild,
   effect,
 } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { marked } from 'marked';
 import * as Prism from 'prismjs';
 
@@ -31,26 +30,27 @@ import 'prismjs/components/prism-markdown';
   `,
 })
 export class MarkdownRendererComponent {
-  private sanitizer = inject(DomSanitizer);
   private container = viewChild<ElementRef<HTMLDivElement>>('container');
 
   content = input<string>('');
 
-  renderedHtml = computed<SafeHtml>(() => {
+  renderedHtml = computed<string>(() => {
     const raw = this.content() || '';
     if (!raw.trim()) return '';
 
+    const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
     const renderer = new marked.Renderer();
+    renderer.html = ({ text }) => escapeHtml(text);
 
     renderer.code = function ({ text, lang }: { text: string; lang?: string }) {
-      const language = (lang || 'text').trim().toLowerCase();
-      let highlighted = text;
+      const language = (lang || 'text').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      let highlighted = escapeHtml(text);
       try {
         if (Prism.languages[language]) {
           highlighted = Prism.highlight(text, Prism.languages[language], language);
         }
       } catch {
-        highlighted = text;
+        highlighted = escapeHtml(text);
       }
 
       return `<div class="relative group my-3 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-900 text-neutral-100 font-mono text-xs">
@@ -107,9 +107,9 @@ export class MarkdownRendererComponent {
         }
       );
 
-      return this.sanitizer.bypassSecurityTrustHtml(html);
+      return html; // Angular sanitizes the string at the innerHTML boundary.
     } catch {
-      return this.sanitizer.bypassSecurityTrustHtml(raw);
+      return escapeHtml(raw);
     }
   });
 

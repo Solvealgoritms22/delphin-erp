@@ -1,3 +1,4 @@
+import { CatalogDto, UpdateCatalogDto } from '../../../common/dto/resource.dto';
 import {
   Controller,
   Get,
@@ -25,7 +26,7 @@ export class BrandsController {
   @Post()
   @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Crear marca' })
-  create(@CurrentUser() user: any, @Body() data: any) {
+  create(@CurrentUser() user: any, @Body() data: CatalogDto) {
     return this.brandsService.create(user.empresaId, data);
   }
 
@@ -46,7 +47,7 @@ export class BrandsController {
   @Patch(':id')
   @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Actualizar marca' })
-  update(@Param('id') id: string, @CurrentUser() user: any, @Body() data: any) {
+  update(@Param('id') id: string, @CurrentUser() user: any, @Body() data: UpdateCatalogDto) {
     return this.brandsService.update(id, user.empresaId, data);
   }
 

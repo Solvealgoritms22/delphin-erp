@@ -1,3 +1,4 @@
+import { UserDto, UpdateUserDto } from '../../common/dto/resource.dto';
 import {
   Controller,
   Get,
@@ -45,19 +46,15 @@ export class UsersController {
   @ApiOperation({ summary: 'Crear usuario y vincularlo a la empresa' })
   @RequireEntitlement('maxUsuarios')
   @UseGuards(EntitlementGuard)
-  create(@CurrentUser() user: any, @Body() data: any) {
-    return data.empresaIds !== undefined
-      ? this.usersService.create(user.empresaId, data, user.id)
-      : this.usersService.create(user.empresaId, data);
+  create(@CurrentUser() user: any, @Body() data: UserDto) {
+    return this.usersService.create(user.empresaId, data, user.id);
   }
 
   @Patch(':id')
   @RequirePermissions('users:write')
   @ApiOperation({ summary: 'Actualizar rol/estado de un usuario' })
-  update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: any) {
-    return data.empresaIds !== undefined
-      ? this.usersService.update(user.empresaId, id, data, user.id)
-      : this.usersService.update(user.empresaId, id, data);
+  update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: UpdateUserDto) {
+    return this.usersService.update(user.empresaId, id, data, user.id);
   }
 
   @Post(':id/resend-invitation')

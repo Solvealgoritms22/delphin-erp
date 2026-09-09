@@ -1,3 +1,4 @@
+import { BranchDto, UpdateBranchDto } from '../../common/dto/resource.dto';
 import {
   Controller,
   Get,
@@ -25,7 +26,7 @@ export class SucursalesController {
   @Post()
   @RequirePermissions('sucursales:write')
   @ApiOperation({ summary: 'Crear sucursal' })
-  create(@CurrentUser() user: any, @Body() data: any) {
+  create(@CurrentUser() user: any, @Body() data: BranchDto) {
     return this.sucursalesService.create(user.empresaId, data);
   }
 
@@ -46,7 +47,7 @@ export class SucursalesController {
   @Patch(':id')
   @RequirePermissions('sucursales:write')
   @ApiOperation({ summary: 'Actualizar sucursal' })
-  update(@Param('id') id: string, @CurrentUser() user: any, @Body() data: any) {
+  update(@Param('id') id: string, @CurrentUser() user: any, @Body() data: UpdateBranchDto) {
     return this.sucursalesService.update(id, user.empresaId, data);
   }
 

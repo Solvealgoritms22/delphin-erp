@@ -1,3 +1,4 @@
+import { WarehouseDto, UpdateWarehouseDto } from '../../common/dto/resource.dto';
 import {
   Body,
   Controller,
@@ -40,7 +41,7 @@ export class InventoryController {
   @UseGuards(PermissionsGuard)
   @RequirePermissions('inventory:write')
   @ApiOperation({ summary: 'Crear nuevo almacén' })
-  createWarehouse(@CurrentUser() user: any, @Body() data: any) {
+  createWarehouse(@CurrentUser() user: any, @Body() data: WarehouseDto) {
     return this.inventoryService.createWarehouse(user.empresaId, data);
   }
 
@@ -51,7 +52,7 @@ export class InventoryController {
   updateWarehouse(
     @CurrentUser() user: any,
     @Param('id') id: string,
-    @Body() data: any,
+    @Body() data: UpdateWarehouseDto,
   ) {
     return this.inventoryService.updateWarehouse(user.empresaId, id, data);
   }

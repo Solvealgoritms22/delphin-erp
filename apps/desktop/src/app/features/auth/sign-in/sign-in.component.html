@@ -109,6 +109,7 @@
 
         <div class="mt-1.5 flex items-center space-x-2">
           <button type="button" matButton="outlined" class="flex-auto !h-8.5 !rounded-xl"
+            [disabled]="authService.googleLoading()"
             (click)="authService.startGoogleSignIn()">
             <span class="flex items-center justify-center gap-x-2 text-xs font-semibold">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-3.5 h-3.5">

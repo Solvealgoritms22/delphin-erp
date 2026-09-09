@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { createHash, createHmac, timingSafeEqual } from 'crypto';
+import { decryptSecret } from '../../common/security/secrets';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ActivityLogService } from '../activity-log/activity-log.service';
 
@@ -44,7 +45,7 @@ export class FiscalbridgeWebhookService {
       this.verifySignature(
         rawBody,
         signature,
-        empresa.fiscalbridgeWebhookSecret,
+        decryptSecret(empresa.fiscalbridgeWebhookSecret),
       );
 
     const type = String(payload?.type || '');

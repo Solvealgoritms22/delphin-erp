@@ -49,17 +49,7 @@ export class SuppliersService {
   }
 
   async update(id: string, empresaId: string, data: any) {
-    const updated = await this.prisma.proveedor
-      .update({
-        where: { id_empresaId: { id, empresaId } } as any,
-        data,
-      })
-      .catch(() => {
-        return this.prisma.proveedor.update({
-          where: { id },
-          data,
-        });
-      });
+    const updated = await this.prisma.proveedor.update({ where: { id, empresaId }, data });
 
     await this.activityLog.log({
       empresaId,
@@ -73,10 +63,10 @@ export class SuppliersService {
     return updated;
   }
 
-  async remove(id: string, empresaId?: string) {
-    const sup = await this.prisma.proveedor.findUnique({ where: { id } });
+  async remove(id: string, empresaId: string) {
+    const sup = await this.findOne(id, empresaId);
     const deleted = await this.prisma.proveedor.delete({
-      where: { id },
+      where: { id, empresaId },
     });
 
     await this.activityLog.log({

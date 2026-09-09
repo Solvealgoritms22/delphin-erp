@@ -14,6 +14,29 @@ datasource db {
 // Fase 0 y Fase 1 - Modelo Central de Multi-Tenancy
 // ------------------------------------------------------
 
+model BillingAttempt {
+  id        String   @id
+  empresaId String   @map("empresa_id")
+  kind      String
+  status    String
+  result    Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@index([empresaId, status])
+  @@map("billing_attempts")
+}
+
+model AuthFlow {
+  id        String   @id @default(uuid())
+  stateHash String   @unique
+  challenge String
+  nonce     String
+  status    String   @default("PENDING")
+  identity  Json?
+  expiresAt DateTime
+  @@index([expiresAt])
+  @@map("auth_flows")
+}
+
 model Empresa {
   id           String      @id @default(uuid())
   razonSocial  String      @map("razon_social")
@@ -1219,6 +1242,4 @@ model CotizacionDetalle {
   @@index([cotizacionId])
   @@map("cotizaciones_detalles")
 }
-
-
 

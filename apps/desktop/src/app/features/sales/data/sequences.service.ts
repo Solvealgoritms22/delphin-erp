@@ -24,7 +24,7 @@ export type CreateSequenceDto = {
   prefijo: string;
   numeroActual?: number;
   numeroHasta?: number;
-  fechaVencimiento?: string;
+  fechaVencimiento?: string | Date;
   activa?: boolean;
   ambiente?: string;
 }
@@ -33,7 +33,7 @@ export type UpdateSequenceDto = {
   nombre?: string;
   numeroActual?: number;
   numeroHasta?: number;
-  fechaVencimiento?: string;
+  fechaVencimiento?: string | Date;
   activa?: boolean;
   ambiente?: string;
 }

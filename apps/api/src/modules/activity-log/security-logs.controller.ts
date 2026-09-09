@@ -15,7 +15,8 @@ import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 
 @ApiTags('Seguridad')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions('security:read')
 @Controller('v1/security-logs')
 export class SecurityLogsController {
   constructor(private readonly activityLogService: ActivityLogService) {}
@@ -23,12 +24,14 @@ export class SecurityLogsController {
   @Get()
   @ApiOperation({ summary: 'Listar eventos de seguridad' })
   findMany(
+    @Req() request: any,
     @Query('search') search?: string,
     @Query('severity') severity?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.activityLogService.findSecurityLogs({
+      empresaId: request.user.empresaId,
       search,
       severity,
       page: page ? parseInt(page, 10) : 1,

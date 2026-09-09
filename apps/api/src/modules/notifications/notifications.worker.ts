@@ -20,27 +20,30 @@ export class NotificationsWorker {
     try {
       const events = await this.prisma.outboxEvent.findMany({
         where: {
-          estado: 'PENDING',
+          tipo: 'NOTIFICATION_CREATED',
+          intentos: { lt: 5 },
           OR: [
-            { proximoIntentoEn: null },
-            { proximoIntentoEn: { lte: new Date() } },
+            { estado: 'PENDING', OR: [{ proximoIntentoEn: null }, { proximoIntentoEn: { lte: new Date() } }] },
+            { estado: 'PROCESSING', proximoIntentoEn: { lte: new Date() } },
           ],
         },
         orderBy: { creadoEn: 'asc' },
         take: 50,
       });
       for (const event of events) {
-        await this.prisma.outboxEvent.update({
-          where: { id: event.id },
-          data: { estado: 'PROCESSING', intentos: { increment: 1 } },
+        const lease = new Date(Date.now() + 5 * 60_000);
+        const claimed = await this.prisma.outboxEvent.updateMany({
+          where: { id: event.id, estado: event.estado, intentos: event.intentos, proximoIntentoEn: event.proximoIntentoEn },
+          data: { estado: 'PROCESSING', intentos: { increment: 1 }, proximoIntentoEn: lease },
         });
+        if (claimed.count !== 1) continue;
         try {
           const payload = JSON.parse(event.payload) as {
             notificationId: string;
           };
           await this.notifications.deliver(payload.notificationId);
-          await this.prisma.outboxEvent.update({
-            where: { id: event.id },
+          await this.prisma.outboxEvent.updateMany({
+            where: { id: event.id, estado: 'PROCESSING', proximoIntentoEn: lease },
             data: { estado: 'PROCESSED', procesadoEn: new Date() },
           });
         } catch (error) {
@@ -48,8 +51,8 @@ export class NotificationsWorker {
           await this.prisma.outboxEvent.update({
             where: { id: event.id },
             data: {
-              estado: 'PENDING',
-              proximoIntentoEn: new Date(Date.now() + 60000),
+              estado: event.intentos + 1 >= 5 ? 'DEAD_LETTER' : 'PENDING',
+              proximoIntentoEn: new Date(Date.now() + Math.min(3600_000, 60_000 * 2 ** event.intentos)),
             },
           });
         }

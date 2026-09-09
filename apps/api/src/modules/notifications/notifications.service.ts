@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { TenantContext } from '../../common/tenant/tenant-context';
+import { filter } from 'rxjs';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationEmailService } from './notification-email.service';
 import { NotificationPushService } from './notification-push.service';
@@ -347,6 +349,7 @@ export class NotificationsService {
       await this.prisma.outboxEvent.create({
         data: {
           tipo: 'NOTIFICATION_CREATED',
+          empresaId: input.empresaId,
           aggregateId: notification.id,
           payload: JSON.stringify({ notificationId: notification.id }),
         },
@@ -364,14 +367,8 @@ export class NotificationsService {
     const page = query.page || 1;
     const limit = Math.min(query.limit || 25, 100);
     const where = {
-      OR: [
-        { usuarioId: userId },
-        {
-          empresa: {
-            membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
-          },
-        },
-      ],
+      usuarioId: userId,
+      empresaId: TenantContext.getTenantId(),
       ...(query.unread ? { leidaEn: null } : {}),
       ...(query.tipo ? { tipo: query.tipo } : {}),
     } as any;
@@ -397,14 +394,8 @@ export class NotificationsService {
       .count({
         where: {
           leidaEn: null,
-          OR: [
-            { usuarioId: userId },
-            {
-              empresa: {
-                membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
-              },
-            },
-          ],
+          usuarioId: userId,
+      empresaId: TenantContext.getTenantId(),
         },
       })
       .then((count) => ({ count }));
@@ -414,14 +405,8 @@ export class NotificationsService {
     const result = await this.prisma.notification.updateMany({
       where: {
         id,
-        OR: [
-          { usuarioId: userId },
-          {
-            empresa: {
-              membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
-            },
-          },
-        ],
+        usuarioId: userId,
+      empresaId: TenantContext.getTenantId(),
       },
       data: { leidaEn: new Date() },
     });
@@ -434,14 +419,8 @@ export class NotificationsService {
     await this.prisma.notification.updateMany({
       where: {
         leidaEn: null,
-        OR: [
-          { usuarioId: userId },
-          {
-            empresa: {
-              membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
-            },
-          },
-        ],
+        usuarioId: userId,
+      empresaId: TenantContext.getTenantId(),
       },
       data: { leidaEn: new Date() },
     });
@@ -452,14 +431,8 @@ export class NotificationsService {
     const result = await this.prisma.notification.deleteMany({
       where: {
         id,
-        OR: [
-          { usuarioId: userId },
-          {
-            empresa: {
-              membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
-            },
-          },
-        ],
+        usuarioId: userId,
+      empresaId: TenantContext.getTenantId(),
       },
     });
     if (!result.count)
@@ -470,14 +443,8 @@ export class NotificationsService {
   async clear(userId: string) {
     const result = await this.prisma.notification.deleteMany({
       where: {
-        OR: [
-          { usuarioId: userId },
-          {
-            empresa: {
-              membresias: { some: { usuarioId: userId, estado: 'ACTIVO' } },
-            },
-          },
-        ],
+        usuarioId: userId,
+      empresaId: TenantContext.getTenantId(),
       },
     });
     return { success: true, count: result.count };
@@ -568,7 +535,8 @@ export class NotificationsService {
   }
 
   stream(userId: string) {
-    return this.realtime.stream(userId);
+    const empresaId = TenantContext.getTenantId();
+    return this.realtime.stream(userId).pipe(filter(event => (event.notification as { empresaId?: string }).empresaId === empresaId));
   }
 
   async deliver(notificationId: string) {
@@ -578,6 +546,7 @@ export class NotificationsService {
     });
     if (!notification) return;
     for (const delivery of notification.deliveries) {
+      if (delivery.estado === 'SENT') continue;
       try {
         let providerMessageId: string | undefined;
         if (delivery.canal === 'EMAIL' && notification.usuario?.email) {
@@ -607,10 +576,11 @@ export class NotificationsService {
           data: {
             estado: 'RETRYING',
             intentos: { increment: 1 },
-            ultimoError: String(error),
+            ultimoError: 'Delivery failed',
             proximoIntentoEn: new Date(Date.now() + 60000),
           },
         });
+        throw error;
       }
     }
   }

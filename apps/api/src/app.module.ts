@@ -63,7 +63,7 @@ import { QuotesModule } from './modules/quotes/quotes.module';
             return {
               id: req.id,
               method: req.method,
-              url: req.url,
+              url: req.url?.split('?')[0],
               remoteAddress: req.remoteAddress,
               remotePort: req.remotePort,
             };

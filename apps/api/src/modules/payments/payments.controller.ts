@@ -21,12 +21,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
-interface AddPaymentMethodDto {
-  cardNumber: string;
-  expiration: string;
-  cvc: string;
-  cardHolder: string;
-}
+import { AddPaymentMethodDto, ChangePlanDto } from './payment.dto';
+import { BillingOwnerGuard } from './billing-owner.guard';
+import { BillingAttemptsService } from './billing-attempts.service';
+import { encryptSecret, decryptSecret } from '../../common/security/secrets';
 
 @ApiTags('Pagos')
 @ApiBearerAuth()
@@ -37,6 +35,7 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
     private readonly azulService: AzulService,
     private readonly prisma: PrismaService,
+    private readonly attempts: BillingAttemptsService,
   ) {}
 
   @Get('config')
@@ -80,6 +79,7 @@ export class PaymentsController {
    * Returns the saved payment method info for the current tenant.
    */
   @Get('azul/payment-method')
+  @UseGuards(BillingOwnerGuard)
   @ApiOperation({
     summary: 'Obtener método de pago guardado del tenant activo',
   })
@@ -113,6 +113,7 @@ export class PaymentsController {
    * Tokenizes a new card using Azul DataVault (charges RD$1.00 as verification, then voids).
    */
   @Post('azul/payment-method')
+  @UseGuards(BillingOwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Guardar tarjeta (tokeniza con Azul DataVault)' })
   @ApiResponse({ status: 200, description: 'Tarjeta tokenizada y guardada.' })
@@ -138,7 +139,8 @@ export class PaymentsController {
       throw new BadRequestException('Número de tarjeta inválido.');
     }
 
-    const orderNumber = `VERIFY-${empresaId.substring(0, 8)}-${Date.now()}`;
+    return this.attempts.execute(empresaId, 'CARD_VERIFICATION', dto.idempotencyKey, async () => {
+    const orderNumber = `VERIFY-${dto.idempotencyKey}`;
 
     const azulResponse = await this.azulService.processCardSaleWithTokenization(
       {
@@ -166,7 +168,7 @@ export class PaymentsController {
     await this.prisma.suscripcion.upsert({
       where: { empresaId },
       update: {
-        azulDataVaultToken: azulResponse.DataVaultToken,
+        azulDataVaultToken: encryptSecret(azulResponse.DataVaultToken),
         azulDataVaultExpiration: azulResponse.DataVaultExpiration || '202812',
         azulCardLast4:
           azulResponse.CardNumber?.slice(-4) || sanitizedCard.slice(-4),
@@ -176,7 +178,7 @@ export class PaymentsController {
       create: {
         empresaId,
         planId: 'starter', // fallback
-        azulDataVaultToken: azulResponse.DataVaultToken,
+        azulDataVaultToken: encryptSecret(azulResponse.DataVaultToken),
         azulDataVaultExpiration: azulResponse.DataVaultExpiration || '202812',
         azulCardLast4:
           azulResponse.CardNumber?.slice(-4) || sanitizedCard.slice(-4),
@@ -185,13 +187,10 @@ export class PaymentsController {
       },
     });
 
-    // Void the RD$1.00 verification charge (non-critical)
+    // A failed void requires reconciliation; never silently keep the charge.
     if (azulResponse.AzuleOrderId) {
-      try {
-        await this.azulService.voidTransaction(azulResponse.AzuleOrderId);
-      } catch {
-        // Non-critical: the verification charge void is best-effort only.
-      }
+      const voided = await this.azulService.voidTransaction(azulResponse.AzuleOrderId);
+      if (!this.azulService.isApproved(voided)) throw new BadRequestException('La verificación requiere conciliación con el banco');
     }
 
     return {
@@ -200,18 +199,21 @@ export class PaymentsController {
       cardBrand: azulResponse.CardBrand,
       cardLast4: azulResponse.CardNumber?.slice(-4),
     };
+    });
   }
 
   @Post('change-plan')
+  @UseGuards(BillingOwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cambiar de plan de suscripción' })
   async changePlan(
     @CurrentUser() user: any,
-    @Body() dto: { planId: string; billingCycle: string },
+    @Body() dto: ChangePlanDto,
   ) {
     const empresaId = user.empresaId;
     if (!empresaId) throw new BadRequestException('No tenant selected');
 
+    return this.attempts.execute(empresaId, 'PLAN_CHANGED', dto.idempotencyKey, async () => {
     const suscripcion = await this.prisma.suscripcion.findUnique({
       where: { empresaId },
     });
@@ -232,9 +234,9 @@ export class PaymentsController {
     const numAmount = Number(amount);
 
     if (numAmount > 0 && process.env.AZUL_ENV !== 'MOCK') {
-      const orderNumber = `UPG-${empresaId.substring(0, 8)}-${Date.now()}`;
+      const orderNumber = `UPG-${dto.idempotencyKey}`;
       const azulResponse = await this.azulService.processTokenSale({
-        dataVaultToken: suscripcion.azulDataVaultToken,
+        dataVaultToken: decryptSecret(suscripcion.azulDataVaultToken),
         dataVaultExpiration: suscripcion.azulDataVaultExpiration || '202812',
         amountCents: Math.round(numAmount * 100),
         itbisCents: Math.round(numAmount * 0.18 * 100),
@@ -258,6 +260,7 @@ export class PaymentsController {
       where: { empresaId },
       data: {
         planId: plan.id,
+        periodicidad: dto.billingCycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         fechaRenovacion: nextBilling,
         estado: 'ACTIVE',
       },
@@ -268,9 +271,11 @@ export class PaymentsController {
       plan: plan.nombre,
       simulated: process.env.AZUL_ENV === 'MOCK',
     };
+    });
   }
 
   @Delete('azul/payment-method')
+  @UseGuards(BillingOwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Eliminar método de pago guardado' })
   async removePaymentMethod(@CurrentUser() user: any) {

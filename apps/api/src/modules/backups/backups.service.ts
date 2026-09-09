@@ -22,42 +22,16 @@ import { basename, dirname, join, resolve } from 'path';
 import { Readable } from 'stream';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ActivityLogService } from '../activity-log/activity-log.service';
+import { exportTenantArchive } from './tenant-archive';
 import { NotificationsService } from '../notifications/notifications.service';
 
 const gzipAsync = promisify(gzip);
-const TENANT_MODELS = [
-  'sucursal',
-  'almacen',
-  'inventarioStock',
-  'movimientoInventario',
-  'membresia',
-  'role',
-  'categoria',
-  'marca',
-  'unidadMedida',
-  'producto',
-  'cliente',
-  'proveedor',
-  'notification',
-  'secuenciaNCF',
-  'facturaVenta',
-  'aiConversation',
-  'activityLog',
-  'configuracionEmpresa',
-  'impuesto',
-  'terminoPago',
-  'pagoCliente',
-] as const;
 
 type Provider = 'LOCAL' | 'GOOGLE_DRIVE';
 
 @Injectable()
 export class BackupsService {
   private readonly logger = new Logger(BackupsService.name);
-  private readonly oauthStates = new Map<
-    string,
-    { userId: string; expiresAt: number }
-  >();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -121,6 +95,7 @@ export class BackupsService {
         propietarioId: userId,
         empresaId,
         proveedor: provider,
+        formato: 'DOLPHIN_JSON_V2_GZIP_AES256',
         nombreArchivo: name,
         iniciadoEn: new Date(),
       },
@@ -270,13 +245,13 @@ export class BackupsService {
     };
   }
 
-  googleAuthorize(userId: string) {
+  async googleAuthorize(userId: string) {
     const client = this.oauthClient();
     const state = randomBytes(32).toString('hex');
-    this.oauthStates.set(state, {
-      userId,
-      expiresAt: Date.now() + 10 * 60 * 1000,
-    });
+    await this.prisma.authFlow.create({ data: {
+      stateHash: createHash('sha256').update(state).digest('hex'), challenge: 'DRIVE', nonce: userId,
+      status: 'DRIVE_PENDING', expiresAt: new Date(Date.now() + 10 * 60_000),
+    } });
     return {
       url: client.generateAuthUrl({
         access_type: 'offline',
@@ -292,10 +267,11 @@ export class BackupsService {
   }
 
   async googleCallback(code: string, state: string) {
-    const pending = this.oauthStates.get(state);
-    this.oauthStates.delete(state);
-    if (!pending || pending.expiresAt < Date.now())
-      throw new BadRequestException('Estado OAuth expirado');
+    const flow = await this.prisma.authFlow.findUnique({ where: { stateHash: createHash('sha256').update(state || '').digest('hex') } });
+    if (!flow || flow.status !== 'DRIVE_PENDING' || flow.expiresAt < new Date()) throw new BadRequestException('Estado OAuth expirado');
+    const claimed = await this.prisma.authFlow.updateMany({ where: { id: flow.id, status: 'DRIVE_PENDING' }, data: { status: 'CONSUMED' } });
+    if (claimed.count !== 1) throw new BadRequestException('Estado OAuth utilizado');
+    const pending = { userId: flow.nonce };
     const client = this.oauthClient();
     const { tokens } = await client.getToken(code);
 
@@ -496,6 +472,10 @@ export class BackupsService {
 
         const provider = (config.backupDestino || 'LOCAL') as Provider;
 
+        const claimed = await this.prisma.configuracionEmpresa.updateMany({
+          where: { empresaId: config.empresaId, ultimoBackupAuto: config.ultimoBackupAuto }, data: { ultimoBackupAuto: now },
+        });
+        if (claimed.count !== 1) continue;
         try {
           await this.create(
             config.empresa.propietarioId,
@@ -576,30 +556,9 @@ export class BackupsService {
   }
 
   private async exportTenant(empresaId: string) {
-    const data: Record<string, unknown> = {
-      schemaVersion: 1,
-      exportedAt: new Date().toISOString(),
-      empresaId,
-    };
-    const prisma = this.prisma as any;
-    for (const model of TENANT_MODELS) {
-      data[model] = await prisma[model].findMany({
-        where: { empresaId },
-        ...(model === 'facturaVenta'
-          ? {
-            include: {
-              impuestos: true,
-              pagosAplicados: { include: { pago: true } },
-            },
-          }
-          : {}),
-      });
-    }
-    return Buffer.from(
-      JSON.stringify(data, (_key, value) =>
-        typeof value === 'bigint' ? value.toString() : value,
-      ),
-    );
+    const data = await this.prisma.$transaction(tx => exportTenantArchive(tx, empresaId),
+      { isolationLevel: 'RepeatableRead', timeout: 120_000 });
+    return Buffer.from(JSON.stringify(data, (_key, value) => typeof value === 'bigint' ? value.toString() : value));
   }
 
   private async encrypt(plain: Buffer) {
