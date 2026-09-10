@@ -498,7 +498,8 @@ export class PosComponent implements OnInit {
   private lastKeyTime = 0;
 
   readonly filteredProducts = computed(() => {
-    let list = this.products();
+    // En el POS solo se comercializan productos físicos (se excluyen servicios)
+    let list = this.products().filter((p) => p.tipo !== 'SERVICIO');
     const cat = this.selectedCategory;
     const term = this.searchTerm.toLowerCase().trim();
 
@@ -573,8 +574,9 @@ export class PosComponent implements OnInit {
   matchBarcode(barcode: string): void {
     const found = this.products().find(
       (p) =>
-        (p.codigoBarras && p.codigoBarras.trim() === barcode) ||
-        p.codigo.trim() === barcode
+        p.tipo !== 'SERVICIO' &&
+        ((p.codigoBarras && p.codigoBarras.trim() === barcode) ||
+          p.codigo.trim() === barcode)
     );
 
     if (found) {
@@ -588,6 +590,14 @@ export class PosComponent implements OnInit {
   }
 
   addProductToCart(product: Product): void {
+    if (product.tipo === 'SERVICIO') {
+      this.snackBar.open('Los servicios no se pueden vender desde el POS', 'Cerrar', {
+        duration: 2500,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+      });
+      return;
+    }
     this.posService.addItem(product, 1);
   }
 

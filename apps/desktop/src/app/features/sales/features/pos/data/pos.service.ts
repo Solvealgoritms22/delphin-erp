@@ -119,6 +119,9 @@ export class PosService {
 
   // --- Cart Operations ---
   addItem(product: Product, quantity = 1): void {
+    if (product.tipo === 'SERVICIO') {
+      return;
+    }
     const currentItems = [...this.items()];
     const existingIndex = currentItems.findIndex((i) => i.id === product.id);
 

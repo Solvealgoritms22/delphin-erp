@@ -131,45 +131,54 @@ export class AuthService {
       const flow = await firstValueFrom(this.http.post<{ flowId: string; url: string }>(this.apiUrl + '/google/start', { challenge }));
       const target = new URL(flow.url);
       if (target.origin !== 'https://accounts.google.com') throw new Error('invalid_provider');
-      if (bridge) bridge.openExternal(target.href);
-      else if (popup) { popup.opener = null; popup.location.href = target.href; }
-      const expiresAt = Date.now() + 10 * 60_000;
-      while (attempt === this.googleAttempt && Date.now() < expiresAt) {
-        const result = await firstValueFrom(this.http.post<{ status: string; needsCompany?: boolean; needsPolicies?: boolean }>(
-          this.apiUrl + '/google/status', { flowId: flow.flowId, verifier }));
-        if (result.status === 'ready') {
+      let messageReceived = false;
+      const onMessage = (e: MessageEvent) => {
+        if (e.data?.type === 'GOOGLE_AUTH_SUCCESS' || e.data?.type === 'GOOGLE_AUTH_FAILED') {
+          messageReceived = true;
           popup?.close();
-          sessionStorage.setItem('google_setup', JSON.stringify({ flowId: flow.flowId, verifier, expiresAt, ...result }));
-          if (!result.needsCompany && !result.needsPolicies) {
-            const response = await firstValueFrom(this.completeGoogleSetup({ acceptedPolicies: false }), { defaultValue: null });
-            if (response) await this.router.navigateByUrl(response.user.mustChangePassword ? '/auth/change-password' : '/admin/dashboards');
-          } else await this.router.navigateByUrl('/auth/google/setup');
-          return;
         }
-        // Si el usuario cerró el popup (como indica la página "Puedes cerrar esta pestaña"),
-        // hacemos un último intento antes de cancelar — el backend puede haber completado
-        // la autorización justo antes de que el usuario cerrara la ventana.
-        if (popup?.closed) {
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          const final = await firstValueFrom(this.http.post<{ status: string; needsCompany?: boolean; needsPolicies?: boolean }>(
+      };
+      window.addEventListener('message', onMessage);
+
+      if (bridge) bridge.openExternal(target.href);
+      else if (popup) { popup.location.href = target.href; }
+      const expiresAt = Date.now() + 10 * 60_000;
+      try {
+        while (attempt === this.googleAttempt && Date.now() < expiresAt) {
+          const result = await firstValueFrom(this.http.post<{ status: string; needsCompany?: boolean; needsPolicies?: boolean }>(
             this.apiUrl + '/google/status', { flowId: flow.flowId, verifier }));
-          if (final.status === 'ready') {
-            sessionStorage.setItem('google_setup', JSON.stringify({ flowId: flow.flowId, verifier, expiresAt, ...final }));
-            if (!final.needsCompany && !final.needsPolicies) {
+          if (result.status === 'ready') {
+            popup?.close();
+            sessionStorage.setItem('google_setup', JSON.stringify({ flowId: flow.flowId, verifier, expiresAt, ...result }));
+            if (!result.needsCompany && !result.needsPolicies) {
               const response = await firstValueFrom(this.completeGoogleSetup({ acceptedPolicies: false }), { defaultValue: null });
               if (response) await this.router.navigateByUrl(response.user.mustChangePassword ? '/auth/change-password' : '/admin/dashboards');
             } else await this.router.navigateByUrl('/auth/google/setup');
             return;
           }
-          throw new Error('cancelled');
+          if (popup?.closed) {
+            await new Promise(resolve => setTimeout(resolve, 800));
+            const final = await firstValueFrom(this.http.post<{ status: string; needsCompany?: boolean; needsPolicies?: boolean }>(
+              this.apiUrl + '/google/status', { flowId: flow.flowId, verifier }));
+            if (final.status === 'ready') {
+              sessionStorage.setItem('google_setup', JSON.stringify({ flowId: flow.flowId, verifier, expiresAt, ...final }));
+              if (!final.needsCompany && !final.needsPolicies) {
+                const response = await firstValueFrom(this.completeGoogleSetup({ acceptedPolicies: false }), { defaultValue: null });
+                if (response) await this.router.navigateByUrl(response.user.mustChangePassword ? '/auth/change-password' : '/admin/dashboards');
+              } else await this.router.navigateByUrl('/auth/google/setup');
+              return;
+            }
+            throw new Error('cancelled');
+          }
+          await new Promise(resolve => setTimeout(resolve, messageReceived ? 300 : 1000));
         }
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        throw new Error('expired');
+      } finally {
+        window.removeEventListener('message', onMessage);
       }
-      throw new Error('expired');
     } catch (err: unknown) {
       popup?.close();
       sessionStorage.removeItem('google_setup');
-      // Si el servidor devolvió un mensaje específico (ej: "solo para propietarios"), mostrarlo.
       const serverMessage = (err as any)?.error?.message as string | undefined;
       const displayMessage = serverMessage
         ? serverMessage
