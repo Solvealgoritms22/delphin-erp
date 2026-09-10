@@ -177,7 +177,7 @@ type AccountTab = 'profile' | 'security' | 'smtp' | 'danger';
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>{{ 'account.fullName' | transloco }} *</mat-label>
+                    <mat-label>{{ 'account.fullName' | transloco }}</mat-label>
                     <input matInput formControlName="name" [placeholder]="'account.namePlaceholder' | transloco" autocomplete="name" />
                     @if (profileForm.get('name')?.hasError('required')) {
                       <mat-error>El nombre completo es requerido</mat-error>
