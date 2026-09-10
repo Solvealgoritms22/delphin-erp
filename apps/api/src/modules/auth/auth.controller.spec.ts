@@ -1,3 +1,4 @@
+import { GoogleOAuthService } from './google-oauth.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -29,7 +30,8 @@ describe('AuthController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [{ provide: AuthService, useValue: authService }],
+      providers: [
+        { provide: GoogleOAuthService, useValue: {} },{ provide: AuthService, useValue: authService }],
     })
       .overrideGuard(LocalAuthGuard)
       .useValue({ canActivate: () => true })
@@ -82,7 +84,7 @@ describe('AuthController', () => {
 
   it('switchTenant usa user.id y empresaId del body', async () => {
     await controller.switchTenant({ id: 'u1' }, { empresaId: 'e1' });
-    expect(authService.switchTenant).toHaveBeenCalledWith('u1', 'e1');
+    expect(authService.switchTenant).toHaveBeenCalledWith('u1', 'e1', undefined);
   });
 
   it('updateProfile usa user.id', async () => {

@@ -113,6 +113,7 @@ describe('EmpresasService', () => {
       expect(prisma.empresa.update).toHaveBeenCalledWith({
         where: { id: 'e1' },
         data: { razonSocial: 'X', telefono: '555' },
+        select: expect.any(Object),
       });
     });
   });
@@ -128,7 +129,7 @@ describe('EmpresasService', () => {
       );
     });
 
-    it('elimina la empresa', async () => {
+    it('archiva la empresa y conserva el historial', async () => {
       prisma.empresa.findUnique.mockResolvedValue({
         id: 'e1',
         propietarioId: 'u1',
@@ -137,9 +138,10 @@ describe('EmpresasService', () => {
 
       await service.remove('u1', 'e1');
 
-      expect(prisma.empresa.delete).toHaveBeenCalledWith({
-        where: { id: 'e1' },
-      });
+      expect(prisma.empresa.delete).not.toHaveBeenCalled();
+      expect(prisma.empresa.update).toHaveBeenCalledWith(expect.objectContaining({
+        where: { id: 'e1' }, data: { estado: 'ARCHIVADA' },
+      }));
     });
   });
 

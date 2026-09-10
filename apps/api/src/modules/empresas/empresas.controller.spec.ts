@@ -67,8 +67,15 @@ describe('EmpresasController', () => {
     await controller.getSubscription(user);
     expect(prisma.suscripcion.findUnique).toHaveBeenCalledWith({
       where: { empresaId: 'e1' },
-      include: { plan: true },
+      select: expect.objectContaining({ plan: true, azulCardLast4: true }),
     });
+  });
+
+  it('does not expose stored payment credentials', async () => {
+    await controller.getSubscription(user);
+    const query = prisma.suscripcion.findUnique.mock.calls[0][0];
+    expect(query.select.azulDataVaultToken).toBeUndefined();
+    expect(query.include).toBeUndefined();
   });
 
   it('getCurrent y getMyEmpresas delegan', () => {

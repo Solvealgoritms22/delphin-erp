@@ -13,6 +13,8 @@ function createDelegates() {
     deleteMany: jest.fn(),
     count: jest.fn(),
     groupBy: jest.fn(),
+    aggregate: jest.fn(),
+    createMany: jest.fn(),
   };
 }
 
@@ -47,9 +49,17 @@ export function createPrismaMock() {
     configuracionEmpresa: createDelegates(),
     googleDriveConnection: createDelegates(),
     backup: createDelegates(),
+    almacen: createDelegates(),
+    inventarioStock: createDelegates(),
+    inventarioMovimiento: createDelegates(),
+    productoInsumo: createDelegates(),
+    authFlow: createDelegates(),
+    billingAttempt: createDelegates(),
+    $queryRaw: jest.fn(),
+    $executeRaw: jest.fn(),
     $connect: jest.fn(),
     $disconnect: jest.fn(),
-    $transaction: jest.fn((fn: any) => fn(prisma)),
+    $transaction: jest.fn((work: any) => typeof work === 'function' ? work({ ...prisma }) : Promise.all(work)),
   };
 
   return {

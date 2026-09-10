@@ -8,6 +8,7 @@ const routes: Routes = [
     canActivateChild: [guestGuard],
     loadComponent: () => import('@layout/auth/auth-layout.component'),
     children: [
+      { path: 'mfa', loadComponent: () => import('./mfa/mfa-login.component') },
       {
         path: '',
         pathMatch: 'full',

@@ -68,7 +68,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // This payload matches what we signed in auth.service
     return {
       id: payload.sub,
-      authTime: payload.iat,
+      authTime: payload.authTime ?? payload.iat,
       email: payload.email,
       empresaId: payload.empresaId,
       roleId: payload.roleId,

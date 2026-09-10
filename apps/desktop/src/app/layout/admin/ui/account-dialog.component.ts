@@ -1,3 +1,4 @@
+import { MfaSettingsComponent } from './mfa-settings.component';
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -15,6 +16,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   selector: 'app-account-dialog',
   standalone: true,
   imports: [
+    MfaSettingsComponent,
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
@@ -81,6 +83,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
             </span>
           </div>
         </div>
+
+        <app-mfa-settings />
 
         <form [formGroup]="form" class="flex flex-col gap-4">
           <mat-form-field appearance="outline" class="w-full">

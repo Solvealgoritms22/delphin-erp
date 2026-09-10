@@ -257,18 +257,20 @@ export class InvoicesService {
   }
 
   downloadPdf(id: string, fileName?: string): void {
-    this.http
-      .get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' })
-      .subscribe({
-        next: (blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = fileName || `Factura_${id}.pdf`;
-          link.click();
-          window.URL.revokeObjectURL(url);
-        },
-      });
+    this.getPdf(id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName || `Factura_${id}.pdf`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      },
+    });
+  }
+
+  getPdf(id: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' });
   }
 
   downloadXml(id: string, fileName?: string): void {

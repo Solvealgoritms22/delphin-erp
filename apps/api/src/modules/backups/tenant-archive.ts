@@ -20,7 +20,7 @@ const indirect: Record<string, string> = {
 };
 // These contain sessions, user-level preferences, or physical backup metadata;
 // they are intentionally not replayed as business records.
-export const OPERATIONAL_EXCLUSIONS = ['AuthFlow', 'UserSession', 'GoogleDriveConnection',
+export const OPERATIONAL_EXCLUSIONS = ['MfaCredential', 'AuthFlow', 'UserSession', 'GoogleDriveConnection',
   'NotificationPreference', 'PushSubscription', 'Backup'];
 
 function delegate(db: Db, name: string): any { return (db as any)[name[0].toLowerCase() + name.slice(1)]; }

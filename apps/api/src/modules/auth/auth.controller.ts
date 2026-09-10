@@ -148,7 +148,7 @@ export class AuthController {
     @CurrentUser() user: any,
     @Body() body: SwitchTenantDto,
   ) {
-    return this.authService.switchTenant(user.id, body.empresaId);
+    return this.authService.switchTenant(user.id, body.empresaId, user.authTime);
   }
 
   @UseGuards(JwtAuthGuard)

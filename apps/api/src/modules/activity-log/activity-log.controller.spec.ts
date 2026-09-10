@@ -21,10 +21,11 @@ describe('ActivityLogController', () => {
     controller = module.get<ActivityLogController>(ActivityLogController);
   });
 
-  it('findMany pasa filtros y paginación globales', () => {
-    controller.findMany('products', 'CREATE', 'u1', '2026', '2', '10');
+  it('findMany pasa filtros y paginación de la empresa autenticada', () => {
+    controller.findMany({ user: { empresaId: 'e1' } }, 'products', 'CREATE', 'u1', '2026', '2', '10');
 
     expect(service.findMany).toHaveBeenCalledWith({
+      empresaId: 'e1',
       modulo: 'products',
       accion: 'CREATE',
       usuarioId: 'u1',
@@ -35,9 +36,10 @@ describe('ActivityLogController', () => {
   });
 
   it('findMany usa defaults sin query params', () => {
-    controller.findMany();
+    controller.findMany({ user: { empresaId: 'e1' } });
 
     expect(service.findMany).toHaveBeenCalledWith({
+      empresaId: 'e1',
       modulo: undefined,
       accion: undefined,
       usuarioId: undefined,
@@ -47,8 +49,8 @@ describe('ActivityLogController', () => {
     });
   });
 
-  it('getYears consulta el historial global', () => {
-    controller.getYears();
-    expect(service.getYears).toHaveBeenCalledWith();
+  it('getYears consulta el historial de la empresa autenticada', () => {
+    controller.getYears({ user: { empresaId: 'e1' } });
+    expect(service.getYears).toHaveBeenCalledWith('e1');
   });
 });

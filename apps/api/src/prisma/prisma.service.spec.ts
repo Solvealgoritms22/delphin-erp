@@ -1,18 +1,9 @@
 import { PrismaService } from './prisma.service';
-
-jest.mock('@prisma/client', () => ({
-  PrismaClient: jest.fn().mockImplementation(function (this: any) {
-    this.$connect = jest.fn();
-    this.$disconnect = jest.fn();
-  }),
-}));
-
 describe('PrismaService', () => {
-  it('se conecta en onModuleInit', async () => {
+  it('connects on module initialization', async () => {
     const service = new PrismaService();
-
+    const connect = jest.spyOn(service, '$connect').mockResolvedValue();
     await service.onModuleInit();
-
-    expect(service.$connect).toHaveBeenCalled();
+    expect(connect).toHaveBeenCalledTimes(1);
   });
 });

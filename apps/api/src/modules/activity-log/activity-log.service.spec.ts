@@ -49,12 +49,12 @@ describe('ActivityLogService', () => {
       });
     });
 
-    it('falla silenciosamente si la BD falla', async () => {
+    it('propaga el fallo de persistencia de auditoría', async () => {
       prisma.activityLog.create.mockRejectedValue(new Error('db down'));
 
       await expect(
         service.log({ empresaId: 'e1', modulo: 'x', accion: 'CREATE' }),
-      ).resolves.toBeUndefined();
+      ).rejects.toThrow('db down');
     });
   });
 
@@ -116,11 +116,7 @@ describe('ActivityLogService', () => {
 
   describe('getYears', () => {
     it('devuelve años únicos ordenados descendente', async () => {
-      prisma.activityLog.findMany.mockResolvedValue([
-        { creadoEn: new Date('2026-03-01') },
-        { creadoEn: new Date('2025-06-01') },
-        { creadoEn: new Date('2026-01-15') },
-      ]);
+      prisma.$queryRaw.mockResolvedValue([{ year: 2026 }, { year: 2025 }]);
 
       const result = await service.getYears('e1');
 

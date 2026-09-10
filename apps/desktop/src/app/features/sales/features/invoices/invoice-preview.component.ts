@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ElementRef,
   Component,
   computed,
   inject,
@@ -10,7 +11,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FacturaVenta, InvoicesService } from '../../data/invoices.service';
 import { AuthState } from '../../../../core/auth/auth.state';
@@ -87,15 +88,16 @@ import { CurrencyConfigService } from '../../../../core/currency/currency-config
               type="button"
               (click)="downloadPdf()"
               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-colors cursor-pointer"
-              matTooltip="Descargar PDF certificado DGII"
+              [matTooltip]="'fiscalPrint.download' | transloco"
             >
               <mat-icon svgIcon="download" class="icon-size-3.5" />
-              <span>PDF DGII</span>
+              <span>{{ 'fiscalPrint.title' | transloco }}</span>
             </button>
           }
           <button
             type="button"
             (click)="print()"
+            [disabled]="printing()"
             class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             <mat-icon svgIcon="printer" class="icon-size-3.5" />
@@ -374,7 +376,7 @@ import { CurrencyConfigService } from '../../../../core/currency/currency-config
 
                 <div class="text-right hidden sm:block text-[10px] text-neutral-400">
                   <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">
-                    Comprobante Fiscal Válido
+                    {{ invoice.fiscalbridgeStatus || invoice.estado }}
                   </span>
                   <div class="mt-1">Dolphin ERP DGII FiscalBridge</div>
                 </div>
@@ -433,8 +435,66 @@ export class InvoicePreviewComponent {
     return user.empresas.find((e: any) => e.id === empId) || user.empresas[0];
   });
 
+  readonly printing = signal(false);
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly transloco = inject(TranslocoService);
+
   print() {
-    window.print();
+    if (this.printing()) return;
+    const electronic = (this.invoice.tipoNcf || this.invoice.ncf || '').toUpperCase().startsWith('E');
+    if (electronic && !this.invoice.fiscalbridgeDocId) {
+      this.printError('fiscalPrint.pending');
+      return;
+    }
+    this.printing.set(true);
+    if (electronic) {
+      this.invoicesService.getPdf(this.invoice.id).subscribe({
+        next: blob => {
+          const url = URL.createObjectURL(blob);
+          this.printFrame(url, undefined, () => URL.revokeObjectURL(url));
+        },
+        error: () => { this.printing.set(false); this.printError('fiscalPrint.error'); },
+      });
+      return;
+    }
+    const sheet = this.host.nativeElement.querySelector('.invoice-sheet');
+    if (!sheet) { this.printing.set(false); return; }
+    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map(node => node.outerHTML).join('');
+    this.printFrame(undefined, '<!doctype html><html><head>' + styles +
+      '<style>@page{size:letter;margin:1.2cm}body{background:white;color:#111827}.no-print{display:none!important}.invoice-sheet{box-shadow:none!important;max-width:100%!important}</style></head><body>' +
+      sheet.outerHTML + '</body></html>');
+  }
+
+  private printError(key: string) {
+    this.snackBar.open(this.transloco.translate(key), this.transloco.translate('common.close'), {
+      duration: 6000, horizontalPosition: 'center', verticalPosition: 'bottom',
+    });
+  }
+
+  private printFrame(src?: string, html?: string, release: () => void = () => {}) {
+    const frame = document.createElement('iframe');
+    frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:816px;height:1056px;border:0';
+    frame.title = this.transloco.translate('fiscalPrint.title');
+    let cleaned = false;
+    const cleanup = () => { if (cleaned) return; cleaned = true; frame.remove(); release(); this.printing.set(false); };
+    const timer = setTimeout(cleanup, 120_000);
+    frame.onload = async () => {
+      try {
+        if (html) {
+          await frame.contentDocument?.fonts.ready;
+          await Promise.all(Array.from(frame.contentDocument?.images || []).map(img =>
+            img.complete ? Promise.resolve() : new Promise<void>(resolve => { img.onload = () => resolve(); img.onerror = () => resolve(); })));
+        }
+        frame.contentWindow?.addEventListener('afterprint', () => { clearTimeout(timer); cleanup(); }, { once: true });
+        frame.contentWindow?.focus();
+        frame.contentWindow?.print();
+        this.printing.set(false);
+      } catch { cleanup(); this.printError('fiscalPrint.error'); }
+    };
+    if (src) frame.src = src;
+    else frame.srcdoc = html || '';
+    document.body.appendChild(frame);
   }
 
   getCurrencySymbol(code?: string | null): string {

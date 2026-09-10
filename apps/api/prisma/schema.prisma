@@ -25,6 +25,19 @@ model BillingAttempt {
   @@map("billing_attempts")
 }
 
+model MfaCredential {
+  usuarioId String @id @map("usuario_id")
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  secret String
+  enabledAt DateTime? @map("enabled_at")
+  setupExpiresAt DateTime? @map("setup_expires_at")
+  recoveryHashes String[] @default([]) @map("recovery_hashes")
+  lastCounter Int @default(-1) @map("last_counter")
+  failedAttempts Int @default(0) @map("failed_attempts")
+  lockedUntil DateTime? @map("locked_until")
+  @@map("mfa_credentials")
+}
+
 model AuthFlow {
   id        String   @id @default(uuid())
   stateHash String   @unique
@@ -134,6 +147,7 @@ model Usuario {
   invitacionExpiraEn DateTime? @map("invitacion_expira_en")
   nombre         String?
   avatar         String?
+  mfaCredential MfaCredential?
   mfaHabilitado  Boolean   @default(false) @map("mfa_habilitado")
   
   otpCode        String?   @map("otp_code")
@@ -1242,4 +1256,3 @@ model CotizacionDetalle {
   @@index([cotizacionId])
   @@map("cotizaciones_detalles")
 }
-

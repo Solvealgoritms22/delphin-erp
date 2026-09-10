@@ -44,7 +44,7 @@ describe('UsersController', () => {
   it('create delega empresa y body', () => {
     const data = { email: 'x@y.com' };
     controller.create(user, data);
-    expect(usersService.create).toHaveBeenCalledWith('e1', data);
+    expect(usersService.create).toHaveBeenCalledWith('e1', data, 'u1');
   });
 
   it('update delega empresa, id y body', () => {

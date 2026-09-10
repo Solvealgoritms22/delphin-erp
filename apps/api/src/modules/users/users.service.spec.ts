@@ -107,58 +107,59 @@ describe('UsersService', () => {
       });
     });
 
-    it('reutiliza usuario existente y crea la membresía', async () => {
+    it('rechaza vincular una identidad existente sin autorización', async () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue('hash');
       prisma.membresia.count.mockResolvedValue(0);
       prisma.usuario.findUnique.mockResolvedValue({ id: 'u1' });
       prisma.membresia.create.mockResolvedValue({});
 
-      await service.create('e1', { email: 'old@x.com' });
+      await expect(service.create('e1', { email: 'old@x.com' })).rejects.toThrow('autorizar');
 
       expect(prisma.usuario.create).not.toHaveBeenCalled();
-      expect(prisma.membresia.create).toHaveBeenCalled();
+      expect(prisma.membresia.create).not.toHaveBeenCalled();
     });
   });
 
   describe('update', () => {
     it('impide desactivar al propietario', async () => {
+      prisma.membresia.findUnique.mockResolvedValue({ usuario: {}, empresa: { propietarioId: 'u1' } });
       prisma.empresa.findUnique.mockResolvedValue({
         id: 'e1',
         propietarioId: 'u1',
       });
 
       await expect(
-        service.update('e1', 'u1', { estado: 'INACTIVO' }),
+        service.update('e1', 'u1', { estado: 'INACTIVO' }, 'actor'),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('actualiza contraseña cuando se envía', async () => {
-      prisma.empresa.findUnique.mockResolvedValue({
-        id: 'e1',
-        propietarioId: 'x',
-      });
-      prisma.usuario.update.mockResolvedValue({});
-      prisma.membresia.update.mockResolvedValue({});
+    it('rejects administrative password replacement', async () => {
+      await expect(service.update('e1', 'u2', { password: 'new-password-test' }, 'actor')).rejects.toThrow('recuperación');
+      expect(prisma.usuario.update).not.toHaveBeenCalled();
+    });
 
-      await service.update('e1', 'u2', { password: 'nueva' });
-
-      expect(prisma.usuario.update).toHaveBeenCalled();
-      expect(prisma.membresia.update).toHaveBeenCalled();
+    it('does not change a global identity before validating membership', async () => {
+      prisma.membresia.findUnique.mockResolvedValue(null);
+      await expect(service.update('e1', 'u2', { name: 'Changed' }, 'actor')).rejects.toThrow('no encontrado');
+      expect(prisma.usuario.update).not.toHaveBeenCalled();
     });
 
     it('actualiza rol y estado', async () => {
+      prisma.membresia.findUnique.mockResolvedValue({ usuario: {}, empresa: { propietarioId: 'owner' } });
+      prisma.role.findFirst.mockResolvedValue({ id: 'r2', empresaId: 'e1' });
       prisma.empresa.findUnique.mockResolvedValue({
         id: 'e1',
         propietarioId: 'x',
       });
       prisma.membresia.update.mockResolvedValue({});
 
-      await service.update('e1', 'u2', { roleId: 'r2', estado: 'ACTIVO' });
+      await service.update('e1', 'u2', { roleId: 'r2', estado: 'ACTIVO' }, 'actor');
 
-      expect(prisma.membresia.update).toHaveBeenCalledWith({
+      expect(prisma.membresia.upsert).toHaveBeenCalledWith(expect.objectContaining({
         where: { usuarioId_empresaId: { usuarioId: 'u2', empresaId: 'e1' } },
-        data: { roleId: 'r2', estado: 'ACTIVO' },
-      });
+        update: { roleId: 'r2', estado: 'ACTIVO' },
+      }));
+      expect(prisma.userSession.updateMany).toHaveBeenCalled();
     });
   });
 

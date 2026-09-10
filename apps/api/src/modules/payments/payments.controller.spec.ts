@@ -1,3 +1,4 @@
+import { BillingAttemptsService } from './billing-attempts.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { PaymentsController } from './payments.controller';
@@ -20,6 +21,7 @@ describe('PaymentsController', () => {
   const user = { id: 'u1', empresaId: 'e1' };
 
   beforeEach(async () => {
+    process.env.SECRETS_ENCRYPTION_KEYS = JSON.stringify({ v1: Buffer.alloc(32, 7).toString('base64') });
     const mocks = createPrismaMock();
     prisma = mocks.prisma;
     paymentsService = { getConfig: jest.fn() };
@@ -33,6 +35,7 @@ describe('PaymentsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PaymentsController],
       providers: [
+        { provide: BillingAttemptsService, useValue: { execute: jest.fn((_empresa, _kind, _key, operation) => operation()) } },
         { provide: PaymentsService, useValue: paymentsService },
         { provide: AzulService, useValue: azulService },
         mocks.provider,
@@ -95,7 +98,7 @@ describe('PaymentsController', () => {
     azulService.isApproved.mockReturnValue(true);
     prisma.suscripcion.upsert.mockResolvedValue({});
 
-    const result = await controller.addPaymentMethod(user, {
+    const result = await controller.addPaymentMethod(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001',
       cardNumber: '4111 1111 1111 1111',
       expiration: '1228',
       cvc: '123',
@@ -115,7 +118,7 @@ describe('PaymentsController', () => {
     azulService.isApproved.mockReturnValue(false);
 
     await expect(
-      controller.addPaymentMethod(user, {
+      controller.addPaymentMethod(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001',
         cardNumber: '4111111111111111',
         expiration: '1228',
         cvc: '123',
@@ -126,7 +129,7 @@ describe('PaymentsController', () => {
 
   it('addPaymentMethod valida que todos los campos estén presentes', async () => {
     await expect(
-      controller.addPaymentMethod(user, {
+      controller.addPaymentMethod(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001',
         cardNumber: '4111111111111111',
         expiration: '',
         cvc: '123',
@@ -137,7 +140,7 @@ describe('PaymentsController', () => {
 
   it('addPaymentMethod valida la longitud de la tarjeta', async () => {
     await expect(
-      controller.addPaymentMethod(user, {
+      controller.addPaymentMethod(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001',
         cardNumber: '4111',
         expiration: '1228',
         cvc: '123',
@@ -153,7 +156,7 @@ describe('PaymentsController', () => {
     azulService.isApproved.mockReturnValue(true);
 
     await expect(
-      controller.addPaymentMethod(user, {
+      controller.addPaymentMethod(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001',
         cardNumber: '4111111111111111',
         expiration: '1228',
         cvc: '123',
@@ -166,7 +169,7 @@ describe('PaymentsController', () => {
     prisma.suscripcion.findUnique.mockResolvedValue(null);
 
     await expect(
-      controller.changePlan(user, { planId: 'pro', billingCycle: 'monthly' }),
+      controller.changePlan(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001', planId: 'pro', billingCycle: 'monthly' }),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -184,7 +187,7 @@ describe('PaymentsController', () => {
     process.env.AZUL_ENV = 'MOCK';
     prisma.suscripcion.update.mockResolvedValue({});
 
-    const result = await controller.changePlan(user, {
+    const result = await controller.changePlan(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001',
       planId: 'pro',
       billingCycle: 'monthly',
     });
@@ -210,7 +213,7 @@ describe('PaymentsController', () => {
     azulService.isApproved.mockReturnValue(true);
     prisma.suscripcion.update.mockResolvedValue({});
 
-    const result = await controller.changePlan(user, {
+    const result = await controller.changePlan(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001',
       planId: 'pro',
       billingCycle: 'annual',
     });
@@ -241,7 +244,7 @@ describe('PaymentsController', () => {
     azulService.isApproved.mockReturnValue(false);
 
     await expect(
-      controller.changePlan(user, { planId: 'pro', billingCycle: 'monthly' }),
+      controller.changePlan(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001', planId: 'pro', billingCycle: 'monthly' }),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -252,7 +255,7 @@ describe('PaymentsController', () => {
     prisma.plan.findUnique.mockResolvedValue(null);
 
     await expect(
-      controller.changePlan(user, { planId: 'nope', billingCycle: 'monthly' }),
+      controller.changePlan(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001', planId: 'nope', billingCycle: 'monthly' }),
     ).rejects.toThrow(BadRequestException);
   });
 

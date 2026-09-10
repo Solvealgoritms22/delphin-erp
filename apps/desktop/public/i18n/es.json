@@ -1,4 +1,34 @@
 {
+  "fiscalPrint": {
+    "title": "Representación impresa",
+    "download": "Descargar representación impresa de FiscalBridge",
+    "pending": "La representación impresa aún no está disponible. Consulta el estado fiscal antes de imprimir.",
+    "error": "No se pudo imprimir la representación. Vuelve a intentarlo o descarga el PDF."
+  },
+  "mfa": {
+    "title": "Seguridad · Autenticación de dos factores",
+    "loginTitle": "Verifica tu identidad",
+    "loginHelp": "Escribe el código de tu aplicación autenticadora o un código de recuperación.",
+    "code": "Código de autenticación o recuperación",
+    "verify": "Verificar y entrar",
+    "back": "Volver al inicio de sesión",
+    "invalidCode": "No se pudo verificar el código. Comprueba que sea vigente y no haya sido utilizado. Tras varios intentos, espera 15 minutos.",
+    "enabledHelp": "2FA está habilitado. Para cambiarlo, confirma con tu autenticador o un código de recuperación.",
+    "disabledHelp": "Añade una segunda verificación a tu cuenta con una aplicación autenticadora.",
+    "scanHelp": "Escanea este QR con tu aplicación autenticadora y confirma con su código.",
+    "qrAlt": "QR de configuración del autenticador",
+    "manualKey": "Clave para configuración manual",
+    "enable": "Confirmar y activar",
+    "disable": "Desactivar 2FA",
+    "regenerate": "Renovar códigos de recuperación",
+    "start": "Configurar 2FA",
+    "saveCodes": "Guarda estos códigos en un lugar seguro. Cada uno se puede usar una vez y solo se muestran ahora. Los anteriores dejan de funcionar.",
+    "saved": "La configuración de seguridad se actualizó. Las demás sesiones se cerraron.",
+    "loading": "Cargando configuración de seguridad",
+    "loadError": "No se pudo consultar la configuración de seguridad.",
+    "relogin": "Por seguridad, cierra sesión y vuelve a entrar antes de configurar 2FA.",
+    "setupError": "No se pudo iniciar la configuración. Contacta al administrador si el problema continúa."
+  },
   "common": {
     "actions": "Acciones",
     "active": "Activo",

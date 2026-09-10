@@ -739,19 +739,21 @@ export class InvoicesService {
     }
     const ambiente = empresa.fiscalbridgeEnv || 'TEST';
 
-    // 1. Reservar NCF
-    const { ncf } = await this.sequencesService.getNextNCF(
-      empresaId,
-      tipoNcf,
-      ambiente,
-    );
-
     const needsFiscal =
       empresa.fiscalbridgeEnabled &&
       Boolean(tipoNcf?.toUpperCase().startsWith('E'));
 
     // 2. Transacción de emisión y descuento de inventario
     const emitted = await this.prisma.$transaction(async (tx) => {
+      const claim = await tx.facturaVenta.updateMany({
+        where: { id, empresaId, estado: 'BORRADOR' },
+        data: { estado: 'EMITIENDO' },
+      });
+      if (claim.count !== 1) throw new BadRequestException('El borrador ya fue emitido o modificado.');
+      const { ncf } = await this.sequencesService.getNextNCF(empresaId, tipoNcf, ambiente, tx);
+      if (!invoice.almacenId && invoice.detalles.some(det => det.producto?.tipo !== 'SERVICIO')) {
+        throw new BadRequestException('Selecciona un almacén para despachar los productos.');
+      }
       // Descontar inventario
       for (const det of invoice.detalles) {
         if (det.producto?.tipo === 'SERVICIO') continue;
@@ -871,15 +873,15 @@ export class InvoicesService {
       throw new BadRequestException('Esta factura ya ha sido anulada.');
     }
 
-    if (invoice.fiscalbridgeDocId) {
+    if (invoice.estado !== 'BORRADOR' || invoice.ncf || invoice.fiscalbridgeDocId) {
       throw new BadRequestException(
-        'Esta factura ya fue transmitida y validada por la DGII en FiscalBridge. Para anular sus efectos fiscales debe emitir una Nota de Crédito (E34).',
+        'Solo se pueden cancelar directamente los borradores sin comprobante. Para revertir una factura emitida utiliza el flujo de nota de crédito.',
       );
     }
 
     const cancelled = await this.prisma.$transaction(async (tx) => {
       const claimed = await tx.facturaVenta.updateMany({
-        where: { id, empresaId, estado: { not: 'ANULADA' } },
+        where: { id, empresaId, estado: 'BORRADOR', ncf: null, fiscalbridgeDocId: null },
         data: { estado: 'ANULADA', balancePendiente: new Prisma.Decimal(0) },
       });
       if (claimed.count !== 1)

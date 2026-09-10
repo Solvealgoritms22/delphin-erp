@@ -1,6 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, tap, map, catchError, finalize, firstValueFrom } from 'rxjs';
+import { Observable, of, tap, map, catchError, finalize, firstValueFrom, switchMap, EMPTY } from 'rxjs';
 import { AuthState } from './auth.state';
 import { AuthResponse, LoginCredentials, User } from './auth.types';
 import { SessionMonitorService } from './session-monitor.service';
@@ -26,29 +26,34 @@ export class AuthService {
   /**
    * Real login calling the NestJS API.
    */
+  private receiveLogin(response: any): Observable<AuthResponse> {
+    if (response.mfaRequired) {
+      sessionStorage.setItem('mfa_challenge', JSON.stringify({ token: response.challengeToken, expiresAt: response.expiresAt }));
+      void this.router.navigateByUrl('/auth/mfa');
+      return EMPTY;
+    }
+    const user: User = {
+      id: response.user.sub || response.user.id, name: response.user.name || response.user.email.split('@')[0],
+      email: response.user.email, avatar: response.user.avatar || '', mustChangePassword: response.user.mustChangePassword === true,
+      role: response.user.roleId || 'ADMIN', plan: response.user.plan || 'Starter',
+      empresaId: response.user.empresaId, permissions: response.user.permissions || [], sessionId: response.user.sessionId,
+    };
+    this.state.setSession(user, response.access_token, user.empresaId);
+    this.sessionMonitor.start();
+    sessionStorage.removeItem('mfa_challenge');
+    return of({ accessToken: response.access_token, user });
+  }
+
   signIn(credentials: LoginCredentials): Observable<AuthResponse> {
-    return this.http.post<{ access_token: string, user: any }>(`${this.apiUrl}/login`, credentials).pipe(
-      map(response => {
-        const user: User = {
-          id: response.user.sub || response.user.id,
-          name: response.user.name || response.user.email.split('@')[0],
-          email: response.user.email,
-           avatar: response.user.avatar || '',
-           mustChangePassword: response.user.mustChangePassword === true,
-          role: response.user.roleId || 'ADMIN',
-          plan: response.user.plan || 'Starter',
-          empresaId: response.user.empresaId,
-          permissions: response.user.permissions || [],
-          sessionId: response.user.sessionId,
-        };
-        return {
-          accessToken: response.access_token,
-          user
-        };
-      }),
-      tap((response) => this.state.setSession(response.user, response.accessToken, response.user.empresaId)),
-      tap(() => this.sessionMonitor.start())
-    );
+    sessionStorage.removeItem('mfa_challenge');
+    return this.http.post(this.apiUrl + '/login', credentials).pipe(switchMap(response => this.receiveLogin(response)));
+  }
+
+  verifyMfa(code: string): Observable<AuthResponse> {
+    let challenge: {token?: string} = {};
+    try { challenge = JSON.parse(sessionStorage.getItem('mfa_challenge') || '{}'); } catch {}
+    return this.http.post(this.apiUrl + '/mfa/verify', {challengeToken: challenge.token || '', code})
+      .pipe(switchMap(response => this.receiveLogin(response)));
   }
 
   /**
@@ -136,8 +141,8 @@ export class AuthService {
           popup?.close();
           sessionStorage.setItem('google_setup', JSON.stringify({ flowId: flow.flowId, verifier, expiresAt, ...result }));
           if (!result.needsCompany && !result.needsPolicies) {
-            const response = await firstValueFrom(this.completeGoogleSetup({ acceptedPolicies: false }));
-            await this.router.navigateByUrl(response.user.mustChangePassword ? '/auth/change-password' : '/admin/dashboards');
+            const response = await firstValueFrom(this.completeGoogleSetup({ acceptedPolicies: false }), { defaultValue: null });
+            if (response) await this.router.navigateByUrl(response.user.mustChangePassword ? '/auth/change-password' : '/admin/dashboards');
           } else await this.router.navigateByUrl('/auth/google/setup');
           return;
         }
@@ -170,27 +175,9 @@ export class AuthService {
     companyName?: string;
     rnc?: string;
   }): Observable<AuthResponse> {
-    return this.http.post<{ access_token: string; user: any }>(`${this.apiUrl}/google/complete`, { ...data, flowId: this.googleSetup()?.flowId, verifier: this.googleSetup()?.verifier }).pipe(
-      map((response) => {
-        const user: User = {
-          id: response.user.sub || response.user.id,
-          name: response.user.name || response.user.email.split('@')[0],
-          email: response.user.email,
-          avatar: response.user.avatar || '',
-          mustChangePassword: response.user.mustChangePassword === true,
-          role: response.user.roleId || 'ADMIN',
-          plan: response.user.plan || 'Starter',
-          empresaId: response.user.empresaId,
-          permissions: response.user.permissions || [],
-          sessionId: response.user.sessionId,
-        };
-        return { accessToken: response.access_token, user };
-      }),
-      tap((response) => {
-        sessionStorage.removeItem('google_setup');
-        this.state.setSession(response.user, response.accessToken, response.user.empresaId);
-        this.sessionMonitor.start();
-      }),
+    return this.http.post(this.apiUrl + '/google/complete', { ...data, flowId: this.googleSetup()?.flowId, verifier: this.googleSetup()?.verifier }).pipe(
+      tap(() => sessionStorage.removeItem('google_setup')),
+      switchMap(response => this.receiveLogin(response)),
     );
   }
 

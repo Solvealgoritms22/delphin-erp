@@ -5,6 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { MfaService } from './mfa.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -23,6 +24,7 @@ export class AuthService {
     private jwtService: JwtService,
     private mailerService: MailerService,
     private prisma: PrismaService,
+    private readonly mfa: MfaService,
     @Optional() private tenantMailer?: TenantMailerService,
     @Optional() private readonly notifications?: NotificationsService,
   ) {}
@@ -41,7 +43,7 @@ export class AuthService {
         },
       },
       include: {
-        membresias: { include: { role: true } },
+        membresias: { include: { role: true, empresa: true } },
         empresasPropiedad: true,
       },
     });
@@ -87,7 +89,22 @@ export class AuthService {
     return result;
   }
 
-  async login(user: any, request?: any) {
+  async loginAfterMfa(id: string, request?: any) {
+    const user = await this.prisma.usuario.findUnique({ where: { id }, include: {
+      membresias: { include: { role: true, empresa: true } }, empresasPropiedad: true,
+    } });
+    if (!user?.isVerified) throw new UnauthorizedException('Cuenta no disponible');
+    return this.login(user, request, true);
+  }
+
+  async login(user: any, request?: any, mfaVerified = false) {
+    if (!mfaVerified) {
+      const challenge = await this.mfa.challenge(user);
+      if (challenge) return challenge;
+    }
+    user = { ...user, empresasPropiedad: user.empresasPropiedad?.filter((e: any) => e.estado === 'ACTIVA'),
+      membresias: user.membresias?.filter((m: any) => m.estado === 'ACTIVO' && m.empresa?.estado === 'ACTIVA') };
+    if (!user.empresasPropiedad?.length && !user.membresias?.length) throw new UnauthorizedException('No hay empresas activas');
     const activeMembership = user.membresias?.find(
       (m: any) => m.estado === 'ACTIVO',
     );
@@ -160,6 +177,8 @@ export class AuthService {
       sub: user.id,
       sessionId,
       jti: randomUUID(),
+      authTime: Math.floor(Date.now() / 1000),
+      mfaVerified,
       empresaId,
       roleId,
       name: user.nombre,
@@ -435,11 +454,11 @@ export class AuthService {
     return { success: true };
   }
 
-  async switchTenant(userId: string, targetEmpresaId: string) {
+  async switchTenant(userId: string, targetEmpresaId: string, authTime?: number) {
     const user = await this.prisma.usuario.findUnique({
       where: { id: userId },
       include: {
-        membresias: { include: { role: true } },
+        membresias: { include: { role: true, empresa: true } },
         empresasPropiedad: true,
       },
     });
@@ -467,12 +486,14 @@ export class AuthService {
       where: { id: targetEmpresaId },
       include: { suscripcion: { include: { plan: true } } },
     });
+    if (!empresa || empresa.estado !== 'ACTIVA') throw new UnauthorizedException('Empresa inactiva');
     const plan = empresa?.suscripcion?.plan?.nombre || 'Free';
 
     const payload = {
       email: user.email,
       sub: user.id,
       empresaId: targetEmpresaId,
+      authTime: authTime || 0,
       sessionId: randomUUID(),
       name: user.nombre,
       mustChangePassword: user.debeCambiarPassword,

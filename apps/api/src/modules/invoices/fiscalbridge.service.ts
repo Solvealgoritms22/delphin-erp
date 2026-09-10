@@ -1,3 +1,4 @@
+import { buildEcfPayload } from './fiscal-payload';
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 
 import { decryptSecret } from '../../common/security/secrets';
@@ -182,101 +183,7 @@ export class FiscalBridgeService {
   /**
    * Construye el JSON estándar ECF según la norma de la DGII de República Dominicana
    */
-  buildEcfPayload(invoice: any, empresa: any): any {
-    const fechaEmision = invoice.fecha
-      ? new Date(invoice.fecha).toISOString().split('T')[0]
-      : new Date().toISOString().split('T')[0];
-    const ncf = invoice.ncf || '';
-    const tipoEcf =
-      invoice.tipoNcf || (ncf.startsWith('E') ? ncf.substring(0, 3) : 'E32');
-    const docTypeCode = tipoEcf.startsWith('E')
-      ? tipoEcf.replace('E', '')
-      : '32';
-
-    // Comprador
-    let comprador: any = {
-      RazonSocialComprador: 'CLIENTE CONTADO / CONSUMIDOR FINAL',
-    };
-
-    if (invoice.cliente) {
-      comprador = {
-        RNCComprador:
-          invoice.cliente.numeroDocumento?.replace(/[^0-9]/g, '') || undefined,
-        RazonSocialComprador: invoice.cliente.nombreRazonSocial || 'CLIENTE',
-        ...(invoice.cliente.direccion
-          ? { DireccionComprador: invoice.cliente.direccion }
-          : {}),
-        ...(invoice.cliente.telefono
-          ? { TelefonoComprador: invoice.cliente.telefono }
-          : {}),
-        ...(invoice.cliente.email
-          ? { CorreoComprador: invoice.cliente.email }
-          : {}),
-      };
-    }
-
-    const payload: any = {
-      fiscal_json: {
-        ECF: {
-          Encabezado: {
-            Version: '1.0',
-            IdDoc: {
-              TipoeCF: docTypeCode,
-              eNCF: ncf,
-              FechaEmision: fechaEmision,
-              ...(docTypeCode !== '33' && docTypeCode !== '34'
-                ? {
-                    IndicadorMontoGravado: '1',
-                    TipoIngresos: '01',
-                    TipoPago: invoice.tipoPago === 'CREDITO' ? '2' : '1',
-                  }
-                : {}),
-            },
-            Emisor: {
-              RNCEmisor: empresa.rnc?.replace(/[^0-9]/g, '') || '101000000',
-              RazonSocialEmisor: empresa.razonSocial,
-              NombreComercial: empresa.razonSocial,
-              DireccionEmisor: empresa.descripcion || 'Santo Domingo, RD',
-              ...(empresa.telefono ? { TelefonoEmisor: empresa.telefono } : {}),
-              ...(empresa.email ? { CorreoEmisor: empresa.email } : {}),
-              FechaEmision: fechaEmision,
-            },
-            Comprador: comprador,
-            Totales: {
-              MontoGravadoTotal: Number(invoice.subtotal).toFixed(2),
-              MontoExento: '0.00',
-              TotalITBIS: Number(invoice.itbis).toFixed(2),
-              MontoTotal: Number(invoice.total).toFixed(2),
-            },
-          },
-          DetallesItems: {
-            Item: (invoice.detalles || []).map((det: any, idx: number) => ({
-              NumeroLinea: (idx + 1).toString(),
-              IndicadorFacturacion: '1', // 1: Gravado con ITBIS
-              NombreItem: det.producto?.nombre || 'Producto',
-              CantidadItem: Number(det.cantidad).toFixed(2),
-              PrecioUnitarioItem: Number(det.precioUnitario).toFixed(2),
-              MontoItem: Number(det.subtotal).toFixed(2),
-            })),
-          },
-        },
-      },
-    };
-
-    // Referencia si es Nota de Crédito / Débito (E34 / E33)
-    if (
-      (docTypeCode === '33' || docTypeCode === '34') &&
-      invoice.ncfModificado
-    ) {
-      payload.fiscal_json.ECF.InformacionReferencia = {
-        NCFModificado: invoice.ncfModificado,
-        FechaNCFModificado: fechaEmision,
-        CodigoModificacion: invoice.motivoModificacion || '1',
-      };
-    }
-
-    return payload;
-  }
+  buildEcfPayload(invoice: any, empresa: any): any { return buildEcfPayload(invoice, empresa); }
 
   /**
    * Extrae y formatea detalladamente cualquier estructura de error devuelta por FiscalBridge / DGII
@@ -394,7 +301,7 @@ export class FiscalBridgeService {
   }
 
   /**
-   * Descarga el XML oficial firmado digitalmente por la DGII
+   * Descarga el XML fiscal firmado por el emisor y procesado por FiscalBridge
    */
   async getXmlBuffer(documentUuid: string, empresa: any): Promise<Buffer> {
     const { headers, baseUrl } = await this.getAuthHeaders(empresa);

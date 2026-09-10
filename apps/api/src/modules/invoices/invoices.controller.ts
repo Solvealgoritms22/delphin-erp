@@ -55,6 +55,18 @@ export class InvoicesController {
     return this.invoicesService.sendToFiscalBridge(user.empresaId, id);
   }
 
+  @Post(':id/emit')
+  @RequirePermissions('invoices:write')
+  emitDraft(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.invoicesService.emitDraft(user.empresaId, user.id, id);
+  }
+
+  @Post(':id/cancel')
+  @RequirePermissions('invoices:write')
+  cancel(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.invoicesService.cancel(user.empresaId, user.id, id);
+  }
+
   @Get(':id/pdf')
   @RequirePermissions('invoices:read')
   getPdf(

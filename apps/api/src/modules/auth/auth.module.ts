@@ -1,3 +1,5 @@
+import { MfaService } from './mfa.service';
+import { MfaController } from './mfa.controller';
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { GoogleOAuthService } from './google-oauth.service';
@@ -22,9 +24,10 @@ import { TenantMailerService } from '../../common/tenant-mailer.service';
       signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN || '12h') as any },
     }),
   ],
-  controllers: [AuthController, SessionController],
+  controllers: [AuthController, SessionController, MfaController],
   providers: [
     AuthService,
+    MfaService,
     GoogleOAuthService,
     LocalStrategy,
     JwtStrategy,

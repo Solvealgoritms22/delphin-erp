@@ -22,10 +22,10 @@ describe('ProductsService', () => {
     prisma.producto.create.mockResolvedValue({ id: 'p1', nombre: 'Arroz' });
     prisma.producto.findFirst.mockResolvedValue({ id: 'p1', nombre: 'Arroz' });
 
-    await service.create('e1', { nombre: 'Arroz' });
+    await service.create('e1', { nombre: 'Arroz', codigo: 'P-001' });
 
     expect(prisma.producto.create).toHaveBeenCalledWith({
-      data: { nombre: 'Arroz', empresaId: 'e1' },
+      data: { nombre: 'Arroz', codigo: 'P-001', empresaId: 'e1' },
     });
   });
 

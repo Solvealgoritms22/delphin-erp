@@ -1,4 +1,34 @@
 {
+  "fiscalPrint": {
+    "title": "Printed representation",
+    "download": "Download the FiscalBridge printed representation",
+    "pending": "The printed representation is not available yet. Check the fiscal status before printing.",
+    "error": "The representation could not be printed. Try again or download the PDF."
+  },
+  "mfa": {
+    "title": "Security · Two-factor authentication",
+    "loginTitle": "Verify your identity",
+    "loginHelp": "Enter the code from your authenticator app or a recovery code.",
+    "code": "Authentication or recovery code",
+    "verify": "Verify and sign in",
+    "back": "Back to sign in",
+    "invalidCode": "The code could not be verified. Check that it is current and unused. After repeated attempts, wait 15 minutes.",
+    "enabledHelp": "2FA is enabled. Confirm changes with your authenticator or a recovery code.",
+    "disabledHelp": "Add a second verification step using an authenticator app.",
+    "scanHelp": "Scan this QR with your authenticator app, then confirm its code.",
+    "qrAlt": "Authenticator setup QR code",
+    "manualKey": "Manual setup key",
+    "enable": "Confirm and enable",
+    "disable": "Disable 2FA",
+    "regenerate": "Regenerate recovery codes",
+    "start": "Set up 2FA",
+    "saveCodes": "Save these codes somewhere safe. Each can be used once and is only shown now. Previous codes no longer work.",
+    "saved": "Security settings updated. Other sessions were signed out.",
+    "loading": "Loading security settings",
+    "loadError": "Security settings could not be loaded.",
+    "relogin": "For security, sign out and sign in again before setting up 2FA.",
+    "setupError": "Setup could not be started. Contact your administrator if the problem persists."
+  },
   "common": {
     "actions": "Actions",
     "active": "Active",
