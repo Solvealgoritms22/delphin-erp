@@ -187,8 +187,7 @@ export class GoogleOAuthService {
       if (claim.count !== 1) throw new UnauthorizedException('La sesión de Google ya fue utilizada');
 
       if (!account) {
-        const plan = await tx.plan.findUnique({ where: { id: 'trial' } });
-        if (!plan) throw new BadRequestException('El plan de prueba no está configurado');
+        await this.ensureTrialPlan(tx);
         const created = await tx.usuario.create({
           data: {
             email: identity.email, googleSub: identity.sub, nombre: identity.name || identity.email.split('@')[0],
@@ -221,8 +220,7 @@ export class GoogleOAuthService {
         }
 
         if (!hasOwnedCompany && companyName?.trim()) {
-          const plan = await tx.plan.findUnique({ where: { id: 'trial' } });
-          if (!plan) throw new BadRequestException('El plan de prueba no está configurado');
+          await this.ensureTrialPlan(tx);
           const createdEmpresa = await tx.empresa.create({
             data: {
               razonSocial: companyName.trim(),
@@ -244,6 +242,25 @@ export class GoogleOAuthService {
       return account;
     }, { timeout: 20_000 });
     return this.auth.login(user, request);
+  }
+
+  private async ensureTrialPlan(tx: any) {
+    let plan = await tx.plan.findUnique({ where: { id: 'trial' } });
+    if (!plan) {
+      plan = await tx.plan.create({
+        data: {
+          id: 'trial',
+          nombre: 'Trial Gratuito',
+          descripcion: 'Prueba gratuita de 15 días con acceso completo.',
+          precioMensual: 0,
+          precioAnual: 0,
+          maxUsuarios: 9999,
+          maxSucursales: 9999,
+          maxProductos: 999999,
+        },
+      });
+    }
+    return plan;
   }
 
   @Interval(3600_000)

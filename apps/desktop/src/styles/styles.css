@@ -293,16 +293,31 @@ dialog[open]::backdrop {
   transition: box-shadow 0.25s ease, filter 0.25s ease, transform 0.15s ease;
 }
 
+.btn-standard-hover:hover:not(:disabled):not([disabled]),
+.hover\:bg-blue-600:hover:not(:disabled):not([disabled]),
 .bg-gradient-animated:hover:not(:disabled):not([disabled]),
 .bg-animated-primary:hover:not(:disabled):not([disabled]),
 .btn-gradient-animated:hover:not(:disabled):not([disabled]),
 .bg-blue-600:hover:not(:disabled):not([disabled]),
 .hover\:bg-blue-700:hover:not(:disabled):not([disabled]) {
-  animation-duration: 2.5s !important;
+  background: linear-gradient(
+    45deg,
+    oklch(48% 0.134 242.749),
+    oklch(62% 0.145 235),
+    oklch(42% 0.125 250),
+    oklch(58% 0.140 238),
+    oklch(48% 0.134 242.749)
+  ) !important;
+  background-size: 250% 250% !important;
+  background-position: 0% 100% !important;
+  animation: dolphin-gradient-flow 2.5s linear infinite alternate !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
   filter: brightness(1.08);
   box-shadow: 0 4px 18px -2px oklch(50% 0.134 242.749 / 0.45) !important;
 }
 
+.btn-standard-hover:active:not(:disabled):not([disabled]),
 .bg-gradient-animated:active:not(:disabled):not([disabled]),
 .bg-animated-primary:active:not(:disabled):not([disabled]),
 .btn-gradient-animated:active:not(:disabled):not([disabled]),

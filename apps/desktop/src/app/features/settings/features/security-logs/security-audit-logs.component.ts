@@ -357,10 +357,10 @@ import {
                     @if (columns().user) {
                       <td class="py-3.5 px-4">
                         <div class="flex items-center gap-2.5">
-                          @if (log.usuarioAvatar) {
-                            <img [src]="log.usuarioAvatar" [alt]="log.usuarioNombre || 'Usuario'" class="size-7 rounded-full object-cover border border-neutral-200 dark:border-neutral-700 shrink-0" />
+                          @if (log.usuarioAvatar && !failedAvatars().has(log.id)) {
+                            <img [src]="log.usuarioAvatar" referrerpolicy="no-referrer" (error)="markAvatarFailed(log.id)" [alt]="log.usuarioNombre || 'Usuario'" class="size-7 rounded-full object-cover border border-neutral-200 dark:border-neutral-700 shrink-0 select-none" />
                           } @else {
-                            <div class="size-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 border border-neutral-200/60 dark:border-neutral-700/60" [ngClass]="getAvatarColor(log.usuarioNombre || log.usuarioEmail)">
+                            <div class="size-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 border border-neutral-200/60 dark:border-neutral-700/60 select-none" [ngClass]="getAvatarColor(log.usuarioNombre || log.usuarioEmail)">
                               {{ getInitials(log.usuarioNombre || log.usuarioEmail) }}
                             </div>
                           }
@@ -477,6 +477,11 @@ export default class SecurityLogsComponent implements OnInit {
   error = signal(false);
   pushAlerts = signal(true);
   pageSize = signal(10);
+  failedAvatars = signal<Set<string>>(new Set<string>());
+
+  markAvatarFailed(id: string): void {
+    this.failedAvatars.update((prev) => new Set(prev).add(id));
+  }
 
   columns = signal({
     user: true,

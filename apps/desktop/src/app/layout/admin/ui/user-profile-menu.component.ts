@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
 import { MatPseudoCheckbox } from '@angular/material/core';
@@ -38,8 +38,14 @@ import { UserRoundIcon, BellIcon, SunIcon, LogOutIcon, ArrowUpRightIcon } from '
       class="hover:bg-neutral-100 dark:hover:bg-neutral-800 flex h-14 w-full items-center gap-x-3 rounded-lg px-3 text-left transition-colors cursor-pointer"
       [matMenuTriggerFor]="userMenu"
     >
-      @if (user()?.avatar) {
-         <img class="size-9 rounded-lg object-cover border border-neutral-200 dark:border-neutral-700 shrink-0 select-none" [src]="user()?.avatar" [alt]="'account.avatar' | transloco">
+      @if (user()?.avatar && !avatarFailed()) {
+         <img
+           class="size-9 rounded-lg object-cover border border-neutral-200 dark:border-neutral-700 shrink-0 select-none"
+           [src]="user()?.avatar"
+           referrerpolicy="no-referrer"
+           (error)="avatarFailed.set(true)"
+           [alt]="'account.avatar' | transloco"
+         >
       } @else {
         <div class="size-9 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm font-bold shrink-0 select-none">
           {{ initials() }}
@@ -64,8 +70,14 @@ import { UserRoundIcon, BellIcon, SunIcon, LogOutIcon, ArrowUpRightIcon } from '
         class="py-2 [&>span]:flex [&>span]:items-center"
         mat-menu-item
       >
-        @if (user()?.avatar) {
-           <img class="size-9 rounded-lg object-cover border border-neutral-200 dark:border-neutral-700 shrink-0 select-none" [src]="user()?.avatar" [alt]="'account.avatar' | transloco">
+        @if (user()?.avatar && !avatarFailed()) {
+           <img
+             class="size-9 rounded-lg object-cover border border-neutral-200 dark:border-neutral-700 shrink-0 select-none"
+             [src]="user()?.avatar"
+             referrerpolicy="no-referrer"
+             (error)="avatarFailed.set(true)"
+             [alt]="'account.avatar' | transloco"
+           >
         } @else {
           <div class="size-9 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm font-bold shrink-0 select-none">
             {{ initials() }}
@@ -152,6 +164,14 @@ export class User implements OnInit {
   ];
 
   protected user = this.authState.user;
+  protected avatarFailed = signal(false);
+
+  constructor() {
+    effect(() => {
+      this.user()?.avatar;
+      this.avatarFailed.set(false);
+    });
+  }
 
   ngOnInit() {
     this.http.get<any>(`${environment.apiUrl}/empresas/current`).subscribe({

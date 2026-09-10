@@ -118,11 +118,11 @@ type AccountTab = 'profile' | 'security' | 'smtp' | 'danger';
             <!-- Columna Izquierda: Tarjeta de Identidad -->
             <div class="md:col-span-4 flex flex-col items-center p-6 rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-800 text-center gap-4">
               <div class="relative group">
-                <div class="w-28 h-28 rounded-full bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 font-bold text-3xl flex items-center justify-center border-4 border-neutral-200 dark:border-neutral-700 shadow-md overflow-hidden select-none">
-                  @if (avatarUrl()) {
-                    <img [src]="avatarUrl()" alt="Avatar" class="w-full h-full object-cover" />
+                <div class="w-28 h-28 rounded-full bg-blue-600 text-white font-bold text-3xl flex items-center justify-center border-4 border-neutral-200 dark:border-neutral-700 shadow-md overflow-hidden select-none">
+                  @if (avatarUrl() && !avatarFailed()) {
+                    <img [src]="avatarUrl()" referrerpolicy="no-referrer" (error)="avatarFailed.set(true)" alt="Avatar" class="w-full h-full object-cover" />
                   } @else {
-                    {{ initials() }}
+                    <span class="select-none">{{ initials() }}</span>
                   }
                 </div>
                 <label class="absolute bottom-0 right-0 w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-transform hover:scale-110 border-2 border-white dark:border-neutral-900" title="Subir foto">
@@ -575,6 +575,7 @@ export class AccountDialogComponent implements OnInit {
 
   user = this.authState.user;
   avatarUrl = signal<string>(this.user()?.avatar || '');
+  avatarFailed = signal<boolean>(false);
   isOwner = signal<boolean>(false);
   roleName = signal<string>('');
   mfaEnabled = signal<boolean>(false);
@@ -670,6 +671,7 @@ export class AccountDialogComponent implements OnInit {
             documentoIdentidad: userData.documentoIdentidad || '',
           });
           this.avatarUrl.set(userData.avatar || '');
+          this.avatarFailed.set(false);
           this.smtpEnabledControl.setValue(userData.smtpEnabled || false);
           this.smtpForm.patchValue({
             smtpHost: userData.smtpHost || '',
@@ -700,6 +702,7 @@ export class AccountDialogComponent implements OnInit {
       const reader = new FileReader();
       reader.onload = (e) => {
         this.avatarUrl.set(e.target?.result as string);
+        this.avatarFailed.set(false);
       };
       reader.readAsDataURL(file);
     }
@@ -707,6 +710,7 @@ export class AccountDialogComponent implements OnInit {
 
   removeAvatar(): void {
     this.avatarUrl.set('');
+    this.avatarFailed.set(false);
   }
 
   saveProfile(): void {

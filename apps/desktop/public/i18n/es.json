@@ -1302,7 +1302,7 @@
     "invoices": {
       "title": "Facturación y Ventas",
       "description": "Emisión de facturas fiscales, notas de crédito e integración con e-CF FiscalBridge (DGII).",
-      "newInvoice": "Nueva Factura / Venta",
+      "newInvoice": "Nueva Factura",
       "searchPlaceholder": "Buscar por cliente, NCF o número de factura...",
       "allNcf": "Todos los NCF",
       "columns": {

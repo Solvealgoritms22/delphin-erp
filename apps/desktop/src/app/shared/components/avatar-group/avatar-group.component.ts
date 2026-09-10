@@ -1,4 +1,4 @@
-import { Component, input, computed } from '@angular/core';
+import { Component, input, computed, signal } from '@angular/core';
 
 export type AvatarItem = {
   name: string;
@@ -17,15 +17,17 @@ export type AvatarItem = {
           [style.margin-left]="i === 0 ? '0' : '-0.5rem'"
           [title]="avatar.name"
         >
-          @if (avatar.src) {
+          @if (avatar.src && !failed().has(avatar.name)) {
             <img
               [src]="avatar.src"
+              referrerpolicy="no-referrer"
+              (error)="markFailed(avatar.name)"
               [alt]="avatar.name"
               class="h-full w-full rounded-full object-cover"
             />
           } @else {
             <span
-              class="flex h-full w-full items-center justify-center rounded-full text-xs font-semibold text-white"
+              class="flex h-full w-full items-center justify-center rounded-full text-xs font-semibold text-white select-none"
               [style.background]="avatar.color ?? defaultColor(avatar.name)"
             >
               {{ initials(avatar.name) }}
@@ -49,6 +51,11 @@ export type AvatarItem = {
 export class AvatarGroupComponent {
   avatars = input<AvatarItem[]>([]);
   max = input<number>(4);
+  failed = signal<Set<string>>(new Set<string>());
+
+  markFailed(name: string): void {
+    this.failed.update((s) => new Set(s).add(name));
+  }
 
   visibleAvatars = computed(() => this.avatars().slice(0, this.max()));
   overflow = computed(() => Math.max(0, this.avatars().length - this.max()));

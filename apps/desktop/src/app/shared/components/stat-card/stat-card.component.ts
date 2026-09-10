@@ -106,7 +106,7 @@ let nextId = 0;
                 class="text-xl sm:text-2xl font-extrabold tracking-tight text-neutral-900 dark:text-white truncate max-w-full cursor-default"
                 [matTooltip]="formattedFullValue()"
               >
-                {{ prefix() }}@if (isNumeric(value())) { {{ +value() | number:'1.2-2' }} } @else { {{ value() }} }{{ suffix() }}
+                {{ prefix() }}@if (isNumeric(value())) { {{ +value() | number:digitsInfo() }} } @else { {{ value() }} }{{ suffix() }}
               </span>
 
               <!-- Trend Pill Badge -->
@@ -237,6 +237,7 @@ export class StatCardComponent {
 
   // Values
   value = input<string | number>('0');
+  digitsInfo = input<string>('1.2-2');
   prefix = input<string>('');
   suffix = input<string>('');
 
@@ -269,7 +270,10 @@ export class StatCardComponent {
     const s = this.suffix() || '';
     const v = this.value();
     if (this.isNumeric(v)) {
-      return `${p}${Number(v).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${s}`;
+      const isIntegerFormat = this.digitsInfo().endsWith('-0');
+      const minDigits = isIntegerFormat ? 0 : 2;
+      const maxDigits = isIntegerFormat ? 0 : 2;
+      return `${p}${Number(v).toLocaleString('es-DO', { minimumFractionDigits: minDigits, maximumFractionDigits: maxDigits })}${s}`;
     }
     return `${p}${v || ''}${s}`;
   });

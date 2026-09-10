@@ -80,6 +80,7 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
             [title]="'settings.users.total' | transloco"
             [subtitle]="'100% ' + ('dashboard.general.ofTotal' | transloco)"
             [value]="accounts().length"
+            digitsInfo="1.0-0"
             icon="users"
             curvePreset="asc-sigmoid"
             color="blue"
@@ -90,6 +91,7 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
             [title]="'settings.users.activeMembers' | transloco"
             [subtitle]="percentageOf(activeCount()) + '% ' + ('dashboard.general.ofTotal' | transloco)"
             [value]="activeCount()"
+            digitsInfo="1.0-0"
             icon="user-check"
             curvePreset="asc-sigmoid"
             color="emerald"
@@ -100,6 +102,7 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
             [title]="'settings.users.inactiveMembers' | transloco"
             [subtitle]="percentageOf(inactiveCount()) + '% ' + ('dashboard.general.ofTotal' | transloco)"
             [value]="inactiveCount()"
+            digitsInfo="1.0-0"
             icon="user-x"
             curvePreset="trough-wave"
             color="amber"
@@ -107,7 +110,7 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
           />
         </section>
 
-      <div class="px-6 sm:px-10 w-full pb-12 flex flex-col gap-6">
+        <div class="w-full pb-12 flex flex-col gap-6">
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="relative w-full sm:w-72">
@@ -176,11 +179,17 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
                     <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20 transition-colors">
                       <td class="py-4 px-6">
                         <div class="flex items-center gap-3">
-                          @if (account.avatar) {
-                            <img class="w-10 h-10 rounded-full border border-neutral-200 dark:border-neutral-700 object-cover shrink-0" [src]="account.avatar" [alt]="account.name || account.email">
+                          @if (account.avatar && !failedAvatars().has(account.id)) {
+                            <img
+                              class="w-10 h-10 rounded-full border border-neutral-200 dark:border-neutral-700 object-cover shrink-0 select-none"
+                              [src]="account.avatar"
+                              referrerpolicy="no-referrer"
+                              (error)="markAvatarFailed(account.id)"
+                              [alt]="account.name || account.email"
+                            >
                           } @else {
-                            <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-sm shrink-0">
-                              {{ (account.name || account.email).charAt(0).toUpperCase() }}
+                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shrink-0 select-none">
+                              {{ getInitials(account.name || account.email) }}
                             </div>
                           }
                           <div class="flex flex-col">
@@ -243,6 +252,21 @@ export class UsersComponent implements OnInit {
   searchQuery = signal('');
   statusFilter = signal<string>('All');
   roleFilter = signal<string>('All');
+  failedAvatars = signal<Set<string>>(new Set<string>());
+
+  markAvatarFailed(id: string): void {
+    this.failedAvatars.update((prev) => new Set(prev).add(id));
+  }
+
+  getInitials(nameOrEmail?: string): string {
+    if (!nameOrEmail) return '?';
+    return nameOrEmail
+      .split(/[\s@._-]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0].toUpperCase())
+      .join('');
+  }
 
   activeCount = computed(() => this.accounts().filter(a => a.estado === 'ACTIVO').length);
   inactiveCount = computed(() => this.accounts().filter(a => a.estado !== 'ACTIVO').length);

@@ -336,6 +336,7 @@ export class AuthService {
         email: email,
         passwordHash,
         nombre: data.name || data.nombre || null,
+        politicasAceptadasEn: new Date(),
       },
     });
 
@@ -526,9 +527,9 @@ export class AuthService {
       user: {
         ...payload,
         avatar: user.avatar,
-        oficio: user.oficio,
-        telefono: user.telefono,
-        documentoIdentidad: user.documentoIdentidad,
+        oficio: (user as any).oficio ?? null,
+        telefono: (user as any).telefono ?? null,
+        documentoIdentidad: (user as any).documentoIdentidad ?? null,
       },
     };
   }
@@ -679,7 +680,7 @@ export class AuthService {
         smtpUser: true,
         smtpFrom: true,
         smtpSecure: true,
-      },
+      } as any,
     });
     return updated;
   }
@@ -701,7 +702,7 @@ export class AuthService {
         smtpUser: true,
         smtpFrom: true,
         smtpSecure: true,
-      },
+      } as any,
     });
   }
 

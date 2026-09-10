@@ -60,10 +60,10 @@ export type UserDialogData = {
 
         <div class="flex items-center gap-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 p-4">
           <div class="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-sm">
-            @if (avatarPreview()) {
-              <img [src]="avatarPreview()" alt="Foto de perfil" class="h-full w-full object-cover">
+            @if (avatarPreview() && !avatarFailed()) {
+              <img [src]="avatarPreview()" alt="Foto de perfil" referrerpolicy="no-referrer" (error)="avatarFailed.set(true)" class="h-full w-full object-cover">
             } @else if (form.get('name')?.value || form.get('email')?.value) {
-              <div class="w-full h-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-xl">
+              <div class="w-full h-full bg-blue-600 text-white font-bold flex items-center justify-center text-xl select-none">
                 {{ getInitial() }}
               </div>
             } @else {
@@ -188,6 +188,7 @@ export class UserDialogComponent {
   isSingleCompany = (this.data?.companies?.length ?? 0) <= 1;
 
   avatarPreview = signal<string>(this.data?.user?.avatar || '');
+  avatarFailed = signal<boolean>(false);
   avatarError = signal<string>('');
 
   private getDefaultEmpresas(): string[] {
@@ -252,6 +253,7 @@ export class UserDialogComponent {
     reader.onload = () => {
       const avatar = reader.result as string;
       this.avatarPreview.set(avatar);
+      this.avatarFailed.set(false);
       this.form.patchValue({ avatar });
     };
     reader.readAsDataURL(file);
@@ -259,6 +261,7 @@ export class UserDialogComponent {
 
   removeAvatar(): void {
     this.avatarPreview.set('');
+    this.avatarFailed.set(false);
     this.form.patchValue({ avatar: null });
   }
 
