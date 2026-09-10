@@ -588,6 +588,27 @@
       "good": "Good",
       "strong": "Strong"
     },
+    "banner": {
+      "tagline": "People · Process · Progress",
+      "pillarPeople": "People",
+      "pillarIdeas": "Ideas",
+      "pillarSystems": "Systems",
+      "pillarGrowth": "Growth",
+      "headlineL1": "Smarter",
+      "headlineL2": "Operations",
+      "headlineL3": "for a Brighter",
+      "headlineL4": "Tomorrow",
+      "description": "Unify your people, processes and data with a powerful ERP platform built for what's next.",
+      "efficiency": "Greater Efficiency",
+      "efficiencyL1": "Greater",
+      "efficiencyL2": "Efficiency",
+      "collaboration": "Stronger Collaboration",
+      "collaborationL1": "Stronger",
+      "collaborationL2": "Collaboration",
+      "security": "Secure and Reliable",
+      "securityL1": "Secure &",
+      "securityL2": "Reliable"
+    },
     "signIn": {
       "ownerAccess": "Owner access",
       "memberAccess": "Collaborator access",
@@ -603,7 +624,12 @@
       "orContinueWith": "Or continue with",
       "google": "Sign in with Google",
       "ownerAlert": "Welcome to Dolphin ERP. Owners can sign in with their credentials or, soon, with Google.",
-      "memberAlert": "This access is for accounts created by a company owner. If you do not have credentials, request an invitation from an administrator."
+      "memberAlert": "This access is for accounts created by a company owner. If you do not have credentials, request an invitation from an administrator.",
+      "welcomeBack": "Welcome Back",
+      "signInWorkspace": "Sign in to your ERP workspace",
+      "connectedTomorrow": "A more connected, productive tomorrow.",
+      "microsoft": "Sign in with Microsoft",
+      "requestAccess": "Request Access"
     },
     "signUp": {
       "title": "Create company",
@@ -660,8 +686,8 @@
       "error": "Google access could not be completed."
     },
     "brand": {
-      "tagline": "Your operation, in one place",
-      "description": "Dolphin ERP connects the management of your companies, users, catalogs, and security controls in a clear, centralized experience.",
+      "tagline": "Smarter Operations for a Brighter Tomorrow",
+      "description": "Unify your people, processes and data with a powerful ERP platform built for what's next.",
       "multiCompany": "Multi-company management",
       "multiCompanyDescription": "Manage access and operations by company.",
       "connectedCatalogs": "Connected catalogs",
@@ -669,7 +695,15 @@
       "controlledAccess": "Controlled access",
       "controlledAccessDescription": "Roles, permissions, and sessions under control.",
       "actionableInformation": "Actionable information",
-      "actionableInformationDescription": "Operational summaries for better decisions."
+      "actionableInformationDescription": "Operational summaries for better decisions.",
+      "slogan": "People · Process · Progress",
+      "wallPeople": "People",
+      "wallIdeas": "Ideas",
+      "wallSystems": "Systems",
+      "wallGrowth": "Growth",
+      "greaterEfficiency": "Greater Efficiency",
+      "strongerCollaboration": "Stronger Collaboration",
+      "secureReliable": "Secure and Reliable"
     }
   },
   "layout": {

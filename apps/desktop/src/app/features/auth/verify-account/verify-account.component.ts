@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { LanguageSwitcher } from '@layout/admin/ui/locale-selector.component';
 
 @Component({
   selector: 'auth-verify-account',
@@ -25,6 +26,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     FormField,
     RouterLink,
     TranslocoPipe,
+    LanguageSwitcher,
   ],
 })
 export default class AuthVerifyAccount implements OnInit {

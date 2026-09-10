@@ -18,6 +18,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EyeOffIcon } from 'ng-animated-icons';
 import { CountryFlagComponent } from '@shared/components/country-flag/country-flag.component';
+import { LanguageSwitcher } from '@layout/admin/ui/locale-selector.component';
 
 @Component({
   selector: 'auth-sign-up',
@@ -34,6 +35,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
     TranslocoPipe,
     EyeOffIcon,
     CountryFlagComponent,
+    LanguageSwitcher,
   ],
 })
 export default class AuthSignUp {

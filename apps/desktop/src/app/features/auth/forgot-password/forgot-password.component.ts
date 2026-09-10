@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { LanguageSwitcher } from '@layout/admin/ui/locale-selector.component';
 
 @Component({
   selector: 'auth-forgot-password',
@@ -25,6 +26,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
     FormField,
     RouterLink,
     TranslocoPipe,
+    LanguageSwitcher,
   ],
 })
 export default class AuthForgotPassword {

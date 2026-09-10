@@ -588,6 +588,27 @@
       "good": "Buena",
       "strong": "Fuerte"
     },
+    "banner": {
+      "tagline": "People · Process · Progress",
+      "pillarPeople": "People",
+      "pillarIdeas": "Ideas",
+      "pillarSystems": "Systems",
+      "pillarGrowth": "Growth",
+      "headlineL1": "Smarter",
+      "headlineL2": "Operations",
+      "headlineL3": "for a Brighter",
+      "headlineL4": "Tomorrow",
+      "description": "Unifica a tu equipo, procesos y datos con una potente plataforma ERP diseñada para el futuro.",
+      "efficiency": "Mayor Eficiencia",
+      "efficiencyL1": "Mayor",
+      "efficiencyL2": "Eficiencia",
+      "collaboration": "Mayor Colaboración",
+      "collaborationL1": "Mayor",
+      "collaborationL2": "Colaboración",
+      "security": "Seguro y Confiable",
+      "securityL1": "Seguro y",
+      "securityL2": "Confiable"
+    },
     "signIn": {
       "ownerAccess": "Acceso del propietario",
       "memberAccess": "Acceso de colaborador",
@@ -603,7 +624,12 @@
       "orContinueWith": "O continúa con",
       "google": "Iniciar sesión con Google",
       "ownerAlert": "Bienvenido a Dolphin ERP. Los propietarios pueden acceder con sus credenciales o, próximamente, con Google.",
-      "memberAlert": "Este acceso es para cuentas creadas por el propietario de una empresa. Si no tienes credenciales, solicita una invitación al administrador."
+      "memberAlert": "Este acceso es para cuentas creadas por el propietario de una empresa. Si no tienes credenciales, solicita una invitación al administrador.",
+      "welcomeBack": "Bienvenido de nuevo",
+      "signInWorkspace": "Inicia sesión en tu espacio de trabajo ERP",
+      "connectedTomorrow": "Un mañana más conectado y productivo.",
+      "microsoft": "Iniciar sesión con Microsoft",
+      "requestAccess": "Solicitar Acceso"
     },
     "signUp": {
       "title": "Crear empresa",
@@ -660,8 +686,8 @@
       "error": "No se pudo completar el acceso con Google."
     },
     "brand": {
-      "tagline": "Tu operación, en un solo lugar",
-      "description": "Dolphin ERP conecta la gestión de tus empresas, usuarios, catálogos y controles de seguridad en una experiencia clara y centralizada.",
+      "tagline": "Operaciones Más Inteligentes para un Mejor Mañana",
+      "description": "Unifica tu equipo, procesos y datos con una potente plataforma ERP diseñada para lo que viene.",
       "multiCompany": "Gestión multiempresa",
       "multiCompanyDescription": "Administra accesos y operaciones por empresa.",
       "connectedCatalogs": "Catálogos conectados",
@@ -669,7 +695,15 @@
       "controlledAccess": "Accesos controlados",
       "controlledAccessDescription": "Roles, permisos y sesiones bajo control.",
       "actionableInformation": "Información accionable",
-      "actionableInformationDescription": "Resumen operativo para decidir mejor."
+      "actionableInformationDescription": "Resumen operativo para decidir mejor.",
+      "slogan": "Personas · Procesos · Progreso",
+      "wallPeople": "Personas",
+      "wallIdeas": "Ideas",
+      "wallSystems": "Sistemas",
+      "wallGrowth": "Crecimiento",
+      "greaterEfficiency": "Mayor Eficiencia",
+      "strongerCollaboration": "Mayor Colaboración",
+      "secureReliable": "Seguro y Confiable"
     }
   },
   "layout": {

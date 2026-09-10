@@ -18,6 +18,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { EyeOffIcon } from 'ng-animated-icons';
+import { LanguageSwitcher } from '@layout/admin/ui/locale-selector.component';
 
 @Component({
   selector: 'auth-sign-in',
@@ -33,6 +34,7 @@ import { EyeOffIcon } from 'ng-animated-icons';
     MatDivider,
     TranslocoPipe,
     EyeOffIcon,
+    LanguageSwitcher,
   ],
 })
 export default class AuthSignIn {
