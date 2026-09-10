@@ -13,15 +13,21 @@
       class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none saturate-[0.6] brightness-[0.95]"
     />
 
-    <!-- Tonalidad azul marino (#0a1628) solo en zonas de texto -->
+    <!-- Sombras tipo viñeta: h-full evita cortes visibles; los stops controlan el área cubierta -->
+
+    <!-- Arriba: oscurece solo la zona del logo, se disuelve rápido -->
     <div
-      class="absolute top-0 inset-x-0 h-28 bg-gradient-to-b from-[#0a1628]/70 via-[#0a1628]/25 to-transparent pointer-events-none">
+      class="absolute inset-x-0 top-0 h-full bg-gradient-to-b from-[#0a1628]/70 via-[#0a1628]/10 via-[13%] to-transparent pointer-events-none">
     </div>
+
+    <!-- Abajo: solo cubre zona de texto, se disuelve antes de llegar al centro -->
     <div
-      class="absolute bottom-0 inset-x-0 h-[56%] bg-gradient-to-t from-[#081220]/95 via-[#0b192e]/70 to-transparent pointer-events-none">
+      class="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#081220]/90 via-[#0b192e]/40 via-[20%] to-transparent pointer-events-none">
     </div>
+
+    <!-- Izquierda: contraste sutil para el texto -->
     <div
-      class="absolute bottom-0 left-0 w-2/3 h-1/2 bg-gradient-to-r from-[#081220]/60 via-[#0b192e]/25 to-transparent pointer-events-none">
+      class="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-[#081220]/40 via-[#0b192e]/10 via-[18%] to-transparent pointer-events-none">
     </div>
 
     <!-- Encabezado Superior del Banner -->
