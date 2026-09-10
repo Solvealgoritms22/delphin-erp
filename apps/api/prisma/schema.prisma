@@ -147,6 +147,9 @@ model Usuario {
   invitacionExpiraEn DateTime? @map("invitacion_expira_en")
   nombre         String?
   avatar         String?
+  oficio         String?
+  telefono       String?
+  documentoIdentidad String? @map("documento_identidad")
   mfaCredential MfaCredential?
   mfaHabilitado  Boolean   @default(false) @map("mfa_habilitado")
   

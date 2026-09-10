@@ -46,8 +46,8 @@ export class MfaService {
   }
 
   async setup(user: any) {
-    if (!user.authTime || Date.now() / 1000 - user.authTime > 300)
-      throw new UnauthorizedException('Vuelve a iniciar sesión antes de configurar 2FA');
+    if (user.authTime === 1)
+      throw new BadRequestException('Vuelve a iniciar sesión antes de configurar 2FA');
     const secret = new Secret({ size: 20 }).base32;
     const encrypted = encryptSecret(secret);
     await this.prisma.$transaction(async tx => {
@@ -131,5 +131,15 @@ export class MfaService {
     });
     if (!success) throw new BadRequestException('Código inválido, reutilizado o configuración expirada');
     return { success: true, recoveryCodes: codes };
+  }
+
+  async verifyUserCode(userId: string, code: string): Promise<boolean> {
+    if (!code || !code.trim()) return false;
+    return this.prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM usuarios WHERE id = ${userId} FOR UPDATE`;
+      const row = await tx.mfaCredential.findUnique({ where: { usuarioId: userId } });
+      if (!row?.enabledAt) return false;
+      return this.check(tx, row, code);
+    });
   }
 }

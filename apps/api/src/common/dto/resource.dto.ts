@@ -76,6 +76,7 @@ export class UserDto {
   @IsOptional() @ValidateIf((_o,v) => v !== '') @IsUUID() roleId?: string;
   @IsOptional() @IsArray() @ArrayMaxSize(100) @IsUUID('all',{each:true}) empresaIds?: string[];
   @IsOptional() @IsIn(['ACTIVO','INACTIVO','PENDIENTE']) estado?: string;
+  @IsOptional() @IsString() @Length(6, 72) password?: string;
 }
 export class UpdateUserDto extends PartialType(UserDto) {}
 export class RoleDto {
@@ -125,6 +126,9 @@ export class UpdateProductDto extends PartialType(ProductDto) {}
 export class ProfileDto {
   @IsOptional() @IsString() @Length(1,200) name?: string;
   @IsOptional() @IsString() @MaxLength(2000000) avatar?: string;
+  @IsOptional() @IsString() @MaxLength(100) oficio?: string;
+  @IsOptional() @IsString() @MaxLength(40) telefono?: string;
+  @IsOptional() @IsString() @MaxLength(50) documentoIdentidad?: string;
   @IsOptional() @IsBoolean() smtpEnabled?: boolean;
   @IsOptional() @IsString() @MaxLength(253) smtpHost?: string;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(65535) smtpPort?: number;

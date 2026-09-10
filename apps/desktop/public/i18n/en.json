@@ -816,8 +816,42 @@
     "active": "Active",
     "fullName": "Full name",
     "namePlaceholder": "Your name",
+    "profession": "Job Title",
+    "professionPlaceholder": "Administrator, Accountant, Sales",
+    "phone": "Mobile",
+    "phonePlaceholder": "+1 809 555 0199",
+    "identityDocument": "Identity Document",
+    "identityDocumentPlaceholder": "001-1234567-8",
+    "identityDocumentHint": "Official user ID for vouchers and audit logs.",
     "avatar": "Avatar",
-    "save": "Save changes"
+    "save": "Save changes",
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security & Password",
+      "smtp": "SMTP Server",
+      "danger": "Danger Zone"
+    },
+    "security": {
+      "title": "Security & Password",
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "updatePasswordBtn": "Update Password",
+      "passwordUpdated": "Password updated successfully",
+      "passwordMismatch": "Passwords do not match",
+      "twoFactorTitle": "Two-Factor Authentication (2FA)"
+    },
+    "dangerZone": {
+      "title": "Danger Zone",
+      "subtitle": "Irreversible destructive actions on your account and data",
+      "wipeDataTitle": "Reset / Delete All My Data",
+      "wipeDataDesc": "Permanently deletes all invoices, quotations, payments, clients, suppliers, products, and inventory from your companies. Your account and companies will remain active to start fresh.",
+      "wipeDataBtn": "Reset All My Data",
+      "deleteAccountTitle": "Permanently Delete My Account",
+      "deleteAccountDesc": "Permanently deletes your user account, your companies, accesses, and all associated data. You will not be able to recover access.",
+      "deleteAccountBtn": "Delete Account Permanently"
+    }
   },
   "catalogs": {
     "products": {

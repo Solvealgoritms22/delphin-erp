@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import {
   email,
   form,
@@ -13,7 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
@@ -37,12 +37,26 @@ import { LanguageSwitcher } from '@layout/admin/ui/locale-selector.component';
     LanguageSwitcher,
   ],
 })
-export default class AuthSignIn {
-
+export default class AuthSignIn implements OnInit {
+  private route = inject(ActivatedRoute);
   private router = inject(Router);
   protected authService = inject(AuthService);
   private transloco = inject(TranslocoService);
   private snackBar = inject(MatSnackBar);
+
+  ngOnInit() {
+    if (this.route.snapshot.queryParams['account'] === 'deleted') {
+      this.snackBar.open(
+        'Tu cuenta ha sido eliminada permanentemente.',
+        this.transloco.translate('common.close'),
+        {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+        }
+      );
+    }
+  }
 
   protected signInFormModel = signal({
     email: '',

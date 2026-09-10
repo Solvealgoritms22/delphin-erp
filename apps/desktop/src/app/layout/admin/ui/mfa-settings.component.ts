@@ -21,17 +21,19 @@ import { environment } from '@/environments/environment';
         @if (setup(); as data) {
           <p class="text-sm mb-3">{{ 'mfa.scanHelp' | transloco }}</p>
           <img [src]="data.qrDataUrl" [alt]="'mfa.qrAlt' | transloco" class="w-48 h-48 mx-auto bg-white rounded-lg" />
-          <p class="mt-2 text-xs text-neutral-500">{{ 'mfa.manualKey' | transloco }}</p>
-          <code class="block break-all select-all my-2 text-sm">{{ data.secret }}</code>
+          <p class="mt-3 text-xs text-neutral-500 font-medium">{{ 'mfa.manualKey' | transloco }}</p>
+          <div class="my-2 p-2.5 bg-neutral-100 dark:bg-neutral-800/80 rounded-lg border border-neutral-200 dark:border-neutral-700/60">
+            <code class="block text-xs font-mono tracking-wider font-semibold text-neutral-800 dark:text-neutral-200 select-all break-all">{{ data.secret }}</code>
+          </div>
         }
         @if (enabled() || setup()) {
-          <mat-form-field appearance="outline" class="w-full mt-3">
+          <mat-form-field appearance="outline" class="w-full mt-4" subscriptSizing="dynamic">
             <mat-label>{{ 'mfa.code' | transloco }}</mat-label>
             <input matInput [(ngModel)]="code" [ngModelOptions]="{standalone: true}" autocomplete="one-time-code" placeholder="123456" maxlength="40" />
           </mat-form-field>
-          <div class="flex flex-wrap gap-2">
+          <div class="mt-4 flex flex-wrap gap-2">
             @if (setup()) {
-              <button mat-flat-button type="button" [disabled]="busy() || !code" (click)="manage('enable')">{{ 'mfa.enable' | transloco }}</button>
+              <button mat-flat-button color="primary" type="button" [disabled]="busy() || !code" (click)="manage('enable')">{{ 'mfa.enable' | transloco }}</button>
             } @else {
               <button mat-stroked-button type="button" [disabled]="busy() || !code" (click)="manage('recovery-codes')">{{ 'mfa.regenerate' | transloco }}</button>
               <button mat-button type="button" [disabled]="busy() || !code" (click)="manage('disable')">{{ 'mfa.disable' | transloco }}</button>

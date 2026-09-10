@@ -205,9 +205,11 @@ import { PlusIcon, SearchIcon, ChevronDownIcon, PencilIcon, TrashIcon, TriangleA
                           <button (click)="openUserModal(account)" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors cursor-pointer" [title]="'common.edit' | transloco">
                             <i-pencil [size]="16" />
                           </button>
-                          <button (click)="deleteUser(account)" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-neutral-500 hover:text-red-600 transition-colors cursor-pointer" [title]="'common.delete' | transloco">
-                            <i-trash [size]="16" />
-                          </button>
+                          @if (!account.isOwner) {
+                            <button (click)="deleteUser(account)" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-neutral-500 hover:text-red-600 transition-colors cursor-pointer" [title]="'common.delete' | transloco">
+                              <i-trash [size]="16" />
+                            </button>
+                          }
                         </div>
                       </td>
                     </tr>
@@ -333,6 +335,14 @@ export class UsersComponent implements OnInit {
             this.usersService.findAll()
               .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe();
+            const currentUser = this.authState.user();
+            if (currentUser && currentUser.id === user.id) {
+              this.authState.setUser({
+                ...currentUser,
+                name: res.name || currentUser.name,
+                avatar: res.avatar !== undefined ? res.avatar : currentUser.avatar,
+              });
+            }
             this.snackBar.open('Usuario actualizado', 'Cerrar', { duration: 2000 });
           },
           error: (err) => this.snackBar.open(err?.error?.message || 'Error al actualizar usuario', 'Cerrar', { duration: 4000 })
@@ -373,6 +383,11 @@ export class UsersComponent implements OnInit {
   }
 
   async deleteUser(user: Account) {
+    if (user.isOwner) {
+      this.snackBar.open('Las cuentas de propietario no pueden eliminarse', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Eliminar cuenta de usuario',

@@ -54,7 +54,7 @@ export class UsersController {
   @RequirePermissions('users:write')
   @ApiOperation({ summary: 'Actualizar rol/estado de un usuario' })
   update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: UpdateUserDto) {
-    return this.usersService.update(user.empresaId, id, data, user.id);
+    return this.usersService.update(user.empresaId, id, data, user.id, user.sessionId);
   }
 
   @Post(':id/resend-invitation')

@@ -20,11 +20,12 @@ export type UserDialogData = {
     estado: string;
     avatar?: string;
     empresaIds?: string[];
+    isOwner?: boolean;
   };
   roles: Role[];
   companies: Array<{ id: string; razonSocial: string; rnc?: string | null }>;
   currentEmpresaId: string;
-}
+};
 
 @Component({
   selector: 'app-user-dialog',
@@ -123,23 +124,30 @@ export type UserDialogData = {
           </div>
         }
 
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Rol Asignado</mat-label>
-          <mat-select formControlName="roleId" placeholder="Selecciona un rol">
-            @for (role of data.roles; track role.id) {
-              <mat-option [value]="role.id">{{ role.nombre }}</mat-option>
+        @if (isOwner) {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Rol Asignado</mat-label>
+            <input matInput [value]="'settings.users.owner' | transloco" disabled readonly class="font-medium text-neutral-800 dark:text-neutral-200" />      
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Rol Asignado</mat-label>
+            <mat-select formControlName="roleId" placeholder="Selecciona un rol">
+              @for (role of data.roles; track role.id) {
+                <mat-option [value]="role.id">{{ role.nombre }}</mat-option>
+              }
+            </mat-select>
+            @if (form.get('roleId')?.hasError('required')) {
+              <mat-error>El rol es requerido</mat-error>
             }
-          </mat-select>
-          @if (form.get('roleId')?.hasError('required')) {
-            <mat-error>El rol es requerido</mat-error>
-          }
-        </mat-form-field>
+          </mat-form-field>
+        }
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Estado de Acceso</mat-label>
           <mat-select formControlName="estado" placeholder="Seleccionar estado">
-            <mat-option value="ACTIVO">Activo (Permite Iniciar Sesión)</mat-option>
-            <mat-option value="INACTIVO">Inactivo (Bloquea Iniciar Sesión)</mat-option>
+            <mat-option value="ACTIVO">Activo</mat-option>
+            <mat-option value="INACTIVO" [disabled]="isOwner">Inactivo</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -147,7 +155,7 @@ export type UserDialogData = {
           <mat-label>Empresas con acceso</mat-label>
           <mat-select formControlName="empresaIds" multiple placeholder="Selecciona una o más empresas">
             @for (company of data.companies; track company.id) {
-              <mat-option [value]="company.id">
+              <mat-option [value]="company.id" [disabled]="isSingleCompany">
                 {{ company.razonSocial }}{{ company.rnc ? ' · RNC: ' + company.rnc : '' }}
               </mat-option>
             }
@@ -155,6 +163,7 @@ export type UserDialogData = {
           @if (form.get('empresaIds')?.hasError('required')) {
             <mat-error>Debes asignar al menos una empresa</mat-error>
           }
+
         </mat-form-field>
 
         <div class="flex items-center justify-end gap-3 mt-4">
@@ -175,17 +184,51 @@ export class UserDialogComponent {
   fb = inject(FormBuilder);
 
   isEditing = !!this.data?.user;
+  isOwner = !!this.data?.user?.isOwner;
+  isSingleCompany = (this.data?.companies?.length ?? 0) <= 1;
+
   avatarPreview = signal<string>(this.data?.user?.avatar || '');
   avatarError = signal<string>('');
 
+  private getDefaultEmpresas(): string[] {
+    if (this.data?.user?.empresaIds?.length) {
+      return this.data.user.empresaIds;
+    }
+    if (this.data?.companies?.length === 1) {
+      return [this.data.companies[0].id];
+    }
+    if (this.data?.currentEmpresaId) {
+      return [this.data.currentEmpresaId];
+    }
+    return [];
+  }
+
   form = this.fb.group({
     name: [this.data?.user?.name || '', [Validators.required, Validators.minLength(2)]],
-    email: [this.data?.user?.email || '', [Validators.required, Validators.email]],
+    email: [
+      { value: this.data?.user?.email || '', disabled: this.isEditing },
+      [Validators.required, Validators.email],
+    ],
     password: ['', [Validators.minLength(6)]],
-    roleId: [this.data?.user?.roleId || '', [Validators.required]],
-    estado: [this.data?.user?.estado || 'ACTIVO', [Validators.required]],
+    roleId: [
+      { value: this.data?.user?.roleId || '', disabled: this.isOwner },
+      this.isOwner ? [] : [Validators.required],
+    ],
+    estado: [
+      {
+        value: this.isOwner ? 'ACTIVO' : (this.data?.user?.estado || 'ACTIVO'),
+        disabled: this.isOwner,
+      },
+      [Validators.required],
+    ],
     avatar: [this.data?.user?.avatar || null],
-    empresaIds: [this.data?.user?.empresaIds || (this.data?.currentEmpresaId ? [this.data.currentEmpresaId] : []), [Validators.required]],
+    empresaIds: [
+      {
+        value: this.getDefaultEmpresas(),
+        disabled: this.isSingleCompany,
+      },
+      [(control: any) => (!control.value || !control.value.length ? { required: true } : null)],
+    ],
   });
 
   getInitial(): string {
@@ -221,10 +264,32 @@ export class UserDialogComponent {
 
   submit(): void {
     if (this.form.invalid) return;
-    const value = this.form.value;
-    if (!value.password) {
-      delete value.password;
+    const rawValue = this.form.getRawValue();
+    const payload: any = {
+      name: rawValue.name,
+      avatar: rawValue.avatar,
+    };
+
+    if (rawValue.password && rawValue.password.trim().length > 0) {
+      payload.password = rawValue.password;
     }
-    this.dialogRef.close(value);
+
+    if (!this.isEditing) {
+      payload.email = rawValue.email;
+    }
+
+    if (this.isOwner) {
+      payload.estado = 'ACTIVO';
+      // No enviar roleId para la cuenta del propietario
+    } else {
+      payload.roleId = rawValue.roleId;
+      payload.estado = rawValue.estado;
+    }
+
+    if (rawValue.empresaIds && rawValue.empresaIds.length > 0) {
+      payload.empresaIds = rawValue.empresaIds;
+    }
+
+    this.dialogRef.close(payload);
   }
 }

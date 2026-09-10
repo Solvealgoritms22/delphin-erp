@@ -169,7 +169,9 @@ export class User implements OnInit {
   openAccountModal() {
     this.dialog.open(AccountDialogComponent, {
       width: '100%',
-      maxWidth: '28rem',
+      maxWidth: '56rem',
+      autoFocus: false,
+      panelClass: 'account-dialog-panel',
     });
   }
 

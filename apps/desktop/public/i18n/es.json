@@ -816,8 +816,42 @@
     "active": "Activa",
     "fullName": "Nombre Completo",
     "namePlaceholder": "Tu nombre",
+    "profession": "Oficio",
+    "professionPlaceholder": "Administrador, Contador, Vendedor",
+    "phone": "Móvil",
+    "phonePlaceholder": "+1 809 555 0199",
+    "identityDocument": "Documento de Identidad",
+    "identityDocumentPlaceholder": "001-1234567-8",
+    "identityDocumentHint": "Identificación oficial del usuario para comprobantes y auditoría.",
     "avatar": "Avatar",
-    "save": "Guardar Cambios"
+    "save": "Guardar Cambios",
+    "tabs": {
+      "profile": "Perfil",
+      "security": "Seguridad y Contraseña",
+      "smtp": "Servidor SMTP",
+      "danger": "Zona de Peligro"
+    },
+    "security": {
+      "title": "Seguridad y Contraseña",
+      "changePassword": "Cambiar Contraseña",
+      "currentPassword": "Contraseña Actual",
+      "newPassword": "Nueva Contraseña",
+      "confirmPassword": "Confirmar Nueva Contraseña",
+      "updatePasswordBtn": "Actualizar Contraseña",
+      "passwordUpdated": "Contraseña actualizada exitosamente",
+      "passwordMismatch": "Las contraseñas no coinciden",
+      "twoFactorTitle": "Autenticación de Dos Factores (2FA)"
+    },
+    "dangerZone": {
+      "title": "Zona de Peligro",
+      "subtitle": "Acciones destructivas e irreversibles sobre tu cuenta y datos",
+      "wipeDataTitle": "Restablecer / Eliminar Toda Mi Data",
+      "wipeDataDesc": "Elimina todas las facturas, cotizaciones, pagos, clientes, proveedores, productos e inventario de tus empresas. Tu cuenta y empresas permanecerán activas para comenzar desde cero.",
+      "wipeDataBtn": "Restablecer Todos Mis Datos",
+      "deleteAccountTitle": "Eliminar Mi Cuenta Definitivamente",
+      "deleteAccountDesc": "Elimina tu cuenta de usuario, tus empresas, accesos y toda tu información de forma permanente. No podrás recuperar el acceso.",
+      "deleteAccountBtn": "Eliminar Cuenta Permanentemente"
+    }
   },
   "catalogs": {
     "products": {

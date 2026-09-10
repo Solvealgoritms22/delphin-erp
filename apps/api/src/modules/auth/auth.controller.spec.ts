@@ -15,6 +15,7 @@ describe('AuthController', () => {
     resetPassword: jest.Mock;
     switchTenant: jest.Mock;
     updateProfile: jest.Mock;
+    getProfile: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -26,6 +27,7 @@ describe('AuthController', () => {
       resetPassword: jest.fn(),
       switchTenant: jest.fn(),
       updateProfile: jest.fn(),
+      getProfile: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -55,7 +57,7 @@ describe('AuthController', () => {
     const body = { email: 'a@b.com' };
     authService.register.mockResolvedValue({ ok: true });
 
-    await controller.register(body);
+    await controller.register(body as any);
 
     expect(authService.register).toHaveBeenCalledWith(body);
   });
@@ -78,8 +80,10 @@ describe('AuthController', () => {
     );
   });
 
-  it('getProfile devuelve el usuario autenticado', () => {
-    expect(controller.getProfile({ id: 'u1' })).toEqual({ id: 'u1' });
+  it('getProfile devuelve el usuario autenticado', async () => {
+    authService.getProfile.mockResolvedValue({ id: 'u1', email: 'a@b.com' });
+    const result = await controller.getProfile({ id: 'u1' });
+    expect(result).toEqual({ id: 'u1', email: 'a@b.com' });
   });
 
   it('switchTenant usa user.id y empresaId del body', async () => {

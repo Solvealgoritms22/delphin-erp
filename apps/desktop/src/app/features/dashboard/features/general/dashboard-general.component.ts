@@ -21,6 +21,7 @@ type DashboardMetric = {
   shortLabelKey: string;
   value: number;
   share: number;
+  barHeight: number;
 };
 
 @Component({
@@ -130,8 +131,8 @@ type DashboardMetric = {
                   <div class="grid h-full grid-cols-4 items-end gap-2 sm:gap-4 px-2 pt-6 pb-3.5 min-w-0">
                     @for (metric of metrics(); track metric.key) {
                       <div class="flex h-full flex-col items-center justify-end min-w-0 w-full">
-                        <span class="mb-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300">{{ metric.share }}%</span>
-                        <div class="w-full max-w-[48px] rounded-t-xl bg-neutral-900 dark:bg-white transition-all duration-500" [style.height.%]="metric.share"></div>
+                        <span class="mb-2 text-xs font-semibold text-neutral-600 dark:text-neutral-300">{{ metric.share | number:'1.0-0' }}%</span>
+                        <div class="w-full max-w-[48px] rounded-t-xl bg-neutral-900 dark:bg-white transition-all duration-500" [style.height.%]="metric.barHeight"></div>
                         <span class="mt-3 pb-0.5 truncate text-xs font-medium text-neutral-500 dark:text-neutral-400 w-full text-center block max-w-full" [title]="metric.shortLabelKey | transloco">{{ metric.shortLabelKey | transloco }}</span>
                       </div>
                     }
@@ -272,10 +273,16 @@ export class DashboardGeneralComponent implements OnInit {
       },
     ];
     const max = Math.max(...values.map((item) => item.value), 1);
-    return values.map((item) => ({
-      ...item,
-      share: item.value > 0 ? Math.max((item.value / max) * 100, 4) : 0,
-    }));
+    return values.map((item) => {
+      const rawPercent = item.value > 0 ? (item.value / max) * 100 : 0;
+      const roundedPercent = Math.round(rawPercent);
+      const share = item.value > 0 ? Math.max(roundedPercent, 1) : 0;
+      return {
+        ...item,
+        share,
+        barHeight: item.value > 0 ? Math.max(roundedPercent, 4) : 0,
+      };
+    });
   });
 
   cardMetrics = computed(() => {

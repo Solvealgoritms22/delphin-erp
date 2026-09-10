@@ -343,9 +343,24 @@ export class UsersService {
     });
   }
 
-  async update(empresaId: string, id: string, data: any, actorUserId?: string) {
+  async update(
+    empresaId: string,
+    id: string,
+    data: any,
+    actorUserId?: string,
+    actorSessionId?: string,
+  ) {
     if (!empresaId || !actorUserId) throw new BadRequestException('Empresa y actor requeridos');
-    if (data.password) throw new BadRequestException('Utiliza el flujo de recuperación de contraseña');
+    let passwordHash: string | undefined;
+    if (data.password) {
+      if (id !== actorUserId) {
+        throw new BadRequestException('Utiliza el flujo de recuperación de contraseña');
+      }
+      if (typeof data.password !== 'string' || data.password.length < 6) {
+        throw new BadRequestException('La contraseña debe tener al menos 6 caracteres');
+      }
+      passwordHash = await bcrypt.hash(data.password, 10);
+    }
     const companyIds = data.empresaIds !== undefined
       ? await this.validateAssignableCompanies(actorUserId, this.normalizeCompanyIds(data.empresaIds, empresaId), empresaId)
       : [empresaId];
@@ -356,8 +371,15 @@ export class UsersService {
         where: { usuarioId_empresaId: { usuarioId: id, empresaId } }, include: { usuario: true, empresa: true },
       });
       if (!member) throw new NotFoundException('Usuario no encontrado en la empresa');
-      if (member.empresa.propietarioId === id && (data.estado === 'INACTIVO' || data.roleId || !companyIds.includes(empresaId))) {
-        throw new BadRequestException('No se puede desactivar o cambiar el rol del propietario');
+      const isOwner = member.empresa.propietarioId === id;
+      if (isOwner) {
+        if (data.estado === 'INACTIVO') {
+          throw new BadRequestException('No se puede desactivar o cambiar el rol del propietario');
+        }
+        if (!companyIds.includes(empresaId)) {
+          throw new BadRequestException('La empresa principal debe estar asignada al propietario');
+        }
+        delete data.roleId;
       }
       const nombre = data.name ?? data.nombre;
       const identityChanged = (nombre !== undefined && nombre !== member.usuario.nombre) ||
@@ -373,21 +395,37 @@ export class UsersService {
           }
         }
       }
-      if (identityChanged) await tx.usuario.update({ where: { id }, data: {
-        nombre: nombre === undefined ? undefined : nombre, avatar: data.avatar,
-      } });
+      if (identityChanged || passwordHash) {
+        await tx.usuario.update({
+          where: { id },
+          data: {
+            nombre: nombre === undefined ? undefined : nombre,
+            avatar: data.avatar,
+            ...(passwordHash ? { passwordHash } : {}),
+          },
+        });
+      }
       if (data.empresaIds !== undefined) {
         await tx.membresia.deleteMany({ where: { usuarioId: id, empresaId: { in: managedIds, notIn: companyIds } } });
       }
       for (const assignedId of companyIds) await tx.membresia.upsert({
         where: { usuarioId_empresaId: { usuarioId: id, empresaId: assignedId } },
-        create: { usuarioId: id, empresaId: assignedId, roleId: data.roleId || null, estado: data.estado || 'ACTIVO' },
-        update: { roleId: data.roleId, estado: data.estado },
+        create: { usuarioId: id, empresaId: assignedId, roleId: isOwner ? null : (data.roleId || null), estado: isOwner ? 'ACTIVO' : (data.estado || 'ACTIVO') },
+        update: { ...(isOwner ? {} : { roleId: data.roleId }), estado: isOwner ? 'ACTIVO' : data.estado },
       });
-      await tx.userSession.updateMany({ where: { usuarioId: id, revokedAt: null }, data: { revokedAt: new Date() } });
+      if (id !== actorUserId || passwordHash) {
+        await tx.userSession.updateMany({
+          where: {
+            usuarioId: id,
+            revokedAt: null,
+            ...(id === actorUserId && actorSessionId ? { id: { not: actorSessionId } } : {}),
+          },
+          data: { revokedAt: new Date() },
+        });
+      }
       await tx.activityLog.create({ data: {
         empresaId, usuarioId: actorUserId, modulo: 'SECURITY', accion: 'USER_UPDATED', resourceId: id,
-        metadata: JSON.stringify({ severity: 'Medium', actionTaken: 'Membresía actualizada y sesiones revocadas' }),
+        metadata: JSON.stringify({ severity: 'Medium', actionTaken: 'Membresía actualizada' }),
       } });
       return { usuarioId: id, empresaIds: companyIds };
     });

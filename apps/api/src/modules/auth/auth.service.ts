@@ -187,7 +187,13 @@ export class AuthService {
       permissions,
       plan,
     };
-    const responseUser = { ...payload, avatar: user.avatar };
+    const responseUser = {
+      ...payload,
+      avatar: user.avatar,
+      oficio: user.oficio,
+      telefono: user.telefono,
+      documentoIdentidad: user.documentoIdentidad,
+    };
 
     // Update last login time
     await this.prisma.usuario.update({
@@ -498,7 +504,7 @@ export class AuthService {
       email: user.email,
       sub: user.id,
       empresaId: targetEmpresaId,
-      authTime: authTime || 0,
+      authTime: authTime || Math.floor(Date.now() / 1000),
       sessionId: randomUUID(),
       name: user.nombre,
       avatar: user.avatar,
@@ -517,7 +523,13 @@ export class AuthService {
     });
     return {
       access_token: accessToken,
-      user: { ...payload, avatar: user.avatar },
+      user: {
+        ...payload,
+        avatar: user.avatar,
+        oficio: user.oficio,
+        telefono: user.telefono,
+        documentoIdentidad: user.documentoIdentidad,
+      },
     };
   }
 
@@ -630,6 +642,9 @@ export class AuthService {
     const updateData: any = {};
     if (data.name !== undefined) updateData.nombre = data.name;
     if (data.avatar !== undefined) updateData.avatar = data.avatar;
+    if (data.oficio !== undefined) updateData.oficio = data.oficio || null;
+    if (data.telefono !== undefined) updateData.telefono = data.telefono || null;
+    if (data.documentoIdentidad !== undefined) updateData.documentoIdentidad = data.documentoIdentidad || null;
 
     // SMTP settings
     if (data.smtpEnabled !== undefined)
@@ -655,6 +670,9 @@ export class AuthService {
         email: true,
         nombre: true,
         avatar: true,
+        oficio: true,
+        telefono: true,
+        documentoIdentidad: true,
         smtpEnabled: true,
         smtpHost: true,
         smtpPort: true,
@@ -664,6 +682,27 @@ export class AuthService {
       },
     });
     return updated;
+  }
+
+  async getProfile(userId: string) {
+    return this.prisma.usuario.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        nombre: true,
+        avatar: true,
+        oficio: true,
+        telefono: true,
+        documentoIdentidad: true,
+        smtpEnabled: true,
+        smtpHost: true,
+        smtpPort: true,
+        smtpUser: true,
+        smtpFrom: true,
+        smtpSecure: true,
+      },
+    });
   }
 
   async testSmtpConnection(userId: string) {
@@ -687,6 +726,7 @@ export class AuthService {
     userId: string,
     currentPassword: string,
     newPassword: string,
+    currentSessionId?: string,
   ) {
     assertPassword(newPassword);
 
@@ -703,11 +743,166 @@ export class AuthService {
       data: { passwordHash, debeCambiarPassword: false },
     });
     await this.prisma.userSession.updateMany({
-      where: { usuarioId: userId, revokedAt: null },
+      where: {
+        usuarioId: userId,
+        revokedAt: null,
+        ...(currentSessionId ? { id: { not: currentSessionId } } : {}),
+      },
       data: { revokedAt: new Date() },
     });
 
     return { success: true };
+  }
+
+  async verifyDestructiveActionAuth(
+    userId: string,
+    credentials: { email?: string; password?: string; mfaCode?: string },
+  ): Promise<void> {
+    const mfaStatus = await this.mfa.status(userId);
+    if (mfaStatus.enabled) {
+      if (!credentials.mfaCode || !credentials.mfaCode.trim()) {
+        throw new BadRequestException('Se requiere el código de verificación 2FA para autorizar esta acción');
+      }
+      const valid = await this.mfa.verifyUserCode(userId, credentials.mfaCode.trim());
+      if (!valid) {
+        throw new UnauthorizedException('El código 2FA ingresado es inválido o ha expirado');
+      }
+    } else {
+      if (!credentials.email || !credentials.password) {
+        throw new BadRequestException('Debes proporcionar tu correo electrónico y contraseña para confirmar esta acción');
+      }
+      const user = await this.prisma.usuario.findUnique({ where: { id: userId } });
+      if (!user || user.email.toLowerCase() !== credentials.email.trim().toLowerCase()) {
+        throw new UnauthorizedException('El correo electrónico no coincide con tu cuenta');
+      }
+      const passwordMatches = await bcrypt.compare(credentials.password, user.passwordHash);
+      if (!passwordMatches) {
+        throw new UnauthorizedException('La contraseña ingresada es incorrecta');
+      }
+    }
+  }
+
+  async wipeTenantData(userId: string, credentials: { email?: string; password?: string; mfaCode?: string }) {
+    await this.verifyDestructiveActionAuth(userId, credentials);
+
+    const user = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+      include: { empresasPropiedad: true },
+    });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    if (!user.empresasPropiedad?.length) {
+      throw new BadRequestException('Solo las cuentas propietarias pueden restablecer los datos de sus empresas');
+    }
+
+    const empresaIds = user.empresasPropiedad.map(e => e.id);
+
+    return this.prisma.$transaction(async tx => {
+      // 1. Invoices & Payments (sales & purchases)
+      await tx.pagoCliente.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.pagoProveedor.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.facturaVenta.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.facturaCompra.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.cotizacion.deleteMany({ where: { empresaId: { in: empresaIds } } });
+
+      // 2. Inventory & Products
+      await tx.movimientoInventario.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.inventarioStock.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.promocionProducto.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.promocion.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.productoInsumo.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.producto.deleteMany({ where: { empresaId: { in: empresaIds } } });
+
+      // 3. Catalogs
+      await tx.categoria.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.marca.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.unidadMedida.deleteMany({ where: { empresaId: { in: empresaIds } } });
+
+      // 4. Commercial Entities
+      await tx.cliente.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.proveedor.deleteMany({ where: { empresaId: { in: empresaIds } } });
+
+      // 5. Fiscal & Notifications
+      await tx.secuenciaNCF.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.impuesto.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.terminoPago.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.notification.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.aiConversation.deleteMany({ where: { empresaId: { in: empresaIds } } });
+
+      // Audit Log
+      await tx.activityLog.create({
+        data: {
+          empresaId: empresaIds[0],
+          usuarioId: userId,
+          usuarioNombre: user.nombre || user.email,
+          usuarioEmail: user.email,
+          modulo: 'SECURITY',
+          accion: 'DATA_WIPED',
+          resourceId: userId,
+          resourceType: 'TenantData',
+          resourceName: 'Datos comerciales restablecidos',
+          metadata: JSON.stringify({
+            severity: 'High',
+            actionTaken: 'Se restablecieron todos los catálogos y transacciones de las empresas del tenant',
+            empresaIds,
+          }),
+        },
+      });
+
+      return { success: true, message: 'Todos los datos comerciales fueron eliminados exitosamente' };
+    });
+  }
+
+  async deleteUserAccount(userId: string, credentials: { email?: string; password?: string; mfaCode?: string }) {
+    await this.verifyDestructiveActionAuth(userId, credentials);
+
+    const user = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+      include: { empresasPropiedad: true },
+    });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const empresaIds = (user.empresasPropiedad || []).map(e => e.id);
+
+    return this.prisma.$transaction(async tx => {
+      // 1. Delete owned companies (cascades operational data)
+      if (empresaIds.length > 0) {
+        await tx.pagoCliente.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.pagoProveedor.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.facturaVenta.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.facturaCompra.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.cotizacion.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.movimientoInventario.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.inventarioStock.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.promocionProducto.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.promocion.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.productoInsumo.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.producto.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.categoria.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.marca.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.unidadMedida.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.cliente.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.proveedor.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.secuenciaNCF.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.impuesto.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.terminoPago.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.notification.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.aiConversation.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.empresa.deleteMany({ where: { id: { in: empresaIds } } });
+      }
+
+      // 2. Delete user-specific records
+      await tx.membresia.deleteMany({ where: { usuarioId: userId } });
+      await tx.mfaCredential.deleteMany({ where: { usuarioId: userId } });
+      await tx.userSession.deleteMany({ where: { usuarioId: userId } });
+      await tx.notificationPreference.deleteMany({ where: { usuarioId: userId } });
+      await tx.pushSubscription.deleteMany({ where: { usuarioId: userId } });
+      await tx.googleDriveConnection.deleteMany({ where: { propietarioId: userId } });
+
+      // 3. Delete user
+      await tx.usuario.delete({ where: { id: userId } });
+
+      return { success: true, message: 'Cuenta y datos eliminados definitivamente' };
+    });
   }
 
   private generateOtp() {

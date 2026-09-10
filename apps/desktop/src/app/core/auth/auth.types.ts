@@ -21,6 +21,9 @@ export type User = {
   empresas?: Empresa[];
   permissions?: string[];
   sessionId?: string;
+  oficio?: string | null;
+  telefono?: string | null;
+  documentoIdentidad?: string | null;
 };
 
 export type AuthResponse = {

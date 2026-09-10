@@ -7,6 +7,7 @@ import {
   Get,
   Body,
   Patch,
+  Delete,
   Res,
   Query,
 } from '@nestjs/common';
@@ -22,7 +23,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GoogleOAuthService } from './google-oauth.service';
 import { Throttle } from '@nestjs/throttler';
-import { EmailDto, OtpDto, PasswordResetDto, PasswordChangeDto, RegisterDto, InvitationDto, SwitchTenantDto, GoogleStartDto, GoogleFlowDto, GoogleCompleteDto } from './dto/auth.dto';
+import { EmailDto, OtpDto, PasswordResetDto, PasswordChangeDto, DestructiveAuthDto, RegisterDto, InvitationDto, SwitchTenantDto, GoogleStartDto, GoogleFlowDto, GoogleCompleteDto } from './dto/auth.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('Auth')
@@ -150,8 +151,13 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
-  getProfile(@CurrentUser() user: any) {
-    return user;
+  async getProfile(@CurrentUser() user: any) {
+    const profile = await this.authService.getProfile(user.id);
+    return {
+      ...user,
+      ...profile,
+      name: profile?.nombre ?? user.name,
+    };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -215,6 +221,23 @@ export class AuthController {
       user.id,
       body.currentPassword,
       body.newPassword,
+      user.sessionId,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('account/wipe-data')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar y restablecer todos los datos del tenant' })
+  async wipeData(@CurrentUser() user: any, @Body() body: DestructiveAuthDto) {
+    return this.authService.wipeTenantData(user.id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('account')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar permanentemente la cuenta del usuario y sus datos' })
+  async deleteAccount(@CurrentUser() user: any, @Body() body: DestructiveAuthDto) {
+    return this.authService.deleteUserAccount(user.id, body);
   }
 }

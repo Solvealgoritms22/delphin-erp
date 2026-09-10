@@ -243,6 +243,16 @@ dialog[open]::backdrop {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
 }
 
+.account-dialog-panel .mat-mdc-dialog-surface,
+.account-dialog-panel .mdc-dialog__surface,
+.account-dialog-panel.mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 1.5rem !important;
+  overflow: hidden !important;
+}
+
 .cdk-overlay-backdrop.cdk-overlay-backdrop-hiding {
   opacity: 0 !important;
   transition: opacity 220ms cubic-bezier(0.4, 0, 1, 1), backdrop-filter 220ms cubic-bezier(0.4, 0, 1, 1) !important;
