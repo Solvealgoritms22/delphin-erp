@@ -33,53 +33,36 @@ export class AuthController {
 
   @Post('google/start')
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  googleStart(@Body() body: GoogleStartDto) { return this.googleOAuth.start(body.challenge); }
+  googleStart(@Body() body: GoogleStartDto, @Request() req: any) {
+    const origin = body.origin || req?.headers?.origin || req?.headers?.referer;
+    return this.googleOAuth.start(body.challenge, typeof origin === 'string' ? origin : undefined);
+  }
 
   @Post('google/status')
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
   googleStatus(@Body() body: GoogleFlowDto) { return this.googleOAuth.status(body.flowId, body.verifier); }
 
   @Get('google/callback')
-  async googleCallback(@Query('code') code: string, @Query('state') state: string,
-    @Query('error') denied: string, @Res() response: Response) {
+  async googleCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Query('error') denied: string,
+    @Res() response: Response,
+  ) {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Referrer-Policy', 'no-referrer');
+    response.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
     try {
       const result = await this.googleOAuth.callback(code, state, denied);
+      const origin = (result?.origin || process.env.FRONTEND_URL || 'http://localhost:4200').replace(/\/$/, '');
       if (result?.rejected) {
-        response.status(403).type('html').send(
-          `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Dolphin ERP</title>
-          <script>
-            try { if (window.opener) { window.opener.postMessage({ type: 'GOOGLE_AUTH_FAILED', error: ${JSON.stringify(result.rejected)} }, '*'); } } catch(e){}
-            window.close();
-          </script></head>
-          <body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#f8fafc;">
-          <script>setTimeout(function(){ window.close(); }, 100);</script>
-          </body></html>`
-        );
-      } else {
-        response.type('html').send(
-          `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Dolphin ERP</title>
-          <script>
-            try { if (window.opener) { window.opener.postMessage({ type: 'GOOGLE_AUTH_SUCCESS' }, '*'); } } catch(e){}
-            window.close();
-          </script></head>
-          <body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#f8fafc;">
-          <script>setTimeout(function(){ window.close(); }, 100);</script>
-          </body></html>`
-        );
+        return response.redirect(`${origin}/auth-callback.html?error=${encodeURIComponent(result.rejected)}`);
       }
-    } catch {
-      response.status(400).type('html').send(
-        `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Dolphin ERP</title>
-        <script>
-          try { if (window.opener) { window.opener.postMessage({ type: 'GOOGLE_AUTH_FAILED' }, '*'); } } catch(e){}
-          window.close();
-        </script></head>
-        <body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#f8fafc;">
-        <script>setTimeout(function(){ window.close(); }, 100);</script>
-        </body></html>`
-      );
+      return response.redirect(`${origin}/auth-callback.html?status=success`);
+    } catch (err: any) {
+      const origin = (process.env.FRONTEND_URL || 'http://localhost:4200').replace(/\/$/, '');
+      const message = err?.message || 'failed';
+      return response.redirect(`${origin}/auth-callback.html?error=${encodeURIComponent(message)}`);
     }
   }
 

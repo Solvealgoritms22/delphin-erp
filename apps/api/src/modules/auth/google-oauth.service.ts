@@ -24,12 +24,20 @@ export class GoogleOAuthService {
     return { clientId, clientSecret, redirectUri };
   }
 
-  async start(challenge: string) {
+  async start(challenge: string, clientOrigin?: string) {
     const { clientId, redirectUri } = this.config();
     const state = randomBytes(32).toString('base64url');
     const nonce = randomBytes(32).toString('base64url');
+    const fallbackOrigin = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const origin = clientOrigin || fallbackOrigin;
     const flow = await this.prisma.authFlow.create({
-      data: { stateHash: this.hash(state), challenge, nonce, expiresAt: new Date(Date.now() + 10 * 60_000) },
+      data: {
+        stateHash: this.hash(state),
+        challenge,
+        nonce,
+        expiresAt: new Date(Date.now() + 10 * 60_000),
+        identity: { origin },
+      },
     });
     const query = new URLSearchParams({
       client_id: clientId, redirect_uri: redirectUri, response_type: 'code',
@@ -38,11 +46,12 @@ export class GoogleOAuthService {
     return { flowId: flow.id, url: 'https://accounts.google.com/o/oauth2/v2/auth?' + query.toString() };
   }
 
-  async callback(code: string, state: string, denied?: string): Promise<{ rejected?: string } | void> {
+  async callback(code: string, state: string, denied?: string): Promise<{ origin: string; rejected?: string }> {
     if (!state) throw new UnauthorizedException('Sesión OAuth inválida');
     const stateHash = this.hash(state);
     const flow = await this.prisma.authFlow.findUnique({ where: { stateHash } });
     if (!flow || flow.expiresAt < new Date()) throw new UnauthorizedException('La sesión OAuth expiró');
+    const targetOrigin = ((flow.identity as any)?.origin as string) || process.env.FRONTEND_URL || 'http://localhost:4200';
     const claim = await this.prisma.authFlow.updateMany({
       where: { id: flow.id, status: 'PENDING', expiresAt: { gt: new Date() } },
       data: { status: 'PROCESSING' },
@@ -72,18 +81,17 @@ export class GoogleOAuthService {
       };
 
       // ─── Verificación de elegibilidad temprana ──────────────────────────────
-      // Se hace aquí, durante el callback, para que el popup muestre el rechazo
-      // en lugar de "Autorización completada". El error se guarda en identity._err.
       const rejection = await this.checkOwnerEligibility(identity);
       if (rejection) {
         await this.prisma.authFlow.update({
           where: { id: flow.id },
-          data: { status: 'FAILED', identity: { ...identity, _err: rejection } },
+          data: { status: 'FAILED', identity: { ...identity, _err: rejection, origin: targetOrigin } },
         });
-        return { rejected: rejection };
+        return { origin: targetOrigin, rejected: rejection };
       }
 
-      await this.prisma.authFlow.update({ where: { id: flow.id }, data: { status: 'READY', identity } });
+      await this.prisma.authFlow.update({ where: { id: flow.id }, data: { status: 'READY', identity: { ...identity, origin: targetOrigin } } });
+      return { origin: targetOrigin };
     } catch (err) {
       await this.prisma.authFlow.update({ where: { id: flow.id }, data: { status: 'FAILED' } });
       throw err instanceof UnauthorizedException ? err : new UnauthorizedException('No se pudo completar la autorización de Google. Vuelve a intentarlo.');

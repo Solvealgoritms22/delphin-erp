@@ -4,7 +4,10 @@ export class OtpDto extends EmailDto { @Matches(/^\d{6}$/) otp!: string; }
 export class PasswordResetDto extends OtpDto { @IsString() @MinLength(12) @MaxLength(72) newPassword!: string; }
 export class PasswordChangeDto { @IsString() @MaxLength(72) currentPassword!: string; @IsString() @MinLength(12) @MaxLength(72) newPassword!: string; }
 export class SwitchTenantDto { @IsUUID() empresaId!: string; }
-export class GoogleStartDto { @Matches(/^[A-Za-z0-9_-]{43}$/) challenge!: string; }
+export class GoogleStartDto {
+  @Matches(/^[A-Za-z0-9_-]{43}$/) challenge!: string;
+  @IsOptional() @IsString() @MaxLength(500) origin?: string;
+}
 export class GoogleFlowDto { @IsUUID() flowId!: string; @Matches(/^[A-Za-z0-9_-]{43,128}$/) verifier!: string; }
 export class GoogleCompleteDto extends GoogleFlowDto {
   @IsBoolean() acceptedPolicies!: boolean;

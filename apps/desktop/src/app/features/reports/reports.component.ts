@@ -1093,9 +1093,6 @@ export type ReportTab =
                 <!-- IT-1 Header -->
                 <div class="flex flex-col sm:flex-row justify-between items-start border-b border-neutral-200 dark:border-neutral-800 pb-6">
                   <div>
-                    <span class="text-xs uppercase font-extrabold tracking-wider text-emerald-600 dark:text-emerald-400">
-                      DGII · República Dominicana
-                    </span>
                     <h2 class="text-2xl font-black text-neutral-900 dark:text-white mt-1">
                       Declaración Jurada y Pago de ITBIS (IT-1)
                     </h2>

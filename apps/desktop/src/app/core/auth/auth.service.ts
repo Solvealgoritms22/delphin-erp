@@ -128,7 +128,8 @@ export class AuthService {
       if (!bridge && !popup) throw new Error('popup_blocked');
       const verifier = this.base64url(crypto.getRandomValues(new Uint8Array(32)));
       const challenge = this.base64url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))));
-      const flow = await firstValueFrom(this.http.post<{ flowId: string; url: string }>(this.apiUrl + '/google/start', { challenge }));
+      const origin = typeof window !== 'undefined' ? window.location.origin : undefined;
+      const flow = await firstValueFrom(this.http.post<{ flowId: string; url: string }>(this.apiUrl + '/google/start', { challenge, origin }));
       const target = new URL(flow.url);
       if (target.origin !== 'https://accounts.google.com') throw new Error('invalid_provider');
       let messageReceived = false;
@@ -139,6 +140,19 @@ export class AuthService {
         }
       };
       window.addEventListener('message', onMessage);
+
+      let bc: BroadcastChannel | null = null;
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          bc = new BroadcastChannel('dolphin_auth');
+          bc.onmessage = (ev) => {
+            if (ev.data?.type === 'GOOGLE_AUTH_SUCCESS' || ev.data?.type === 'GOOGLE_AUTH_FAILED') {
+              messageReceived = true;
+              popup?.close();
+            }
+          };
+        }
+      } catch {}
 
       if (bridge) bridge.openExternal(target.href);
       else if (popup) { popup.location.href = target.href; }
@@ -175,6 +189,9 @@ export class AuthService {
         throw new Error('expired');
       } finally {
         window.removeEventListener('message', onMessage);
+        if (bc) {
+          try { bc.close(); } catch {}
+        }
       }
     } catch (err: unknown) {
       popup?.close();
