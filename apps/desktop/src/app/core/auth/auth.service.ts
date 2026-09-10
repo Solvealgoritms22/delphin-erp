@@ -146,15 +146,36 @@ export class AuthService {
           } else await this.router.navigateByUrl('/auth/google/setup');
           return;
         }
-        if (popup?.closed) throw new Error('cancelled');
+        // Si el usuario cerró el popup (como indica la página "Puedes cerrar esta pestaña"),
+        // hacemos un último intento antes de cancelar — el backend puede haber completado
+        // la autorización justo antes de que el usuario cerrara la ventana.
+        if (popup?.closed) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          const final = await firstValueFrom(this.http.post<{ status: string; needsCompany?: boolean; needsPolicies?: boolean }>(
+            this.apiUrl + '/google/status', { flowId: flow.flowId, verifier }));
+          if (final.status === 'ready') {
+            sessionStorage.setItem('google_setup', JSON.stringify({ flowId: flow.flowId, verifier, expiresAt, ...final }));
+            if (!final.needsCompany && !final.needsPolicies) {
+              const response = await firstValueFrom(this.completeGoogleSetup({ acceptedPolicies: false }), { defaultValue: null });
+              if (response) await this.router.navigateByUrl(response.user.mustChangePassword ? '/auth/change-password' : '/admin/dashboards');
+            } else await this.router.navigateByUrl('/auth/google/setup');
+            return;
+          }
+          throw new Error('cancelled');
+        }
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
       throw new Error('expired');
-    } catch {
+    } catch (err: unknown) {
       popup?.close();
       sessionStorage.removeItem('google_setup');
-      this.snackBar.open(this.transloco.translate('auth.googleSetup.error'), this.transloco.translate('common.close'), {
-        duration: 6000, horizontalPosition: 'center', verticalPosition: 'bottom',
+      // Si el servidor devolvió un mensaje específico (ej: "solo para propietarios"), mostrarlo.
+      const serverMessage = (err as any)?.error?.message as string | undefined;
+      const displayMessage = serverMessage
+        ? serverMessage
+        : this.transloco.translate('auth.googleSetup.error');
+      this.snackBar.open(displayMessage, this.transloco.translate('common.close'), {
+        duration: 8000, horizontalPosition: 'center', verticalPosition: 'bottom',
       });
     } finally { this.googleLoading.set(false); }
   }

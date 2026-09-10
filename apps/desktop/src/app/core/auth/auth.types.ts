@@ -6,6 +6,7 @@ export type Empresa = {
   telefono?: string | null;
   direccion?: string | null;
   estado?: string;
+  isOwner?: boolean;
 };
 
 export type User = {

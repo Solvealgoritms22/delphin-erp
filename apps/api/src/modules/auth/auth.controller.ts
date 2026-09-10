@@ -45,10 +45,27 @@ export class AuthController {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Referrer-Policy', 'no-referrer');
     try {
-      await this.googleOAuth.callback(code, state, denied);
-      response.type('html').send('<!doctype html><html lang="es"><meta charset="utf-8"><title>Dolphin ERP</title><h1>Autorización completada</h1><p>Regresa a Dolphin ERP para continuar. Puedes cerrar esta pestaña.</p></html>');
+      const result = await this.googleOAuth.callback(code, state, denied);
+      if (result?.rejected) {
+        // El usuario está autenticado con Google pero no es elegible (ej: es colaborador).
+        // Mostramos una página de rechazo específica en lugar de "Autorización completada".
+        response.status(403).type('html').send(
+          `<!doctype html><html lang="es"><meta charset="utf-8"><title>Dolphin ERP</title>
+          <style>body{font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f8fafc}
+          h1{color:#dc2626;font-size:1.25rem}p{color:#374151;max-width:400px;text-align:center}</style>
+          <h1>Acceso no disponible</h1><p>${result.rejected}</p>
+          <p style="font-size:.85rem;color:#6b7280;margin-top:1rem">Puedes cerrar esta pestaña y regresar a Dolphin ERP.</p></html>`);
+      } else {
+        response.type('html').send(
+          '<!doctype html><html lang="es"><meta charset="utf-8"><title>Dolphin ERP</title>'
+          + '<style>body{font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f8fafc}'
+          + 'h1{color:#16a34a}p{color:#374151}</style>'
+          + '<h1>Autorización completada</h1><p>Regresa a Dolphin ERP para continuar. Puedes cerrar esta pestaña.</p></html>');
+      }
     } catch {
-      response.status(400).type('html').send('<!doctype html><html lang="es"><meta charset="utf-8"><title>Dolphin ERP</title><h1>No se completó la autorización</h1><p>Regresa a Dolphin ERP e inténtalo de nuevo.</p></html>');
+      response.status(400).type('html').send(
+        '<!doctype html><html lang="es"><meta charset="utf-8"><title>Dolphin ERP</title>'
+        + '<h1>No se completó la autorización</h1><p>Regresa a Dolphin ERP e inténtalo de nuevo.</p></html>');
     }
   }
 

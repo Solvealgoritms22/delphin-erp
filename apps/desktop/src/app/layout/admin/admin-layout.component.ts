@@ -144,13 +144,18 @@ import { environment } from '@/environments/environment';
                       <div class="w-4 shrink-0"></div>
                     }
                     <div class="flex flex-col">
-                      <span
-                        class="text-sm font-medium text-neutral-700 dark:text-neutral-300"
-                        [class.font-bold]="currentEmpresaId() === empresa.id"
-                        [class.text-blue-700]="currentEmpresaId() === empresa.id"
-                        [class.dark:text-blue-400]="currentEmpresaId() === empresa.id">
-                        {{ empresa.razonSocial }}
-                      </span>
+                      <div class="flex items-center gap-1.5">
+                        <span
+                          class="text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                          [class.font-bold]="currentEmpresaId() === empresa.id"
+                          [class.text-blue-700]="currentEmpresaId() === empresa.id"
+                          [class.dark:text-blue-400]="currentEmpresaId() === empresa.id">
+                          {{ empresa.razonSocial }}
+                        </span>
+                        @if (empresa.isOwner === false) {
+                          <span class="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500">Colaborador</span>
+                        }
+                      </div>
                       <span class="text-[10px] text-neutral-400">{{ empresa.rnc ? 'RNC: ' + empresa.rnc : 'Sin RNC' }}</span>
                     </div>
                   </div>

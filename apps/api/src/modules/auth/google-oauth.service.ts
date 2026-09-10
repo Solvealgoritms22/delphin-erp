@@ -38,7 +38,7 @@ export class GoogleOAuthService {
     return { flowId: flow.id, url: 'https://accounts.google.com/o/oauth2/v2/auth?' + query.toString() };
   }
 
-  async callback(code: string, state: string, denied?: string): Promise<void> {
+  async callback(code: string, state: string, denied?: string): Promise<{ rejected?: string } | void> {
     if (!state) throw new UnauthorizedException('Sesión OAuth inválida');
     const stateHash = this.hash(state);
     const flow = await this.prisma.authFlow.findUnique({ where: { stateHash } });
@@ -70,11 +70,63 @@ export class GoogleOAuthService {
         sub: profile.sub, email: profile.email.toLowerCase(), name: profile.name,
         picture: profile.picture, authoritative: profile.email.toLowerCase().endsWith('@gmail.com') || Boolean(profile.hd),
       };
+
+      // ─── Verificación de elegibilidad temprana ──────────────────────────────
+      // Se hace aquí, durante el callback, para que el popup muestre el rechazo
+      // en lugar de "Autorización completada". El error se guarda en identity._err.
+      const rejection = await this.checkOwnerEligibility(identity);
+      if (rejection) {
+        await this.prisma.authFlow.update({
+          where: { id: flow.id },
+          data: { status: 'FAILED', identity: { ...identity, _err: rejection } },
+        });
+        return { rejected: rejection };
+      }
+
       await this.prisma.authFlow.update({ where: { id: flow.id }, data: { status: 'READY', identity } });
-    } catch {
+    } catch (err) {
       await this.prisma.authFlow.update({ where: { id: flow.id }, data: { status: 'FAILED' } });
-      throw new UnauthorizedException('No se pudo completar la autorización de Google. Vuelve a intentarlo.');
+      throw err instanceof UnauthorizedException ? err : new UnauthorizedException('No se pudo completar la autorización de Google. Vuelve a intentarlo.');
     }
+  }
+
+  /**
+   * Verifica si la identidad de Google puede continuar el flujo de propietario.
+   * Retorna null si es elegible, o el mensaje de rechazo si no lo es.
+   *
+   * IMPORTANTE: Un colaborador (sin empresasPropiedad) SÍ es elegible —
+   * el flujo le pedirá crear su propia empresa (needsCompany: true).
+   * La restricción es solo para casos que representan un riesgo de seguridad.
+   */
+  private async checkOwnerEligibility(identity: GoogleIdentity): Promise<string | null> {
+    const existing = await this.prisma.usuario.findFirst({
+      where: { OR: [{ googleSub: identity.sub }, { email: { equals: identity.email, mode: 'insensitive' } }] },
+      select: { googleSub: true, isVerified: true, empresasPropiedad: { select: { id: true, estado: true } } },
+    });
+
+    // Caso 1: usuario nuevo → elegible, se creará como propietario
+    if (!existing) return null;
+
+    // Caso 2: el correo ya está vinculado a OTRO Google account → bloquear
+    if (existing.googleSub && existing.googleSub !== identity.sub) {
+      return 'Esta dirección de correo ya está vinculada a otra cuenta de Google.';
+    }
+
+    // Caso 3: cuenta no verificada que intenta vincular Google sin ser fuente autoritativa
+    if (!existing.isVerified && !identity.authoritative) {
+      return 'Esta cuenta requiere iniciar sesión con contraseña antes de vincular Google.';
+    }
+
+    // Caso 4: tiene empresas propias pero ninguna está activa → rechazar
+    // (no se le permite crear otra empresa en el mismo trial)
+    if (existing.empresasPropiedad.length > 0 && !existing.empresasPropiedad.some(e => e.estado === 'ACTIVA')) {
+      return 'Tu empresa no está activa. Contacta al soporte de Dolphin ERP.';
+    }
+
+    // Casos válidos:
+    // - Tiene empresa propia activa → login directo (needsCompany: false)
+    // - Es solo colaborador (sin empresasPropiedad) → creará su empresa (needsCompany: true)
+    return null;
   }
 
   private hash(value: string) { return createHash('sha256').update(value).digest('base64url'); }
@@ -84,30 +136,30 @@ export class GoogleOAuthService {
       where: { id: flowId, challenge: this.hash(verifier), expiresAt: { gt: new Date() } },
     });
     if (!flow || flow.status === 'CONSUMED') throw new UnauthorizedException('La sesión de Google expiró');
-    if (flow.status === 'FAILED') throw new UnauthorizedException('La autorización de Google fue cancelada o falló');
+    if (flow.status === 'FAILED') {
+      // Si el fallo fue por elegibilidad, incluir el mensaje específico guardado en identity._err
+      const storedErr = (flow.identity as Record<string, unknown> | null)?._err as string | undefined;
+      throw new UnauthorizedException(storedErr || 'La autorización de Google fue cancelada o falló');
+    }
     return flow;
   }
 
   private async findIdentity(db: Pick<PrismaService, 'usuario'>, identity: GoogleIdentity) {
+    // La verificación de elegibilidad (propietario vs colaborador) ya ocurrió en callback().
+    // Aquí solo se busca al usuario para obtener el objeto completo con relaciones.
     const user = await db.usuario.findFirst({
       where: { OR: [{ googleSub: identity.sub }, { email: { equals: identity.email, mode: 'insensitive' } }] },
       include: { membresias: { include: { role: true, empresa: true } }, empresasPropiedad: true },
     });
-    if (user && user.googleSub !== identity.sub && (user.googleSub || !user.isVerified || !identity.authoritative)) {
-      throw new UnauthorizedException('Esta cuenta requiere iniciar sesión con contraseña antes de vincular Google');
-    }
-    if (user && !user.empresasPropiedad.some(e => e.estado === 'ACTIVA') &&
-        !user.membresias.some(m => m.estado === 'ACTIVO' && m.empresa.estado === 'ACTIVA')) {
-      throw new UnauthorizedException('La cuenta no tiene acceso a una empresa activa');
-    }
-    return user;
+    return user; // null = usuario nuevo, complete() lo creará como propietario
   }
 
   async status(flowId: string, verifier: string) {
     const flow = await this.resolveFlow(flowId, verifier);
     if (flow.status !== 'READY') return { status: 'pending' as const };
     const user = await this.findIdentity(this.prisma, flow.identity as unknown as GoogleIdentity);
-    return { status: 'ready' as const, needsCompany: !user, needsPolicies: !user?.politicasAceptadasEn };
+    const hasOwnedCompany = Boolean(user?.empresasPropiedad && user.empresasPropiedad.some(e => e.estado === 'ACTIVA'));
+    return { status: 'ready' as const, needsCompany: !hasOwnedCompany, needsPolicies: !user?.politicasAceptadasEn };
   }
 
   async complete(flowId: string, verifier: string, acceptedPolicies: boolean, companyName: string | undefined, rnc: string | undefined, request: unknown) {
@@ -117,31 +169,69 @@ export class GoogleOAuthService {
     const user = await this.prisma.$transaction(async tx => {
       let account = await this.findIdentity(tx as Pick<PrismaService, 'usuario'>, identity);
       if (!account?.politicasAceptadasEn && acceptedPolicies !== true) throw new BadRequestException('Debes aceptar las políticas para continuar');
-      if (!account && !companyName?.trim()) throw new BadRequestException('Debes indicar el nombre de tu empresa');
+
+      const hasOwnedCompany = Boolean(account?.empresasPropiedad && account.empresasPropiedad.some(e => e.estado === 'ACTIVA'));
+      if (!hasOwnedCompany && !companyName?.trim()) throw new BadRequestException('Debes indicar el nombre de tu empresa');
+
       const claim = await tx.authFlow.updateMany({
         where: { id: flow.id, status: 'READY', expiresAt: { gt: new Date() } }, data: { status: 'CONSUMED', identity: {} },
       });
       if (claim.count !== 1) throw new UnauthorizedException('La sesión de Google ya fue utilizada');
+
       if (!account) {
         const plan = await tx.plan.findUnique({ where: { id: 'trial' } });
         if (!plan) throw new BadRequestException('El plan de prueba no está configurado');
-        account = await tx.usuario.create({
+        const created = await tx.usuario.create({
           data: {
             email: identity.email, googleSub: identity.sub, nombre: identity.name || identity.email.split('@')[0],
-            avatar: identity.picture, isVerified: true, passwordHash: await bcrypt.hash(randomBytes(32).toString('hex'), 12),
+            avatar: identity.picture || null, isVerified: true, passwordHash: await bcrypt.hash(randomBytes(32).toString('hex'), 12),
             politicasAceptadasEn: new Date(),
             empresasPropiedad: { create: {
               razonSocial: companyName!.trim(), rnc: rnc?.trim() || null,
               suscripcion: { create: { planId: 'trial', estado: 'TRIAL', periodicidad: 'MONTHLY', fechaRenovacion: new Date(Date.now() + 15 * 86400_000) } },
             } },
           },
+          include: { empresasPropiedad: true },
+        });
+        await tx.membresia.create({ data: { usuarioId: created.id, empresaId: created.empresasPropiedad[0].id, estado: 'ACTIVO' } });
+        // Re-fetch para incluir la membresía recién creada con su role antes de llamar a auth.login()
+        account = await tx.usuario.findUniqueOrThrow({
+          where: { id: created.id },
           include: { membresias: { include: { role: true, empresa: true } }, empresasPropiedad: true },
         });
-        await tx.membresia.create({ data: { usuarioId: account.id, empresaId: account.empresasPropiedad[0].id, estado: 'ACTIVO' } });
       } else {
-        await tx.usuario.update({ where: { id: account.id }, data: {
-          googleSub: identity.sub, politicasAceptadasEn: account.politicasAceptadasEn || new Date(),
-        } });
+        const updateData: any = {
+          googleSub: identity.sub,
+          isVerified: true,
+          politicasAceptadasEn: account.politicasAceptadasEn || new Date(),
+        };
+        if (identity.picture) {
+          updateData.avatar = identity.picture;
+        }
+        if (identity.name && (!account.nombre || account.nombre === account.email.split('@')[0])) {
+          updateData.nombre = identity.name;
+        }
+
+        if (!hasOwnedCompany && companyName?.trim()) {
+          const plan = await tx.plan.findUnique({ where: { id: 'trial' } });
+          if (!plan) throw new BadRequestException('El plan de prueba no está configurado');
+          const createdEmpresa = await tx.empresa.create({
+            data: {
+              razonSocial: companyName.trim(),
+              rnc: rnc?.trim() || null,
+              propietarioId: account.id,
+              suscripcion: { create: { planId: 'trial', estado: 'TRIAL', periodicidad: 'MONTHLY', fechaRenovacion: new Date(Date.now() + 15 * 86400_000) } },
+            },
+          });
+          await tx.membresia.create({ data: { usuarioId: account.id, empresaId: createdEmpresa.id, estado: 'ACTIVO' } });
+        }
+
+        await tx.usuario.update({ where: { id: account.id }, data: updateData });
+
+        account = await tx.usuario.findUniqueOrThrow({
+          where: { id: account.id },
+          include: { membresias: { include: { role: true, empresa: true } }, empresasPropiedad: true },
+        });
       }
       return account;
     }, { timeout: 20_000 });

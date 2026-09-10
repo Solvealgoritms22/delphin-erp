@@ -108,9 +108,9 @@ export class AuthService {
     const activeMembership = user.membresias?.find(
       (m: any) => m.estado === 'ACTIVO',
     );
-    const isOwner = user.empresasPropiedad && user.empresasPropiedad.length > 0;
     const empresaId =
       user.empresasPropiedad?.[0]?.id || activeMembership?.empresaId || null;
+    const isOwner = Boolean(user.empresasPropiedad?.some((e: any) => e.id === empresaId));
     const roleId = activeMembership?.roleId || null;
 
     let permissions: string[] = [];
@@ -182,6 +182,7 @@ export class AuthService {
       empresaId,
       roleId,
       name: user.nombre,
+      avatar: user.avatar,
       mustChangePassword: user.debeCambiarPassword,
       permissions,
       plan,
@@ -465,12 +466,16 @@ export class AuthService {
 
     if (!user) throw new NotFoundException('User not found');
 
+    const hasOwnedCompanies = user.empresasPropiedad.length > 0;
     const isOwner = user.empresasPropiedad.some(
       (e) => e.id === targetEmpresaId,
     );
     const membership = user.membresias.find(
       (m) => m.empresaId === targetEmpresaId && m.estado === 'ACTIVO',
     );
+    if (hasOwnedCompanies && !isOwner) {
+      throw new UnauthorizedException('No tienes acceso a empresas de otro tenant');
+    }
     if (!isOwner && !membership)
       throw new BadRequestException('User does not belong to this tenant');
 
@@ -496,6 +501,7 @@ export class AuthService {
       authTime: authTime || 0,
       sessionId: randomUUID(),
       name: user.nombre,
+      avatar: user.avatar,
       mustChangePassword: user.debeCambiarPassword,
       permissions,
       plan,

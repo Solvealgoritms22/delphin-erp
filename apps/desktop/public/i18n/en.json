@@ -912,7 +912,7 @@
       "materialsConsumed": "Required materials",
       "laborCost": "Labor",
       "totalCost": "Total cost",
-      "noMaterials": "Pure service (no materials)"
+      "noMaterials": "No materials"
     },
     "categories": {
       "title": "Categories",

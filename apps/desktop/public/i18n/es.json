@@ -912,7 +912,7 @@
       "materialsConsumed": "Insumos requeridos",
       "laborCost": "Mano de obra",
       "totalCost": "Costo total",
-      "noMaterials": "Servicio puro (sin insumos)"
+      "noMaterials": "Sin insumos"
     },
     "categories": {
       "title": "Categorías",

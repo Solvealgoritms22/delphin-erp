@@ -294,22 +294,30 @@ export class EmpresasService {
   }
 
   async findAllForUser(userId: string) {
-    // Companies owned by the main account + companies where the account has an active membership
-    const [owned, membresias] = await Promise.all([
-      this.prisma.empresa.findMany({ where: { propietarioId: userId, estado: 'ACTIVA' }, select: PUBLIC_COMPANY_FIELDS }),
-      this.prisma.membresia.findMany({
-        where: { usuarioId: userId, estado: 'ACTIVO', empresa: { estado: 'ACTIVA' } },
-        include: { empresa: { select: PUBLIC_COMPANY_FIELDS } },
-      }),
-    ]);
-
-    const map = new Map<string, any>();
-    owned.forEach((e) => map.set(e.id, e));
-    membresias.forEach((m) => {
-      if (!map.has(m.empresa.id)) {
-        map.set(m.empresa.id, m.empresa);
-      }
+    const user = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+      select: {
+        empresasPropiedad: {
+          where: { estado: 'ACTIVA' },
+          select: PUBLIC_COMPANY_FIELDS,
+        },
+        membresias: {
+          where: { estado: 'ACTIVO', empresa: { estado: 'ACTIVA' } },
+          include: { empresa: { select: PUBLIC_COMPANY_FIELDS } },
+        },
+      },
     });
-    return Array.from(map.values());
+
+    if (!user) return [];
+
+    // AISLAMIENTO ESTRICTO MULTI-TENANT:
+    // Si la cuenta es propietaria (tiene empresas creadas por él), SOLO ve y opera
+    // en sus empresas propias. Ninguna empresa de otra cuenta/tenant se mezcla jamás.
+    if (user.empresasPropiedad.length > 0) {
+      return user.empresasPropiedad.map((e) => ({ ...e, isOwner: true }));
+    }
+
+    // Si es un colaborador invitado (sin empresas propias), únicamente ve la empresa a la que fue invitado.
+    return user.membresias.map((m) => ({ ...m.empresa, isOwner: false }));
   }
 }
