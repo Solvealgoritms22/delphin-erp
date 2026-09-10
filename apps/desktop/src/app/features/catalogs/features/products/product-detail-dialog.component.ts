@@ -27,26 +27,9 @@ import { Product } from '../../data/products.service';
             <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white truncate">
               {{ product.nombre }}
             </h2>
-            <span
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0"
-              [class.bg-emerald-100]="product.estado === 'ACTIVO'"
-              [class.text-emerald-800]="product.estado === 'ACTIVO'"
-              [class.dark:bg-emerald-500/10]="product.estado === 'ACTIVO'"
-              [class.dark:text-emerald-400]="product.estado === 'ACTIVO'"
-              [class.bg-neutral-100]="product.estado !== 'ACTIVO'"
-              [class.text-neutral-700]="product.estado !== 'ACTIVO'"
-            >
-              {{ product.estado }}
-            </span>
           </div>
           <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2 flex-wrap">
             <span>SKU: <strong class="font-mono text-neutral-800 dark:text-neutral-200">{{ product.codigo }}</strong></span>
-            <span>·</span>
-            <span class="capitalize font-medium">{{ product.tipo === 'SERVICIO' ? 'Servicio Intangible' : 'Producto Físico' }}</span>
-            @if (product.categoria?.nombre) {
-              <span>·</span>
-              <span class="text-neutral-600 dark:text-neutral-300 font-medium">{{ product.categoria?.nombre }}</span>
-            }
           </p>
         </div>
 
