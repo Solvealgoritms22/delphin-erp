@@ -233,6 +233,14 @@ export const NAVIGATION: NavigationItem[] = [
         activeOptions: { exact: false },
       },
       {
+        id: 'settings/email-templates',
+        label: 'nav.emailTemplates',
+        icon: 'mail',
+        route: '/admin/settings/email-templates',
+        activeOptions: { exact: false },
+        requiredPermission: 'company:read',
+      },
+      {
         id: 'settings/api-access',
         label: 'nav.apiAccess',
         icon: 'code',

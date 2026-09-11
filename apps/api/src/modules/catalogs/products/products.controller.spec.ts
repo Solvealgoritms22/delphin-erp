@@ -3,6 +3,7 @@ import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { ActivityLogService } from '../../activity-log/activity-log.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { EntitlementGuard } from '../../../common/guards/entitlement.guard';
 
 describe('ProductsController', () => {
   let controller: ProductsController;
@@ -34,6 +35,8 @@ describe('ProductsController', () => {
         { provide: ActivityLogService, useValue: activityLog },
       ],
     })
+      .overrideGuard(EntitlementGuard)
+      .useValue({ canActivate: () => true })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
       .compile();

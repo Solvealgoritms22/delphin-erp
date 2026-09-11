@@ -186,6 +186,8 @@ describe('PaymentsController', () => {
     });
     process.env.AZUL_ENV = 'MOCK';
     prisma.suscripcion.update.mockResolvedValue({});
+    azulService.processTokenSale.mockResolvedValue({ IsoCode: '00' });
+    azulService.isApproved.mockReturnValue(true);
 
     const result = await controller.changePlan(user, { idempotencyKey: '10000000-0000-4000-8000-000000000001',
       planId: 'pro',
@@ -194,7 +196,18 @@ describe('PaymentsController', () => {
 
     expect(result.ok).toBe(true);
     expect(result.simulated).toBe(true);
+    expect(azulService.processTokenSale).toHaveBeenCalled();
     expect(prisma.suscripcion.update).toHaveBeenCalled();
+  });
+  it('no transforma el trial gratuito en suscripción ACTIVE', async () => {
+    prisma.suscripcion.findUnique.mockResolvedValue({azulDataVaultToken:'tok'});
+    prisma.plan.findUnique.mockResolvedValue({id:'trial',precioMensual:0,precioAnual:0});
+    await expect(controller.changePlan(user, {
+      idempotencyKey:'10000000-0000-4000-8000-000000000001',
+      planId:'trial',billingCycle:'monthly',
+    })).rejects.toThrow(BadRequestException);
+    expect(prisma.suscripcion.update).not.toHaveBeenCalled();
+    expect(azulService.processTokenSale).not.toHaveBeenCalled();
   });
 
   it('changePlan cobra con token y actualiza a ciclo anual', async () => {

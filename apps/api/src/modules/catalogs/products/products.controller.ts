@@ -17,6 +17,8 @@ import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { RequirePermissions } from '../../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { ActivityLogService } from '../../activity-log/activity-log.service';
+import { EntitlementGuard } from '../../../common/guards/entitlement.guard';
+import { RequireEntitlement } from '../../../common/decorators/require-entitlement.decorator';
 
 @ApiTags('Catálogos: Productos')
 @ApiBearerAuth()
@@ -29,6 +31,8 @@ export class ProductsController {
   ) {}
 
   @Post()
+  @UseGuards(EntitlementGuard)
+  @RequireEntitlement('maxProductos')
   @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Crear producto o servicio' })
   async create(@CurrentUser() user: any, @Body() data: ProductDto) {

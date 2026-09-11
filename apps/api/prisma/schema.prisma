@@ -51,6 +51,7 @@ model AuthFlow {
 }
 
 model Empresa {
+  emailTemplates EmailTemplate[]
   id           String      @id @default(uuid())
   razonSocial  String      @map("razon_social")
   rnc          String?     @unique
@@ -112,6 +113,22 @@ model Empresa {
   cotizaciones   Cotizacion[]
 
   @@map("empresas")
+}
+
+model EmailTemplate {
+  id String @id @default(uuid())
+  empresaId String @map("empresa_id")
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  key String
+  subject String
+  heading String
+  body String
+  footer String
+  accent String
+  revision Int @default(1)
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@unique([empresaId, key])
+  @@map("email_templates")
 }
 
 model Sucursal {
@@ -756,6 +773,7 @@ model FacturaVenta {
   tipoNcf                  String?      @map("tipo_ncf") // E31, E32, B01, B02, etc.
   fecha                    DateTime     @default(now())
   fechaVencimiento         DateTime?    @map("fecha_vencimiento")
+  fechaVencimientoNcf      DateTime?    @map("fecha_vencimiento_ncf")
   estado                   String       @default("EMITIDA") // EMITIDA, PAGADA, ANULADA
   tipoPago                 String       @default("CONTADO") @map("tipo_pago") // CONTADO, CREDITO
   metodoPago               String       @default("EFECTIVO") @map("metodo_pago") // EFECTIVO, TARJETA, TRANSFERENCIA, CHEQUE

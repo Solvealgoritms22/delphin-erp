@@ -24,6 +24,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AddPaymentMethodDto, ChangePlanDto } from './payment.dto';
 import { BillingOwnerGuard } from './billing-owner.guard';
 import { BillingAttemptsService } from './billing-attempts.service';
+import { assertAzulPlanCurrency } from './billing-currency';
 import { encryptSecret, decryptSecret } from '../../common/security/secrets';
 
 @ApiTags('Pagos')
@@ -213,6 +214,7 @@ export class PaymentsController {
     const empresaId = user.empresaId;
     if (!empresaId) throw new BadRequestException('No tenant selected');
 
+    assertAzulPlanCurrency();
     return this.attempts.execute(empresaId, 'PLAN_CHANGED', dto.idempotencyKey, async () => {
     const suscripcion = await this.prisma.suscripcion.findUnique({
       where: { empresaId },
@@ -233,7 +235,10 @@ export class PaymentsController {
 
     const numAmount = Number(amount);
 
-    if (numAmount > 0 && process.env.AZUL_ENV !== 'MOCK') {
+    if (plan.id === 'trial' || !Number.isFinite(numAmount) || numAmount <= 0) {
+      throw new BadRequestException('Selecciona un plan de pago con tarifa válida; el trial no se puede activar como suscripción pagada.');
+    }
+    if (numAmount > 0) {
       const orderNumber = `UPG-${dto.idempotencyKey}`;
       const azulResponse = await this.azulService.processTokenSale({
         dataVaultToken: decryptSecret(suscripcion.azulDataVaultToken),

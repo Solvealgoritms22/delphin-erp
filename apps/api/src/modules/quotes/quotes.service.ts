@@ -15,6 +15,7 @@ import {
   SendQuoteEmailDto,
 } from './dto/quotes.dto';
 import { Prisma } from '@prisma/client';
+import { EmailTemplatesService } from '../email-templates/email-templates.service';
 
 @Injectable()
 export class QuotesService {
@@ -24,6 +25,7 @@ export class QuotesService {
     private readonly prisma: PrismaService,
     private readonly activityLog: ActivityLogService,
     private readonly tenantMailer: TenantMailerService,
+    private readonly emailTemplates: EmailTemplatesService,
     @Optional() private readonly notifications?: NotificationsService,
   ) { }
 
@@ -639,17 +641,29 @@ export class QuotesService {
     }
 
     // 4. Construir la plantilla HTML corporativa
-    const emailSubject =
-      dto.customSubject?.trim() ||
-      `Cotización ${quote.numeroCotizacion} - ${empresa.razonSocial}`;
-
-    const emailHtml = this.buildQuoteEmailHtml(quote, empresa, dto.customMessage);
+    const email = await this.emailTemplates.render(empresaId, 'quote', {
+      company: empresa.razonSocial,
+      name: quote.cliente?.nombreRazonSocial || 'Cliente',
+      documentNumber: quote.numeroCotizacion,
+      total: new Prisma.Decimal(quote.total).toFixed(2),
+      currency: quote.moneda || 'DOP',
+    }, {
+      rows: quote.detalles.map((detail: any) => ({
+        label: detail.descripcion || detail.producto?.nombre || 'Producto o servicio',
+        value: `${new Prisma.Decimal(detail.total).toFixed(2)} ${quote.moneda || 'DOP'}`,
+      })),
+      message: dto.customMessage?.trim() || undefined,
+    });
+    const customSubject = dto.customSubject?.trim();
+    if (customSubject && (/[\r\n\x00-\x1f]/.test(customSubject) || customSubject.length > 200))
+      throw new BadRequestException('El asunto personalizado no es válido.');
 
     // 5. Enviar el correo usando TenantMailerService
     await this.tenantMailer.sendMail(smtpConfig, {
       to: targetEmail,
-      subject: emailSubject,
-      html: emailHtml,
+      subject: customSubject || email.subject,
+      html: email.html,
+      text: email.text,
     });
 
     // 6. Actualizar trazabilidad de la cotización

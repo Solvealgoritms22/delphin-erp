@@ -10,6 +10,7 @@ import { SequencesService } from '../sequences/sequences.service';
 import { FiscalBridgeService } from './fiscalbridge.service';
 import { BillingConfigService } from '../billing-config/billing-config.service';
 import { FiscalOutboxService } from './fiscal-outbox.service';
+import { allocateGlobalDiscount } from './invoice-discounts';
 import { ActivityLogService } from '../activity-log/activity-log.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateInvoiceDto, FilterInvoiceDto } from './dto/invoice.dto';
@@ -83,6 +84,9 @@ export class InvoicesService {
 
     // Determinar Almacén
     const clienteId = dto.clienteId?.trim() ? dto.clienteId.trim() : null;
+    if (dto.tipoPago === 'CREDITO' && !clienteId) {
+      throw new BadRequestException('Una venta a crédito requiere un cliente.');
+    }
     const sucursalId = dto.sucursalId?.trim() ? dto.sucursalId.trim() : null;
     let almacenId = dto.almacenId?.trim() ? dto.almacenId.trim() : null;
     if (!almacenId) {
@@ -131,6 +135,7 @@ export class InvoicesService {
     }
 
     let ncf: string | null = null;
+    let fechaVencimientoNcf: Date | null = null;
 
 
     // Calcular Subtotal, ITBIS, Descuentos y Total
@@ -200,7 +205,7 @@ export class InvoicesService {
           'La tasa de impuesto debe estar entre 0 y 100.',
         );
 
-      const grossSubtotal = cantidad.mul(precio);
+      const grossSubtotal = cantidad.mul(precio).toDecimalPlaces(configuration.precisionMoneda, Prisma.Decimal.ROUND_HALF_UP);
 
       // Calcular descuento de la línea
       let lineDiscount = new Prisma.Decimal(0);
@@ -236,6 +241,7 @@ export class InvoicesService {
         lineDiscount = grossSubtotal;
       }
 
+      lineDiscount = lineDiscount.toDecimalPlaces(configuration.precisionMoneda, Prisma.Decimal.ROUND_HALF_UP);
       const itemSubtotalNeto = grossSubtotal.sub(lineDiscount);
       const pctDiscount = grossSubtotal.gt(0)
         ? lineDiscount.mul(100).div(grossSubtotal)
@@ -278,7 +284,7 @@ export class InvoicesService {
         total: itemTotal,
         impuestoId: validTaxId || undefined,
         indicadorFacturacion:
-          configuredTax?.indicadorFacturacion || (tasaItbis.eq(0) ? '2' : '1'),
+          configuredTax?.indicadorFacturacion || (tasaItbis.eq(0) ? '4' : tasaItbis.eq(16) ? '2' : '1'),
         afectaInventario: producto.tipo !== 'SERVICIO',
       });
     }
@@ -290,6 +296,8 @@ export class InvoicesService {
       throw new BadRequestException(
         'El descuento total no puede superar el subtotal.',
       );
+    allocateGlobalDiscount(calculatedItems, globalDiscount, configuration.precisionMoneda);
+    itbisAcc = calculatedItems.reduce((sum, item) => sum.add(item.itbis), new Prisma.Decimal(0));
     const totalAfterDiscount = subtotalBrutoAcc
       .sub(totalDiscount)
       .add(itbisAcc)
@@ -304,7 +312,11 @@ export class InvoicesService {
 
     // Transacción de creación de factura y descuento de inventario
     const invoice = await this.prisma.$transaction(async (tx) => {
-      if (!isDraft) ncf = (await this.sequencesService.getNextNCF(empresaId, tipoNcf, empresa.fiscalbridgeEnv || 'TEST', tx)).ncf;
+      if (!isDraft) {
+        const reserved = await this.sequencesService.getNextNCF(empresaId, tipoNcf, empresa.fiscalbridgeEnv || 'TEST', tx);
+        ncf = reserved.ncf;
+        fechaVencimientoNcf = reserved.fechaVencimiento;
+      }
       const numeroFactura = await this.generateNextNumeroFactura(
         tx,
         empresaId,
@@ -375,6 +387,7 @@ export class InvoicesService {
           usuarioId,
           numeroFactura,
           ncf: isDraft ? null : ncf,
+          fechaVencimientoNcf,
           tipoNcf,
           estado: estadoFactura,
           tipoPago,
@@ -421,7 +434,7 @@ export class InvoicesService {
           },
         },
         include: {
-          empresa: true,
+          empresa: { select: { id: true, razonSocial: true, rnc: true, direccion: true, telefono: true, email: true, logo: true } },
           cliente: true,
           almacen: true,
           sucursal: true,
@@ -462,8 +475,45 @@ export class InvoicesService {
         .filter((line): line is NonNullable<typeof line> => Boolean(line));
       if (taxLines.length)
         await tx.impuestoFactura.createMany({ data: taxLines });
+
+      // Para ventas de contado a clientes identificados, registrar atómicamente el cobro y recibo de caja
+      if (!isDraft && isContado && clienteId && totalAfterDiscount.gt(0)) {
+        const key = empresaId + ':REC';
+        const rows = await tx.$queryRaw<Array<{ value: bigint }>>`
+          INSERT INTO document_counters (key, value)
+          VALUES (${key}, COALESCE((SELECT MAX(substring(numero_recibo from '[0-9]+$')::bigint)
+            FROM pagos_clientes WHERE empresa_id = ${empresaId} AND numero_recibo ~ '^REC-[0-9]+$'), 0) + 1)
+          ON CONFLICT (key) DO UPDATE SET value = document_counters.value + 1 RETURNING value
+        `;
+        const numeroRecibo = 'REC-' + String(rows[0].value).padStart(6, '0');
+
+        await tx.pagoCliente.create({
+          data: {
+            empresaId,
+            numeroRecibo,
+            clienteId,
+            moneda: currency,
+            monto: totalAfterDiscount,
+            tasaCambio: exchangeRate,
+            metodo: dto.metodoPago || 'EFECTIVO',
+            referencia: created.numeroFactura,
+            fechaPago: created.fecha,
+            estado: 'REGISTRADO',
+            usuarioId,
+            notas: `Cobro al contado de factura ${created.numeroFactura}`,
+            aplicaciones: {
+              create: {
+                facturaId: created.id,
+                monto: totalAfterDiscount,
+              },
+            },
+          },
+        });
+      }
+
       // Outbox fiscal: el evento se crea atómicamente con la factura.
       if (needsFiscal) {
+        this.fiscalBridgeService.buildEcfPayload(created, empresa);
         await tx.outboxEvent.create({
           data: {
             empresaId,
@@ -750,7 +800,7 @@ export class InvoicesService {
         data: { estado: 'EMITIENDO' },
       });
       if (claim.count !== 1) throw new BadRequestException('El borrador ya fue emitido o modificado.');
-      const { ncf } = await this.sequencesService.getNextNCF(empresaId, tipoNcf, ambiente, tx);
+      const { ncf, fechaVencimiento } = await this.sequencesService.getNextNCF(empresaId, tipoNcf, ambiente, tx);
       if (!invoice.almacenId && invoice.detalles.some(det => det.producto?.tipo !== 'SERVICIO')) {
         throw new BadRequestException('Selecciona un almacén para despachar los productos.');
       }
@@ -809,6 +859,8 @@ export class InvoicesService {
         where: { id },
         data: {
           ncf,
+          fechaVencimientoNcf: fechaVencimiento,
+          fecha: new Date(),
           tipoNcf,
           estado: isContado ? 'PAGADA' : 'EMITIDA',
           montoPagado: isContado ? invoice.total : invoice.montoPagado,
@@ -823,8 +875,44 @@ export class InvoicesService {
         },
       });
 
+      // Para ventas de contado a clientes identificados, registrar atómicamente el cobro y recibo de caja
+      if (isContado && invoice.clienteId && invoice.total.gt(0)) {
+        const key = empresaId + ':REC';
+        const rows = await tx.$queryRaw<Array<{ value: bigint }>>`
+          INSERT INTO document_counters (key, value)
+          VALUES (${key}, COALESCE((SELECT MAX(substring(numero_recibo from '[0-9]+$')::bigint)
+            FROM pagos_clientes WHERE empresa_id = ${empresaId} AND numero_recibo ~ '^REC-[0-9]+$'), 0) + 1)
+          ON CONFLICT (key) DO UPDATE SET value = document_counters.value + 1 RETURNING value
+        `;
+        const numeroRecibo = 'REC-' + String(rows[0].value).padStart(6, '0');
+
+        await tx.pagoCliente.create({
+          data: {
+            empresaId,
+            numeroRecibo,
+            clienteId: invoice.clienteId,
+            moneda: invoice.moneda,
+            monto: invoice.total,
+            tasaCambio: invoice.tasaCambio,
+            metodo: invoice.metodoPago || 'EFECTIVO',
+            referencia: updated.numeroFactura,
+            fechaPago: updated.fecha,
+            estado: 'REGISTRADO',
+            usuarioId,
+            notas: `Cobro al contado de factura emitida desde borrador ${updated.numeroFactura}`,
+            aplicaciones: {
+              create: {
+                facturaId: updated.id,
+                monto: invoice.total,
+              },
+            },
+          },
+        });
+      }
+
       // Outbox fiscal si aplica
       if (needsFiscal) {
+        this.fiscalBridgeService.buildEcfPayload(updated, empresa);
         await tx.outboxEvent.create({
           data: {
             empresaId,

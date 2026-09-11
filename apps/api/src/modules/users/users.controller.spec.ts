@@ -49,9 +49,9 @@ describe('UsersController', () => {
 
   it('update delega empresa, id y body', () => {
     controller.update(user, 'u2', { roleId: 'r1' });
-    expect(usersService.update).toHaveBeenCalledWith('e1', 'u2', {
-      roleId: 'r1',
-    });
+      expect(usersService.update).toHaveBeenCalledWith('e1', 'u2', {
+        roleId: 'r1',
+      }, 'u1', undefined);
   });
 
   it('remove delega empresa e id', () => {

@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { BillingAttemptsService } from './billing-attempts.service';
 import { decryptSecret } from '../../common/security/secrets';
 import { AzulService } from './azul.service';
+import { assertAzulPlanCurrency } from './billing-currency';
 
 @Injectable()
 export class BillingCronService {
@@ -49,6 +50,7 @@ export class BillingCronService {
       const orderNumber = `RENEW-${sub.id}-${sub.fechaRenovacion!.getTime()}`;
 
       try {
+        assertAzulPlanCurrency();
         await this.attempts.execute(sub.empresaId, 'SUBSCRIPTION_RENEWED', orderNumber, async () => {
         const azulRes = await this.azulService.processTokenSale({
           dataVaultToken: decryptSecret(sub.azulDataVaultToken),

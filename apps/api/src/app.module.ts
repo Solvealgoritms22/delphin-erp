@@ -36,6 +36,7 @@ import { TenantApiModule } from './modules/tenant-api/tenant-api.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { PurchasesModule } from './modules/purchases/purchases.module';
 import { QuotesModule } from './modules/quotes/quotes.module';
+import { EmailTemplatesModule } from './modules/email-templates/email-templates.module';
 
 @Module({
   imports: [
@@ -113,6 +114,7 @@ import { QuotesModule } from './modules/quotes/quotes.module';
     PromotionsModule,
     PurchasesModule,
     QuotesModule,
+    EmailTemplatesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

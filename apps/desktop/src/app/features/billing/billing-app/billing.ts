@@ -58,19 +58,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
                 <div>
                   <div class="flex items-center gap-3">
                     <h2 class="text-xl font-bold text-neutral-900 dark:text-white">{{ plan() }}</h2>
-                    <span [class.bg-emerald-100]="estado() === 'ACTIVA'"
-                          [class.dark:bg-emerald-500/10]="estado() === 'ACTIVA'"
-                          [class.text-emerald-800]="estado() === 'ACTIVA'"
-                          [class.dark:text-emerald-400]="estado() === 'ACTIVA'"
-                          [class.bg-red-100]="estado() !== 'ACTIVA'"
-                          [class.text-red-700]="estado() !== 'ACTIVA'"
-                          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-neutral-700">
-                      <span class="w-1.5 h-1.5 rounded-full"
-                            [class.bg-emerald-600]="estado() === 'ACTIVA'"
-                            [class.dark:bg-emerald-400]="estado() === 'ACTIVA'"
-                            [class.bg-red-500]="estado() !== 'ACTIVA'"></span>
-                       {{ estado() === 'ACTIVA' ? ('common.active' | transloco) : estado() }}
-                    </span>
                   </div>
                   <div class="mt-2 flex flex-col gap-1">
                     @if (propietarioEmail()) {

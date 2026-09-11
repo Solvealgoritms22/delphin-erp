@@ -143,9 +143,9 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
         </nav>
 
         <!-- Grid de Productos (Scrollable) -->
-        <main class="flex-auto min-h-0 overflow-y-auto p-4 sm:p-6">
+        <main class="flex-auto min-h-0 overflow-y-auto p-4 sm:p-6 flex flex-col">
           @if (productsLoading()) {
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
+            <div class="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
               @for (i of [1,2,3,4,5,6,7,8,9,10]; track i) {
                 <div class="p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 space-y-2">
                   <app-skeleton type="rect" height="7.5rem" />
@@ -155,17 +155,17 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
               }
             </div>
           } @else if (filteredProducts().length === 0) {
-            <div class="flex flex-col items-center justify-center py-20 text-center">
-              <mat-icon svgIcon="package" class="!w-12 !h-12 text-neutral-300 dark:text-neutral-700 mb-3"></mat-icon>
-              <h2 class="text-sm font-bold text-neutral-800 dark:text-neutral-200">
+            <div class="flex-1 flex flex-col items-center justify-center text-center p-6 my-auto">
+              <mat-icon svgIcon="package" class="!w-14 !h-14 text-neutral-300 dark:text-neutral-700 mb-3"></mat-icon>
+              <h2 class="text-base font-bold text-neutral-800 dark:text-neutral-200">
                 {{ 'pos.noProductsFound' | transloco }}
               </h2>
-              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 max-w-xs">
+              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5 max-w-sm leading-relaxed">
                 {{ 'pos.noProductsFoundDesc' | transloco }}
               </p>
             </div>
           } @else {
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
+            <div class="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
               @for (product of filteredProducts(); track product.id) {
                 <article
                   (click)="addProductToCart(product)"
@@ -294,10 +294,10 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
         </div>
 
         <!-- Lista de Artículos del Carrito -->
-        <div class="flex-auto min-h-0 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/80 p-3 sm:p-4 space-y-1">
+        <div class="flex-auto min-h-0 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/80 p-3 sm:p-4 space-y-1 flex flex-col">
           @if (posService.items().length === 0) {
-            <div class="flex flex-col items-center justify-center h-full py-16 text-center text-neutral-400">
-              <i-shopping-cart [size]="32" class="text-neutral-400 dark:text-neutral-400 mb-1"></i-shopping-cart>
+            <div class="flex-1 flex flex-col items-center justify-center text-center text-neutral-400 p-4 my-auto">
+              <i-shopping-cart [size]="36" class="text-neutral-300 dark:text-neutral-600 mb-2"></i-shopping-cart>
               <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                 {{ 'pos.cartEmpty' | transloco }}
               </p>

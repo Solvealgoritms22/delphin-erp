@@ -146,18 +146,28 @@ describe('EmpresasService', () => {
   });
 
   describe('findAllForUser', () => {
-    it('combina empresas propias y membresías activas sin duplicar', async () => {
-      prisma.empresa.findMany.mockResolvedValue([
-        { id: 'e1', razonSocial: 'A' },
-      ]);
-      prisma.membresia.findMany.mockResolvedValue([
-        { estado: 'ACTIVO', empresa: { id: 'e1', razonSocial: 'A' } },
-        { estado: 'ACTIVO', empresa: { id: 'e2', razonSocial: 'B' } },
-      ]);
+    it('mantiene el espacio del propietario separado de las empresas invitadas', async () => {
+      prisma.usuario.findUnique.mockResolvedValue({
+        empresasPropiedad: [{ id: 'e1', razonSocial: 'A' }],
+        membresias: [{ empresa: { id: 'e2', razonSocial: 'B' } }],
+      });
 
       const result = await service.findAllForUser('u1');
 
-      expect(result.map((e) => e.id)).toEqual(['e1', 'e2']);
+      expect(result).toEqual([{id:'e1',razonSocial:'A',isOwner:true}]);
+      expect(prisma.usuario.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+        select: expect.objectContaining({
+          empresasPropiedad: expect.objectContaining({where:{estado:'ACTIVA'}}),
+          membresias: expect.objectContaining({where:{estado:'ACTIVO',empresa:{estado:'ACTIVA'}}}),
+        }),
+      }));
+    });
+    it('devuelve las membresías del colaborador sin empresas propias', async () => {
+      prisma.usuario.findUnique.mockResolvedValue({
+        empresasPropiedad: [],
+        membresias: [{ empresa: { id: 'e2', razonSocial: 'B' } }],
+      });
+      expect(await service.findAllForUser('u1')).toEqual([{id:'e2',razonSocial:'B',isOwner:false}]);
     });
   });
 });

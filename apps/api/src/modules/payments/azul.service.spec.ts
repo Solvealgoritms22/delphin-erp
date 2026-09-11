@@ -9,6 +9,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('AzulService', () => {
   let service: AzulService;
+  const originalNodeEnv = process.env.NODE_ENV;
 
   beforeEach(async () => {
     delete process.env.AZUL_AUTH1;
@@ -24,6 +25,7 @@ describe('AzulService', () => {
   });
 
   afterEach(() => {
+    process.env.NODE_ENV = originalNodeEnv;
     delete process.env.AZUL_AUTH1;
     delete process.env.AZUL_AUTH2;
     delete process.env.AZUL_MERCHANT_ID;
@@ -56,6 +58,15 @@ describe('AzulService', () => {
     });
 
     expect(res.IsoCode).toBe('00');
+  });
+  it.each(['MOCK', 'SANDBOX', undefined])('rechaza modo %s en producción sin efectuar cobros', async mode => {
+    process.env.NODE_ENV = 'production';
+    if (mode) process.env.AZUL_ENV = mode;
+    else delete process.env.AZUL_ENV;
+    await expect(service.processTokenSale({
+      dataVaultToken:'synthetic-token', dataVaultExpiration:'202812',
+      amountCents:100, itbisCents:0, orderNumber:'synthetic-order',
+    })).rejects.toThrow(InternalServerErrorException);
   });
 
   it('voidTransaction devuelve aprobación mock', async () => {

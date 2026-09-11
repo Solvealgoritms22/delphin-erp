@@ -109,6 +109,7 @@ export class FiscalOutboxService {
       where: { id: facturaId },
       include: {
         cliente: true,
+        facturaOriginal: { select: { fecha: true, ncf: true } },
         almacen: true,
         sucursal: true,
         detalles: { include: { producto: true } },

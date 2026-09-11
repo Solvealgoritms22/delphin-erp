@@ -16,6 +16,8 @@ import { assertPassword } from '../../common/security/password-policy';
 import { createHash, randomInt, randomUUID } from 'crypto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { TenantMailerService } from '../../common/tenant-mailer.service';
+import { EmailTemplatesService } from '../email-templates/email-templates.service';
+import { renderEmail } from '../email-templates/email-renderer';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +29,7 @@ export class AuthService {
     private readonly mfa: MfaService,
     @Optional() private tenantMailer?: TenantMailerService,
     @Optional() private readonly notifications?: NotificationsService,
+    @Optional() private readonly emailTemplates?: EmailTemplatesService,
   ) {}
 
   async validateUser(
@@ -367,19 +370,8 @@ export class AuthService {
       data: { otpCode: this.hashOtp(otp), otpExpiresAt: expiresAt },
     });
 
-    const subject = 'Verifica tu cuenta - Dolphin ERP';
-    const html = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #fff; color: #1e293b;">
-        <div style="text-align:center;margin-bottom:24px;font-size:20px;font-weight:800;color:#2563eb;letter-spacing:0.1em;">DOLPHIN <span style="color:#0f172a;">ERP</span></div>
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:28px;text-align:center;">
-          <p style="font-size:15px;color:#334155;margin-bottom:20px;">Tu código de verificación es:</p>
-          <div style="font-size:40px;font-weight:900;letter-spacing:0.2em;color:#2563eb;margin:16px 0;">${otp}</div>
-          <p style="font-size:13px;color:#64748b;">Este código expira en <strong>15 minutos</strong>.<br>Si no solicitaste este código, ignora este correo.</p>
-        </div>
-      </div>`;
-    const text = `Tu código de verificación de Dolphin ERP es: ${otp}. Expira en 15 minutos.`;
-
-    await this.mailerService.sendMail({ to: user.email, subject, html, text });
+    const emailContent = renderEmail('verification', { name: user.nombre || user.email }, undefined, { code: otp });
+    await this.mailerService.sendMail({ to: user.email, ...emailContent });
 
     return {
       success: true,
@@ -445,19 +437,8 @@ export class AuthService {
       data: { otpCode: this.hashOtp(otp), otpExpiresAt: expiresAt },
     });
 
-    const subject = 'Verifica tu cuenta - Dolphin ERP';
-    const html = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #fff; color: #1e293b;">
-        <div style="text-align:center;margin-bottom:24px;font-size:20px;font-weight:800;color:#2563eb;letter-spacing:0.1em;">DOLPHIN <span style="color:#0f172a;">ERP</span></div>
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:28px;text-align:center;">
-          <p style="font-size:15px;color:#334155;margin-bottom:20px;">Tu nuevo código de verificación es:</p>
-          <div style="font-size:40px;font-weight:900;letter-spacing:0.2em;color:#2563eb;margin:16px 0;">${otp}</div>
-          <p style="font-size:13px;color:#64748b;">Este código expira en <strong>15 minutos</strong>.<br>Si no solicitaste este código, ignora este correo.</p>
-        </div>
-      </div>`;
-    const text = `Tu nuevo código de verificación de Dolphin ERP es: ${otp}. Expira en 15 minutos.`;
-
-    await this.mailerService.sendMail({ to: user.email, subject, html, text });
+    const emailContent = renderEmail('verification', { name: user.nombre || user.email }, undefined, { code: otp });
+    await this.mailerService.sendMail({ to: user.email, ...emailContent });
 
     return { success: true };
   }
@@ -560,31 +541,22 @@ export class AuthService {
       data: { otpCode: this.hashOtp(otp), otpExpiresAt: expiresAt },
     });
 
-    const subject = 'Código de Verificación - Dolphin ERP';
-    const html = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #fff; color: #1e293b;">
-        <div style="text-align:center;margin-bottom:24px;font-size:20px;font-weight:800;color:#2563eb;letter-spacing:0.1em;">DOLPHIN <span style="color:#0f172a;">ERP</span></div>
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:28px;text-align:center;">
-          <p style="font-size:15px;color:#334155;margin-bottom:20px;">Tu código de verificación es:</p>
-          <div style="font-size:40px;font-weight:900;letter-spacing:0.2em;color:#2563eb;margin:16px 0;">${otp}</div>
-          <p style="font-size:13px;color:#64748b;">Este código expira en <strong>15 minutos</strong>.<br>Si no solicitaste este código, ignora este correo.</p>
-        </div>
-      </div>`;
-    const text = `Tu código de verificación de Dolphin ERP es: ${otp}. Expira en 15 minutos.`;
-
     const isOwner = user.empresasPropiedad && user.empresasPropiedad.length > 0;
+    const tenantEmpresa = user.membresias?.[0]?.empresa;
+    const emailContent = !isOwner && tenantEmpresa && this.emailTemplates
+      ? await this.emailTemplates.render(tenantEmpresa.id, 'collaborator_code', {
+          name: user.nombre || user.email, company: tenantEmpresa.razonSocial,
+        }, { code: otp })
+      : renderEmail('recovery', { name: user.nombre || user.email }, undefined, { code: otp });
 
     if (isOwner) {
       // Propietario → SMTP del sistema
       await this.mailerService.sendMail({
         to: user.email,
-        subject,
-        html,
-        text,
+        ...emailContent,
       });
     } else {
       // Colaborador → SMTP del tenant (owner de su membresia)
-      const tenantEmpresa = user.membresias?.[0]?.empresa;
       if (!tenantEmpresa || !tenantEmpresa.propietarioId) {
         return { success: true };
       }
@@ -594,9 +566,7 @@ export class AuthService {
       if (!owner) return { success: true };
       await this.tenantMailer?.sendMail(owner, {
         to: user.email,
-        subject,
-        html,
-        text,
+        ...emailContent,
       });
     }
 

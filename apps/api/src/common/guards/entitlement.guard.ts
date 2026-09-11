@@ -59,10 +59,7 @@ export class EntitlementGuard implements CanActivate {
       const now = new Date();
       const expiry = suscripcion.fechaRenovacion;
 
-      if (expiry && now <= expiry) {
-        // Trial activo → acceso completo sin restricciones
-        return true;
-      } else {
+      if (!expiry || now >= expiry) {
         // Trial expirado → bloquear con error específico para redirigir al frontend
         throw new HttpException(
           {
@@ -78,7 +75,7 @@ export class EntitlementGuard implements CanActivate {
     // -----------------------------------------------
     // Lógica de suscripción de pago
     // -----------------------------------------------
-    if (suscripcion && suscripcion.estado !== 'ACTIVE') {
+    if (!suscripcion || !['ACTIVE', 'TRIAL'].includes(suscripcion.estado)) {
       throw new HttpException(
         {
           message:
@@ -90,16 +87,13 @@ export class EntitlementGuard implements CanActivate {
     }
 
     // Resolver límites del plan
-    let maxLimit = 1; // Fallback
-    let currentPlan: any = suscripcion?.plan;
-    if (!currentPlan) {
-      currentPlan = await this.prisma.plan.findUnique({
-        where: { id: 'trial' },
-      });
+    const currentPlan = suscripcion.plan;
+    if (!['maxUsuarios', 'maxSucursales', 'maxProductos'].includes(requiredEntitlement) || !currentPlan) {
+      throw new ForbiddenException('El plan o el límite del recurso no está configurado.');
     }
-
-    if (currentPlan && requiredEntitlement in currentPlan) {
-      maxLimit = currentPlan[requiredEntitlement];
+    const maxLimit = currentPlan[requiredEntitlement];
+    if (!Number.isSafeInteger(maxLimit) || maxLimit < 0) {
+      throw new ForbiddenException('El límite del plan no es válido.');
     }
 
     // Calcular el uso actual basado en el recurso

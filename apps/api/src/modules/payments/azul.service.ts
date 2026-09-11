@@ -49,6 +49,11 @@ export class AzulService {
     const merchantId = process.env.AZUL_MERCHANT_ID;
 
     const isMockMode = env === 'MOCK' || !auth1 || !auth2 || !merchantId;
+    if (process.env.NODE_ENV === 'production' && (env !== 'PRODUCTION' || isMockMode)) {
+      throw new InternalServerErrorException(
+        'Producción requiere Azul PRODUCTION y credenciales completas; no se permiten aprobaciones simuladas.',
+      );
+    }
     const baseUrl =
       env === 'PRODUCTION'
         ? 'https://pagos.azul.com.do'
@@ -109,7 +114,7 @@ export class AzulService {
       );
 
       this.logger.log(
-        `Azul Card Sale: OrderNumber=${dto.orderNumber} | IsoCode=${response.data.IsoCode} | Token=${response.data.DataVaultToken?.substring(0, 8)}...`,
+        `Azul Card Sale: OrderNumber=${dto.orderNumber} | IsoCode=${response.data.IsoCode}`,
       );
 
       return response.data;

@@ -97,7 +97,7 @@ describe('EntitlementGuard', () => {
     expect(error.response.code).toBe('SUBSCRIPTION_INACTIVE');
   });
 
-  it('resuelve plan trial por defecto y permite bajo el límite', async () => {
+  it('rechaza una suscripción sin plan en lugar de otorgar trial', async () => {
     reflector.getAllAndOverride.mockReturnValue('maxSucursales');
     prisma.empresa.findUnique.mockResolvedValue({
       suscripcion: suscripcion('ACTIVE', null),
@@ -107,10 +107,8 @@ describe('EntitlementGuard', () => {
 
     await expect(
       guard.canActivate(makeCtx({ empresaId: 'e1' }) as any),
-    ).resolves.toBe(true);
-    expect(prisma.sucursal.count).toHaveBeenCalledWith({
-      where: { empresaId: 'e1', estado: 'ACTIVO' },
-    });
+    ).rejects.toThrow(ForbiddenException);
+    expect(prisma.plan.findUnique).not.toHaveBeenCalled();
   });
 
   it('bloquea al alcanzar el límite de usuarios', async () => {
@@ -141,7 +139,7 @@ describe('EntitlementGuard', () => {
     });
   });
 
-  it('permite si el entitlement no está definido en el plan (fallback 1)', async () => {
+  it('rechaza un entitlement desconocido', async () => {
     reflector.getAllAndOverride.mockReturnValue('maxFacturas');
     prisma.empresa.findUnique.mockResolvedValue({
       suscripcion: suscripcion('ACTIVE', {}),
@@ -149,6 +147,21 @@ describe('EntitlementGuard', () => {
 
     await expect(
       guard.canActivate(makeCtx({ empresaId: 'e1' }) as any),
-    ).resolves.toBe(true);
+    ).rejects.toThrow(ForbiddenException);
+  });
+  it('aplica el límite configurado también durante el trial', async () => {
+    reflector.getAllAndOverride.mockReturnValue('maxUsuarios');
+    prisma.empresa.findUnique.mockResolvedValue({
+      suscripcion: suscripcion('TRIAL', {maxUsuarios:5}, new Date(Date.now()+86400000)),
+    });
+    prisma.membresia.count.mockResolvedValue(5);
+    const error = await guard.canActivate(makeCtx({empresaId:'e1'}) as any).catch(e=>e);
+    expect(error.response.code).toBe('LIMIT_EXCEEDED');
+  });
+  it('no concede recursos a una empresa sin suscripción', async () => {
+    reflector.getAllAndOverride.mockReturnValue('maxUsuarios');
+    prisma.empresa.findUnique.mockResolvedValue({suscripcion:null});
+    const error = await guard.canActivate(makeCtx({empresaId:'e1'}) as any).catch(e=>e);
+    expect(error.response.code).toBe('SUBSCRIPTION_INACTIVE');
   });
 });

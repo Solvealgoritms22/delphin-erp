@@ -13,10 +13,12 @@ import { SessionService } from './session.service';
 import { SessionController } from './session.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { TenantMailerService } from '../../common/tenant-mailer.service';
+import { EmailTemplatesModule } from '../email-templates/email-templates.module';
 
 @Module({
   imports: [
     UsersModule,
+    EmailTemplatesModule,
     NotificationsModule,
     PassportModule,
     JwtModule.register({

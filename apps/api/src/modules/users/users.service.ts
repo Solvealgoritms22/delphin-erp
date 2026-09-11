@@ -11,6 +11,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { createHash, randomBytes } from 'crypto';
 import { TenantMailerService } from '../../common/tenant-mailer.service';
 import { ActivityLogService } from '../activity-log/activity-log.service';
+import { EmailTemplatesService } from '../email-templates/email-templates.service';
+import { renderEmail } from '../email-templates/email-renderer';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +21,7 @@ export class UsersService {
     private readonly activityLog: ActivityLogService,
     @Optional() private readonly tenantMailer?: TenantMailerService,
     @Optional() private readonly mailer?: MailerService,
+    @Optional() private readonly emailTemplates?: EmailTemplatesService,
   ) {}
 
   async findOne(email: string) {
@@ -205,6 +208,7 @@ export class UsersService {
         .map((company) => company.razonSocial)
         .join(', ');
       await this.sendInvitation(
+        empresaId,
         owner,
         user.email,
         user.nombre || user.email,
@@ -267,6 +271,7 @@ export class UsersService {
       where: { id: empresaId },
     });
     await this.sendInvitation(
+      empresaId,
       owner,
       membership.usuario.email,
       membership.usuario.nombre || membership.usuario.email,
@@ -277,6 +282,7 @@ export class UsersService {
   }
 
   private async sendInvitation(
+    empresaId: string,
     config: any,
     to: string,
     name: string,
@@ -286,60 +292,21 @@ export class UsersService {
     const frontendUrl =
       process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
     const invitationUrl = `${frontendUrl}/auth/accept-invitation?token=${encodeURIComponent(token)}`;
-    const subject = 'Invitación para acceder a Dolphin ERP';
-
-    const html = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
-        <div style="text-align: center; margin-bottom: 28px;">
-          <div style="display: inline-block; font-size: 22px; font-weight: 800; color: #2563eb; letter-spacing: 0.1em; text-transform: uppercase;">
-            DOLPHIN <span style="color: #0f172a;">ERP</span>
-          </div>
-        </div>
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px;">
-          <h2 style="margin-top: 0; color: #0f172a; font-size: 20px; font-weight: 700;">¡Hola, ${name || 'bienvenido'}!</h2>
-          <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-            Has sido invitado a formar parte del equipo en <strong>Dolphin ERP</strong>.
-          </p>
-          <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px;">
-            <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Empresas asignadas:</span>
-            <span style="font-size: 14px; font-weight: 600; color: #0f172a;">${companies || 'Tu empresa'}</span>
-          </div>
-          <p style="font-size: 14px; line-height: 1.5; color: #475569; margin-bottom: 24px;">
-            Para activar tu cuenta y configurar tu contraseña de acceso seguro, haz clic en el siguiente botón:
-          </p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${invitationUrl}" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">
-              Activar Mi Cuenta
-            </a>
-          </div>
-          <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 20px;">
-            Este enlace de invitación expirará en 48 horas.<br>
-            Si no esperabas esta invitación, puedes ignorar este correo de forma segura.
-          </p>
-        </div>
-        <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #94a3b8;">
-          © ${new Date().getFullYear()} Dolphin ERP. Todos los derechos reservados.
-        </div>
-      </div>
-    `;
-
-    const text = [
-      `Hola ${name || ''},`,
-      '',
-      'Has sido invitado a Dolphin ERP.',
-      `Empresas asignadas: ${companies || 'Empresa asignada'}.`,
-      '',
-      'Activa tu cuenta y crea tu contraseña desde este enlace:',
-      invitationUrl,
-      '',
-      'El enlace expira en 48 horas.',
-    ];
+    const email = this.emailTemplates
+      ? await this.emailTemplates.render(empresaId, 'invitation', {
+          name: name || 'bienvenido',
+          company: companies || 'Tu empresa',
+        }, { actionUrl: invitationUrl })
+      : renderEmail('invitation', {
+          name: name || 'bienvenido',
+          company: companies || 'Tu empresa',
+        }, undefined, { actionUrl: invitationUrl });
 
     await this.tenantMailer?.sendMail(config, {
       to,
-      subject,
-      html,
-      text: text.join('\n'),
+      subject: email.subject,
+      html: email.html,
+      text: email.text,
     });
   }
 

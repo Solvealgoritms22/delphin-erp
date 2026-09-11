@@ -97,7 +97,7 @@ export class SequencesService {
     tipoNcf: string,
     ambiente: string = 'TEST',
     transaction?: Prisma.TransactionClient,
-  ): Promise<{ ncf: string; secuenciaId: string }> {
+  ): Promise<{ ncf: string; secuenciaId: string; fechaVencimiento: Date | null }> {
     const prefijo = tipoNcf.toUpperCase();
     const env = ambiente.toUpperCase();
 
@@ -160,6 +160,7 @@ export class SequencesService {
         return {
           ncf: formattedNcf,
           secuenciaId: sequence.id,
+          fechaVencimiento: sequence.fechaVencimiento,
         };
       };
     return transaction ? reserve(transaction) : this.prisma.$transaction(reserve, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });

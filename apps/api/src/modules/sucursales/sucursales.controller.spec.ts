@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SucursalesController } from './sucursales.controller';
 import { SucursalesService } from './sucursales.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { EntitlementGuard } from '../../common/guards/entitlement.guard';
 
 describe('SucursalesController', () => {
   let controller: SucursalesController;
@@ -28,6 +29,8 @@ describe('SucursalesController', () => {
       controllers: [SucursalesController],
       providers: [{ provide: SucursalesService, useValue: service }],
     })
+      .overrideGuard(EntitlementGuard)
+      .useValue({ canActivate: () => true })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
       .compile();

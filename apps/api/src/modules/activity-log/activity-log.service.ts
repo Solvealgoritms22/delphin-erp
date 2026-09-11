@@ -25,9 +25,9 @@ export class ActivityLogService {
   /**
    * Registra una actividad. Falla silenciosamente para no interrumpir el flujo de negocio.
    */
-  async log(dto: LogActivityDto): Promise<void> {
+  async log(dto: LogActivityDto, db: Pick<PrismaService, 'activityLog'> = this.prisma): Promise<void> {
     try {
-      await this.prisma.activityLog.create({
+      await db.activityLog.create({
         data: {
           empresaId: dto.empresaId,
           usuarioId: dto.usuarioId,

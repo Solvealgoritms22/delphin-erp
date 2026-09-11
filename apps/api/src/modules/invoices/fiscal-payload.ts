@@ -3,9 +3,9 @@ import { Prisma } from '@prisma/client';
 
 const money = (value: unknown) => new Prisma.Decimal(String(value ?? 0));
 const fixed = (value: Prisma.Decimal) => value.toFixed(2);
-function date(value: string | Date | undefined | null): string {
+function date(value: string | Date | undefined | null, calendarOnly = false): string {
   if (!value || !Number.isFinite(new Date(value).getTime())) throw new BadRequestException('Falta una fecha fiscal válida');
-  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Santo_Domingo', day: '2-digit', month: '2-digit', year: 'numeric' }).formatToParts(new Date(value));
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: calendarOnly ? 'UTC' : 'America/Santo_Domingo', day: '2-digit', month: '2-digit', year: 'numeric' }).formatToParts(new Date(value));
   const part = (type: string) => parts.find(p => p.type === type)!.value;
   return part('day') + '-' + part('month') + '-' + part('year');
 }
@@ -58,10 +58,10 @@ export function buildEcfPayload(invoice: any, empresa: any) {
   const code = type.slice(1);
   const idDoc: Record<string, any> = {
     TipoeCF: code, eNCF: invoice.ncf,
-    ...(!['E32','E34'].includes(type) ? {FechaVencimientoSecuencia: date(invoice.fechaVencimientoNcf)} : {}),
+    ...(!['E32','E34'].includes(type) ? {FechaVencimientoSecuencia: date(invoice.fechaVencimientoNcf, true)} : {}),
     ...(!['E34','E44','E46'].includes(type) && bases.slice(0,3).some(x=>x.gt(0)) ? {IndicadorMontoGravado:'0'} : {}),
     TipoIngresos: '01', TipoPago: invoice.tipoPago === 'CREDITO' ? '2' : '1',
-    ...(invoice.tipoPago === 'CREDITO' && invoice.fechaVencimiento ? {FechaLimitePago:date(invoice.fechaVencimiento)} : {}),
+    ...(invoice.tipoPago === 'CREDITO' && invoice.fechaVencimiento ? {FechaLimitePago:date(invoice.fechaVencimiento, true)} : {}),
   };
   const totals: Record<string,string> = {MontoTotal:fixed(money(invoice.total))};
   const taxable = bases[0].add(bases[1]).add(bases[2]);

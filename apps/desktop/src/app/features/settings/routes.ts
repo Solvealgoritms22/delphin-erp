@@ -30,6 +30,15 @@ export default [
           import('./features/notifications/notification-settings.component'),
       },
       {
+        path: 'email-templates',
+        canActivate: [permissionGuard],
+        data: { permissions: ['company:read'] },
+        loadComponent: () =>
+          import('./features/email-templates/email-templates.component').then(
+            (c) => c.EmailTemplatesComponent
+          ),
+      },
+      {
         path: 'api-access',
         canActivate: [permissionGuard],
         data: { permissions: ['company:read'] },
