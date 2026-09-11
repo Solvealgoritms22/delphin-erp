@@ -242,7 +242,8 @@ export class EmpresasComponent implements OnInit {
 
   async openCreateDialog() {
     const dialogRef = this.dialog.open(EmpresaDialogComponent, {
-      width: '500px',
+      width: '640px',
+      maxWidth: '95vw',
       panelClass: 'dolphin-dialog'
     });
 
@@ -254,7 +255,8 @@ export class EmpresasComponent implements OnInit {
 
   async openEditDialog(empresa: Empresa) {
     const dialogRef = this.dialog.open(EmpresaDialogComponent, {
-      width: '500px',
+      width: '640px',
+      maxWidth: '95vw',
       panelClass: 'dolphin-dialog',
       data: empresa
     });

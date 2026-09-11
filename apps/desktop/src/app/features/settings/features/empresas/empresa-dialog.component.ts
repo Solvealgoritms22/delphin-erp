@@ -31,6 +31,7 @@ import {
 } from 'ng-animated-icons';
 
 import { CountryFlagComponent } from '@shared/components/country-flag/country-flag.component';
+import { AddressMapPickerComponent } from '@shared/components/address-map-picker/address-map-picker.component';
 
 @Component({
   selector: 'app-empresa-dialog',
@@ -53,6 +54,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
     CopyIcon,
     CheckIcon,
     CountryFlagComponent,
+    AddressMapPickerComponent,
   ],
   template: `
     <h2
@@ -197,17 +199,15 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
           </mat-form-field>
         </div>
 
-        <mat-form-field
-          appearance="outline"
-          class="w-full"
-        >
-          <mat-label>Dirección</mat-label>
-          <input
-            matInput
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
+            Dirección y Ubicación en Mapa
+          </label>
+          <app-address-map-picker
             formControlName="direccion"
-            placeholder="Av. Principal #123, Ensanche Naco, Santo Domingo"
+            placeholder="Av. 27 de Febrero #123, Ensanche Naco, Santo Domingo"
           />
-        </mat-form-field>
+        </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <mat-form-field

@@ -20,4 +20,5 @@ export const environment = {
   production: true,
   apiUrl: getCloudApiUrl(),
   webPushPublicKey: '',
+  googleMapsApiKey: (typeof window !== 'undefined' && ((window as any).__GOOGLE_MAPS_API_KEY__ || localStorage?.getItem('dolphin_google_maps_api_key'))) || ''
 };
