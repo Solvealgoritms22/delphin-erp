@@ -5,7 +5,7 @@ import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { EmailTemplatesService } from './email-templates.service';
-import { EmailKey } from './email-template.catalog';
+import type { EmailKey } from './email-template.catalog';
 class RevisionDto { @IsInt() @Min(0) revision:number; }
 class DesignDto {
   @IsString() @MaxLength(200) subject:string;
@@ -35,7 +35,7 @@ export class EmailTemplatesController {
   }
   @Post(':key/preview')
   @Header('Cache-Control','no-store')
-  preview(@CurrentUser() user:any,@Param('key') key:EmailKey,@Body() body:DesignDto) {
-    return this.templates.preview(user.empresaId,user.id,key,body);
+  preview(@CurrentUser() user:any,@Param('key') key:string,@Body() body:DesignDto) {
+    return this.templates.preview(user.empresaId,user.id,key as EmailKey,body);
   }
 }
