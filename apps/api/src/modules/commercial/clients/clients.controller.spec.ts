@@ -36,7 +36,7 @@ describe('ClientsController', () => {
   });
 
   it('delega todos los CRUD usando req.user.empresaId', () => {
-    controller.create(req, { nombreRazonSocial: 'Juan' });
+    controller.create(req, { nombreRazonSocial: 'Juan', numeroDocumento: '001-0000000-1' });
     controller.findAll(req);
     controller.findOne(req, 'cl1');
     controller.update(req, 'cl1', { email: 'x@y.com' });
@@ -44,6 +44,7 @@ describe('ClientsController', () => {
 
     expect(service.create).toHaveBeenCalledWith('e1', {
       nombreRazonSocial: 'Juan',
+      numeroDocumento: '001-0000000-1',
     });
     expect(service.findAll).toHaveBeenCalledWith('e1');
     expect(service.findOne).toHaveBeenCalledWith('cl1', 'e1');

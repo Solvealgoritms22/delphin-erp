@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { environment } from '@/environments/environment';
 
 type Design = { subject:string; heading:string; body:string; footer:string; accent:string };
@@ -18,7 +19,7 @@ type Payload = { templates:Template[] };
   selector: 'app-email-templates',
   standalone: true,
   host: { class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden' },
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSnackBarModule, TranslocoPipe, SkeletonComponent],
+  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSnackBarModule, TranslocoPipe, SkeletonComponent, EmptyStateComponent],
   template: `
     <div class="flex h-full min-w-0 flex-col overflow-hidden bg-neutral-50/50 dark:bg-neutral-950">
       <div class="relative shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
@@ -29,6 +30,25 @@ type Payload = { templates:Template[] };
       </div>
       @if (loading()) {
         <div class="p-6 md:p-8 space-y-5"><app-skeleton type="card" height="7rem"/><app-skeleton type="card" height="7rem"/><app-skeleton type="card" height="7rem"/></div>
+      } @else if (hasError()) {
+        <div class="flex-auto flex flex-col items-center justify-center p-6 md:p-12 text-center my-auto">
+          <app-empty-state
+            type="error"
+            [title]="'emailTemplates.loadError' | transloco"
+            [description]="errorMessage() | transloco"
+            [actionLabel]="'common.retry' | transloco"
+            actionIcon="rotate-ccw"
+            (action)="load()"
+          />
+        </div>
+      } @else if (templates().length === 0) {
+        <div class="flex-auto flex flex-col items-center justify-center p-6 md:p-12 text-center my-auto">
+          <app-empty-state
+            type="no-data"
+            [title]="'emailTemplates.noTemplates' | transloco"
+            [description]="'emailTemplates.noTemplatesDesc' | transloco"
+          />
+        </div>
       } @else {
         <div class="flex-auto overflow-y-auto p-4 sm:p-6 md:p-8">
           <div class="grid grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] gap-6">
@@ -89,6 +109,8 @@ export class EmailTemplatesComponent {
   readonly templates = signal<Template[]>([]);
   readonly selected = signal<Template | null>(null);
   readonly loading = signal(true);
+  readonly hasError = signal(false);
+  readonly errorMessage = signal('emailTemplates.loadErrorDesc');
   readonly saving = signal(false);
   readonly previewing = signal(false);
   readonly previewHtml = signal('');
@@ -96,11 +118,20 @@ export class EmailTemplatesComponent {
   label(key:string) { return this.i18n.translate('emailTemplates.types.' + key); }
   load() {
     this.loading.set(true);
-    this.http.get<Payload>(this.api).subscribe({next:data => {
-      this.templates.set(data.templates);
-      this.selected.set(data.templates[0] || null);
-      this.loading.set(false);
-    }, error:() => { this.loading.set(false); this.notice('emailTemplates.loadError'); }});
+    this.hasError.set(false);
+    this.http.get<Payload>(this.api).subscribe({
+      next: data => {
+        this.templates.set(data.templates);
+        this.selected.set(data.templates[0] || null);
+        this.loading.set(false);
+      },
+      error: err => {
+        this.loading.set(false);
+        this.hasError.set(true);
+        this.errorMessage.set(err.status === 403 ? 'emailTemplates.systemHelp' : 'emailTemplates.loadErrorDesc');
+        this.notice('emailTemplates.loadError');
+      },
+    });
   }
   select(item:Template) { this.selected.set(item); this.previewHtml.set(''); }
   preview(item:Template) {

@@ -47,12 +47,13 @@ describe('ProductsController', () => {
   it('create crea el producto y registra actividad CREATE', async () => {
     productsService.create.mockResolvedValue({ id: 'p1', nombre: 'Arroz' });
 
-    await controller.create(user, { nombre: 'Arroz' });
+    await controller.create(user, { nombre: 'Arroz', precioVenta: 100 });
 
     expect(productsService.create).toHaveBeenCalledWith(
       'e1',
       {
         nombre: 'Arroz',
+        precioVenta: 100,
       },
       'u1',
     );

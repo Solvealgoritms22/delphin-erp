@@ -36,7 +36,7 @@ describe('SuppliersController', () => {
   });
 
   it('delega todos los CRUD usando req.user.empresaId', () => {
-    controller.create(req, { nombreRazonSocial: 'Distribuidora' });
+    controller.create(req, { nombreRazonSocial: 'Distribuidora', numeroDocumento: '101-00000-1' });
     controller.findAll(req);
     controller.findOne(req, 'sp1');
     controller.update(req, 'sp1', { email: 'x@y.com' });
@@ -44,6 +44,7 @@ describe('SuppliersController', () => {
 
     expect(service.create).toHaveBeenCalledWith('e1', {
       nombreRazonSocial: 'Distribuidora',
+      numeroDocumento: '101-00000-1',
     });
     expect(service.findAll).toHaveBeenCalledWith('e1');
     expect(service.findOne).toHaveBeenCalledWith('sp1', 'e1');
