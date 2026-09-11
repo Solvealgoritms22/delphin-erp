@@ -71,53 +71,61 @@ import { environment } from '@/environments/environment';
       <mat-sidenav-content class="flex flex-col h-full min-h-0 overflow-hidden">
 
         <div
-          class="flex shrink-0 items-center border-t border-b border-neutral-200 dark:border-neutral-800 px-4 py-2.5 select-none"
+          class="flex shrink-0 items-center justify-between border-t border-b border-neutral-200 dark:border-neutral-800 px-2.5 sm:px-4 py-2 select-none min-h-[56px] w-full"
           [style.-webkit-app-region]="isElectron ? 'drag' : null"
         >
-          <button
-            matIconButton
-            (click)="sidenav.toggle()"
-            style="-webkit-app-region: no-drag"
-          >
-            <mat-icon svgIcon="panel-left" />
-          </button>
+          <div class="flex items-center min-w-0 shrink">
+            <button
+              matIconButton
+              (click)="sidenav.toggle()"
+              class="shrink-0"
+              style="-webkit-app-region: no-drag"
+              aria-label="Toggle navigation"
+            >
+              <mat-icon svgIcon="panel-left" />
+            </button>
 
-          <div class="mx-3 h-5 border-l border-neutral-200 dark:border-neutral-800"></div>
+            <div class="mx-2 sm:mx-3 h-5 border-l border-neutral-200 dark:border-neutral-800 shrink-0"></div>
 
-           @if (empresas().length > 1) {
-             <button [matMenuTriggerFor]="companyMenu" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer mr-2" style="-webkit-app-region: no-drag">
-               @if (currentEmpresaLogo()) {
-                 <div class="size-8 rounded-lg border border-neutral-200 dark:border-neutral-700/80 bg-neutral-50/80 dark:bg-neutral-800/50 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
-                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none pointer-events-none">
+             @if (empresas().length > 1) {
+               <button
+                 [matMenuTriggerFor]="companyMenu"
+                 class="flex items-center gap-2 sm:gap-2.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer min-w-0 max-w-[140px] sm:max-w-xs md:max-w-md shrink text-left"
+                 style="-webkit-app-region: no-drag"
+               >
+                 @if (currentEmpresaLogo()) {
+                   <div class="size-8 rounded-lg border border-neutral-200 dark:border-neutral-700/80 bg-neutral-50/80 dark:bg-neutral-800/50 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                     <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none pointer-events-none">
+                   </div>
+                 } @else {
+                   <div class="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs select-none">
+                     {{ currentEmpresaLabel().charAt(0).toUpperCase() }}
+                   </div>
+                 }
+                 <div class="flex flex-col items-start min-w-0 overflow-hidden">
+                   <span class="truncate max-w-full text-xs sm:text-[13px] font-bold text-neutral-900 dark:text-white leading-tight whitespace-nowrap">{{ currentEmpresaLabel() }}</span>
+                   <span class="text-[10px] font-medium text-neutral-500 dark:text-neutral-400 leading-none truncate max-w-full whitespace-nowrap hidden sm:block">{{ currentEmpresaRnc() }}</span>
                  </div>
-               } @else {
-                 <div class="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs select-none">
-                   {{ currentEmpresaLabel().charAt(0).toUpperCase() }}
+                 <mat-icon svgIcon="chevron-down" class="icon-size-4 text-neutral-400 ml-0.5 sm:ml-1 shrink-0"></mat-icon>
+               </button>
+             } @else {
+               <div class="flex items-center gap-2 sm:gap-2.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 min-w-0 max-w-[140px] sm:max-w-xs md:max-w-md shrink text-left" style="-webkit-app-region: no-drag">
+                 @if (currentEmpresaLogo()) {
+                   <div class="size-8 rounded-lg border border-neutral-200 dark:border-neutral-700/80 bg-neutral-50/80 dark:bg-neutral-800/50 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                     <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none pointer-events-none">
+                   </div>
+                 } @else {
+                   <div class="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs select-none">
+                     {{ currentEmpresaLabel().charAt(0).toUpperCase() }}
+                   </div>
+                 }
+                 <div class="flex flex-col items-start min-w-0 overflow-hidden">
+                   <span class="truncate max-w-full text-xs sm:text-[13px] font-bold text-neutral-900 dark:text-white leading-tight whitespace-nowrap">{{ currentEmpresaLabel() }}</span>
+                   <span class="text-[10px] font-medium text-neutral-500 dark:text-neutral-400 leading-none truncate max-w-full whitespace-nowrap hidden sm:block">{{ currentEmpresaRnc() }}</span>
                  </div>
-               }
-               <div class="flex flex-col items-start gap-0.5">
-                 <span class="text-[13px] font-bold text-neutral-900 dark:text-white leading-none mb-0.5">{{ currentEmpresaLabel() }}</span>
-                 <span class="text-[10px] font-medium text-neutral-500 leading-none">{{ currentEmpresaRnc() }}</span>
                </div>
-               <mat-icon svgIcon="chevron-down" class="icon-size-4 text-neutral-400 ml-1"></mat-icon>
-             </button>
-           } @else {
-             <div class="flex items-center gap-2.5 px-2.5 py-1.5 mr-2" style="-webkit-app-region: no-drag">
-               @if (currentEmpresaLogo()) {
-                 <div class="size-8 rounded-lg border border-neutral-200 dark:border-neutral-700/80 bg-neutral-50/80 dark:bg-neutral-800/50 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
-                   <img [src]="currentEmpresaLogo()" [alt]="currentEmpresaLabel()" class="w-full h-full object-contain select-none pointer-events-none">
-                 </div>
-               } @else {
-                 <div class="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs select-none">
-                   {{ currentEmpresaLabel().charAt(0).toUpperCase() }}
-                 </div>
-               }
-               <div class="flex flex-col items-start gap-0.5">
-                 <span class="text-[13px] font-bold text-neutral-900 dark:text-white leading-none mb-0.5">{{ currentEmpresaLabel() }}</span>
-                 <span class="text-[10px] font-medium text-neutral-500 leading-none">{{ currentEmpresaRnc() }}</span>
-               </div>
-             </div>
-           }
+             }
+          </div>
 
           <mat-menu #companyMenu="matMenu" class="mt-2 rounded-xl">
             <div class="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800">
@@ -168,13 +176,13 @@ import { environment } from '@/environments/environment';
             <shortcuts style="-webkit-app-region: no-drag" />
           }
 
-          <div class="flex-auto h-full self-stretch min-w-8" [style.-webkit-app-region]="isElectron ? 'drag' : null"></div>
+          <div class="flex-auto h-full self-stretch min-w-2 sm:min-w-6" [style.-webkit-app-region]="isElectron ? 'drag' : null"></div>
 
-          <div class="flex items-center gap-x-2" style="-webkit-app-region: no-drag">
-            <weather-widget />
+          <div class="flex items-center gap-x-0.5 sm:gap-x-1.5 shrink-0" style="-webkit-app-region: no-drag">
+            <weather-widget class="hidden md:flex" />
             <mat-divider
               vertical
-              class="mx-1 h-5 hidden sm:block"
+              class="mx-1 h-5 hidden md:block"
             />
             <language-switcher />
             <scheme-switcher />
@@ -193,7 +201,7 @@ import { environment } from '@/environments/environment';
             >
               <mat-divider
                 vertical
-                class="mx-1 h-5 shrink-0"
+                class="mx-1 h-5 shrink-0 hidden sm:block"
               />
               <assistant class="shrink-0" />
             </div>

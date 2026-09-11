@@ -375,7 +375,7 @@
     "previewError": "No se pudo generar la vista previa.",
     "saveError": "No se pudo guardar la plantilla.",
     "conflict": "La plantilla fue modificada por otra sesión. Recarga e intenta nuevamente.",
-    "livePreview": "Vista previa en vivo",
+    "livePreview": "Vista previa",
     "previewDesktop": "Escritorio",
     "previewMobile": "Móvil",
     "accentColor": "Color de acento de marca",

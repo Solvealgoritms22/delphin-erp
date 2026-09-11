@@ -280,10 +280,6 @@ const PRESET_COLORS = [
                   <!-- Header del Live Preview -->
                   <div class="p-4 sm:p-5 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-900">
                     <div class="flex items-center gap-2">
-                      <span class="relative flex size-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
-                      </span>
                       <span class="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
                         {{ 'emailTemplates.livePreview' | transloco }}
                       </span>

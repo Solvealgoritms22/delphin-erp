@@ -43,7 +43,7 @@ import {
     XIcon,
   ],
   host: {
-    class: 'flex items-center select-none',
+    class: 'hidden md:flex items-center select-none',
   },
   template: `
 
