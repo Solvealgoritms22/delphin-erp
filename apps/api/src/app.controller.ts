@@ -16,6 +16,16 @@ export class AppController {
   }
 
   /**
+   * Configuración pública de la plataforma Dolphin ERP (Google Maps, etc.)
+   */
+  @Get('v1/system/config')
+  getSystemConfig() {
+    return {
+      googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || '',
+    };
+  }
+
+  /**
    * Liveness Probe (Kubernetes / Azure Container Apps / AWS ECS)
    * Valida que el proceso esté vivo y respondiendo.
    */

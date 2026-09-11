@@ -1,5 +1,7 @@
 // Source: Google Maps Platform Code Assist
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface LatLngCoords {
@@ -18,7 +20,10 @@ export interface GeocodeResult {
   providedIn: 'root',
 })
 export class GoogleMapsLoaderService {
+  private readonly http = inject(HttpClient);
   private loadPromise: Promise<any> | null = null;
+  private configFetched = false;
+
   readonly isLoaded = signal(false);
   readonly isLoading = signal(false);
   readonly loadError = signal<string | null>(null);
@@ -26,9 +31,7 @@ export class GoogleMapsLoaderService {
 
   private resolveInitialKey(): string {
     if (typeof window === 'undefined') return '';
-    const envKey = (environment as any).googleMapsApiKey || '';
-    if (envKey) return envKey;
-    return localStorage.getItem('dolphin_google_maps_api_key') || '';
+    return (environment as any).googleMapsApiKey || '';
   }
 
   hasApiKey(): boolean {
@@ -36,21 +39,33 @@ export class GoogleMapsLoaderService {
   }
 
   setApiKey(key: string): void {
-    const trimmed = key.trim();
-    this.activeApiKey.set(trimmed);
-    if (typeof localStorage !== 'undefined') {
-      if (trimmed) {
-        localStorage.setItem('dolphin_google_maps_api_key', trimmed);
-      } else {
-        localStorage.removeItem('dolphin_google_maps_api_key');
-      }
+    this.activeApiKey.set(key?.trim() || '');
+    if (this.loadPromise && !(typeof window !== 'undefined' && (window as any).google?.maps)) {
+      this.loadPromise = null;
     }
-    this.loadPromise = null;
-    this.isLoaded.set(false);
-    this.loadError.set(null);
   }
 
-  load(): Promise<any> {
+  async fetchPlatformKey(): Promise<string> {
+    if (this.hasApiKey()) return this.activeApiKey();
+    if (this.configFetched) return this.activeApiKey();
+
+    this.configFetched = true;
+    try {
+      const config = await firstValueFrom(
+        this.http.get<{ googleMapsApiKey?: string }>(`${environment.apiUrl}/system/config`)
+      );
+      if (config?.googleMapsApiKey) {
+        const key = config.googleMapsApiKey.trim();
+        this.activeApiKey.set(key);
+        return key;
+      }
+    } catch {
+      // Si el endpoint no está disponible en offline
+    }
+    return '';
+  }
+
+  async load(): Promise<any> {
     if (typeof window === 'undefined') {
       return Promise.reject(new Error('Window no disponible'));
     }
@@ -64,9 +79,13 @@ export class GoogleMapsLoaderService {
       return this.loadPromise;
     }
 
-    const key = this.activeApiKey();
+    let key = this.activeApiKey();
     if (!key) {
-      const err = 'No se ha configurado una clave de API de Google Maps.';
+      key = await this.fetchPlatformKey();
+    }
+
+    if (!key) {
+      const err = 'La clave de Google Maps Platform no está configurada en las variables de entorno de Dolphin ERP.';
       this.loadError.set(err);
       return Promise.reject(new Error(err));
     }

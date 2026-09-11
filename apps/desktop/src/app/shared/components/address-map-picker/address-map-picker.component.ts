@@ -108,14 +108,32 @@ export interface PlacePrediction {
 
       <!-- Contenedor del Mapa (Estilo tarjeta similar a la imagen enviada) -->
       <div class="relative rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-xs bg-neutral-100 dark:bg-neutral-950">
-        <!-- Mapa interactivo de Google Maps -->
+        <!-- Mapa interactivo de Google Maps (Activo cuando hay clave y no hay error) -->
         <div
           #mapContainer
           class="w-full h-[220px] sm:h-[260px] bg-neutral-200 dark:bg-neutral-900"
+          [class.hidden]="mapsError() || !mapsLoader.hasApiKey()"
         ></div>
 
+        <!-- Placeholder con imagen del mapa en blanco y negro y letras pequeñas en la esquina 'Mapa no disponible' -->
+        @if (mapsError() || !mapsLoader.hasApiKey()) {
+          <div class="relative w-full h-[220px] sm:h-[260px] overflow-hidden select-none bg-neutral-100 dark:bg-neutral-950">
+            <!-- Imagen mapa blanco y negro (estilo vector/callejero solicitado) -->
+            <img
+              src="images/map-placeholder.png"
+              alt="Mapa"
+              class="w-full h-full object-cover object-center opacity-90 dark:opacity-45 dark:invert dark:contrast-125 pointer-events-none"
+            />
+
+            <!-- Letras pequeñas en la esquina inferior derecha: 'Mapa no disponible' -->
+            <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-md bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xs border border-neutral-200/80 dark:border-neutral-800/80 shadow-2xs text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+              Mapa no disponible
+            </div>
+          </div>
+        }
+
         <!-- Indicador de carga de geocodificación o mapa -->
-        @if (loadingMap() || geocoding()) {
+        @if ((loadingMap() || geocoding()) && !mapsError() && mapsLoader.hasApiKey()) {
           <div class="absolute inset-0 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center z-10">
             <div class="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-md text-xs font-medium text-neutral-700 dark:text-neutral-200">
               <svg class="animate-spin h-3.5 w-3.5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -127,62 +145,18 @@ export interface PlacePrediction {
           </div>
         }
 
-        <!-- Botón flotante inferior derecho para Abrir en Google Maps (idéntico al de la imagen) -->
-        <button
-          type="button"
-          (click)="openInGoogleMaps()"
-          matTooltip="Abrir en Google Maps"
-          class="absolute bottom-3 right-3 z-20 size-10 rounded-full bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-700 dark:text-white border border-neutral-200 dark:border-neutral-700 shadow-lg flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-
-        <!-- Fallback si Google Maps no tiene clave o falla -->
-        @if (mapsError() || !mapsLoader.hasApiKey()) {
-          <div class="absolute inset-0 bg-neutral-900/80 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center z-15 text-white">
-            <div class="size-10 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700/80 flex items-center justify-center mb-2 shadow-xs">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
-            </div>
-            <p class="text-xs font-semibold">Integración de Google Maps</p>
-            <p class="text-[11px] text-neutral-300 max-w-xs mt-1 mb-3">
-              Ingresa una clave de Google Maps Platform con Maps JS & Geocoding API para sincronizar el mapa interactivo en tiempo real.
-            </p>
-            @if (!showKeyInput()) {
-              <button
-                type="button"
-                (click)="showKeyInput.set(true)"
-                class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white transition-colors cursor-pointer"
-              >
-                Configurar clave de API
-              </button>
-            } @else {
-              <div class="flex items-center gap-2 w-full max-w-sm">
-                <input
-                  type="password"
-                  [(ngModel)]="manualApiKey"
-                  placeholder="AIzaSy..."
-                  class="flex-1 px-3 py-1.5 text-xs rounded-lg bg-neutral-800 border border-neutral-700 text-white outline-none focus:border-blue-500 font-mono"
-                />
-                <button
-                  type="button"
-                  (click)="saveManualApiKey()"
-                  class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 shadow-2xs"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                  <span>Guardar</span>
-                </button>
-              </div>
-            }
-          </div>
+        <!-- Botón flotante inferior derecho para Abrir en Google Maps (Solo si el mapa está activo) -->
+        @if (!mapsError() && mapsLoader.hasApiKey()) {
+          <button
+            type="button"
+            (click)="openInGoogleMaps()"
+            matTooltip="Abrir en Google Maps"
+            class="absolute bottom-3 right-3 z-20 size-10 rounded-full bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-700 dark:text-white border border-neutral-200 dark:border-neutral-700 shadow-lg flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
         }
       </div>
 
@@ -288,9 +262,7 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
   readonly disabled = signal(false);
   readonly mapsError = signal(false);
   readonly isEditingAddress = signal(false);
-  readonly showKeyInput = signal(false);
   manualAddressInput = '';
-  manualApiKey = '';
 
   private map: any = null;
   private marker: any = null;
@@ -498,6 +470,13 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
     const query = this.searchQuery.trim();
     if (!query) return;
     this.predictions.set([]);
+    if (!this.mapsLoader.hasApiKey() || this.mapsError()) {
+      this.formattedAddress.set(query);
+      this.manualAddressInput = query;
+      this.onChange(query);
+      this.onTouched();
+      return;
+    }
     await this.geocodeAndCenter(query);
   }
 
@@ -529,15 +508,24 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
 
     this.locating.set(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        this.locating.set(false);
+      async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        this.updateLocation(lat, lng);
+        if (this.mapsLoader.hasApiKey() && !this.mapsError()) {
+          await this.updateLocation(lat, lng);
+        } else {
+          const coordsStr = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          this.currentCoords.set({ lat, lng });
+          this.formattedAddress.set(coordsStr);
+          this.manualAddressInput = coordsStr;
+          this.onChange(coordsStr);
+          this.onTouched();
+        }
+        this.locating.set(false);
       },
       (err) => {
+        console.warn('[AddressMapPicker] Geolocation error:', err);
         this.locating.set(false);
-        console.warn('[AddressMapPicker] Geolocation error:', err.message);
       },
       { timeout: 10000, enableHighAccuracy: true }
     );
@@ -570,12 +558,5 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
 
   cancelAddressEdit(): void {
     this.isEditingAddress.set(false);
-  }
-
-  saveManualApiKey(): void {
-    if (!this.manualApiKey.trim()) return;
-    this.mapsLoader.setApiKey(this.manualApiKey);
-    this.showKeyInput.set(false);
-    void this.initMap();
   }
 }
