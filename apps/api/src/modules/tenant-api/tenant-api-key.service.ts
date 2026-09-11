@@ -21,12 +21,25 @@ export class TenantApiKeyService {
 
   constructor(private readonly prisma: PrismaService, @Optional() private readonly notifications?: NotificationsService) {}
 
-  private async withNotice<T>(empresaId:string,message:string,action:(tx:Prisma.TransactionClient)=>Promise<T>):Promise<T> {
-    return this.prisma.$transaction(async tx=>{
-      const result=await action(tx);
-      await this.notifications?.create({empresaId,tipo:'API_KEY_EVENT',titulo:'Seguridad de integraciones API',mensaje:message},tx);
-      return result;
+  private async withNotice<T>(
+    empresaId: string,
+    message: string,
+    action: (tx: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
+    const result = await this.prisma.$transaction(async (tx) => {
+      return action(tx);
     });
+    await this.notifications
+      ?.create({
+        empresaId,
+        tipo: 'API_KEY_EVENT',
+        titulo: 'Seguridad de integraciones API',
+        mensaje: message,
+      })
+      .catch((err) =>
+        this.logger.warn(`No se pudo enviar notificación: ${err?.message}`),
+      );
+    return result;
   }
 
   /**
@@ -212,7 +225,7 @@ export class TenantApiKeyService {
 
     if (!app) throw new NotFoundException('Aplicación API no encontrada.');
 
-    const updated = await this.prisma.tenantApiApp.update({
+    const updated = await this.withNotice(empresaId, 'Se revocó la credencial de ' + app.nombre + '.', tx => tx.tenantApiApp.update({
       where: { id: appId },
       data: { estado: 'REVOCADO' },
     }));
