@@ -1,0 +1,108 @@
+#dolphin {
+
+  mat-icon svg {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  mat-icon[svgicon="google-drive"] svg,
+  mat-icon[ng-reflect-svg-icon="google-drive"] svg,
+  mat-icon[data-mat-icon-name="google-drive"] svg,
+  mat-icon.multicolor-icon svg,
+  mat-icon.google-drive-icon svg {
+    fill: initial !important;
+    stroke: none !important;
+    stroke-width: 0 !important;
+  }
+}
+
+/* Dolphin ERP Icon Size Utilities */
+.icon-size-3 {
+  width: 0.75rem !important;
+  height: 0.75rem !important;
+  min-width: 0.75rem !important;
+  min-height: 0.75rem !important;
+  font-size: 0.75rem !important;
+  line-height: 0.75rem !important;
+}
+
+.icon-size-3\.5 {
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+  min-width: 0.875rem !important;
+  min-height: 0.875rem !important;
+  font-size: 0.875rem !important;
+  line-height: 0.875rem !important;
+}
+
+.icon-size-4 {
+  width: 1rem !important;
+  height: 1rem !important;
+  min-width: 1rem !important;
+  min-height: 1rem !important;
+  font-size: 1rem !important;
+  line-height: 1rem !important;
+}
+
+.icon-size-4\.5 {
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+  min-width: 1.125rem !important;
+  min-height: 1.125rem !important;
+  font-size: 1.125rem !important;
+  line-height: 1.125rem !important;
+}
+
+.icon-size-5 {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  min-width: 1.25rem !important;
+  min-height: 1.25rem !important;
+  font-size: 1.25rem !important;
+  line-height: 1.25rem !important;
+}
+
+.icon-size-6 {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  min-width: 1.5rem !important;
+  min-height: 1.5rem !important;
+  font-size: 1.5rem !important;
+  line-height: 1.5rem !important;
+}
+
+.icon-size-7 {
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  min-width: 1.75rem !important;
+  min-height: 1.75rem !important;
+  font-size: 1.75rem !important;
+  line-height: 1.75rem !important;
+}
+
+.icon-size-8 {
+  width: 2rem !important;
+  height: 2rem !important;
+  min-width: 2rem !important;
+  min-height: 2rem !important;
+  font-size: 2rem !important;
+  line-height: 2rem !important;
+}
+
+.icon-size-10 {
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  min-width: 2.5rem !important;
+  min-height: 2.5rem !important;
+  font-size: 2.5rem !important;
+  line-height: 2.5rem !important;
+}
+
+.icon-size-12 {
+  width: 3rem !important;
+  height: 3rem !important;
+  min-width: 3rem !important;
+  min-height: 3rem !important;
+  font-size: 3rem !important;
+  line-height: 3rem !important;
+}

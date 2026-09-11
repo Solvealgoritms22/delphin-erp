@@ -15,7 +15,7 @@ import { EmpresaDialogComponent } from './empresa-dialog.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '@/environments/environment';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { PlusIcon, BriefcaseIcon, TagIcon, PencilIcon, TrashIcon, ArrowRightLeftIcon } from 'ng-animated-icons';
+import { PlusIcon, TagIcon, PencilIcon, TrashIcon, ArrowRightLeftIcon } from 'ng-animated-icons';
 
 export type Empresa = {
   id: string;
@@ -40,7 +40,6 @@ export type Empresa = {
     EmptyStateComponent,
     TranslocoPipe,
     PlusIcon,
-    BriefcaseIcon,
     TagIcon,
     PencilIcon,
     TrashIcon,
@@ -49,49 +48,43 @@ export type Empresa = {
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full bg-white dark:bg-neutral-900 overflow-hidden">
 
-      <div class="shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-neutral-50/50 dark:bg-transparent">
-        <div class="flex-1 min-w-0">
-          <h2 class="text-3xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
-             {{ 'companies.title' | transloco }}
-          </h2>
-          <p class="mt-2 text-neutral-500">
-             {{ 'companies.description' | transloco }}
+      <!-- Header -->
+      <div class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+        <div>
+          <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+            {{ 'companies.title' | transloco }}
+          </div>
+          <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            {{ 'companies.description' | transloco }}
           </p>
         </div>
-
-        <div class="flex items-center gap-3 mt-6 sm:mt-0">
-          <button mat-flat-button color="primary" class="rounded-xl shadow-sm cursor-pointer" (click)="openCreateDialog()">
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 gap-3">
+          <button mat-flat-button class="bg-blue-600 hover:bg-blue-700 text-white" (click)="openCreateDialog()">
             <i-plus [size]="18" class="mr-2"></i-plus>
-             {{ 'companies.create' | transloco }}
+            {{ 'companies.new' | transloco }}
           </button>
         </div>
       </div>
 
-      <div class="flex-auto min-h-0 overflow-y-auto p-6 sm:p-10 pb-12">
+      <!-- Main Content -->
+      <div class="flex-auto overflow-y-auto p-6 md:p-8">
+        <div class="max-w-7xl mx-auto flex flex-col gap-8">
 
-        <!-- Loading Skeleton -->
-        <div *ngIf="isLoading()" class="flex flex-col gap-6 animate-pulse select-none" aria-hidden="true">
-          <div class="h-36 rounded-2xl bg-neutral-200 dark:bg-neutral-800"></div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="h-32 rounded-2xl bg-neutral-100 dark:bg-neutral-800"></div>
-            <div class="h-32 rounded-2xl bg-neutral-100 dark:bg-neutral-800"></div>
+          <!-- Empty State -->
+          <div *ngIf="empresas().length === 0" class="flex flex-col items-center justify-center p-8 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-700">
+            <app-empty-state
+              [title]="'companies.emptyTitle' | transloco"
+              [description]="'companies.emptyDescription' | transloco"
+              [actionLabel]="'companies.createFirst' | transloco"
+              (action)="openCreateDialog()"
+            ></app-empty-state>
           </div>
-        </div>
 
-        <div *ngIf="!isLoading()">
+          <!-- Empresas List -->
+          <div *ngIf="empresas().length > 0" class="flex flex-col gap-8">
 
-          <app-empty-state
-            *ngIf="empresas().length === 0"
-            illustration="18.svg"
-            [title]="'companies.emptyTitle' | transloco"
-            [description]="'companies.emptyDescription' | transloco"
-            [actionLabel]="'companies.create' | transloco"
-            (action)="openCreateDialog()">
-          </app-empty-state>
-
-          <div *ngIf="empresas().length > 0" class="flex flex-col gap-10">
-
-            <div *ngIf="activeEmpresa" class="flex flex-col gap-4">
+            <!-- Empresa Activa Principal -->
+            <div *ngIf="activeEmpresa" class="flex flex-col gap-3">
                 <h3 class="text-xl font-bold">{{ 'companies.active' | transloco }}</h3>
 
               <div class="flex flex-col sm:flex-row bg-white dark:bg-neutral-800 rounded-2xl shadow-md border-2 border-blue-500 dark:border-blue-400 overflow-hidden relative">
@@ -103,7 +96,7 @@ export type Empresa = {
                 <div class="flex items-center justify-center p-8 bg-blue-50 dark:bg-blue-900/10">
                     <div class="flex items-center justify-center w-24 h-24 rounded-2xl bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm overflow-hidden">
                       <img *ngIf="activeEmpresa.logo" [src]="activeEmpresa.logo" [alt]="activeEmpresa.razonSocial" class="w-full h-full object-contain p-3">
-                      <i-briefcase *ngIf="!activeEmpresa.logo" [size]="48"></i-briefcase>
+                      <mat-icon *ngIf="!activeEmpresa.logo" svgIcon="briefcase" class="!w-12 !h-12 !text-[48px]"></mat-icon>
                    </div>
                 </div>
 
@@ -135,7 +128,7 @@ export type Empresa = {
                     <div class="flex items-center gap-4">
                         <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 overflow-hidden">
                           <img *ngIf="empresa.logo" [src]="empresa.logo" [alt]="empresa.razonSocial" class="w-full h-full object-contain p-1">
-                          <i-briefcase *ngIf="!empresa.logo" [size]="24"></i-briefcase>
+                          <mat-icon *ngIf="!empresa.logo" svgIcon="briefcase" class="!w-6 !h-6 !text-[24px]"></mat-icon>
                        </div>
                       <div>
                         <h3 class="text-lg font-semibold leading-tight line-clamp-1">{{ empresa.razonSocial }}</h3>

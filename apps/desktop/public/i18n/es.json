@@ -845,7 +845,7 @@
     "dangerZone": {
       "title": "Zona de Peligro",
       "subtitle": "Acciones destructivas e irreversibles sobre tu cuenta y datos",
-      "wipeDataTitle": "Restablecer / Eliminar Toda Mi Data",
+      "wipeDataTitle": "Eliminar Toda Mi Data",
       "wipeDataDesc": "Elimina todas las facturas, cotizaciones, pagos, clientes, proveedores, productos e inventario de tus empresas. Tu cuenta y empresas permanecerán activas para comenzar desde cero.",
       "wipeDataBtn": "Restablecer Todos Mis Datos",
       "deleteAccountTitle": "Eliminar Mi Cuenta Definitivamente",
@@ -881,7 +881,7 @@
       "pricing": "Precios",
       "costPrice": "Precio de costo",
       "bulkPrice": "Precio con descuento por volumen",
-      "taxRate": "Tasa de impuesto (%)",
+      "taxRate": "Tasa de impuesto",
       "image": "Imagen del producto",
       "imageDescription": "Elige una foto o arrastra hasta 5 fotos aquí.",
       "serviceImage": "Imagen o portada del servicio",
@@ -893,7 +893,7 @@
       "imageHint": "Formatos: .jpg, .jpeg, .png. Tamaño preferido: 1:1. Máximo {{count}} imágenes y 500 KB por archivo.",
       "attributes": "Atributos",
       "generateCode": "Generar código automático (SKU)",
-      "codeHint": "Código interno o SKU (se genera automáticamente si se deja vacío)",
+      "codeHint": "Código interno o SKU",
       "codeGenerated": "Código generado con éxito",
       "tagsPlaceholder": "Etiquetas separadas por comas",
       "brandPlaceholder": "Marca del producto",
@@ -925,12 +925,12 @@
       "profitMargin": "Margen de ganancia",
       "discountsAndOffers": "Ofertas y Descuentos",
       "enableOffer": "Activar Oferta",
-      "discountPercentage": "Porcentaje de Descuento (%)",
+      "discountPercentage": "Porcentaje de Descuento",
       "specialOfferPrice": "Precio Especial de Oferta",
       "offerValidFrom": "Válido Desde",
       "offerValidUntil": "Válido Hasta",
       "customerSavings": "Ahorro del Cliente",
-      "maxAllowedDiscount": "Descuento Máximo Permitido en Ventas (%)",
+      "maxAllowedDiscount": "Descuento Máximo Permitido en Ventas",
       "maxAllowedDiscountHint": "Límite máximo de descuento que los vendedores pueden aplicar a este artículo (0-100%).",
       "emptyTitle": "No hay productos físicos registrados",
       "emptyDescription": "Crea tu primer producto físico para gestionar existencias y precios."
@@ -957,13 +957,13 @@
       "color": "Color de fondo",
       "searchIcon": "Buscar ilustración...",
       "appliesTo": "Aplica a",
-      "typeAll": "Ambos (Productos y Servicios)",
+      "typeAll": "Ambos",
       "typeAllShort": "Ambos",
       "typeProducts": "Solo Productos Físicos",
       "typeProductsShort": "Productos",
       "typeServices": "Solo Servicios",
       "typeServicesShort": "Servicios",
-      "noIllustration": "Sin ilustración (Por defecto)",
+      "noIllustration": "Sin ilustración",
       "noIllustrationShort": "Por defecto",
       "freshFoodGroup": "Alimentos y Frescos",
       "drinksBakeryGroup": "Bebidas, Panadería y Snacks",
@@ -1053,7 +1053,7 @@
           "destWarehouse": "Almacén Destino",
           "destPlaceholder": "Selecciona destino",
           "quantity": "Cantidad a Transferir",
-          "reason": "Motivo / Documento de Referencia",
+          "reason": "Motivo",
           "reasonPlaceholder": "Reabastecimiento de tienda, Solicitud #TR-102",
           "submit": "Ejecutar Transferencia"
         },
@@ -1064,10 +1064,10 @@
           "warehouse": "Almacén",
           "warehousePlaceholder": "Selecciona almacén",
           "type": "Tipo de Ajuste",
-          "positive": "Ajuste Positivo (+ Entrada)",
-          "negative": "Ajuste Negativo (- Salida / Merma)",
+          "positive": "Entrada",
+          "negative": "Salida",
           "quantity": "Cantidad",
-          "reason": "Motivo / Explicación del Ajuste",
+          "reason": "Motivo",
           "reasonPlaceholder": "Conteo físico mensual, producto dañado, etc.",
           "submit": "Aplicar Ajuste"
         },
@@ -1078,8 +1078,8 @@
           "type": "Tipo de Almacén",
           "types": {
             "salesFloor": "Piso de Venta",
-            "distributionCenter": "Centro de Distribución (CEDI)",
-            "waste": "Almacén de Mermas / Averías",
+            "distributionCenter": "Centro de Distribución",
+            "waste": "Almacén de Mermas",
             "transit": "En Tránsito"
           },
           "code": "Código",
@@ -1144,7 +1144,7 @@
     "purchases": {
       "title": "Compras y Cuentas por Pagar (CxP)",
       "subtitle": "Registra facturas de compras, gastos operativos (DGII 606), control de inventario y abonos a proveedores.",
-      "new": "Nueva Compra / Gasto",
+      "new": "Nueva Compra",
       "search": "Buscar por No. Compra, NCF o Proveedor...",
       "emptyTitle": "No hay compras registradas",
       "emptySubtitle": "Registra compras a proveedores para aumentar existencias y llevar el control de tus cuentas por pagar.",
@@ -1165,7 +1165,7 @@
         "paymentMethod": "Método de Pago",
         "date": "Fecha de Emisión",
         "dueDate": "Fecha de Vencimiento",
-        "invoiceNumber": "No. Factura / Referencia",
+        "invoiceNumber": "No. Factura",
         "itemsTitle": "Productos y Líneas de Gasto",
         "addItem": "Añadir Línea",
         "submit": "Guardar y Registrar Compra"
@@ -1198,10 +1198,10 @@
         "subtitle": "Selecciona el cliente y aplica el cobro a una o múltiples facturas pendientes.",
         "client": "Cliente",
         "method": "Método de Cobro",
-        "reference": "Referencia / No. Cheque / Comprobante",
+        "reference": "Referencia",
         "date": "Fecha de Cobro",
         "pendingInvoices": "Facturas con Saldo Adeudado",
-        "submit": "Guardar e Imprimir Recibo"
+        "submit": "Guardar"
       }
     },
     "form": {
@@ -1218,7 +1218,7 @@
       "code": "Prefijo"
     },
     "sequences": {
-      "title": "Comprobantes Fiscales (NCF)",
+      "title": "Comprobantes Fiscales",
       "description": "Administración de secuencias NCF tradicionales y e-CF electrónicos autorizados por la DGII.",
       "newSequence": "Nueva Secuencia NCF",
       "columns": {
@@ -1239,7 +1239,7 @@
       "environments": {
         "prod": "PRODUCCIÓN",
         "cert": "CERTIFICACIÓN",
-        "test": "PRUEBAS (TEST)"
+        "test": "PRUEBAS"
       },
       "types": {
         "E31": "E31 - Crédito Fiscal Electrónico",
@@ -1262,9 +1262,9 @@
           "cert": "CERT",
           "prod": "PROD"
         },
-        "startNumber": "Número Inicial (Desde)",
-        "limitNumber": "Límite Autorizado (Hasta)",
-        "expirationDate": "Fecha de Vencimiento DGII (Opcional)",
+        "startNumber": "Número Inicial",
+        "limitNumber": "Límite Autorizado",
+        "expirationDate": "Fecha de Vencimiento",
         "submit": "Guardar Secuencia"
       },
       "messages": {
@@ -1282,7 +1282,7 @@
       "lines": "Líneas de la factura original",
       "invoiced": "Facturado",
       "quantityToCredit": "Cant. a acreditar",
-      "reason": "Motivo de la modificación (DGII)",
+      "reason": "Motivo de la modificación",
       "reasons": {
         "1": "1 · Anulación de la operación",
         "2": "2 · Corrección por error",
@@ -1329,8 +1329,8 @@
         "ncfTraditional": "NCF Tradicional"
       },
       "actions": {
-        "downloadPdf": "Descargar PDF Oficial (RI)",
-        "downloadXml": "Descargar XML Firmado DGII",
+        "downloadPdf": "Descargar RI",
+        "downloadXml": "Descargar XML Firmado",
         "transmitFiscalBridge": "Transmitir a FiscalBridge",
         "emitDraft": "Emitir Factura Fiscal",
         "cancelInvoice": "Anular Factura",

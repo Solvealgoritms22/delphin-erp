@@ -41,7 +41,7 @@
 @import './components/scrollbar.css';
 @import './components/markdown.css';
 
-@import './third-party/lucide-icons.css';
+@import './third-party/fluent-icons.css';
 
 :root {
   --expo-out: cubic-bezier(0.16, 1, 0.3, 1);

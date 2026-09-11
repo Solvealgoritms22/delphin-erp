@@ -23,7 +23,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
 import {
-  BriefcaseIcon,
   UploadIcon,
   TrashIcon,
   RefreshCwIcon,
@@ -48,7 +47,6 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
     MatIconModule,
     MatTooltipModule,
     TranslocoPipe,
-    BriefcaseIcon,
     UploadIcon,
     TrashIcon,
     RefreshCwIcon,
@@ -64,7 +62,7 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
       <div
         class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600"
       >
-        <i-briefcase [size]="20" />
+        <mat-icon svgIcon="briefcase" class="size-5" />
       </div>
       <span class="text-xl font-bold">{{
         (data ? 'companies.edit' : 'companies.new') | transloco
@@ -89,9 +87,10 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
               [alt]="'companies.logoAlt' | transloco"
               class="h-full w-full object-contain p-2"
             />
-            <i-briefcase
+            <mat-icon
               *ngIf="!logoPreview()"
-              [size]="32"
+              svgIcon="briefcase"
+              class="!w-8 !h-8 !text-[32px]"
             />
           </div>
           <div class="flex min-w-0 flex-col gap-2">

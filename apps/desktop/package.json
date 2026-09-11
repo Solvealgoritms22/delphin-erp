@@ -63,6 +63,7 @@
     "@angular/platform-server": "22.1.0",
     "@angular/router": "22.1.0",
     "@angular/ssr": "22.1.2",
+    "@fluentui/svg-icons": "^1.1.340",
     "@jsverse/transloco": "8.4.0",
     "@tanstack/angular-query-experimental": "^5.101.4",
     "apexcharts": "5.16.0",
