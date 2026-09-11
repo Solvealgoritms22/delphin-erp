@@ -8,6 +8,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import {
   NotificationCatalogItem,
   NotificationService,
@@ -33,6 +34,7 @@ type CategoryGroup = {
     MatTooltipModule,
     TranslocoPipe,
     SkeletonComponent,
+    EmptyStateComponent,
   ],
   template: `
     <div class="flex h-full w-full min-w-0 flex-col bg-white dark:bg-neutral-900 overflow-hidden">
@@ -98,6 +100,19 @@ type CategoryGroup = {
                   <app-skeleton type="rect" height="3.5rem" />
                 </div>
               </div>
+            </div>
+          } @else if (error() || categories().length === 0) {
+            <div class="flex-1 flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto">
+              <app-empty-state
+                illustration="18.svg"
+                illustrationDark="18-dark.svg"
+                type="error"
+                [title]="'notificationSettings.loadError' | transloco"
+                [description]="'common.serverErrorDescription' | transloco"
+                [actionLabel]="'common.retry' | transloco"
+                actionIcon="refresh-cw"
+                (action)="loadData()"
+              />
             </div>
           } @else {
             @for (group of categories(); track group.category) {
@@ -175,6 +190,7 @@ export default class NotificationSettingsComponent implements OnInit {
   private readonly transloco = inject(TranslocoService);
 
   readonly loading = signal(true);
+  readonly error = signal(false);
   readonly saving = signal(false);
   readonly catalog = signal<NotificationCatalogItem[]>([]);
   readonly preferences = signal<Map<string, boolean>>(new Map());
@@ -235,12 +251,19 @@ export default class NotificationSettingsComponent implements OnInit {
 
             this.preferences.set(new Map(map));
             this.initialPreferences = new Map(map);
+            this.error.set(false);
             this.loading.set(false);
           },
-          error: () => this.loading.set(false),
+          error: () => {
+            this.error.set(true);
+            this.loading.set(false);
+          },
         });
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.error.set(true);
+        this.loading.set(false);
+      },
     });
   }
 

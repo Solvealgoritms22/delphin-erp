@@ -32,4 +32,26 @@ describe('email renderer', () => {
     expect(email.html).toContain('123456');
     expect(email.text).toContain('No lo compartas con nadie.');
   });
+  it('renders rich HTML body with images while keeping variables safely escaped', () => {
+    const custom = {
+      subject: 'Cotización {{documentNumber}} · {{company}}',
+      heading: 'Propuesta comercial',
+      body: '<p>Estimado <strong>{{name}}</strong>:</p><p><img src="https://cdn.example.com/logo.png" alt="Logo"></p><p>Adjuntamos el detalle de su cotización.</p>',
+      footer: 'Atentamente {{company}}',
+      accent: '#2563eb'
+    };
+    const email = renderEmail('quote', {
+      company: 'ACME Corp',
+      name: '<script>alert(1)</script>',
+      documentNumber: 'COT-99',
+      total: '1500.00',
+      currency: 'DOP'
+    }, custom);
+
+    // Debe contener el HTML estructurado y la imagen con estilos responsivos
+    expect(email.html).toContain('<img src="https://cdn.example.com/logo.png" alt="Logo" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0;display:inline-block;">');
+    expect(email.html).toContain('<strong>&lt;script&gt;alert(1)&lt;/script&gt;</strong>');
+    expect(email.html).not.toContain('<script>');
+  });
 });
+

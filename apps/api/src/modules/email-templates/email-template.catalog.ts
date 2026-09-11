@@ -27,7 +27,7 @@ export function emailDefinition(key: string) {
 }
 export function validateDesign(key: string, design: EmailDesign) {
   const definition = emailDefinition(key);
-  for (const [field,max] of [['subject',200],['heading',160],['body',8000],['footer',600]] as const) {
+  for (const [field,max] of [['subject',200],['heading',160],['body',250000],['footer',1000]] as const) {
     const value = design[field];
     if (typeof value !== 'string' || !value.trim() || value.length > max)
       throw new BadRequestException('Contenido de plantilla inválido: '+field);
