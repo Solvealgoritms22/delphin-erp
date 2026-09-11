@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal, effect, untracked } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, computed, effect, untracked } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthState } from '@core/auth/auth.state';
 import { MatDialog } from '@angular/material/dialog';
@@ -18,7 +18,7 @@ import { EmailEditorComponent } from '@shared/components/email-editor/email-edit
 import { environment } from '@/environments/environment';
 
 type Design = { subject: string; heading: string; body: string; footer: string; accent: string };
-type Template = Design & { key: string; editable: boolean; customized: boolean; revision: number; variables: string[] };
+type Template = Design & { key: string; editable: boolean; scope?: 'system' | 'tenant'; customized: boolean; revision: number; variables: string[] };
 type Payload = { templates: Template[] };
 
 const PRESET_COLORS = [
@@ -132,6 +132,11 @@ const PRESET_COLORS = [
                 >
                   <div class="flex items-center justify-between gap-2">
                     <span class="text-sm font-semibold truncate">{{ label(item.key) }}</span>
+                    @if (item.scope === 'system') {
+                      <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 shrink-0">
+                        Sistema
+                      </span>
+                    }
                   </div>
                   <span class="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
                     {{ item.subject }}
@@ -149,15 +154,33 @@ const PRESET_COLORS = [
                   <!-- Cabecera de la plantilla -->
                   <div class="p-5 sm:p-6 border-b border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-neutral-50/40 dark:bg-neutral-900">
                     <div>
-                      <h2 class="text-lg font-bold text-neutral-900 dark:text-white">{{ label(item.key) }}</h2>
+                      <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-neutral-900 dark:text-white">{{ label(item.key) }}</h2>
+                        @if (item.scope === 'system') {
+                          <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                            Plantilla del Sistema
+                          </span>
+                        } @else {
+                          <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                            Plantilla de la Empresa
+                          </span>
+                        }
+                      </div>
                       <p class="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-                        {{ item.editable ? ('emailTemplates.editorHelp' | transloco) : ('emailTemplates.systemHelp' | transloco) }}
+                        {{ item.scope === 'system' ? 'Esta plantilla pertenece a la plataforma Dolphin ERP (solo lectura).' : ('emailTemplates.editorHelp' | transloco) }}
                       </p>
                     </div>
                   </div>
 
                   <!-- Formulario de Configuración -->
                   <div class="p-5 sm:p-6 space-y-5">
+                    @if (!item.editable) {
+                      <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                        <mat-icon svgIcon="shield" class="!w-4 !h-4 shrink-0"></mat-icon>
+                        <span>Plantilla protegida del sistema. Utiliza el logo oficial de Dolphin ERP y sus textos son administrados por la plataforma.</span>
+                      </div>
+                    }
+
                     <!-- Asunto -->
                     <div class="space-y-1.5">
                       <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
@@ -167,7 +190,7 @@ const PRESET_COLORS = [
                         type="text"
                         [(ngModel)]="item.subject"
                         (ngModelChange)="onDesignChange(item)"
-                        [disabled]="!item.editable"
+                        [disabled]="!item.editable || saving()"
                         [placeholder]="'emailTemplates.subjectPlaceholder' | transloco"
                         class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-neutral-100 dark:disabled:bg-neutral-800/50 disabled:text-neutral-500 transition-all shadow-2xs"
                       />
@@ -182,7 +205,7 @@ const PRESET_COLORS = [
                         type="text"
                         [(ngModel)]="item.heading"
                         (ngModelChange)="onDesignChange(item)"
-                        [disabled]="!item.editable"
+                        [disabled]="!item.editable || saving()"
                         [placeholder]="'emailTemplates.headingPlaceholder' | transloco"
                         class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-neutral-100 dark:disabled:bg-neutral-800/50 disabled:text-neutral-500 transition-all shadow-2xs"
                       />
@@ -198,7 +221,7 @@ const PRESET_COLORS = [
                           <button
                             type="button"
                             (click)="setAccentColor(item, preset.value)"
-                            [disabled]="!item.editable"
+                            [disabled]="!item.editable || saving()"
                             class="size-7 rounded-full transition-transform border-2 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed hover:scale-110 active:scale-95 shadow-2xs"
                             [style.background-color]="preset.value"
                             [class.border-white]="item.accent === preset.value"
@@ -218,7 +241,7 @@ const PRESET_COLORS = [
                             type="color"
                             [(ngModel)]="item.accent"
                             (ngModelChange)="onDesignChange(item)"
-                            [disabled]="!item.editable"
+                            [disabled]="!item.editable || saving()"
                             class="size-7 rounded-lg cursor-pointer border-0 p-0 bg-transparent disabled:cursor-not-allowed"
                           />
                           <span class="text-xs font-mono font-medium text-neutral-500 dark:text-neutral-400 uppercase">
@@ -237,7 +260,7 @@ const PRESET_COLORS = [
                       </div>
                       <app-email-editor
                         [content]="item.body"
-                        [editable]="item.editable"
+                        [editable]="item.editable && !saving()"
                         [variables]="item.variables"
                         (contentChange)="onBodyChange(item, $event)"
                       />
@@ -252,7 +275,7 @@ const PRESET_COLORS = [
                         type="text"
                         [(ngModel)]="item.footer"
                         (ngModelChange)="onDesignChange(item)"
-                        [disabled]="!item.editable"
+                        [disabled]="!item.editable || saving()"
                         [placeholder]="'emailTemplates.footerPlaceholder' | transloco"
                         class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-neutral-100 dark:disabled:bg-neutral-800/50 disabled:text-neutral-500 transition-all shadow-2xs"
                       />
@@ -308,18 +331,41 @@ const PRESET_COLORS = [
                   </div>
 
                   <!-- Frame Container -->
-                  <div class="p-4 sm:p-6 bg-neutral-100/70 dark:bg-neutral-950/80 flex items-center justify-center min-h-[600px] overflow-hidden">
+                  <div class="p-4 sm:p-6 bg-neutral-100/70 dark:bg-neutral-950/80 flex flex-col items-center justify-center min-h-[600px] overflow-hidden">
                     @if (previewHtml()) {
                       <div
-                        class="transition-all duration-300 shadow-md rounded-xl overflow-hidden bg-white"
+                        class="transition-all duration-300 shadow-md rounded-2xl overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800"
                         [class.w-full]="previewDevice() === 'desktop'"
-                        [class.max-w-[390px]]="previewDevice() === 'mobile'"
+                        [class.max-w-[420px]]="previewDevice() === 'mobile'"
                         [class.border-4]="previewDevice() === 'mobile'"
                         [class.border-neutral-800]="previewDevice() === 'mobile'"
                         [class.rounded-3xl]="previewDevice() === 'mobile'"
                       >
+                        <!-- Email Header Envelope (De, Para, Asunto) -->
+                        <div class="px-5 py-3.5 bg-neutral-50/90 dark:bg-neutral-800/90 border-b border-neutral-200 dark:border-neutral-700/80 text-xs space-y-1.5 select-none">
+                          <div class="flex items-center gap-2">
+                            <span class="font-semibold text-neutral-400 dark:text-neutral-500 w-14 shrink-0">De:</span>
+                            <span class="text-neutral-700 dark:text-neutral-300 font-medium truncate">
+                              @if (item.scope === 'system') {
+                                Dolphin ERP &lt;soporte&#64;delphin-erp.com&gt;
+                              } @else {
+                                {{ currentCompanyName() }} &lt;notificaciones&#64;delphin.com&gt;
+                              }
+                            </span>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            <span class="font-semibold text-neutral-400 dark:text-neutral-500 w-14 shrink-0">Para:</span>
+                            <span class="text-neutral-600 dark:text-neutral-400 truncate">Cliente de demostración &lt;cliente&#64;ejemplo.com&gt;</span>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            <span class="font-semibold text-neutral-400 dark:text-neutral-500 w-14 shrink-0">Asunto:</span>
+                            <span class="font-bold text-neutral-900 dark:text-white truncate">{{ previewSubject() || item.subject }}</span>
+                          </div>
+                        </div>
+
                         <iframe
-                          class="w-full h-[640px] bg-white block border-0"
+                          class="w-full h-[600px] bg-white block border-0"
+                          style="scrollbar-width: thin;"
                           [title]="'emailTemplates.preview' | transloco"
                           sandbox="" referrerpolicy="no-referrer"
                           [srcdoc]="previewHtml()"
@@ -357,8 +403,24 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
   readonly error = signal(false);
   readonly saving = signal(false);
   readonly previewing = signal(false);
+  readonly previewSubject = signal<string>('');
   readonly previewHtml = signal<SafeHtml | null>(null);
   readonly previewDevice = signal<'desktop' | 'mobile'>('desktop');
+
+  readonly currentCompanyName = computed(() => {
+    const id = this.auth.empresaId();
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cached_my_empresas');
+        if (cached) {
+          const list = JSON.parse(cached);
+          const found = list.find((e: any) => e.id === id);
+          if (found?.razonSocial) return found.razonSocial;
+        }
+      } catch {}
+    }
+    return 'Dolphin ERP';
+  });
 
   private readonly auth = inject(AuthState);
   private readonly sanitizer = inject(DomSanitizer);
@@ -431,20 +493,24 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
 
   private openTemplate(item: Template): void {
     this.selected.set({...item});
+    this.previewSubject.set(item.subject);
     this.previewHtml.set(null);
     this.triggerPreview(this.selected()!);
   }
 
-  onDesignChange(item: Template): void { this.triggerPreview(item); }
+  onDesignChange(item: Template): void {
+    this.previewSubject.set(item.subject);
+    this.triggerPreview(item);
+  }
 
   onBodyChange(item: Template, newHtml: string): void {
-    if (!item.editable || this.saving()) return;
+    if (this.saving()) return;
     item.body = newHtml;
     this.triggerPreview(item);
   }
 
   setAccentColor(item: Template, color: string): void {
-    if (!item.editable || this.saving()) return;
+    if (this.saving()) return;
     item.accent = color;
     this.triggerPreview(item);
   }
@@ -459,11 +525,13 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
     if (this.selected()?.key !== item.key) return;
     const version = this.previewVersion, tenant = this.tenantVersion;
     this.previewing.set(true);
-    this.previewRequest = this.http.post<{html:string}>(this.api + '/' + item.key + '/preview', this.design(item)).subscribe({
+    this.previewRequest = this.http.post<{html:string; subject?:string}>(this.api + '/' + item.key + '/preview', this.design(item)).subscribe({
       next: value => {
         if (version !== this.previewVersion || tenant !== this.tenantVersion) return;
+        if (value.subject) this.previewSubject.set(value.subject);
         // Only server-sanitized email HTML, inside an opaque sandbox without scripts/navigation.
-        this.previewHtml.set(this.sanitizer.bypassSecurityTrustHtml(value.html));
+        const styled = this.injectPreviewStyles(value.html);
+        this.previewHtml.set(this.sanitizer.bypassSecurityTrustHtml(styled));
         this.previewing.set(false);
       },
       error: () => {
@@ -475,8 +543,30 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
     });
   }
 
+  private injectPreviewStyles(rawHtml: string): string {
+    if (!rawHtml) return '';
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    const thumbColor = isDark ? '#525252' : '#cbd5e1';
+    const thumbHover = isDark ? '#737373' : '#94a3b8';
+    const scrollbarCss =
+      '<style id="preview-custom-scrollbar">' +
+      `html,body,*{scrollbar-width:thin;scrollbar-color:${thumbColor} transparent;}` +
+      '::-webkit-scrollbar{width:6px;height:6px;}' +
+      '::-webkit-scrollbar-button{display:none!important;width:0!important;height:0!important;}' +
+      '::-webkit-scrollbar-track{background:transparent;}' +
+      `::-webkit-scrollbar-thumb{background:${thumbColor};border-radius:9999px;}` +
+      `::-webkit-scrollbar-thumb:hover{background:${thumbHover};}` +
+      '::-webkit-scrollbar-corner{background:transparent;}' +
+      '</style>';
+
+    if (rawHtml.includes('</head>')) {
+      return rawHtml.replace('</head>', `${scrollbarCss}</head>`);
+    }
+    return scrollbarCss + rawHtml;
+  }
+
   save(item: Template): void {
-    if (this.saving() || !item.editable) return;
+    if (this.saving()) return;
     const version = this.tenantVersion;
     this.saving.set(true);
     this.requests.add(this.http.put<Template>(this.api + '/' + item.key, {...this.design(item),revision:item.revision}).subscribe({
@@ -495,7 +585,7 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
   }
 
   reset(item: Template): void {
-    if (this.saving() || !item.editable) return;
+    if (this.saving()) return;
     this.confirm('emailTemplates.resetConfirm', () => {
       const version = this.tenantVersion;
       this.saving.set(true);

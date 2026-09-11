@@ -22,6 +22,7 @@ export interface EmailBlocks {
   actionUrl?: string;
   rows?: Array<{ label: string; value: string }>;
   message?: string;
+  companyLogo?: string;
 }
 
 export function sanitizeEmailHtml(html: string): string {
@@ -89,21 +90,24 @@ export function renderEmail(
   blocks: EmailBlocks = {},
 ) {
   const definition = emailDefinition(key);
-  const design = definition.editable ? (custom ?? definition) : definition;
+  const isSystem = definition.scope === 'system';
+  const design = (isSystem || !definition.editable) ? definition : (custom ?? definition);
   validateDesign(key, design);
+  const effectiveValues: Record<string, string> = {
+    company: isSystem ? 'Dolphin ERP' : (values.company || 'Dolphin ERP'),
+    ...values,
+  };
   const fill = (value: string, escapeVal = true) =>
     value.replace(/{{\s*([^{}]+?)\s*}}/g, (_, name: string) => {
-      if (!Object.hasOwn(values, name))
+      if (!Object.hasOwn(effectiveValues, name))
         throw new BadRequestException('Falta la variable ' + name);
-      return escapeVal ? escapeEmail(values[name]) : values[name];
+      return escapeVal ? escapeEmail(effectiveValues[name]) : effectiveValues[name];
     });
   const subject = fill(design.subject, false)
     .replace(/[\r\n\x00-\x1f]/g, ' ')
     .slice(0, 200);
   const heading = fill(design.heading, false);
-  const brand = definition.editable
-    ? values.company || 'Dolphin ERP'
-    : 'Dolphin ERP';
+  const brand = isSystem ? 'Dolphin ERP' : (effectiveValues.company || 'Dolphin ERP');
 
   // Procesar el cuerpo (detectar HTML o texto plano)
   const isHtml = /<[a-z][\s\S]*>/i.test(design.body);
@@ -111,18 +115,79 @@ export function renderEmail(
     ? sanitizeEmailHtml(fill(design.body, true))
     : escapeEmail(fill(design.body, false)).replace(/\n/g, '<br>');
 
-  const attachments = [
-    {
+  const attachments: Array<{
+    filename: string;
+    content: Buffer;
+    cid: string;
+    contentType: string;
+  }> = [];
+
+  let headerHtml = '';
+
+  if (isSystem) {
+    // El logo de Dolphin ERP solo va en plantillas del sistema
+    attachments.push({
       filename: 'dolphin.png',
       content: Buffer.from(DOLPHIN_LOGO_BASE64, 'base64'),
       cid: 'dolphin-brand',
       contentType: 'image/png',
-    },
-  ];
+    });
+    headerHtml =
+      '<table role="presentation" cellspacing="0" cellpadding="0" style="margin-bottom:28px"><tr>' +
+      '<td style="width:52px;padding-right:12px"><img src="cid:dolphin-brand" alt="Dolphin ERP" width="48" height="43" style="display:block;border:0"></td>' +
+      '<td style="font-size:18px;font-weight:700;color:#0f172a">Dolphin ERP<br><span style="font-size:11px;font-weight:400;letter-spacing:1px;color:#64748b">GESTIÓN EMPRESARIAL</span></td>' +
+      '</tr></table>';
+  } else {
+    // Plantillas de empresa / cuenta propietaria:
+    // Nunca incluir el logo de Dolphin ERP.
+    // Usar el logo de la empresa si existe; si no, usar el nombre de la empresa como cabecera.
+    const companyLogo = values.companyLogo || blocks.companyLogo;
+    let logoImageSrc = '';
+
+    if (companyLogo && typeof companyLogo === 'string') {
+      const dataUriMatch = companyLogo.match(
+        /^data:image\/(png|jpeg|jpg|gif|webp);base64,([A-Za-z0-9+/=]+)$/i,
+      );
+      if (dataUriMatch) {
+        const rawExt = dataUriMatch[1].toLowerCase();
+        const ext = rawExt === 'jpg' ? 'jpeg' : rawExt;
+        const b64Data = dataUriMatch[2];
+        const cid = 'company-logo';
+        attachments.push({
+          filename: `company-logo.${ext}`,
+          content: Buffer.from(b64Data, 'base64'),
+          cid,
+          contentType: `image/${ext}`,
+        });
+        logoImageSrc = `cid:${cid}`;
+      } else if (/^https?:\/\//i.test(companyLogo)) {
+        logoImageSrc = escapeEmail(companyLogo);
+      }
+    }
+
+    if (logoImageSrc) {
+      headerHtml =
+        '<table role="presentation" cellspacing="0" cellpadding="0" style="margin-bottom:24px"><tr>' +
+        '<td><img src="' +
+        logoImageSrc +
+        '" alt="' +
+        escapeEmail(brand) +
+        '" style="max-height:50px;max-width:220px;display:block;border:0"></td>' +
+        '</tr></table>';
+    } else {
+      headerHtml =
+        '<table role="presentation" cellspacing="0" cellpadding="0" style="margin-bottom:24px"><tr>' +
+        '<td><span style="font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.5px;display:inline-block">' +
+        escapeEmail(brand) +
+        '</span></td>' +
+        '</tr></table>';
+    }
+  }
+
   renderedBody = renderedBody.replace(
     /src="data:image\/(png|jpeg|gif|webp);base64,([A-Za-z0-9+/=]+)"/g,
     (_, type: string, data: string) => {
-      const cid = 'email-image-' + attachments.length;
+      const cid = 'email-image-' + (attachments.length + 1);
       attachments.push({
         filename: cid + '.' + type,
         content: Buffer.from(data, 'base64'),
@@ -192,12 +257,26 @@ export function renderEmail(
   const paragraphs = (text: string) => escapeEmail(text).replace(/\n/g, '<br>');
   const footerText = fill(design.footer, false);
 
+  const scrollbarStyles =
+    '<style>' +
+    'html,body,*{scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}' +
+    '::-webkit-scrollbar{width:6px;height:6px}' +
+    '::-webkit-scrollbar-button{display:none!important;width:0!important;height:0!important}' +
+    '::-webkit-scrollbar-track{background:transparent}' +
+    '::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:9999px}' +
+    '::-webkit-scrollbar-thumb:hover{background:#94a3b8}' +
+    '::-webkit-scrollbar-corner{background:transparent}' +
+    '@media(prefers-color-scheme:dark){html,body,*{scrollbar-color:#525252 transparent}::-webkit-scrollbar-thumb{background:#525252}::-webkit-scrollbar-thumb:hover{background:#737373}}' +
+    '</style>';
+
   const html =
-    '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f1f5f9;color:#0f172a;font:15px/1.65 Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:32px 12px"><table role="presentation" width="100%" style="max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-top:4px solid ' +
+    '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    scrollbarStyles +
+    '</head><body style="margin:0;background:#f1f5f9;color:#0f172a;font:15px/1.65 Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:32px 12px"><table role="presentation" width="100%" style="max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-top:4px solid ' +
     design.accent +
-    ';border-radius:8px"><tr><td style="padding:32px"><table role="presentation" cellspacing="0" cellpadding="0" style="margin-bottom:28px"><tr><td style="width:52px;padding-right:12px"><img src="cid:dolphin-brand" alt="Dolphin ERP" width="48" height="43" style="display:block;border:0"></td><td style="font-size:18px;font-weight:700;color:#0f172a">Dolphin ERP<br><span style="font-size:11px;font-weight:400;letter-spacing:1px;color:#64748b">GESTIÓN EMPRESARIAL</span></td></tr></table><p style="font-size:12px;font-weight:700;letter-spacing:1px;color:#475569">' +
-    escapeEmail(brand) +
-    '</p><h1 style="font-size:24px;line-height:1.3">' +
+    ';border-radius:8px"><tr><td style="padding:32px">' +
+    headerHtml +
+    '<h1 style="font-size:24px;line-height:1.3">' +
     escapeEmail(heading) +
     '</h1><div style="font-size:15px;line-height:1.65;color:#334155">' +
     renderedBody +
@@ -208,7 +287,9 @@ export function renderEmail(
     (blocks.message ? '<p>' + paragraphs(blocks.message) + '</p>' : '') +
     '<hr style="border:0;border-top:1px solid #e2e8f0"><p style="color:#64748b;font-size:13px">' +
     paragraphs(footerText) +
-    '</p><p style="color:#64748b;font-size:12px">Dolphin ERP</p></td></tr></table></td></tr></table></body></html>';
+    '</p><p style="color:#64748b;font-size:12px">' +
+    (isSystem ? 'Dolphin ERP' : escapeEmail(brand)) +
+    '</p></td></tr></table></td></tr></table></body></html>';
 
   const plainBody = isHtml
     ? renderedBody
@@ -222,13 +303,14 @@ export function renderEmail(
     html,
     attachments,
     text: [
-      brand,
+      isSystem ? 'Dolphin ERP' : brand,
       heading,
       plainBody,
       plainAction,
       ...rows.map((row) => row.label + ': ' + row.value),
       blocks.message,
       footerText,
+      isSystem ? 'Dolphin ERP' : brand,
     ]
       .filter(Boolean)
       .join('\n\n'),

@@ -23,4 +23,14 @@
   ::-webkit-scrollbar-thumb:hover {
     background: light-dark(var(--color-neutral-400), var(--color-neutral-600));
   }
+
+  ::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }

@@ -53,4 +53,35 @@ describe('email renderer', () => {
     expect(email.html).toContain('<strong>&lt;script&gt;alert(1)&lt;/script&gt;</strong>');
     expect(email.html).not.toContain('<script>');
   });
+  it('only includes dolphin logo in system templates, not in tenant templates', () => {
+    // 1. Plantilla de empresa sin logo: muestra el nombre de la empresa, sin logo de Dolphin ERP
+    const quoteEmail = renderEmail('quote', {
+      company: 'Farmacia Rosales SRL',
+      name: 'Juan Perez',
+      documentNumber: 'COT-001',
+      total: '2,500.00',
+      currency: 'DOP',
+    });
+    expect(quoteEmail.html).not.toContain('cid:dolphin-brand');
+    expect(quoteEmail.html).toContain('Farmacia Rosales SRL');
+    expect(quoteEmail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(false);
+
+    // 2. Plantilla de empresa con logo: muestra la imagen del logo de la empresa
+    const quoteWithLogo = renderEmail('quote', {
+      company: 'Farmacia Rosales SRL',
+      companyLogo: 'https://cdn.example.com/farmacia-logo.png',
+      name: 'Juan Perez',
+      documentNumber: 'COT-001',
+      total: '2,500.00',
+      currency: 'DOP',
+    });
+    expect(quoteWithLogo.html).not.toContain('cid:dolphin-brand');
+    expect(quoteWithLogo.html).toContain('https://cdn.example.com/farmacia-logo.png');
+
+    // 3. Plantilla del sistema (verification): sí incluye el logo de Dolphin ERP
+    const verificationEmail = renderEmail('verification', { name: 'Admin' }, undefined, { code: '654321' });
+    expect(verificationEmail.html).toContain('cid:dolphin-brand');
+    expect(verificationEmail.html).toContain('Dolphin ERP');
+    expect(verificationEmail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(true);
+  });
 });

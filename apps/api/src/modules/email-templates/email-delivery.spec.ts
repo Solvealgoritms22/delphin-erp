@@ -29,9 +29,19 @@ describe('Email delivery contract', () => {
       );
       expect(mail.html).toContain('Mensaje personalizado');
       expect(mail.text).toContain(values.message);
-      expect(mail.html).toContain('cid:dolphin-brand');
+      expect(mail.html).not.toContain('cid:dolphin-brand');
+      expect(mail.html).toContain('Empresa &amp; Asociados');
     },
   );
+  it('system templates include the dolphin logo while tenant templates do not', () => {
+    const systemMail = renderEmail('verification', { name: 'Ana' }, undefined, { code: '123456' });
+    expect(systemMail.html).toContain('cid:dolphin-brand');
+    expect(systemMail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(true);
+
+    const tenantMail = renderEmail('quote', values);
+    expect(tenantMail.html).not.toContain('cid:dolphin-brand');
+    expect(tenantMail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(false);
+  });
   it.each([
     '<a href=javascript:alert(1)>x</a>',
     '<a href="java&#x73;cript:alert(1)">x</a>',
@@ -73,7 +83,7 @@ describe('Email delivery contract', () => {
       ...EMAIL_CATALOG.quote,
       body: '<p><img src="data:image/png;base64,iVBORw0KGgo="></p>',
     });
-    expect(mail.attachments).toHaveLength(2);
+    expect(mail.attachments).toHaveLength(1);
     expect(mail.html).toContain('cid:email-image-1');
     expect(mail.html).not.toContain('src="data:');
   });
@@ -137,7 +147,7 @@ describe('Email delivery contract', () => {
       },
     });
     expect(mime).toContain('Content-Type: multipart/alternative');
-    expect(mime).toContain('Content-ID: <dolphin-brand>');
+    expect(mime).not.toContain('Content-ID: <dolphin-brand>');
     expect(mime).toContain('Contenido de mi empresa');
   });
   it('denies template management to a user who does not own the selected company', async () => {

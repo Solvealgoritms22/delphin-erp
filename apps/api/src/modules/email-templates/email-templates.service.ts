@@ -13,7 +13,6 @@ import {
   emailDefinition,
   validateDesign,
 } from './email-template.catalog';
-import { DOLPHIN_LOGO_BASE64 } from './email-logo';
 import { EmailBlocks, renderEmail } from './email-renderer';
 
 @Injectable()
@@ -31,7 +30,7 @@ export class EmailTemplatesService {
       throw new ForbiddenException('Empresa y propietario requeridos');
     const company = await db.empresa.findFirst({
       where: { id: empresaId, propietarioId: userId, estado: 'ACTIVA' },
-      select: { razonSocial: true },
+      select: { razonSocial: true, logo: true },
     });
     if (!company)
       throw new ForbiddenException(
@@ -51,6 +50,7 @@ export class EmailTemplatesService {
         return {
           key,
           ...definition,
+          scope: definition.scope,
           ...(definition.editable && custom ? custom : {}),
           revision: custom?.revision ?? 0,
           customized:
@@ -161,19 +161,18 @@ export class EmailTemplatesService {
       key,
       {
         company: company.razonSocial,
+        companyLogo: company.logo ?? '',
         name: 'Cliente de demostración',
         documentNumber: 'COT-DEMO',
         total: '1,180.00',
         currency: 'DOP',
         title: 'Notificación de demostración',
-        message:
-          'Este contenido es una vista previa; no se envía ningún correo.',
+        code: '123456',
+        message: 'Actualización en tiempo real de su cuenta.',
       },
-      definition.editable ? design : undefined,
+      design ?? definition,
       {
-        message: key.startsWith('notification')
-          ? 'Este contenido es una vista previa; no se envía ningún correo.'
-          : undefined,
+        companyLogo: company.logo ?? undefined,
         code: '123456',
         actionUrl: 'https://example.invalid/auth/accept-invitation?token=DEMO',
         ...(key === 'quote'
@@ -210,7 +209,20 @@ export class EmailTemplatesService {
           where: { empresaId_key: { empresaId, key } },
         })
       : null;
-    return renderEmail(key, values, custom, blocks);
+    let companyLogo = values.companyLogo || blocks.companyLogo;
+    if (!companyLogo && empresaId) {
+      const company = await this.prisma.empresa.findUnique({
+        where: { id: empresaId },
+        select: { logo: true },
+      });
+      companyLogo = company?.logo ?? undefined;
+    }
+    return renderEmail(
+      key,
+      { ...values, ...(companyLogo ? { companyLogo } : {}) },
+      custom,
+      { ...blocks, ...(companyLogo ? { companyLogo } : {}) },
+    );
   }
   private async audit(
     tx: Prisma.TransactionClient,

@@ -34,7 +34,7 @@ export class NotificationEmailService {
     const company = context.empresaId
       ? await this.prisma.empresa.findUnique({
           where: { id: context.empresaId },
-          select: { razonSocial: true },
+          select: { razonSocial: true, logo: true },
         })
       : null;
     if (context.empresaId && !company)
@@ -42,6 +42,7 @@ export class NotificationEmailService {
     const key = notificationEmailKey(context.tipo);
     const values = {
       company: company?.razonSocial || 'Dolphin ERP',
+      companyLogo: company?.logo || '',
       name: context.name,
       title,
       message,
@@ -51,8 +52,12 @@ export class NotificationEmailService {
       context.empresaId && Object.hasOwn(EMAIL_CATALOG, key)
         ? await this.templates.render(context.empresaId, key, values, {
             message,
+            companyLogo: company?.logo || undefined,
           })
-        : renderEmail('notification', values, undefined, { message });
+        : renderEmail('notification', values, undefined, {
+            message,
+            companyLogo: company?.logo || undefined,
+          });
     if (process.env.EMAIL_PROVIDER === 'resend') {
       if (!this.resend) throw new Error('Resend is not configured');
       const result = await this.resend.emails.send(
