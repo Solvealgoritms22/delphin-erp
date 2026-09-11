@@ -242,6 +242,9 @@ export default class NotificationSettingsComponent implements OnInit {
               map.set(`${item.id}:PUSH`, item.defaultChannels.includes('PUSH'));
             }
 
+            for (const p of userPrefs.filter(pref => pref.tipo === 'ALL')) {
+              for (const item of catalog) map.set(item.id+':'+p.canal,p.habilitado);
+            }
             // Sobrescribir con las preferencias guardadas en DB
             for (const p of userPrefs) {
               if (p.tipo !== 'ALL') {
@@ -334,31 +337,11 @@ export default class NotificationSettingsComponent implements OnInit {
       return;
     }
 
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      this.snackBar.open(
-        this.transloco.translate('notificationSettings.pushSuccess'),
-        this.transloco.translate('common.close'),
-        {
-          duration: 3500,
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom',
-        },
-      );
-      new Notification('Dolphin ERP', {
-        body: this.transloco.translate('notificationSettings.pushTestBody'),
-        icon: 'favicon.ico',
-      });
-    } else {
-      this.snackBar.open(
-        this.transloco.translate('notificationSettings.pushDenied'),
-        this.transloco.translate('common.close'),
-        {
-          duration: 4000,
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom',
-        },
-      );
+    try {
+      const enabled = await this.notificationService.configureWebPush();
+      this.snackBar.open(this.transloco.translate(enabled?'notificationSettings.pushSuccess':'notificationSettings.pushNotConfigured'),this.transloco.translate('common.close'),{duration:4000});
+    } catch {
+      this.snackBar.open(this.transloco.translate('notificationSettings.pushDenied'),this.transloco.translate('common.close'),{duration:4000});
     }
   }
 
@@ -402,5 +385,4 @@ export default class NotificationSettingsComponent implements OnInit {
     });
   }
 }
-
 

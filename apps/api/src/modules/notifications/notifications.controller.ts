@@ -68,6 +68,9 @@ export class NotificationsController {
     return this.notifications.remove(user.id, id);
   }
 
+  @Get('push-configuration')
+  pushConfiguration() { return this.notifications.pushConfiguration(); }
+
   @Get('catalog')
   @ApiOperation({ summary: 'Obtener catálogo de notificaciones configurables' })
   catalog() {

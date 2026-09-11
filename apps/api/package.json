@@ -41,7 +41,7 @@
     "helmet": "^8.3.0",
     "ioredis": "^6.0.0",
     "nestjs-pino": "^4.6.1",
-    "nodemailer": "^9.0.4",
+    "nodemailer": "^9.1.1",
     "otpauth": "^9.5.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
@@ -53,6 +53,7 @@
     "reflect-metadata": "^0.2.2",
     "resend": "^6.19.0",
     "rxjs": "^7.8.1",
+    "sanitize-html": "^2.17.7",
     "swagger-ui-express": "^5.0.1",
     "web-push": "^3.6.7"
   },
@@ -70,6 +71,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "@types/qrcode": "^1.5.6",
+    "@types/sanitize-html": "^2.16.1",
     "@types/supertest": "^7.0.0",
     "@types/web-push": "^3.6.4",
     "eslint": "^9.18.0",
@@ -96,8 +98,10 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.ts$": "ts-jest",
+      "^.+\\.js$": ["ts-jest", {"tsconfig":{"module":"CommonJS","moduleResolution":"Node","allowJs":true,"isolatedModules":true,"resolvePackageJsonExports":false}}]
     },
+    "transformIgnorePatterns": ["/node_modules/(?!(sanitize-html|htmlparser2|domhandler|domelementtype|domutils|dom-serializer|entities)/)"],
     "collectCoverageFrom": [
       "**/*.(t|j)s",
       "!main.ts",
@@ -133,6 +137,6 @@
     "linkify-it": "5.0.2",
     "mailparser": "3.9.15",
     "nanoid": "3.3.18",
-    "nodemailer": "9.0.5"
+"nodemailer": "9.1.1"
   }
 }

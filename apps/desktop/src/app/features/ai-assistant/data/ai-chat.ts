@@ -149,7 +149,7 @@ export class AiChatService {
         {
           id: `msg_${Date.now()}`,
           role: 'assistant',
-          content: 'Hola, ¿en qué puedo ayudarte hoy con la gestión de tu ERP?',
+          content: 'Hola, ¿en qué puedo ayudarte hoy con la gestión de tu empresa?',
           createdAt: new Date().toISOString(),
         },
       ],
@@ -238,11 +238,11 @@ export class AiChatService {
               messages: conv.messages.map((m) =>
                 m.id === messageId
                   ? {
-                      ...m,
-                      content,
-                      streaming,
-                      toolsUsed: toolsUsed && toolsUsed.length > 0 ? toolsUsed : m.toolsUsed,
-                    }
+                    ...m,
+                    content,
+                    streaming,
+                    toolsUsed: toolsUsed && toolsUsed.length > 0 ? toolsUsed : m.toolsUsed,
+                  }
                   : m,
               ),
             };

@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { createHash } from 'crypto';
+import { Prisma } from '@prisma/client';
+import { normalizePermissions } from '../../common/permissions.util';
 import { TenantContext } from '../../common/tenant/tenant-context';
 import { filter } from 'rxjs';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -16,274 +23,11 @@ export interface CreateNotificationInput {
   icono?: string;
   payload?: Record<string, unknown>;
   canales?: string[];
+  deduplicationKey?: string;
 }
 
-export interface NotificationCatalogItem {
-  id: string;
-  category: string;
-  categoryLabel: string;
-  name: string;
-  description: string;
-  icon: string;
-  severity: string;
-  defaultChannels: string[];
-}
-
-export const NOTIFICATION_CATALOG: NotificationCatalogItem[] = [
-  // 1. Facturación Fiscal & DGII
-  {
-    id: 'INVOICE_EMITTED',
-    category: 'billing_fiscal',
-    categoryLabel: 'Facturación Fiscal & DGII',
-    name: 'Factura Fiscal Emitida',
-    description: 'Notifica cuando una factura es emitida exitosamente con NCF asignado.',
-    icon: 'file-text',
-    severity: 'SUCCESS',
-    defaultChannels: ['IN_APP'],
-  },
-  {
-    id: 'INVOICE_FISCAL_REJECTED',
-    category: 'billing_fiscal',
-    categoryLabel: 'Facturación Fiscal & DGII',
-    name: 'Factura Rechazada por DGII',
-    description: 'Alerta crítica si la DGII o FiscalBridge rechaza una factura electrónica.',
-    icon: 'alert-triangle',
-    severity: 'CRITICAL',
-    defaultChannels: ['IN_APP', 'EMAIL', 'PUSH'],
-  },
-  {
-    id: 'INVOICE_VOIDED',
-    category: 'billing_fiscal',
-    categoryLabel: 'Facturación Fiscal & DGII',
-    name: 'Factura Anulada',
-    description: 'Avisa cuando una factura de venta es cancelada y su inventario restaurado.',
-    icon: 'x-circle',
-    severity: 'WARNING',
-    defaultChannels: ['IN_APP'],
-  },
-  {
-    id: 'NCF_SEQUENCE_LOW',
-    category: 'billing_fiscal',
-    categoryLabel: 'Facturación Fiscal & DGII',
-    name: 'Secuencia NCF por Agotarse',
-    description: 'Alerta cuando a una secuencia de comprobantes le queda menos del 10% disponible.',
-    icon: 'alert-circle',
-    severity: 'WARNING',
-    defaultChannels: ['IN_APP', 'EMAIL', 'PUSH'],
-  },
-  {
-    id: 'NCF_SEQUENCE_EXPIRING',
-    category: 'billing_fiscal',
-    categoryLabel: 'Facturación Fiscal & DGII',
-    name: 'Secuencia NCF Próxima a Vencer',
-    description: 'Aviso anticipado cuando una secuencia fiscal de DGII está cerca de expirar.',
-    icon: 'calendar-clock',
-    severity: 'CRITICAL',
-    defaultChannels: ['IN_APP', 'EMAIL'],
-  },
-  {
-    id: 'CREDIT_NOTE_EMITTED',
-    category: 'billing_fiscal',
-    categoryLabel: 'Facturación Fiscal & DGII',
-    name: 'Nota de Crédito Emitida',
-    description: 'Notifica la emisión de una nota de crédito que modifica una factura.',
-    icon: 'file-minus',
-    severity: 'INFO',
-    defaultChannels: ['IN_APP'],
-  },
-
-  // 2. Cotizaciones y Ventas
-  {
-    id: 'QUOTE_SENT',
-    category: 'sales_quotes',
-    categoryLabel: 'Cotizaciones y Ventas',
-    name: 'Cotización Enviada al Cliente',
-    description: 'Confirma que la cotización fue despachada por correo electrónico al cliente.',
-    icon: 'send',
-    severity: 'SUCCESS',
-    defaultChannels: ['IN_APP'],
-  },
-  {
-    id: 'QUOTE_EXPIRING',
-    category: 'sales_quotes',
-    categoryLabel: 'Cotizaciones y Ventas',
-    name: 'Cotización Próxima a Vencer',
-    description: 'Avisa 48 horas antes de que expire la validez de la oferta comercial.',
-    icon: 'clock',
-    severity: 'WARNING',
-    defaultChannels: ['IN_APP'],
-  },
-  {
-    id: 'QUOTE_CONVERTED',
-    category: 'sales_quotes',
-    categoryLabel: 'Cotizaciones y Ventas',
-    name: 'Cotización Convertida a Factura',
-    description: 'Notifica cuando una cotización es aprobada y facturada.',
-    icon: 'check-circle',
-    severity: 'SUCCESS',
-    defaultChannels: ['IN_APP'],
-  },
-
-  // 3. Cobranzas y Cuentas por Cobrar
-  {
-    id: 'PAYMENT_RECEIVED',
-    category: 'cxc_payments',
-    categoryLabel: 'Cobranzas y Cuentas por Cobrar',
-    name: 'Cobro de Cliente Registrado',
-    description: 'Notifica cuando se registra un abono o pago total sobre una factura a crédito.',
-    icon: 'dollar-sign',
-    severity: 'SUCCESS',
-    defaultChannels: ['IN_APP'],
-  },
-  {
-    id: 'INVOICE_OVERDUE',
-    category: 'cxc_payments',
-    categoryLabel: 'Cobranzas y Cuentas por Cobrar',
-    name: 'Factura en Mora (Vencida)',
-    description: 'Alerta sobre facturas a crédito cuya fecha límite de pago ha sido superada.',
-    icon: 'clock-alert',
-    severity: 'WARNING',
-    defaultChannels: ['IN_APP', 'EMAIL'],
-  },
-
-  // 4. Inventario y Almacenes
-  {
-    id: 'INVENTORY_STOCK_LOW',
-    category: 'inventory_stock',
-    categoryLabel: 'Inventario y Almacenes',
-    name: 'Stock Mínimo Alcanzado',
-    description: 'Alerta cuando las existencias de un producto bajan del límite de seguridad.',
-    icon: 'package-alert',
-    severity: 'WARNING',
-    defaultChannels: ['IN_APP', 'PUSH'],
-  },
-  {
-    id: 'INVENTORY_STOCK_OUT',
-    category: 'inventory_stock',
-    categoryLabel: 'Inventario y Almacenes',
-    name: 'Quiebre de Stock (Agotado)',
-    description: 'Aviso crítico cuando el stock de un producto llega a 0 tras una venta o ajuste.',
-    icon: 'package-x',
-    severity: 'CRITICAL',
-    defaultChannels: ['IN_APP', 'PUSH'],
-  },
-  {
-    id: 'INVENTORY_ADJUSTED',
-    category: 'inventory_stock',
-    categoryLabel: 'Inventario y Almacenes',
-    name: 'Ajuste de Inventario Realizado',
-    description: 'Notifica ajustes de entrada o salida manuales en los almacenes.',
-    icon: 'arrow-left-right',
-    severity: 'INFO',
-    defaultChannels: ['IN_APP'],
-  },
-
-  // 5. Compras y Cuentas por Pagar
-  {
-    id: 'PURCHASE_REGISTERED',
-    category: 'purchases_cxp',
-    categoryLabel: 'Compras y Cuentas por Pagar',
-    name: 'Nueva Factura de Compra',
-    description: 'Notifica el registro de compras de mercancía o insumos.',
-    icon: 'shopping-bag',
-    severity: 'INFO',
-    defaultChannels: ['IN_APP'],
-  },
-  {
-    id: 'PURCHASE_INVOICE_DUE',
-    category: 'purchases_cxp',
-    categoryLabel: 'Compras y Cuentas por Pagar',
-    name: 'Factura de Proveedor por Vencer',
-    description: 'Avisa sobre pagos a proveedores próximos a su fecha de vencimiento.',
-    icon: 'calendar-alert',
-    severity: 'WARNING',
-    defaultChannels: ['IN_APP'],
-  },
-
-  // 6. Copias de Seguridad
-  {
-    id: 'BACKUP_SUCCESS',
-    category: 'backups',
-    categoryLabel: 'Copias de Seguridad',
-    name: 'Backup Completado Exitosamente',
-    description: 'Confirmación de respaldo local o en Google Drive generado sin errores.',
-    icon: 'database-zap',
-    severity: 'SUCCESS',
-    defaultChannels: ['IN_APP'],
-  },
-  {
-    id: 'BACKUP_FAILED',
-    category: 'backups',
-    categoryLabel: 'Copias de Seguridad',
-    name: 'Fallo en Creación de Backup',
-    description: 'Alerta crítica si un respaldo de base de datos no pudo completarse.',
-    icon: 'database-alert',
-    severity: 'CRITICAL',
-    defaultChannels: ['IN_APP', 'EMAIL', 'PUSH'],
-  },
-
-  // 7. Seguridad y Cuenta
-  {
-    id: 'SECURITY_LOGIN',
-    category: 'security_account',
-    categoryLabel: 'Seguridad y Cuenta',
-    name: 'Nuevo Inicio de Sesión',
-    description: 'Notifica cada inicio de sesión exitoso en la cuenta.',
-    icon: 'shield-check',
-    severity: 'INFO',
-    defaultChannels: ['IN_APP'],
-  },
-  {
-    id: 'SECURITY_LOGIN_FAILED',
-    category: 'security_account',
-    categoryLabel: 'Seguridad y Cuenta',
-    name: 'Intentos Fallidos de Inicio de Sesión',
-    description: 'Avisa cuando se detectan contraseñas erróneas consecutivas.',
-    icon: 'shield-alert',
-    severity: 'WARNING',
-    defaultChannels: ['IN_APP', 'EMAIL'],
-  },
-  {
-    id: 'SECURITY_PASSWORD_CHANGED',
-    category: 'security_account',
-    categoryLabel: 'Seguridad y Cuenta',
-    name: 'Contraseña Modificada',
-    description: 'Aviso inmediato tras actualizar las credenciales de acceso.',
-    icon: 'key-round',
-    severity: 'WARNING',
-    defaultChannels: ['IN_APP', 'EMAIL'],
-  },
-  {
-    id: 'USER_JOINED',
-    category: 'security_account',
-    categoryLabel: 'Seguridad y Cuenta',
-    name: 'Nuevo Colaborador Incorporado',
-    description: 'Notifica al administrador cuando un invitado activa su membresía.',
-    icon: 'user-check',
-    severity: 'SUCCESS',
-    defaultChannels: ['IN_APP'],
-  },
-  {
-    id: 'PLAN_LIMIT_WARNING',
-    category: 'security_account',
-    categoryLabel: 'Seguridad y Cuenta',
-    name: 'Límite de Plan por Alcanzarse',
-    description: 'Alerta cuando se alcanza el 80% o 90% del límite de comprobantes o usuarios.',
-    icon: 'zap',
-    severity: 'WARNING',
-    defaultChannels: ['IN_APP', 'EMAIL'],
-  },
-  {
-    id: 'API_KEY_EVENT',
-    category: 'security_account',
-    categoryLabel: 'Seguridad y Cuenta',
-    name: 'Llave API Creada / Revocada',
-    description: 'Notifica la generación, rotación o revocación de llaves públicas de acceso.',
-    icon: 'code',
-    severity: 'INFO',
-    defaultChannels: ['IN_APP'],
-  },
-];
+import { NOTIFICATION_CATALOG } from './notification.catalog';
+export { NOTIFICATION_CATALOG } from './notification.catalog';
 
 @Injectable()
 export class NotificationsService {
@@ -295,20 +39,14 @@ export class NotificationsService {
   ) {}
 
   async create(input: CreateNotificationInput) {
-    const recipients = input.usuarioId
-      ? [{ id: input.usuarioId }]
-      : await this.prisma.usuario.findMany({
-          where: {
-            membresias: {
-              some: { empresaId: input.empresaId, estado: 'ACTIVO' },
-            },
-          },
-          select: { id: true },
-        });
-
+    if (!input.usuarioId && !input.empresaId)
+      throw new BadRequestException('Destinatario requerido');
+    const catalog = NOTIFICATION_CATALOG.find((item) => item.id === input.tipo);
+    const recipients = await this.recipients(input);
     const notifications: any[] = [];
     for (const recipient of recipients) {
-      const requestedChannels = input.canales || ['IN_APP'];
+      const defaults = catalog?.defaultChannels || input.canales || ['IN_APP'];
+      const requestedChannels = ['IN_APP', 'EMAIL', 'PUSH'];
       const preferences =
         (await this.prisma.notificationPreference.findMany({
           where: {
@@ -326,35 +64,71 @@ export class NotificationsService {
           (preference: any) =>
             preference.tipo === 'ALL' && preference.canal === canal,
         );
-        return (specific || global)?.habilitado !== false;
+        return (specific || global)?.habilitado ?? defaults.includes(canal);
       });
       if (enabledChannels.length === 0) continue;
 
-      const notification = await this.prisma.notification.create({
-        data: {
-          usuarioId: recipient.id,
-          empresaId: input.empresaId,
-          audience: input.usuarioId ? 'USER' : 'COMPANY',
-          tipo: input.tipo,
-          titulo: input.titulo,
-          mensaje: input.mensaje,
-          severidad: input.severidad || 'INFO',
-          icono: input.icono,
-          payload: input.payload ? JSON.stringify(input.payload) : null,
-          deliveries: {
-            create: enabledChannels.map((canal) => ({ canal })),
-          },
-        },
-      });
-      await this.prisma.outboxEvent.create({
-        data: {
-          tipo: 'NOTIFICATION_CREATED',
-          empresaId: input.empresaId,
-          aggregateId: notification.id,
-          payload: JSON.stringify({ notificationId: notification.id }),
-        },
-      });
-      this.realtime.publish(recipient.id, this.serialize(notification));
+      const id = input.deduplicationKey
+        ? createHash('sha256')
+            .update(
+              JSON.stringify([
+                input.empresaId,
+                recipient.id,
+                input.tipo,
+                input.deduplicationKey,
+              ]),
+            )
+            .digest('hex')
+        : undefined;
+      const notification = await this.prisma
+        .$transaction(async (tx) => {
+          if (
+            id &&
+            (await tx.notification.findUnique({
+              where: { id },
+              select: { id: true },
+            }))
+          )
+            return null;
+          const created = await tx.notification.create({
+            data: {
+              id,
+              usuarioId: recipient.id,
+              empresaId: input.empresaId,
+              audience: input.usuarioId ? 'USER' : 'COMPANY',
+              tipo: input.tipo,
+              titulo: input.titulo,
+              mensaje: input.mensaje,
+              severidad: input.severidad || 'INFO',
+              icono: input.icono,
+              payload: input.payload ? JSON.stringify(input.payload) : null,
+              deliveries: {
+                create: enabledChannels.map((canal) => ({ canal })),
+              },
+            },
+          });
+          await tx.outboxEvent.create({
+            data: {
+              tipo: 'NOTIFICATION_CREATED',
+              empresaId: input.empresaId,
+              aggregateId: created.id,
+              payload: JSON.stringify({ notificationId: created.id }),
+            },
+          });
+          return created;
+        })
+        .catch((error) => {
+          if (
+            id &&
+            error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === 'P2002'
+          )
+            return null;
+          throw error;
+        });
+      if (!notification) continue;
+      if (enabledChannels.includes('IN_APP'))
+        this.realtime.publish(recipient.id, this.serialize(notification));
       notifications.push(this.serialize(notification));
     }
     return notifications;
@@ -364,11 +138,16 @@ export class NotificationsService {
     userId: string,
     query: { page?: number; limit?: number; unread?: boolean; tipo?: string },
   ) {
-    const page = query.page || 1;
-    const limit = Math.min(query.limit || 25, 100);
+    const page =
+      Number.isInteger(query.page) && query.page! > 0 ? query.page! : 1;
+    const limit =
+      Number.isInteger(query.limit) && query.limit! > 0
+        ? Math.min(query.limit!, 100)
+        : 25;
     const where = {
       usuarioId: userId,
       empresaId: TenantContext.getTenantId(),
+      deliveries: { some: { canal: 'IN_APP' } },
       ...(query.unread ? { leidaEn: null } : {}),
       ...(query.tipo ? { tipo: query.tipo } : {}),
     } as any;
@@ -394,8 +173,9 @@ export class NotificationsService {
       .count({
         where: {
           leidaEn: null,
+          deliveries: { some: { canal: 'IN_APP' } },
           usuarioId: userId,
-      empresaId: TenantContext.getTenantId(),
+          empresaId: TenantContext.getTenantId(),
         },
       })
       .then((count) => ({ count }));
@@ -406,7 +186,7 @@ export class NotificationsService {
       where: {
         id,
         usuarioId: userId,
-      empresaId: TenantContext.getTenantId(),
+        empresaId: TenantContext.getTenantId(),
       },
       data: { leidaEn: new Date() },
     });
@@ -420,7 +200,7 @@ export class NotificationsService {
       where: {
         leidaEn: null,
         usuarioId: userId,
-      empresaId: TenantContext.getTenantId(),
+        empresaId: TenantContext.getTenantId(),
       },
       data: { leidaEn: new Date() },
     });
@@ -432,7 +212,7 @@ export class NotificationsService {
       where: {
         id,
         usuarioId: userId,
-      empresaId: TenantContext.getTenantId(),
+        empresaId: TenantContext.getTenantId(),
       },
     });
     if (!result.count)
@@ -444,7 +224,7 @@ export class NotificationsService {
     const result = await this.prisma.notification.deleteMany({
       where: {
         usuarioId: userId,
-      empresaId: TenantContext.getTenantId(),
+        empresaId: TenantContext.getTenantId(),
       },
     });
     return { success: true, count: result.count };
@@ -461,12 +241,20 @@ export class NotificationsService {
     return NOTIFICATION_CATALOG;
   }
 
+  pushConfiguration() {
+    return {
+      enabled: this.push.isEnabled(),
+      publicKey: this.push.isEnabled() ? process.env.VAPID_PUBLIC_KEY : null,
+    };
+  }
+
   savePreference(
     userId: string,
     tipo: string,
     canal: string,
     habilitado: boolean,
   ) {
+    this.validatePreference(tipo, canal, habilitado);
     return this.prisma.notificationPreference.upsert({
       where: { usuarioId_tipo_canal: { usuarioId: userId, tipo, canal } },
       update: { habilitado },
@@ -478,6 +266,10 @@ export class NotificationsService {
     userId: string,
     preferences: Array<{ tipo: string; canal: string; habilitado: boolean }>,
   ) {
+    if (!Array.isArray(preferences) || preferences.length > 300)
+      throw new BadRequestException('Preferencias inválidas');
+    for (const p of preferences)
+      this.validatePreference(p?.tipo, p?.canal, p?.habilitado);
     return this.prisma.$transaction(
       preferences.map((p) =>
         this.prisma.notificationPreference.upsert({
@@ -515,6 +307,38 @@ export class NotificationsService {
       userAgent?: string;
     },
   ) {
+    let endpoint: URL;
+    try {
+      endpoint = new URL(data?.endpoint);
+    } catch {
+      throw new BadRequestException('Suscripción push inválida');
+    }
+    const hosts = [
+      'fcm.googleapis.com',
+      'updates.push.services.mozilla.com',
+      'push.services.mozilla.com',
+      'web.push.apple.com',
+      'notify.windows.com',
+    ];
+    if (
+      endpoint.protocol !== 'https:' ||
+      endpoint.username ||
+      endpoint.password ||
+      (endpoint.port && endpoint.port !== '443') ||
+      !hosts.some(
+        (host) =>
+          endpoint.hostname === host || endpoint.hostname.endsWith('.' + host),
+      )
+    )
+      throw new BadRequestException('Proveedor push no permitido');
+    if (
+      !data.keys ||
+      !/^[A-Za-z0-9_+/=-]+$/.test(data.keys.p256dh || '') ||
+      !/^[A-Za-z0-9_+/=-]+$/.test(data.keys.auth || '') ||
+      Buffer.from(data.keys.p256dh, 'base64').length !== 65 ||
+      Buffer.from(data.keys.auth, 'base64').length !== 16
+    )
+      throw new BadRequestException('Claves push inválidas');
     return this.prisma.pushSubscription.upsert({
       where: { endpoint: data.endpoint },
       update: {
@@ -536,7 +360,15 @@ export class NotificationsService {
 
   stream(userId: string) {
     const empresaId = TenantContext.getTenantId();
-    return this.realtime.stream(userId).pipe(filter(event => (event.notification as { empresaId?: string }).empresaId === empresaId));
+    return this.realtime
+      .stream(userId)
+      .pipe(
+        filter(
+          (event) =>
+            (event.notification as { empresaId?: string }).empresaId ===
+            empresaId,
+        ),
+      );
   }
 
   async deliver(notificationId: string) {
@@ -545,21 +377,68 @@ export class NotificationsService {
       include: { usuario: true, deliveries: true },
     });
     if (!notification) return;
+    const allowed = await this.recipients({
+      empresaId: notification.empresaId,
+      usuarioId: notification.usuarioId,
+      tipo: notification.tipo,
+    });
+    if (!allowed.length) {
+      await this.prisma.notificationDelivery.updateMany({
+        where: { notificationId, estado: { not: 'SENT' } },
+        data: { estado: 'SKIPPED' },
+      });
+      return;
+    }
+    let failed = false;
     for (const delivery of notification.deliveries) {
-      if (delivery.estado === 'SENT') continue;
+      if (['SENT', 'SKIPPED'].includes(delivery.estado)) continue;
       try {
         let providerMessageId: string | undefined;
-        if (delivery.canal === 'EMAIL' && notification.usuario?.email) {
+        const preferences = await this.prisma.notificationPreference.findMany({
+          where: {
+            usuarioId: notification.usuarioId,
+            tipo: { in: [notification.tipo, 'ALL'] },
+            canal: delivery.canal,
+          },
+        });
+        const preference =
+          preferences.find((p) => p.tipo === notification.tipo) ||
+          preferences.find((p) => p.tipo === 'ALL');
+        if (preference?.habilitado === false) {
+          await this.prisma.notificationDelivery.update({
+            where: { id: delivery.id },
+            data: { estado: 'SKIPPED' },
+          });
+          continue;
+        }
+        if (delivery.canal === 'EMAIL') {
+          if (!notification.usuario?.email)
+            throw new Error('Email recipient unavailable');
           providerMessageId = await this.email.send(
             notification.usuario.email,
             notification.titulo,
             notification.mensaje,
+            {
+              empresaId: notification.empresaId,
+              tipo: notification.tipo,
+              name: notification.usuario.nombre || notification.usuario.email,
+              deliveryId: delivery.id,
+            },
           );
         }
         if (delivery.canal === 'PUSH') {
+          if (!this.push.isEnabled())
+            throw new Error('Push delivery is not configured');
           const subscriptions = await this.prisma.pushSubscription.findMany({
             where: { usuarioId: notification.usuarioId },
           });
+          if (!subscriptions.length) {
+            await this.prisma.notificationDelivery.update({
+              where: { id: delivery.id },
+              data: { estado: 'SKIPPED' },
+            });
+            continue;
+          }
           await Promise.all(
             subscriptions.map((subscription: any) =>
               this.push.send(subscription, this.serialize(notification)),
@@ -580,9 +459,74 @@ export class NotificationsService {
             proximoIntentoEn: new Date(Date.now() + 60000),
           },
         });
-        throw error;
+        failed = true;
       }
     }
+    if (failed) throw new Error('One or more notification channels failed');
+  }
+
+  private async recipients(
+    input: Pick<CreateNotificationInput, 'usuarioId' | 'empresaId' | 'tipo'>,
+  ) {
+    if (!input.empresaId)
+      return input.usuarioId ? [{ id: input.usuarioId }] : [];
+    const company = await this.prisma.empresa.findFirst({
+      where: { id: input.empresaId, estado: 'ACTIVA' },
+      select: { propietarioId: true },
+    });
+    if (!company) return [];
+    const members = await this.prisma.membresia.findMany({
+      where: {
+        empresaId: input.empresaId,
+        estado: 'ACTIVO',
+        ...(input.usuarioId ? { usuarioId: input.usuarioId } : {}),
+      },
+      include: { role: true },
+    });
+    const category = NOTIFICATION_CATALOG.find(
+      (event) => event.id === input.tipo,
+    )?.category;
+    const permission =
+      (
+        {
+          billing_fiscal: 'invoices:read',
+          sales_quotes: 'commercial:read',
+          cxc_payments: 'commercial:read',
+          inventory_stock: 'inventory:read',
+          purchases_cxp: 'commercial:read',
+          backups: 'backups:read',
+          security_account: 'security:read',
+        } as Record<string, string>
+      )[category || ''] || 'company:read';
+    const ids = new Set<string>();
+    if (
+      company.propietarioId &&
+      (!input.usuarioId || input.usuarioId === company.propietarioId)
+    )
+      ids.add(company.propietarioId);
+    for (const member of members) {
+      const permissions = normalizePermissions(member.role?.permissions);
+      const ownSecurity =
+        input.usuarioId === member.usuarioId &&
+        input.tipo.startsWith('SECURITY_');
+      if (
+        ownSecurity ||
+        permissions.includes('*') ||
+        permissions.includes(permission)
+      )
+        ids.add(member.usuarioId);
+    }
+    return [...ids].map((id) => ({ id }));
+  }
+
+  private validatePreference(tipo: string, canal: string, habilitado: boolean) {
+    if (
+      (tipo !== 'ALL' &&
+        !NOTIFICATION_CATALOG.some((item) => item.id === tipo)) ||
+      !['IN_APP', 'EMAIL', 'PUSH'].includes(canal) ||
+      typeof habilitado !== 'boolean'
+    )
+      throw new BadRequestException('Preferencia de notificación inválida');
   }
 
   private serialize(item: any) {

@@ -198,6 +198,11 @@ export class NotificationService {
     }
   }
 
+  async configureWebPush(): Promise<boolean> {
+    const config = await firstValueFrom(this.http.get<{enabled:boolean;publicKey:string|null}>(environment.apiUrl+'/notifications/push-configuration'));
+    return config.enabled && !!config.publicKey ? this.enableWebPush(config.publicKey) : false;
+  }
+
   async enableWebPush(publicKey: string): Promise<boolean> {
     if (!publicKey || !('serviceWorker' in navigator) || !('PushManager' in window)) return false;
     const registration = await navigator.serviceWorker.register('push-sw.js');

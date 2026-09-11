@@ -4,19 +4,30 @@ import {
   ForbiddenException,
   NotFoundException,
   Logger,
+  Optional,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CreateTenantApiAppDto,
   UpdateTenantApiAppDto,
 } from './dto/tenant-api.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class TenantApiKeyService {
   private readonly logger = new Logger(TenantApiKeyService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, @Optional() private readonly notifications?: NotificationsService) {}
+
+  private async withNotice<T>(empresaId:string,message:string,action:(tx:Prisma.TransactionClient)=>Promise<T>):Promise<T> {
+    return this.prisma.$transaction(async tx=>{
+      const result=await action(tx);
+      await this.notifications?.create({empresaId,tipo:'API_KEY_EVENT',titulo:'Seguridad de integraciones API',mensaje:message},tx);
+      return result;
+    });
+  }
 
   /**
    * Hashes a raw API key using SHA-256 for secure DB storage and lookup.
@@ -120,7 +131,7 @@ export class TenantApiKeyService {
     const apiKeyHash = this.hashKey(rawApiKey);
     const apiKeyPrefix = `${rawApiKey.slice(0, 14)}...${rawApiKey.slice(-4)}`;
 
-    const app = await this.prisma.tenantApiApp.create({
+    const app = await this.withNotice(empresaId,'Se creó una credencial para '+dto.nombre+'.',tx=>tx.tenantApiApp.create({
       data: {
         empresaId,
         nombre: dto.nombre.trim(),
@@ -130,7 +141,7 @@ export class TenantApiKeyService {
         allowedOrigins: origins.length > 0 ? JSON.stringify(origins) : null,
         estado: 'ACTIVO',
       },
-    });
+    }));
 
     return {
       message: 'Aplicación API creada con éxito.',
@@ -170,14 +181,14 @@ export class TenantApiKeyService {
     const apiKeyHash = this.hashKey(rawApiKey);
     const apiKeyPrefix = `${rawApiKey.slice(0, 14)}...${rawApiKey.slice(-4)}`;
 
-    const updated = await this.prisma.tenantApiApp.update({
+    const updated = await this.withNotice(empresaId,'Se modificó la credencial de '+app.nombre+'.',tx=>tx.tenantApiApp.update({
       where: { id: appId },
       data: {
         apiKeyHash,
         apiKeyPrefix,
         estado: 'ACTIVO',
       },
-    });
+    }));
 
     return {
       message: 'Clave API rotada con éxito. La clave anterior ha sido invalidada.',
@@ -201,10 +212,11 @@ export class TenantApiKeyService {
 
     if (!app) throw new NotFoundException('Aplicación API no encontrada.');
 
-    return this.prisma.tenantApiApp.update({
+    const updated = await this.prisma.tenantApiApp.update({
       where: { id: appId },
       data: { estado: 'REVOCADO' },
-    });
+    }));
+    return updated;
   }
 
   /**
@@ -217,7 +229,7 @@ export class TenantApiKeyService {
 
     if (!app) throw new NotFoundException('Aplicación API no encontrada.');
 
-    await this.prisma.tenantApiApp.delete({ where: { id: appId } });
+    await this.withNotice(empresaId,'Se eliminó la integración '+app.nombre+' y su credencial.',tx=>tx.tenantApiApp.delete({where:{id:appId}}));
 
     return { message: 'Aplicación API eliminada correctamente.' };
   }

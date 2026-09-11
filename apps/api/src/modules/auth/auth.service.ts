@@ -57,6 +57,11 @@ export class AuthService {
 
     const passwordMatches = await bcrypt.compare(pass, user.passwordHash);
     if (!passwordMatches) {
+      if (this.notifications) {
+        await this.prisma.activityLog.create({data:{usuarioId:user.id,modulo:'SECURITY',accion:'LOGIN_FAILED'}});
+        const failures = await this.prisma.activityLog.count({where:{usuarioId:user.id,modulo:'SECURITY',accion:'LOGIN_FAILED',creadoEn:{gte:new Date(Date.now()-15*60000)}}});
+        if (failures >= 5) await this.accountNotice(user.id,'SECURITY_LOGIN_FAILED','Detectamos varios intentos fallidos de acceso. Revisa la seguridad de tu cuenta.',new Date().toISOString().slice(0,13));
+      }
       return null;
     }
 
@@ -408,6 +413,7 @@ export class AuthService {
       },
     });
 
+
     return { success: true };
   }
 
@@ -605,8 +611,15 @@ export class AuthService {
       if (consumed.count !== 1) throw new BadRequestException('Código OTP ya utilizado');
       await tx.userSession.updateMany({ where: { usuarioId: user.id, revokedAt: null }, data: { revokedAt: new Date() } });
     });
+    await this.accountNotice(user.id,'SECURITY_PASSWORD_CHANGED','La contraseña de tu cuenta fue restablecida. Si no reconoces este cambio, contacta al administrador.');
 
     return { success: true };
+  }
+
+  private async accountNotice(usuarioId:string,tipo:string,mensaje:string,deduplicationKey?:string) {
+    if (!this.notifications) return;
+    const companies = await this.prisma.empresa.findMany({where:{estado:'ACTIVA',OR:[{propietarioId:usuarioId},{membresias:{some:{usuarioId,estado:'ACTIVO'}}}]},select:{id:true}});
+    for (const company of companies) await this.notifications.create({empresaId:company.id,usuarioId,tipo,titulo:tipo==='SECURITY_LOGIN_FAILED'?'Intentos fallidos de acceso':'Contraseña modificada',mensaje,deduplicationKey});
   }
 
   async updateProfile(userId: string, data: any) {
@@ -722,6 +735,7 @@ export class AuthService {
       data: { revokedAt: new Date() },
     });
 
+    await this.accountNotice(userId,'SECURITY_PASSWORD_CHANGED','La contraseña de tu cuenta fue modificada. Si no reconoces este cambio, contacta al administrador.');
     return { success: true };
   }
 
@@ -934,6 +948,9 @@ export class AuthService {
         data: { estado: 'ACTIVO' },
       }),
     ]);
+    if (this.notifications) for (const membership of user.membresias) {
+      if (['PENDIENTE','ACTIVO'].includes(membership.estado)) await this.notifications.create({empresaId:membership.empresaId,tipo:'USER_JOINED',titulo:'Nuevo colaborador',mensaje:'Un colaborador activó su invitación y ya puede acceder a la empresa.',deduplicationKey:user.id});
+    }
     return { success: true };
   }
 

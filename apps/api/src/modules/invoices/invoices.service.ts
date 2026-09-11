@@ -557,7 +557,7 @@ export class InvoicesService {
     if (this.notifications && !isDraft) {
       await this.notifications.create({
         empresaId,
-        tipo: 'INVOICE_EMITTED',
+        tipo: ['E34','B04'].includes(invoice.tipoNcf || '') ? 'CREDIT_NOTE_EMITTED' : 'INVOICE_EMITTED',
         titulo: 'Nueva Factura Emitida',
         mensaje: `Factura ${invoice.numeroFactura} (${invoice.ncf || 'Emitida'}) emitida exitosamente.`,
         severidad: 'SUCCESS',

@@ -307,6 +307,7 @@ export class UsersService {
       subject: email.subject,
       html: email.html,
       text: email.text,
+      attachments: email.attachments,
     });
   }
 

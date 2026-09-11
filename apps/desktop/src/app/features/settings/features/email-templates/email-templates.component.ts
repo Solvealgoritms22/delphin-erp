@@ -1,4 +1,8 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, effect, untracked } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { AuthState } from '@core/auth/auth.state';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -109,11 +113,12 @@ const PRESET_COLORS = [
           <div class="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)] gap-6 h-full items-start">
             
             <!-- Barra Lateral: Lista de Plantillas -->
-            <aside class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3 shadow-xs space-y-1">
+            <aside class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3 shadow-xs space-y-1 max-h-80 lg:max-h-[calc(100vh-240px)] overflow-y-auto">
               <div class="px-3 py-2 text-2xs font-bold tracking-wider uppercase text-neutral-400 dark:text-neutral-500">
                 {{ 'emailTemplates.title' | transloco }}
               </div>
-              @for (item of templates(); track item.key) {
+              <input class="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent p-2 text-sm mb-2" [placeholder]="'emailTemplates.search' | transloco" [attr.aria-label]="'emailTemplates.search' | transloco" [(ngModel)]="search" />
+              @for (item of filteredTemplates(); track item.key) {
                 <button
                   type="button"
                   (click)="select(item)"
@@ -127,23 +132,6 @@ const PRESET_COLORS = [
                 >
                   <div class="flex items-center justify-between gap-2">
                     <span class="text-sm font-semibold truncate">{{ label(item.key) }}</span>
-                    <span
-                      class="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-2xs font-medium border"
-                      [class.bg-emerald-50]="item.editable"
-                      [class.text-emerald-700]="item.editable"
-                      [class.border-emerald-200]="item.editable"
-                      [class.dark:bg-emerald-500/10]="item.editable"
-                      [class.dark:text-emerald-300]="item.editable"
-                      [class.dark:border-emerald-500/20]="item.editable"
-                      [class.bg-neutral-100]="!item.editable"
-                      [class.text-neutral-600]="!item.editable"
-                      [class.border-neutral-200]="!item.editable"
-                      [class.dark:bg-neutral-800]="!item.editable"
-                      [class.dark:text-neutral-400]="!item.editable"
-                      [class.dark:border-neutral-700]="!item.editable"
-                    >
-                      {{ item.editable ? ('emailTemplates.editable' | transloco) : ('emailTemplates.systemManaged' | transloco) }}
-                    </span>
                   </div>
                   <span class="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
                     {{ item.subject }}
@@ -246,9 +234,6 @@ const PRESET_COLORS = [
                         <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
                           {{ 'emailTemplates.body' | transloco }}
                         </label>
-                        <span class="text-2xs text-neutral-400 dark:text-neutral-500">
-                          HTML & Imágenes permitidas
-                        </span>
                       </div>
                       <app-email-editor
                         [content]="item.body"
@@ -335,13 +320,14 @@ const PRESET_COLORS = [
                       >
                         <iframe
                           class="w-full h-[640px] bg-white block border-0"
-                          title="Vista previa de correo"
+                          [title]="'emailTemplates.preview' | transloco"
+                          sandbox="" referrerpolicy="no-referrer"
                           [srcdoc]="previewHtml()"
                         ></iframe>
                       </div>
                     } @else {
                       <div class="h-64 flex flex-col items-center justify-center text-center p-6 text-neutral-400 space-y-2">
-                        <mat-icon svgIcon="refresh-cw" class="!w-6 !h-6 animate-spin text-neutral-400"></mat-icon>
+                        <app-skeleton class="w-full" />
                         <span class="text-xs">{{ 'emailTemplates.previewHint' | transloco }}</span>
                       </div>
                     }
@@ -362,6 +348,8 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
   private readonly i18n = inject(TranslocoService);
   private readonly api = `${environment.apiUrl}/email-templates`;
 
+  search = '';
+  filteredTemplates(): Template[] { const query=this.search.trim().toLowerCase(); return this.templates().filter(item=>this.label(item.key).toLowerCase().includes(query)); }
   readonly presets = PRESET_COLORS;
   readonly templates = signal<Template[]>([]);
   readonly selected = signal<Template | null>(null);
@@ -369,24 +357,35 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
   readonly error = signal(false);
   readonly saving = signal(false);
   readonly previewing = signal(false);
-  readonly previewHtml = signal('');
+  readonly previewHtml = signal<SafeHtml | null>(null);
   readonly previewDevice = signal<'desktop' | 'mobile'>('desktop');
 
+  private readonly auth = inject(AuthState);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly dialog = inject(MatDialog);
+  private readonly requests = new Subscription();
   private previewSubject$ = new Subject<Template>();
   private previewSub?: Subscription;
+  private previewRequest?: Subscription;
+  private previewVersion = 0;
+  private tenantVersion = 0;
+
+  constructor() {
+    effect(() => {
+      this.auth.empresaId();
+      untracked(() => this.load());
+    });
+  }
 
   ngOnInit(): void {
-    this.previewSub = this.previewSubject$
-      .pipe(debounceTime(350))
-      .subscribe((tpl) => {
-        this.fetchPreview(tpl);
-      });
-
-    this.load();
+    this.previewSub = this.previewSubject$.pipe(debounceTime(350)).subscribe(tpl => this.fetchPreview(tpl));
   }
 
   ngOnDestroy(): void {
+    this.tenantVersion++;
     this.previewSub?.unsubscribe();
+    this.previewRequest?.unsubscribe();
+    this.requests.unsubscribe();
   }
 
   label(key: string): string {
@@ -394,91 +393,136 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
   }
 
   load(): void {
+    const version = ++this.tenantVersion;
+    this.previewRequest?.unsubscribe();
+    this.previewVersion++;
+    this.previewHtml.set(null);
+    this.selected.set(null);
+    this.templates.set([]);
+    this.saving.set(false);
     this.loading.set(true);
-    this.http.get<Payload>(this.api).subscribe({
-      next: (data) => {
+    this.requests.add(this.http.get<Payload>(this.api).subscribe({
+      next: data => {
+        if (version !== this.tenantVersion) return;
         this.templates.set(data.templates);
-        const first = data.templates[0] || null;
-        this.selected.set(first);
         this.error.set(false);
         this.loading.set(false);
-        if (first) {
-          this.triggerPreview(first);
-        }
+        if (data.templates[0]) this.select(data.templates[0]);
       },
       error: () => {
+        if (version !== this.tenantVersion) return;
         this.error.set(true);
         this.loading.set(false);
         this.notice('emailTemplates.loadError');
       },
-    });
+    }));
   }
 
   select(item: Template): void {
-    this.selected.set(item);
-    this.triggerPreview(item);
+    if (this.saving()) return;
+    const current = this.selected();
+    const saved = this.templates().find(t => t.key === current?.key);
+    if (current && saved && JSON.stringify(this.design(current)) !== JSON.stringify(this.design(saved))) {
+      this.confirm('emailTemplates.discardConfirm', () => this.openTemplate(item));
+      return;
+    }
+    this.openTemplate(item);
   }
 
-  onDesignChange(item: Template): void {
-    this.triggerPreview(item);
+  private openTemplate(item: Template): void {
+    this.selected.set({...item});
+    this.previewHtml.set(null);
+    this.triggerPreview(this.selected()!);
   }
+
+  onDesignChange(item: Template): void { this.triggerPreview(item); }
 
   onBodyChange(item: Template, newHtml: string): void {
+    if (!item.editable || this.saving()) return;
     item.body = newHtml;
     this.triggerPreview(item);
   }
 
   setAccentColor(item: Template, color: string): void {
-    if (!item.editable) return;
+    if (!item.editable || this.saving()) return;
     item.accent = color;
     this.triggerPreview(item);
   }
 
   private triggerPreview(item: Template): void {
-    this.previewSubject$.next(item);
+    this.previewVersion++;
+    this.previewRequest?.unsubscribe();
+    this.previewSubject$.next({...item});
   }
 
   private fetchPreview(item: Template): void {
+    if (this.selected()?.key !== item.key) return;
+    const version = this.previewVersion, tenant = this.tenantVersion;
     this.previewing.set(true);
-    this.http.post<{ html: string }>(`${this.api}/${item.key}/preview`, this.design(item)).subscribe({
-      next: (value) => {
-        this.previewHtml.set(value.html);
+    this.previewRequest = this.http.post<{html:string}>(this.api + '/' + item.key + '/preview', this.design(item)).subscribe({
+      next: value => {
+        if (version !== this.previewVersion || tenant !== this.tenantVersion) return;
+        // Only server-sanitized email HTML, inside an opaque sandbox without scripts/navigation.
+        this.previewHtml.set(this.sanitizer.bypassSecurityTrustHtml(value.html));
         this.previewing.set(false);
       },
       error: () => {
+        if (version !== this.previewVersion || tenant !== this.tenantVersion) return;
+        this.previewHtml.set(null);
         this.previewing.set(false);
+        this.notice('emailTemplates.previewError');
       },
     });
   }
 
   save(item: Template): void {
+    if (this.saving() || !item.editable) return;
+    const version = this.tenantVersion;
     this.saving.set(true);
-    this.http.put<Template>(`${this.api}/${item.key}`, { ...this.design(item), revision: item.revision }).subscribe({
-      next: (value) => {
+    this.requests.add(this.http.put<Template>(this.api + '/' + item.key, {...this.design(item),revision:item.revision}).subscribe({
+      next: value => {
+        if (version !== this.tenantVersion) return;
         this.replace(value);
         this.saving.set(false);
         this.notice('emailTemplates.saved');
       },
-      error: (err) => {
+      error: err => {
+        if (version !== this.tenantVersion) return;
         this.saving.set(false);
         this.notice(err.status === 409 ? 'emailTemplates.conflict' : 'emailTemplates.saveError');
       },
-    });
+    }));
   }
 
   reset(item: Template): void {
-    this.saving.set(true);
-    this.http.post<Template>(`${this.api}/${item.key}/reset`, { revision: item.revision }).subscribe({
-      next: (value) => {
-        this.replace(value);
-        this.saving.set(false);
-        this.notice('emailTemplates.restored');
-      },
-      error: (err) => {
-        this.saving.set(false);
-        this.notice(err.status === 409 ? 'emailTemplates.conflict' : 'emailTemplates.saveError');
-      },
+    if (this.saving() || !item.editable) return;
+    this.confirm('emailTemplates.resetConfirm', () => {
+      const version = this.tenantVersion;
+      this.saving.set(true);
+      this.requests.add(this.http.post<Template>(this.api + '/' + item.key + '/reset', {revision:item.revision}).subscribe({
+        next: value => {
+          if (version !== this.tenantVersion) return;
+          this.replace(value);
+          this.saving.set(false);
+          this.notice('emailTemplates.restored');
+        },
+        error: err => {
+          if (version !== this.tenantVersion) return;
+          this.saving.set(false);
+          this.notice(err.status === 409 ? 'emailTemplates.conflict' : 'emailTemplates.saveError');
+        },
+      }));
     });
+  }
+
+  private confirm(key: string, action: () => void): void {
+    const version = this.tenantVersion;
+    this.requests.add(this.dialog.open(ConfirmDialogComponent, {data:{
+      title:this.i18n.translate('emailTemplates.title'), message:this.i18n.translate(key),
+      confirmLabel:this.i18n.translate('common.confirm'), cancelLabel:this.i18n.translate('common.cancel'),
+    }}).afterClosed().subscribe(confirmed => {
+      if (confirmed && version === this.tenantVersion) action();
+    }));
   }
 
   private design(item: Template): Design {
@@ -492,14 +536,16 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
   }
 
   private replace(updated: Template): void {
-    const value = { ...this.selected()!, ...updated, customized: true };
+    const previous = this.templates().find(item => item.key === updated.key);
+    const value = { ...previous!, ...updated };
     this.templates.update((list) => list.map((item) => (item.key === value.key ? value : item)));
-    this.selected.set(value);
-    this.triggerPreview(value);
+    if (this.selected()?.key === value.key) {
+      this.selected.set({...value});
+      this.triggerPreview(value);
+    }
   }
 
   private notice(key: string): void {
     this.snack.open(this.i18n.translate(key), this.i18n.translate('common.close'), { duration: 3500 });
   }
 }
-

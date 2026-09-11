@@ -5,6 +5,9 @@ import { NotificationsService } from './notifications.service';
 describe('NotificationsService', () => {
   const dependencies = () => {
     const { prisma } = createPrismaMock();
+    prisma.empresa.findFirst.mockResolvedValue({propietarioId:'u1'});
+    prisma.membresia.findMany.mockResolvedValue([]);
+    prisma.notificationPreference.findMany.mockResolvedValue([]);
     const realtime = { publish: jest.fn(), stream: jest.fn() };
     const email = { send: jest.fn() };
     const push = { send: jest.fn() };
@@ -46,7 +49,7 @@ describe('NotificationsService', () => {
 
   it('expande una notificación de empresa a sus miembros activos', async () => {
     const { prisma, service } = dependencies();
-    prisma.usuario.findMany.mockResolvedValue([{ id: 'u1' }, { id: 'u2' }]);
+    prisma.membresia.findMany.mockResolvedValue([{usuarioId:'u2',role:{permissions:'["*"]'}}]);
     prisma.notification.create.mockResolvedValue({ id: 'n1', payload: null });
 
     await service.create({
@@ -97,12 +100,12 @@ describe('NotificationsService', () => {
 
     await expect(service.preferences('u1')).resolves.toEqual([]);
     await expect(
-      service.savePreference('u1', 'SECURITY', 'WEB_PUSH', true),
+      service.savePreference('u1', 'SECURITY_LOGIN', 'PUSH', true),
     ).resolves.toEqual({ habilitado: true });
     await expect(
       service.savePushSubscription('u1', {
-        endpoint: 'https://push.example/subscription',
-        keys: { p256dh: 'key', auth: 'auth' },
+        endpoint: 'https://fcm.googleapis.com/subscription',
+        keys: { p256dh: Buffer.alloc(65).toString('base64'), auth: Buffer.alloc(16).toString('base64') },
       }),
     ).resolves.toEqual({ id: 'p1' });
   });

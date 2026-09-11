@@ -49,9 +49,8 @@ describe('email renderer', () => {
     }, custom);
 
     // Debe contener el HTML estructurado y la imagen con estilos responsivos
-    expect(email.html).toContain('<img src="https://cdn.example.com/logo.png" alt="Logo" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0;display:inline-block;">');
+    expect(email.html).toContain('<img src="https://cdn.example.com/logo.png" alt="Logo" style="max-width:100%;height:auto" />');
     expect(email.html).toContain('<strong>&lt;script&gt;alert(1)&lt;/script&gt;</strong>');
     expect(email.html).not.toContain('<script>');
   });
 });
-

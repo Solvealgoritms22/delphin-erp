@@ -648,10 +648,17 @@ export class QuotesService {
       total: new Prisma.Decimal(quote.total).toFixed(2),
       currency: quote.moneda || 'DOP',
     }, {
-      rows: quote.detalles.map((detail: any) => ({
-        label: detail.descripcion || detail.producto?.nombre || 'Producto o servicio',
+      rows: [...quote.detalles.map((detail: any) => ({
+        label: `${detail.descripcion || detail.producto?.nombre || 'Producto o servicio'} · ${detail.cantidad} × ${new Prisma.Decimal(detail.precioUnitario).toFixed(2)}`,
         value: `${new Prisma.Decimal(detail.total).toFixed(2)} ${quote.moneda || 'DOP'}`,
       })),
+      {label:'Subtotal',value:new Prisma.Decimal(quote.subtotal).toFixed(2)+' '+quote.moneda},
+      {label:'Descuento',value:new Prisma.Decimal(quote.descuento).toFixed(2)+' '+quote.moneda},
+      {label:'ITBIS',value:new Prisma.Decimal(quote.itbis).toFixed(2)+' '+quote.moneda},
+      {label:'Total',value:new Prisma.Decimal(quote.total).toFixed(2)+' '+quote.moneda},
+      {label:'Fecha',value:quote.fecha.toISOString().slice(0,10)},
+      ...(quote.fechaVencimiento?[{label:'Válida hasta',value:quote.fechaVencimiento.toISOString().slice(0,10)}]:[]),
+      ...(quote.terminosCondiciones?[{label:'Condiciones comerciales',value:quote.terminosCondiciones}]:[])],
       message: dto.customMessage?.trim() || undefined,
     });
     const customSubject = dto.customSubject?.trim();
@@ -664,6 +671,7 @@ export class QuotesService {
       subject: customSubject || email.subject,
       html: email.html,
       text: email.text,
+      attachments: email.attachments,
     });
 
     // 6. Actualizar trazabilidad de la cotización
@@ -837,154 +845,4 @@ export class QuotesService {
   /**
    * Compilador de plantilla HTML corporativa para envío de cotizaciones por email
    */
-  private buildQuoteEmailHtml(quote: any, empresa: any, customMessage?: string): string {
-    const formattedDate = new Date(quote.fecha).toLocaleDateString('es-DO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-
-    const formattedDueDate = quote.fechaVencimiento
-      ? new Date(quote.fechaVencimiento).toLocaleDateString('es-DO', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-      : '30 días desde la emisión';
-
-    const currencySym = quote.moneda === 'USD' ? 'USD $ ' : quote.moneda === 'EUR' ? '€ ' : 'RD$ ';
-    const formatCurrency = (val: any) => {
-      const num = Number(val || 0);
-      return currencySym + num.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    };
-
-    return `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cotización ${quote.numeroCotizacion}</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
-    .container { max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-    .header { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); color: #ffffff; padding: 32px; text-align: left; }
-    .header h1 { margin: 0 0 4px 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
-    .header p { margin: 0; font-size: 13px; opacity: 0.9; }
-    .content { padding: 32px; }
-    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background-color: #f1f5f9; padding: 16px; border-radius: 12px; margin-bottom: 24px; }
-    .meta-item { font-size: 12px; }
-    .meta-item strong { display: block; color: #64748b; text-transform: uppercase; font-size: 10px; margin-bottom: 2px; }
-    .message-box { background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-bottom: 24px; color: #1e40af; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
-    th { text-align: left; padding: 10px 12px; background-color: #f8fafc; color: #475569; font-weight: 700; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
-    td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
-    .text-right { text-align: right; }
-    .text-center { text-align: center; }
-    .totals { width: 260px; margin-left: auto; margin-bottom: 24px; }
-    .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: #64748b; }
-    .totals-row.grand-total { border-top: 2px solid #e2e8f0; margin-top: 8px; padding-top: 10px; font-size: 16px; font-weight: 800; color: #0f172a; }
-    .notes-card { background-color: #f8fafc; border-radius: 10px; padding: 16px; font-size: 12px; color: #64748b; margin-bottom: 24px; }
-    .footer { text-align: center; padding: 24px; font-size: 11px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>${empresa.razonSocial || 'Dolphin ERP'}</h1>
-      <p>${empresa.rnc ? `RNC: ${empresa.rnc} · ` : ''}${empresa.telefono ? `Tel: ${empresa.telefono}` : ''}</p>
-    </div>
-
-    <div class="content">
-      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px;">
-        <div>
-          <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #2563eb;">Propuesta Comercial</span>
-          <h2 style="margin: 2px 0 0 0; font-size: 20px; font-weight: 800; color: #0f172a;">Cotización ${quote.numeroCotizacion}</h2>
-        </div>
-        <div style="text-align: right; font-size: 12px; color: #64748b;">
-          Fecha: <strong>${formattedDate}</strong>
-        </div>
-      </div>
-
-      ${customMessage ? `<div class="message-box">${customMessage}</div>` : ''}
-
-      <div class="meta-grid">
-        <div class="meta-item">
-          <strong>Preparado Para</strong>
-          ${quote.cliente ? quote.cliente.nombreRazonSocial : 'Cliente General'}
-          ${quote.cliente?.numeroDocumento ? `<br><span style="color: #64748b; font-family: monospace;">RNC/Céd: ${quote.cliente.numeroDocumento}</span>` : ''}
-        </div>
-        <div class="meta-item">
-          <strong>Validez de la Oferta</strong>
-          Hasta el ${formattedDueDate}
-        </div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Descripción / Ítem</th>
-            <th class="text-center" style="width: 50px;">Cant.</th>
-            <th class="text-right" style="width: 100px;">Precio Unit.</th>
-            <th class="text-right" style="width: 110px;">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${quote.detalles.map((d: any) => `
-            <tr>
-              <td>
-                <strong>${d.descripcion}</strong>
-                ${d.descuento > 0 ? `<br><small style="color: #059669;">Descuento: -${formatCurrency(d.descuento)}</small>` : ''}
-              </td>
-              <td class="text-center">${d.cantidad}</td>
-              <td class="text-right" style="font-family: monospace;">${formatCurrency(d.precioUnitario)}</td>
-              <td class="text-right" style="font-family: monospace; font-weight: bold;">${formatCurrency(d.total)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-
-      <div class="totals">
-        <div class="totals-row">
-          <span>Subtotal Neto:</span>
-          <span style="font-family: monospace;">${formatCurrency(quote.subtotal)}</span>
-        </div>
-        ${Number(quote.descuento) > 0 ? `
-          <div class="totals-row" style="color: #059669;">
-            <span>Descuento Total:</span>
-            <span style="font-family: monospace;">-${formatCurrency(quote.descuento)}</span>
-          </div>
-        ` : ''}
-        <div class="totals-row">
-          <span>ITBIS:</span>
-          <span style="font-family: monospace;">${formatCurrency(quote.itbis)}</span>
-        </div>
-        <div class="totals-row grand-total">
-          <span>Total Cotizado:</span>
-          <span style="font-family: monospace; color: #1e40af;">${formatCurrency(quote.total)}</span>
-        </div>
-      </div>
-
-      ${quote.notas || quote.terminosCondiciones ? `
-        <div class="notes-card">
-          ${quote.notas ? `<p style="margin: 0 0 6px 0;"><strong>Condiciones:</strong> ${quote.notas}</p>` : ''}
-          ${quote.terminosCondiciones ? `<p style="margin: 0;"><strong>Términos de Entrega y Pago:</strong> ${quote.terminosCondiciones}</p>` : ''}
-        </div>
-      ` : ''}
-
-      <div style="text-align: center; margin-top: 32px;">
-        <p style="font-size: 13px; color: #475569; margin-bottom: 12px;">¿Deseas aprobar esta cotización o tienes alguna consulta?</p>
-        <p style="font-size: 12px; font-weight: 700; color: #1e40af;">Contáctanos respondiendo directamente a este correo o al ${empresa.telefono || 'teléfono de la empresa'}.</p>
-      </div>
-    </div>
-
-    <div class="footer">
-      Este documento es una cotización comercial emitida a través del sistema <strong>Dolphin ERP</strong>.<br>
-      © ${new Date().getFullYear()} ${empresa.razonSocial || 'Dolphin ERP'}. Todos los derechos reservados.
-    </div>
-  </div>
-</body>
-</html>
-    `;
-  }
 }

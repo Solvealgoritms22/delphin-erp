@@ -32,7 +32,7 @@ export class TenantMailerService {
   /** Envía un email usando el SMTP configurado por el propietario */
   async sendMail(
     config: OwnerSmtpConfig,
-    options: { to: string; subject: string; html: string; text?: string },
+    options: { to: string; subject: string; html: string; text?: string; attachments?: import('nodemailer').SendMailOptions['attachments'] },
   ): Promise<void> {
     this.assertSmtpConfigured(config);
 
@@ -48,6 +48,7 @@ export class TenantMailerService {
       },
       connectionTimeout: 8000,
       greetingTimeout: 8000,
+      socketTimeout: 30000,
     });
 
     const fromAddress = config.smtpFrom || config.smtpUser!;
@@ -58,6 +59,7 @@ export class TenantMailerService {
       subject: options.subject,
       html: options.html,
       text: options.text,
+      attachments: options.attachments,
     });
 
     this.logger.log(
