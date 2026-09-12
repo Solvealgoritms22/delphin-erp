@@ -49,7 +49,10 @@ export class AzulService {
     const merchantId = process.env.AZUL_MERCHANT_ID;
 
     const isMockMode = env === 'MOCK' || !auth1 || !auth2 || !merchantId;
-    if (process.env.NODE_ENV === 'production' && (env !== 'PRODUCTION' || isMockMode)) {
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (env !== 'PRODUCTION' || isMockMode)
+    ) {
       throw new InternalServerErrorException(
         'Producción requiere Azul PRODUCTION y credenciales completas; no se permiten aprobaciones simuladas.',
       );

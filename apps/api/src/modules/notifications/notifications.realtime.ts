@@ -81,7 +81,8 @@ export class NotificationsRealtimeService implements OnModuleDestroy {
       this.subscriber.on('message', (_channel, message) => {
         try {
           const event = JSON.parse(message) as NotificationRealtimeEvent;
-          if (event.source !== this.instanceId) this.streams.get(event.userId)?.next(event);
+          if (event.source !== this.instanceId)
+            this.streams.get(event.userId)?.next(event);
         } catch {
           this.logger.warn('Invalid Redis notification event');
         }
@@ -90,12 +91,14 @@ export class NotificationsRealtimeService implements OnModuleDestroy {
       void this.publisher.connect().catch(() => undefined);
       void this.subscriber.connect().catch(() => undefined);
     } else {
-      this.logger.log('Redis is not configured. Running in-memory realtime notification service.');
+      this.logger.log(
+        'Redis is not configured. Running in-memory realtime notification service.',
+      );
     }
   }
 
   stream(userId: string): Observable<NotificationRealtimeEvent> {
-    return new Observable(subscriber => {
+    return new Observable((subscriber) => {
       const stream = this.localStream(userId);
       this.listeners.set(userId, (this.listeners.get(userId) || 0) + 1);
       const subscription = stream.subscribe(subscriber);
@@ -103,7 +106,11 @@ export class NotificationsRealtimeService implements OnModuleDestroy {
         subscription.unsubscribe();
         const remaining = (this.listeners.get(userId) || 1) - 1;
         if (remaining > 0) this.listeners.set(userId, remaining);
-        else { this.listeners.delete(userId); this.streams.delete(userId); stream.complete(); }
+        else {
+          this.listeners.delete(userId);
+          this.streams.delete(userId);
+          stream.complete();
+        }
       };
     });
   }
@@ -127,7 +134,7 @@ export class NotificationsRealtimeService implements OnModuleDestroy {
     return stream;
   }
 
-  async onModuleDestroy(): Promise<void> {
+  onModuleDestroy(): void {
     for (const stream of this.streams.values()) stream.complete();
     try {
       if (this.publisher && this.publisher.status !== 'end') {
@@ -141,4 +148,3 @@ export class NotificationsRealtimeService implements OnModuleDestroy {
     }
   }
 }
-

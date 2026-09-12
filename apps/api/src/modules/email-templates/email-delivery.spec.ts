@@ -34,16 +34,24 @@ describe('Email delivery contract', () => {
     },
   );
   it('system templates include the dolphin header brand while tenant templates include the signature', () => {
-    const systemMail = renderEmail('verification', { name: 'Ana' }, undefined, { code: '123456' });
+    const systemMail = renderEmail('verification', { name: 'Ana' }, undefined, {
+      code: '123456',
+    });
     expect(systemMail.html).toContain('cid:dolphin-brand');
-    expect(systemMail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(true);
+    expect(systemMail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(
+      true,
+    );
     expect(systemMail.html).not.toContain('cid:dolphin-signature');
 
     const tenantMail = renderEmail('quote', values);
     expect(tenantMail.html).not.toContain('cid:dolphin-brand');
-    expect(tenantMail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(false);
+    expect(tenantMail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(
+      false,
+    );
     expect(tenantMail.html).toContain('cid:dolphin-signature');
-    expect(tenantMail.attachments.some((a) => a.cid === 'dolphin-signature')).toBe(true);
+    expect(
+      tenantMail.attachments.some((a) => a.cid === 'dolphin-signature'),
+    ).toBe(true);
   });
   it.each([
     '<a href=javascript:alert(1)>x</a>',
@@ -87,7 +95,9 @@ describe('Email delivery contract', () => {
       body: '<p><img src="data:image/png;base64,iVBORw0KGgo="></p>',
     });
     expect(mail.attachments.some((a) => a.cid === 'email-image-1')).toBe(true);
-    expect(mail.attachments.some((a) => a.cid === 'dolphin-signature')).toBe(true);
+    expect(mail.attachments.some((a) => a.cid === 'dolphin-signature')).toBe(
+      true,
+    );
     expect(mail.html).toContain('cid:email-image-1');
     expect(mail.html).not.toContain('src="data:');
   });
@@ -115,12 +125,10 @@ describe('Email delivery contract', () => {
           .mockResolvedValue({ razonSocial: values.company }),
       },
       emailTemplate: {
-        findUnique: jest
-          .fn()
-          .mockResolvedValue({
-            ...EMAIL_CATALOG.notification_INVOICE_OVERDUE,
-            body: 'Contenido de mi empresa',
-          }),
+        findUnique: jest.fn().mockResolvedValue({
+          ...EMAIL_CATALOG.notification_INVOICE_OVERDUE,
+          body: 'Contenido de mi empresa',
+        }),
       },
     };
     const templates = new EmailTemplatesService(prisma, {} as any);

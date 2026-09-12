@@ -9,7 +9,7 @@ import {
 } from './email-template.catalog';
 
 export const escapeEmail = (value: unknown) =>
-  String(value ?? '').replace(
+  (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? String(value) : '').replace(
     /[&<>"']/g,
     (char) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
@@ -91,23 +91,28 @@ export function renderEmail(
 ) {
   const definition = emailDefinition(key);
   const isSystem = definition.scope === 'system';
-  const design = (isSystem || !definition.editable) ? definition : (custom ?? definition);
+  const design =
+    isSystem || !definition.editable ? definition : (custom ?? definition);
   validateDesign(key, design);
   const effectiveValues: Record<string, string> = {
-    company: isSystem ? 'Dolphin ERP' : (values.company || 'Dolphin ERP'),
+    company: isSystem ? 'Dolphin ERP' : values.company || 'Dolphin ERP',
     ...values,
   };
   const fill = (value: string, escapeVal = true) =>
     value.replace(/{{\s*([^{}]+?)\s*}}/g, (_, name: string) => {
       if (!Object.hasOwn(effectiveValues, name))
         throw new BadRequestException('Falta la variable ' + name);
-      return escapeVal ? escapeEmail(effectiveValues[name]) : effectiveValues[name];
+      return escapeVal
+        ? escapeEmail(effectiveValues[name])
+        : effectiveValues[name];
     });
   const subject = fill(design.subject, false)
-    .replace(/[\r\n\x00-\x1f]/g, ' ')
+    .split('').map(char => char.charCodeAt(0) < 32 ? ' ' : char).join('')
     .slice(0, 200);
   const heading = fill(design.heading, false);
-  const brand = isSystem ? 'Dolphin ERP' : (effectiveValues.company || 'Dolphin ERP');
+  const brand = isSystem
+    ? 'Dolphin ERP'
+    : effectiveValues.company || 'Dolphin ERP';
 
   // Procesar el cuerpo (detectar HTML o texto plano)
   const isHtml = /<[a-z][\s\S]*>/i.test(design.body);

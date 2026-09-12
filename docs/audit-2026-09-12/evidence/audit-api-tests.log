@@ -1,0 +1,248 @@
+
+> api@0.0.1 test:cov
+> jest --coverage --runInBand
+
+[Nest] 18616  - 12/09/2026, 9:39:04 a. m.   ERROR [BillingCronService] Error procesando renovación para Empresa A
+[Nest] 18616  - 12/09/2026, 9:39:04 a. m.   ERROR [BillingCronService] Error: gateway down
+    at Object.<anonymous> (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\api\src\modules\payments\billing-cron.service.spec.ts:106:52)
+    at Promise.finally.completed (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1561:28)
+    at new Promise (<anonymous>)
+    at callAsyncCircusFn (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1501:10)
+    at _callCircusTest (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1011:40)
+    at _runTest (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:951:3)
+    at C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:853:7
+    at _runTestsForDescribeBlock (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:866:11)
+    at _runTestsForDescribeBlock (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:861:11)
+    at run (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:765:3)
+    at runAndTransformResultsToJestFormat (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1993:21)
+    at jestAdapter (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\runner.js:111:19)
+    at runTestInternal (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-runner\build\index.js:276:16)
+    at runTest (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-runner\build\index.js:344:7)
+[Nest] 18616  - 12/09/2026, 9:39:04 a. m.   ERROR [BillingCronService] Error procesando renovación para Empresa A
+[Nest] 18616  - 12/09/2026, 9:39:04 a. m.   ERROR [BillingCronService] Error: gateway down
+    at Object.<anonymous> (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\api\src\modules\payments\billing-cron.service.spec.ts:106:52)
+    at Promise.finally.completed (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1561:28)
+    at new Promise (<anonymous>)
+    at callAsyncCircusFn (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1501:10)
+    at _callCircusTest (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1011:40)
+    at _runTest (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:951:3)
+    at C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:853:7
+    at _runTestsForDescribeBlock (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:866:11)
+    at _runTestsForDescribeBlock (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:861:11)
+    at run (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:765:3)
+    at runAndTransformResultsToJestFormat (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1993:21)
+    at jestAdapter (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\runner.js:111:19)
+    at runTestInternal (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-runner\build\index.js:276:16)
+    at runTest (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-runner\build\index.js:344:7)
+[Nest] 18616  - 12/09/2026, 9:39:08 a. m.   ERROR [AzulService] Azul card sale failed
+gateway down
+[Nest] 18616  - 12/09/2026, 9:39:08 a. m.   ERROR [AzulService] Azul token sale failed
+token error
+[Nest] 18616  - 12/09/2026, 9:39:08 a. m.   ERROR [AzulService] Azul void failed
+void error
+[Nest] 18616  - 12/09/2026, 9:39:10 a. m.   ERROR [ActivityLogService] AUDIT_WRITE_FAILED
+Error: db down
+    at Object.<anonymous> (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\api\src\modules\activity-log\activity-log.service.spec.ts:53:51)
+    at Promise.finally.completed (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1561:28)
+    at new Promise (<anonymous>)
+    at callAsyncCircusFn (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1501:10)
+    at _callCircusTest (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1011:40)
+    at _runTest (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:951:3)
+    at C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:853:7
+    at _runTestsForDescribeBlock (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:866:11)
+    at _runTestsForDescribeBlock (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:861:11)
+    at _runTestsForDescribeBlock (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:861:11)
+    at run (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:765:3)
+    at runAndTransformResultsToJestFormat (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\jestAdapterInit.js:1993:21)
+    at jestAdapter (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-circus\build\runner.js:111:19)
+    at runTestInternal (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-runner\build\index.js:276:16)
+    at runTest (C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\node_modules\jest-runner\build\index.js:344:7)
+[Nest] 18616  - 12/09/2026, 9:39:15 a. m.     LOG [PrismaService] Conexión exitosa con la base de datos PostgreSQL.
+--------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------
+File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                         
+--------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------
+All files                             |   33.72 |    26.42 |   33.46 |   33.66 |                                                                                                                           
+ src                                  |   53.84 |    33.33 |   57.14 |   46.66 |                                                                                                                           
+  app.controller.ts                   |   36.84 |       20 |      40 |   33.33 | 23,34,50-122                                                                                                              
+  app.service.ts                      |     100 |      100 |     100 |     100 |                                                                                                                           
+  maintenance.middleware.ts           |     100 |      100 |     100 |     100 |                                                                                                                           
+ src/common                           |    45.9 |    44.73 |      20 |   42.59 |                                                                                                                           
+  permissions.util.ts                 |   88.46 |    77.27 |     100 |   95.23 | 77                                                                                                                        
+  tenant-mailer.service.ts            |   14.28 |        0 |       0 |    9.09 | 16-119                                                                                                                    
+ src/common/dto                       |   82.56 |    15.38 |       0 |     100 |                                                                                                                           
+  resource.dto.ts                     |   82.56 |    15.38 |       0 |     100 | 83-161                                                                                                                    
+ src/common/guards                    |   95.45 |    88.09 |     100 |   95.23 |                                                                                                                           
+  entitlement.guard.ts                |   95.45 |    88.09 |     100 |   95.23 | 96,106                                                                                                                    
+ src/common/security                  |    64.7 |    41.93 |     100 |   73.33 |                                                                                                                           
+  password-policy.ts                  |      75 |       80 |     100 |      75 | 5                                                                                                                         
+  secrets.ts                          |   63.33 |    34.61 |     100 |   73.07 | 25,29-34                                                                                                                  
+ src/common/tenant                    |   28.57 |     5.55 |   28.57 |   33.33 |                                                                                                                           
+  tenant-context.middleware.ts        |       0 |      100 |       0 |       0 | 1-11                                                                                                                      
+  tenant-context.ts                   |      50 |      100 |      20 |      50 | 13,21-29                                                                                                                  
+  tenant-policy.ts                    |   29.41 |     5.55 |   42.85 |   34.61 | 13-32,38                                                                                                                  
+ src/modules/activity-log             |   89.87 |    87.64 |   83.33 |   93.75 |                                                                                                                           
+  activity-log.controller.ts          |   83.33 |       75 |      75 |   81.25 | 59-62                                                                                                                     
+  activity-log.service.ts             |    91.8 |    89.61 |   85.71 |   97.91 | 145                                                                                                                       
+ src/modules/ai-agent                 |       0 |        0 |       0 |       0 |                                                                                                                           
+  ai-agent.controller.ts              |       0 |        0 |       0 |       0 | 1-170                                                                                                                     
+  ai-agent.dto.ts                     |       0 |      100 |     100 |       0 | 1-61                                                                                                                      
+  ai-agent.service.ts                 |       0 |        0 |       0 |       0 | 1-1257                                                                                                                    
+  ai-tools.service.ts                 |       0 |        0 |       0 |       0 | 1-702                                                                                                                     
+ src/modules/auth                     |   40.34 |    41.48 |   34.86 |   42.07 |                                                                                                                           
+  auth.controller.ts                  |    64.7 |    63.09 |   42.85 |   64.06 | 38-39,53-66,72,109,119,179,195,204,220,233,241                                                                            
+  auth.service.ts                     |   53.64 |    54.47 |      60 |   55.61 | 55,61-63,70,89,93,101-105,177,221-222,299,324,338,389-449,471,566-573,621-622,635,637,639,641,643,645,647,672-889,909-954 
+  google-oauth.service.ts             |    8.46 |        5 |       0 |    8.25 | 13-263                                                                                                                    
+  mfa.controller.ts                   |       0 |        0 |       0 |       0 | 1-33                                                                                                                      
+  mfa.service.ts                      |   11.76 |     3.65 |       0 |   11.62 | 14-142                                                                                                                    
+  session.service.ts                  |     100 |    91.66 |     100 |     100 | 6-24                                                                                                                      
+ src/modules/auth/dto                 |     100 |      100 |     100 |     100 |                                                                                                                           
+  auth.dto.ts                         |     100 |      100 |     100 |     100 |                                                                                                                           
+ src/modules/auth/guards              |   61.53 |    46.87 |      60 |   59.09 |                                                                                                                           
+  jwt-auth.guard.ts                   |      50 |        0 |       0 |   44.44 | 8-12                                                                                                                      
+  local-auth.guard.ts                 |     100 |      100 |     100 |     100 |                                                                                                                           
+  permissions.guard.ts                |      60 |       50 |      75 |   59.37 | 46-77                                                                                                                     
+ src/modules/auth/strategies          |   92.85 |    73.07 |      80 |   95.74 |                                                                                                                           
+  jwt.strategy.ts                     |   89.47 |    76.31 |   66.66 |   93.54 | 11,54                                                                                                                     
+  local.strategy.ts                   |     100 |    64.28 |     100 |     100 | 8-24                                                                                                                      
+ src/modules/backups                  |    13.9 |    11.32 |    7.69 |   15.72 |                                                                                                                           
+  backups.controller.ts               |       0 |        0 |       0 |       0 | 1-142                                                                                                                     
+  backups.service.ts                  |   19.72 |    19.46 |   16.12 |   20.29 | 43-227,249-320,332,425-539,559-709                                                                                        
+  tenant-archive.ts                   |     8.1 |        0 |       0 |   12.32 | 26,29-52,56-64,68-86,90-109                                                                                               
+ src/modules/billing-config           |    8.24 |     5.71 |       0 |    6.74 |                                                                                                                           
+  billing-config.controller.ts        |       0 |        0 |       0 |       0 | 1-78                                                                                                                      
+  billing-config.service.ts           |   11.59 |      7.4 |       0 |    9.52 | 39-285                                                                                                                    
+ src/modules/catalogs/brands          |   93.47 |    71.42 |     100 |   94.87 |                                                                                                                           
+  brands.controller.ts                |     100 |       75 |     100 |     100 | 24-50                                                                                                                     
+  brands.service.ts                   |    87.5 |    68.75 |     100 |   89.47 | 15,41                                                                                                                     
+ src/modules/catalogs/categories      |   88.88 |    65.38 |     100 |    87.5 |                                                                                                                           
+  categories.controller.ts            |     100 |       75 |     100 |     100 | 25-51                                                                                                                     
+  categories.service.ts               |   78.26 |    57.14 |     100 |      75 | 21-26                                                                                                                     
+ src/modules/catalogs/products        |   44.91 |     26.1 |   66.66 |   46.41 |                                                                                                                           
+  products.controller.ts              |   94.44 |    66.66 |   85.71 |   94.11 | 71-75                                                                                                                     
+  products.service.ts                 |      36 |    23.46 |   58.82 |   37.14 | 31-80,97,180-281,299,318-355,399,407,409,411,413,419,422,425,427-428,432,437,443,449,452,455,465-532                      
+ src/modules/catalogs/units           |    97.5 |    77.27 |     100 |   97.14 |                                                                                                                           
+  units.controller.ts                 |     100 |       75 |     100 |     100 | 25-51                                                                                                                     
+  units.service.ts                    |   94.44 |       80 |     100 |   93.33 | 21                                                                                                                        
+ src/modules/commercial/clients       |   95.45 |    74.07 |     100 |   94.87 |                                                                                                                           
+  clients.controller.ts               |     100 |       75 |     100 |     100 | 24-50                                                                                                                     
+  clients.service.ts                  |    91.3 |    73.33 |     100 |      90 | 54-63                                                                                                                     
+ src/modules/commercial/suppliers     |   95.45 |    74.07 |     100 |   94.87 |                                                                                                                           
+  suppliers.controller.ts             |     100 |       75 |     100 |     100 | 24-50                                                                                                                     
+  suppliers.service.ts                |    91.3 |    73.33 |     100 |      90 | 54-63                                                                                                                     
+ src/modules/credit-notes             |   74.82 |    61.53 |    42.1 |   76.47 |                                                                                                                           
+  credit-notes.controller.ts          |       0 |        0 |       0 |       0 | 1-40                                                                                                                      
+  credit-notes.service.ts             |   84.25 |    66.05 |   53.33 |   85.24 | 48,53,62,68,111,141,147,160,164,168,228,362,423,433-465                                                                   
+ src/modules/credit-notes/dto         |       0 |      100 |       0 |       0 |                                                                                                                           
+  credit-note.dto.ts                  |       0 |      100 |       0 |       0 | 1-44                                                                                                                      
+ src/modules/customer-payments        |       0 |        0 |       0 |       0 |                                                                                                                           
+  customer-payments.controller.ts     |       0 |        0 |       0 |       0 | 1-71                                                                                                                      
+  customer-payments.service.ts        |       0 |        0 |       0 |       0 | 1-578                                                                                                                     
+ src/modules/customer-payments/dto    |       0 |      100 |       0 |       0 |                                                                                                                           
+  create-customer-payment.dto.ts      |       0 |      100 |       0 |       0 | 1-101                                                                                                                     
+  filter-customer-payments.dto.ts     |       0 |      100 |       0 |       0 | 1-48                                                                                                                      
+ src/modules/dashboard                |     100 |       75 |     100 |     100 |                                                                                                                           
+  dashboard.controller.ts             |     100 |       75 |     100 |     100 | 14                                                                                                                        
+  dashboard.service.ts                |     100 |       75 |     100 |     100 | 6                                                                                                                         
+ src/modules/email-templates          |   65.02 |    68.42 |   62.85 |   64.43 |                                                                                                                           
+  email-logo.ts                       |     100 |      100 |     100 |     100 |                                                                                                                           
+  email-renderer.ts                   |   90.58 |    82.71 |     100 |   90.36 | 103,152-162,220                                                                                                           
+  email-template.catalog.ts           |   82.75 |    83.33 |      80 |   81.48 | 113,130,134,141,144                                                                                                       
+  email-templates.controller.ts       |       0 |        0 |       0 |       0 | 1-82                                                                                                                      
+  email-templates.service.ts          |   48.38 |    48.38 |      50 |   45.76 | 30,73-191,236-253                                                                                                         
+ src/modules/empresas                 |   74.81 |    59.83 |     100 |      80 |                                                                                                                           
+  empresas.controller.ts              |     100 |    77.27 |     100 |     100 | 24-30,70-76                                                                                                               
+  empresas.service.ts                 |   67.61 |       56 |     100 |   73.86 | 109,166-183,246,250,252,254,256,258,260,262,264,266,268                                                                   
+ src/modules/inventory                |       0 |        0 |       0 |       0 |                                                                                                                           
+  inventory.controller.ts             |       0 |        0 |       0 |       0 | 1-121                                                                                                                     
+  inventory.service.ts                |       0 |        0 |       0 |       0 | 1-486                                                                                                                     
+ src/modules/invoices                 |   19.16 |    14.55 |   18.82 |   17.16 |                                                                                                                           
+  fiscal-outbox.service.ts            |   21.81 |    16.66 |       0 |    19.6 | 20-24,33-220                                                                                                              
+  fiscal-payload.ts                   |   82.95 |    70.58 |     100 |   84.61 | 15,17,39,91-97                                                                                                            
+  fiscalbridge-webhook.controller.ts  |       0 |        0 |       0 |       0 | 1-33                                                                                                                      
+  fiscalbridge-webhook.service.ts     |       0 |        0 |       0 |       0 | 1-149                                                                                                                     
+  fiscalbridge.service.ts             |    4.16 |        0 |       0 |    3.07 | 8-332                                                                                                                     
+  invoice-discounts.ts                |     100 |       75 |     100 |     100 | 17-22                                                                                                                     
+  invoices.controller.ts              |       0 |        0 |       0 |       0 | 1-87                                                                                                                      
+  invoices.service.ts                 |    9.19 |     6.54 |   13.33 |     9.2 | 65-646,675-954,960-1067                                                                                                   
+ src/modules/invoices/dto             |       0 |      100 |       0 |       0 |                                                                                                                           
+  invoice.dto.ts                      |       0 |      100 |       0 |       0 | 1-206                                                                                                                     
+ src/modules/notifications            |   78.63 |       68 |   71.18 |   79.06 |                                                                                                                           
+  notification-alerts.service.ts      |   84.72 |    51.11 |      80 |   84.61 | 26,163,182-204,240,272,328                                                                                                
+  notification.catalog.ts             |     100 |      100 |     100 |     100 |                                                                                                                           
+  notifications.service.ts            |   75.77 |     72.9 |   66.66 |   76.51 | 121-127,211-230,241-245,269-299,314,341,362-368,406,416,430-444,472                                                       
+ src/modules/payments                 |   87.78 |    76.25 |   89.47 |   89.74 |                                                                                                                           
+  azul.service.ts                     |     100 |    97.77 |     100 |     100 | 52                                                                                                                        
+  billing-attempts.service.ts         |      25 |     37.5 |       0 |      20 | 7-32                                                                                                                      
+  billing-cron.service.ts             |   97.61 |    78.26 |     100 |    97.5 | 67                                                                                                                        
+  billing-currency.ts                 |     100 |      100 |     100 |     100 |                                                                                                                           
+  billing-owner.guard.ts              |    37.5 |    23.07 |      50 |   33.33 | 8-16                                                                                                                      
+  payment.dto.ts                      |     100 |      100 |     100 |     100 |                                                                                                                           
+  payments.controller.ts              |    91.2 |    70.58 |   88.88 |   96.34 | 53-65                                                                                                                     
+  payments.service.ts                 |     100 |    86.04 |     100 |     100 | 17,31,64,158                                                                                                              
+ src/modules/promotions               |       0 |        0 |       0 |       0 |                                                                                                                           
+  promotions.controller.ts            |       0 |        0 |       0 |       0 | 1-87                                                                                                                      
+  promotions.service.ts               |       0 |        0 |       0 |       0 | 1-608                                                                                                                     
+ src/modules/promotions/dto           |       0 |      100 |       0 |       0 |                                                                                                                           
+  create-promotion.dto.ts             |       0 |      100 |       0 |       0 | 1-92                                                                                                                      
+  evaluate-promotions.dto.ts          |       0 |      100 |       0 |       0 | 1-44                                                                                                                      
+  filter-promotions.dto.ts            |       0 |      100 |     100 |       0 | 1-28                                                                                                                      
+  update-promotion.dto.ts             |       0 |      100 |     100 |       0 | 1-4                                                                                                                       
+ src/modules/purchases                |       0 |        0 |       0 |       0 |                                                                                                                           
+  purchases.controller.ts             |       0 |        0 |       0 |       0 | 1-71                                                                                                                      
+  purchases.service.ts                |       0 |        0 |       0 |       0 | 1-672                                                                                                                     
+ src/modules/purchases/dto            |       0 |        0 |       0 |       0 |                                                                                                                           
+  create-purchase.dto.ts              |       0 |        0 |       0 |       0 | 1-142                                                                                                                     
+  create-supplier-payment.dto.ts      |       0 |        0 |       0 |       0 | 1-33                                                                                                                      
+  filter-purchases.dto.ts             |       0 |      100 |       0 |       0 | 1-39                                                                                                                      
+ src/modules/quotes                   |       0 |        0 |       0 |       0 |                                                                                                                           
+  quotes.controller.ts                |       0 |        0 |       0 |       0 | 1-101                                                                                                                     
+  quotes.service.ts                   |       0 |        0 |       0 |       0 | 1-836                                                                                                                     
+ src/modules/quotes/dto               |       0 |      100 |       0 |       0 |                                                                                                                           
+  quotes.dto.ts                       |       0 |      100 |       0 |       0 | 1-152                                                                                                                     
+ src/modules/reports                  |       0 |        0 |       0 |       0 |                                                                                                                           
+  reports.controller.ts               |       0 |        0 |       0 |       0 | 1-113                                                                                                                     
+  reports.service.ts                  |       0 |        0 |       0 |       0 | 1-950                                                                                                                     
+ src/modules/reports/dto              |       0 |      100 |       0 |       0 |                                                                                                                           
+  reports.dto.ts                      |       0 |      100 |       0 |       0 | 1-50                                                                                                                      
+ src/modules/roles                    |     100 |    72.91 |     100 |     100 |                                                                                                                           
+  roles.controller.ts                 |     100 |       75 |     100 |     100 | 24-43                                                                                                                     
+  roles.service.ts                    |     100 |    72.22 |     100 |     100 | 13-27,66-74,86-87                                                                                                         
+ src/modules/sequences                |    9.37 |     4.61 |       0 |    6.66 |                                                                                                                           
+  sequences.controller.ts             |       0 |        0 |       0 |       0 | 1-57                                                                                                                      
+  sequences.service.ts                |   14.28 |     5.66 |       0 |      10 | 12-166                                                                                                                    
+ src/modules/sequences/dto            |       0 |      100 |     100 |       0 |                                                                                                                           
+  sequence.dto.ts                     |       0 |      100 |     100 |       0 | 1-72                                                                                                                      
+ src/modules/sucursales               |     100 |    77.77 |     100 |     100 |                                                                                                                           
+  sucursales.controller.ts            |     100 |       75 |     100 |     100 | 26-54                                                                                                                     
+  sucursales.service.ts               |     100 |    83.33 |     100 |     100 | 6                                                                                                                         
+ src/modules/tenant-api               |       0 |        0 |       0 |       0 |                                                                                                                           
+  tenant-api-key.service.ts           |       0 |        0 |       0 |       0 | 1-247                                                                                                                     
+ src/modules/tenant-api/controllers   |       0 |        0 |       0 |       0 |                                                                                                                           
+  public-tenant-api.controller.ts     |       0 |        0 |       0 |       0 | 1-300                                                                                                                     
+  tenant-api-management.controller.ts |       0 |        0 |       0 |       0 | 1-60                                                                                                                      
+ src/modules/tenant-api/dto           |       0 |      100 |     100 |       0 |                                                                                                                           
+  tenant-api.dto.ts                   |       0 |      100 |     100 |       0 | 1-95                                                                                                                      
+ src/modules/tenant-api/guards        |       0 |        0 |       0 |       0 |                                                                                                                           
+  tenant-api-key.guard.ts             |       0 |        0 |       0 |       0 | 1-119                                                                                                                     
+ src/modules/users                    |   58.92 |    45.87 |   43.33 |   59.35 |                                                                                                                           
+  users.controller.ts                 |    92.3 |       75 |   71.42 |   91.66 | 41,64                                                                                                                     
+  users.service.ts                    |   52.81 |    43.95 |   34.78 |   53.43 | 77-88,135-137,162-305,327-330,336,347-350,356-357,362,367,377,406-430                                                     
+ src/prisma                           |   54.28 |    27.77 |   57.14 |   57.14 |                                                                                                                           
+  prisma.service.ts                   |   54.28 |    27.77 |   57.14 |   57.14 | 42-75                                                                                                                     
+--------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------
+Jest: Coverage for statements (33.72%) does not meet "global" threshold (35%)
+Jest: Coverage for lines (33.66%) does not meet "global" threshold (35%)
+Jest: Coverage for functions (33.46%) does not meet "global" threshold (35%)
+
+Test Suites: 52 passed, 52 total
+Tests:       323 passed, 323 total
+Snapshots:   0 total
+Time:        167.721 s
+Ran all test suites.
+npm error Lifecycle script `test:cov` failed with error:
+npm error code 1
+npm error path C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\api
+npm error workspace api@0.0.1
+npm error location C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\api
+npm error command failed
+npm error command C:\Windows\system32\cmd.exe /d /s /c jest --coverage --runInBand

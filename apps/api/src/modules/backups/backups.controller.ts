@@ -103,7 +103,9 @@ export class BackupsController {
         throw new BadRequestException('Callback OAuth incompleto');
       }
       await this.backups.googleCallback(code, state);
-      return res.redirect(`${frontendUrl}/settings/backups?googleDrive=success`);
+      return res.redirect(
+        `${frontendUrl}/settings/backups?googleDrive=success`,
+      );
     } catch (err: any) {
       const msg = encodeURIComponent(
         err?.message || 'Error al conectar Google Drive',

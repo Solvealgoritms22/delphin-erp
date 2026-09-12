@@ -44,9 +44,17 @@ export class EmpresasController {
     return this.prisma.suscripcion.findUnique({
       where: { empresaId: user.empresaId },
       select: {
-        id: true, empresaId: true, planId: true, estado: true, periodicidad: true,
-        fechaInicio: true, fechaRenovacion: true, fechaCancelacion: true, plan: true,
-        azulCardLast4: true, azulCardBrand: true,
+        id: true,
+        empresaId: true,
+        planId: true,
+        estado: true,
+        periodicidad: true,
+        fechaInicio: true,
+        fechaRenovacion: true,
+        fechaCancelacion: true,
+        plan: true,
+        azulCardLast4: true,
+        azulCardBrand: true,
       },
     });
   }
@@ -73,7 +81,11 @@ export class EmpresasController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar empresa (solo propietario)' })
-  update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: UpdateCompanyDto) {
+  update(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body() data: UpdateCompanyDto,
+  ) {
     return this.empresasService.update(user.id, id, data);
   }
 

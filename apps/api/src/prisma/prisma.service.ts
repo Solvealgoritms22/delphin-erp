@@ -7,7 +7,10 @@ import {
 } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { TenantContext } from '../common/tenant/tenant-context';
-import { scopedModels, tenantQueryExtension } from '../common/tenant/tenant-policy';
+import {
+  scopedModels,
+  tenantQueryExtension,
+} from '../common/tenant/tenant-policy';
 
 @Injectable()
 export class PrismaService
@@ -19,16 +22,18 @@ export class PrismaService
   constructor() {
     super({
       log:
-        process.env.NODE_ENV === 'development'
-          ? ['error', 'warn']
-          : ['error'],
+        process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     });
     const client = this.$extends({ query: tenantQueryExtension });
-    const delegates = new Set([...scopedModels].map(name => name[0].toLowerCase() + name.slice(1)));
+    const delegates = new Set(
+      [...scopedModels].map((name) => name[0].toLowerCase() + name.slice(1)),
+    );
     return new Proxy(this, {
       get(target, property, receiver) {
-        if (typeof property === 'string' && delegates.has(property)) return client[property];
-        if (property === '$transaction') return client.$transaction.bind(client);
+        if (typeof property === 'string' && delegates.has(property))
+          return client[property];
+        if (property === '$transaction')
+          return client.$transaction.bind(client);
         return Reflect.get(target, property, receiver);
       },
     });
@@ -39,7 +44,10 @@ export class PrismaService
       await this.$connect();
       this.logger.log('Conexión exitosa con la base de datos PostgreSQL.');
     } catch (err: any) {
-      this.logger.error('Error conectando a la base de datos:', err?.message || err);
+      this.logger.error(
+        'Error conectando a la base de datos:',
+        err?.message || err,
+      );
       throw err;
     }
   }
@@ -57,7 +65,8 @@ export class PrismaService
     if (TenantContext.isSuperAdmin()) return;
 
     const currentTenant = TenantContext.getTenantId();
-    if (!currentTenant) throw new ForbiddenException('Contexto de empresa requerido');
+    if (!currentTenant)
+      throw new ForbiddenException('Contexto de empresa requerido');
 
     if (resourceEmpresaId && resourceEmpresaId !== currentTenant) {
       throw new ForbiddenException(

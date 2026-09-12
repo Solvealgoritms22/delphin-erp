@@ -10,12 +10,26 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(empresaId: string, data: any, usuarioId?: string, db: Prisma.TransactionClient = this.prisma): Promise<any> {
-    if (db === this.prisma) return this.prisma.$transaction(tx => this.create(empresaId, data, usuarioId, tx), { isolationLevel: 'Serializable' });
+  async create(
+    empresaId: string,
+    data: any,
+    usuarioId?: string,
+    db: Prisma.TransactionClient = this.prisma,
+  ): Promise<any> {
+    if (db === this.prisma)
+      return this.prisma.$transaction(
+        (tx) => this.create(empresaId, data, usuarioId, tx),
+        { isolationLevel: 'Serializable' },
+      );
     const { stockInicial, stockMinimo, almacenId } = data || {};
     const payload = await this.sanitizeProductData(empresaId, data, db);
 
-    if (!payload.codigo) payload.codigo = await this.generateNextCode(empresaId, payload.tipo || 'PRODUCTO', db);
+    if (!payload.codigo)
+      payload.codigo = await this.generateNextCode(
+        empresaId,
+        payload.tipo || 'PRODUCTO',
+        db,
+      );
     const producto = await db.producto.create({
       data: {
         ...payload,
@@ -129,7 +143,11 @@ export class ProductsService {
     });
   }
 
-  async findOne(empresaId: string, id: string, db: Prisma.TransactionClient = this.prisma) {
+  async findOne(
+    empresaId: string,
+    id: string,
+    db: Prisma.TransactionClient = this.prisma,
+  ) {
     const producto = await db.producto.findFirst({
       where: { id, empresaId },
       include: {
@@ -159,8 +177,18 @@ export class ProductsService {
     return producto;
   }
 
-  async update(empresaId: string, id: string, data: any, usuarioId?: string, db: Prisma.TransactionClient = this.prisma): Promise<any> {
-    if (db === this.prisma) return this.prisma.$transaction(tx => this.update(empresaId, id, data, usuarioId, tx), { isolationLevel: 'Serializable' });
+  async update(
+    empresaId: string,
+    id: string,
+    data: any,
+    usuarioId?: string,
+    db: Prisma.TransactionClient = this.prisma,
+  ): Promise<any> {
+    if (db === this.prisma)
+      return this.prisma.$transaction(
+        (tx) => this.update(empresaId, id, data, usuarioId, tx),
+        { isolationLevel: 'Serializable' },
+      );
     const existingProduct = await this.findOne(empresaId, id, db); // check existence
     const payload = await this.sanitizeProductData(empresaId, data, db);
 
@@ -302,7 +330,11 @@ export class ProductsService {
     return this.findOne(empresaId, id, db);
   }
 
-  async remove(empresaId: string, id: string, db: Prisma.TransactionClient = this.prisma) {
+  async remove(
+    empresaId: string,
+    id: string,
+    db: Prisma.TransactionClient = this.prisma,
+  ) {
     await this.findOne(empresaId, id, db);
     return db.producto.delete({
       where: { id },
@@ -355,11 +387,26 @@ export class ProductsService {
     return candidate;
   }
 
-  private async sanitizeProductData(empresaId: string, data: any, db: Prisma.TransactionClient) {
+  private async sanitizeProductData(
+    empresaId: string,
+    data: any,
+    db: Prisma.TransactionClient,
+  ) {
     if (!data) throw new BadRequestException('Datos de producto requeridos');
-    for (const [field, model] of [['categoriaId', 'categoria'], ['marcaId', 'marca'], ['unidadMedidaId', 'unidadMedida'], ['almacenId', 'almacen']] as const) {
+    for (const [field, model] of [
+      ['categoriaId', 'categoria'],
+      ['marcaId', 'marca'],
+      ['unidadMedidaId', 'unidadMedida'],
+      ['almacenId', 'almacen'],
+    ] as const) {
       const id = data[field];
-      if (id && !await (db[model] as any).findFirst({ where: { id, empresaId } })) throw new BadRequestException('La referencia no pertenece a la empresa: ' + field);
+      if (
+        id &&
+        !(await (db[model] as any).findFirst({ where: { id, empresaId } }))
+      )
+        throw new BadRequestException(
+          'La referencia no pertenece a la empresa: ' + field,
+        );
     }
 
     const {
@@ -416,7 +463,10 @@ export class ProductsService {
           : null;
     }
     if (data.moneda !== undefined) {
-      result.moneda = typeof data.moneda === 'string' && data.moneda.trim() ? data.moneda.trim().toUpperCase() : 'DOP';
+      result.moneda =
+        typeof data.moneda === 'string' && data.moneda.trim()
+          ? data.moneda.trim().toUpperCase()
+          : 'DOP';
     }
     if (categoriaId !== undefined)
       result.categoriaId = cleanString(categoriaId);
@@ -435,13 +485,17 @@ export class ProductsService {
     if (data.enOferta !== undefined) result.enOferta = Boolean(data.enOferta);
     if (data.precioOferta !== undefined) {
       result.precioOferta =
-        data.precioOferta !== null && data.precioOferta !== '' && !isNaN(Number(data.precioOferta))
+        data.precioOferta !== null &&
+        data.precioOferta !== '' &&
+        !isNaN(Number(data.precioOferta))
           ? Number(data.precioOferta)
           : null;
     }
     if (data.descuentoPorcentaje !== undefined) {
       result.descuentoPorcentaje =
-        data.descuentoPorcentaje !== null && data.descuentoPorcentaje !== '' && !isNaN(Number(data.descuentoPorcentaje))
+        data.descuentoPorcentaje !== null &&
+        data.descuentoPorcentaje !== '' &&
+        !isNaN(Number(data.descuentoPorcentaje))
           ? Number(data.descuentoPorcentaje)
           : 0;
     }
@@ -453,7 +507,9 @@ export class ProductsService {
     }
     if (data.descuentoMaximo !== undefined) {
       result.descuentoMaximo =
-        data.descuentoMaximo !== null && data.descuentoMaximo !== '' && !isNaN(Number(data.descuentoMaximo))
+        data.descuentoMaximo !== null &&
+        data.descuentoMaximo !== '' &&
+        !isNaN(Number(data.descuentoMaximo))
           ? Number(data.descuentoMaximo)
           : 100;
     }
@@ -485,7 +541,11 @@ export class ProductsService {
     return JSON.stringify(images);
   }
 
-  private async resolveTax(empresaId: string, impuestoId: string | null | undefined, db: Prisma.TransactionClient) {
+  private async resolveTax(
+    empresaId: string,
+    impuestoId: string | null | undefined,
+    db: Prisma.TransactionClient,
+  ) {
     if (!impuestoId) return null;
     const tax = await db.impuesto.findFirst({
       where: { id: impuestoId, empresaId, activo: true },
@@ -516,11 +576,28 @@ export class ProductsService {
         item.insumoProductoId !== productoPadreId,
     );
 
-    if (validInsumos.length !== insumos.length || new Set(validInsumos.map(i => i.insumoProductoId)).size !== insumos.length) throw new BadRequestException('Insumos inválidos o duplicados');
+    if (
+      validInsumos.length !== insumos.length ||
+      new Set(validInsumos.map((i) => i.insumoProductoId)).size !==
+        insumos.length
+    )
+      throw new BadRequestException('Insumos inválidos o duplicados');
     for (const item of validInsumos) {
-      if (!await db.producto.findFirst({ where: { id: item.insumoProductoId, empresaId } })) throw new BadRequestException('El insumo no pertenece a la empresa');
-      if (item.unidadMedidaId && !await db.unidadMedida.findFirst({ where: { id: item.unidadMedidaId, empresaId } })) throw new BadRequestException('La unidad no pertenece a la empresa');
-      if (!Number.isFinite(Number(item.cantidad)) || Number(item.cantidad) <= 0) throw new BadRequestException('Cantidad de insumo inválida');
+      if (
+        !(await db.producto.findFirst({
+          where: { id: item.insumoProductoId, empresaId },
+        }))
+      )
+        throw new BadRequestException('El insumo no pertenece a la empresa');
+      if (
+        item.unidadMedidaId &&
+        !(await db.unidadMedida.findFirst({
+          where: { id: item.unidadMedidaId, empresaId },
+        }))
+      )
+        throw new BadRequestException('La unidad no pertenece a la empresa');
+      if (!Number.isFinite(Number(item.cantidad)) || Number(item.cantidad) <= 0)
+        throw new BadRequestException('Cantidad de insumo inválida');
       const qty = Number(item.cantidad) > 0 ? Number(item.cantidad) : 1;
       const cost =
         item.costoUnitario !== undefined &&

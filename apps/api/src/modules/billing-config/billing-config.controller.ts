@@ -1,4 +1,10 @@
-import { BillingConfigDto, TaxDto, UpdateTaxDto, PaymentTermDto, UpdatePaymentTermDto } from '../../common/dto/resource.dto';
+import {
+  BillingConfigDto,
+  TaxDto,
+  UpdateTaxDto,
+  PaymentTermDto,
+  UpdatePaymentTermDto,
+} from '../../common/dto/resource.dto';
 import {
   Body,
   Controller,

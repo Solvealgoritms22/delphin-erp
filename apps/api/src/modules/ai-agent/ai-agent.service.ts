@@ -1,3 +1,4 @@
+import { normalizePermissions } from '../../common/permissions.util';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AiToolsService } from './ai-tools.service';
@@ -33,7 +34,21 @@ export class AiAgentService {
     empresaId: string,
     userQuery: string,
     toolsUsed: string[],
+    userId: string,
   ): Promise<any> {
+    const company = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+      select: { propietarioId: true },
+    });
+    const membership = await this.prisma.membresia.findUnique({
+      where: { usuarioId_empresaId: { usuarioId: userId, empresaId } },
+      include: { role: true },
+    });
+    if (!company || !membership || membership.estado !== 'ACTIVO') return {};
+    const permissions = normalizePermissions(membership.role?.permissions);
+    const can = (...required: string[]) =>
+      company.propietarioId === userId ||
+      required.every((p) => permissions.includes(p));
     const lowerQuery = userQuery.toLowerCase();
     const dbContext: any = {};
 
@@ -145,87 +160,113 @@ export class AiAgentService {
 
     try {
       if (
-        needsOverview ||
-        (!needsSales &&
-          !needsQuotes &&
-          !needsPurchases &&
-          !needsReceivables &&
-          !needsInventory &&
-          !needsPromotions &&
-          !needsFiscalSequences &&
-          !needsProducts &&
-          !needsClients &&
-          !needsSuppliers &&
-          !needsLogs &&
-          !needsTeam &&
-          !needsBranches)
+        can(
+          'company:read',
+          'catalogs:read',
+          'commercial:read',
+          'users:read',
+          'sucursales:read',
+          'activity:read',
+        ) &&
+        (needsOverview ||
+          (!needsSales &&
+            !needsQuotes &&
+            !needsPurchases &&
+            !needsReceivables &&
+            !needsInventory &&
+            !needsPromotions &&
+            !needsFiscalSequences &&
+            !needsProducts &&
+            !needsClients &&
+            !needsSuppliers &&
+            !needsLogs &&
+            !needsTeam &&
+            !needsBranches))
       ) {
         toolsUsed.push('getCompanyOverview', 'getExecutiveMetrics');
         dbContext.empresa = await this.tools.getCompanyOverview(empresaId);
         dbContext.metricas = await this.tools.getExecutiveMetrics(empresaId);
       }
 
-      if (needsSales) {
+      if (needsSales && can('commercial:read')) {
         toolsUsed.push('querySalesAndInvoices');
-        dbContext.ventas = await this.tools.querySalesAndInvoices(empresaId, { limit: 20 });
+        dbContext.ventas = await this.tools.querySalesAndInvoices(empresaId, {
+          limit: 20,
+        });
       }
 
-      if (needsQuotes) {
+      if (needsQuotes && can('commercial:read')) {
         toolsUsed.push('queryQuotes');
-        dbContext.cotizaciones = await this.tools.queryQuotes(empresaId, { limit: 15 });
+        dbContext.cotizaciones = await this.tools.queryQuotes(empresaId, {
+          limit: 15,
+        });
       }
 
-      if (needsPurchases) {
+      if (needsPurchases && can('commercial:read')) {
         toolsUsed.push('queryPurchases');
-        dbContext.compras = await this.tools.queryPurchases(empresaId, { limit: 15 });
+        dbContext.compras = await this.tools.queryPurchases(empresaId, {
+          limit: 15,
+        });
       }
 
-      if (needsReceivables) {
+      if (needsReceivables && can('commercial:read')) {
         toolsUsed.push('queryReceivables');
-        dbContext.cuentasPorCobrar = await this.tools.queryReceivables(empresaId);
+        dbContext.cuentasPorCobrar =
+          await this.tools.queryReceivables(empresaId);
       }
 
-      if (needsInventory) {
+      if (needsInventory && can('inventory:read')) {
         toolsUsed.push('queryInventoryStock');
-        dbContext.inventario = await this.tools.queryInventoryStock(empresaId, { limit: 25 });
+        dbContext.inventario = await this.tools.queryInventoryStock(empresaId, {
+          limit: 25,
+        });
       }
 
-      if (needsPromotions) {
+      if (needsPromotions && can('commercial:read')) {
         toolsUsed.push('queryPromotions');
         dbContext.promociones = await this.tools.queryPromotions(empresaId);
       }
 
-      if (needsFiscalSequences) {
+      if (needsFiscalSequences && can('sequences:read')) {
         toolsUsed.push('queryFiscalSequences');
-        dbContext.secuenciasFiscales = await this.tools.queryFiscalSequences(empresaId);
+        dbContext.secuenciasFiscales =
+          await this.tools.queryFiscalSequences(empresaId);
       }
 
-      if (needsProducts) {
+      if (needsProducts && can('catalogs:read')) {
         toolsUsed.push('queryProducts');
-        dbContext.productos = await this.tools.queryProducts(empresaId, { limit: 20 });
+        dbContext.productos = await this.tools.queryProducts(empresaId, {
+          limit: 20,
+        });
       }
 
-      if (needsClients) {
+      if (needsClients && can('commercial:read')) {
         toolsUsed.push('queryClients');
-        dbContext.clientes = await this.tools.queryClients(empresaId, { limit: 20 });
+        dbContext.clientes = await this.tools.queryClients(empresaId, {
+          limit: 20,
+        });
       }
 
-      if (needsSuppliers) {
+      if (needsSuppliers && can('commercial:read')) {
         toolsUsed.push('querySuppliers');
-        dbContext.proveedores = await this.tools.querySuppliers(empresaId, { limit: 20 });
+        dbContext.proveedores = await this.tools.querySuppliers(empresaId, {
+          limit: 20,
+        });
       }
 
-      if (needsLogs) {
+      if (needsLogs && can('activity:read')) {
         toolsUsed.push('queryActivityLogs');
-        dbContext.actividades = await this.tools.queryActivityLogs(empresaId, { limit: 15 });
+        dbContext.actividades = await this.tools.queryActivityLogs(empresaId, {
+          limit: 15,
+        });
       }
 
-      if (needsTeam) {
+      if (needsTeam && can('users:read')) {
         toolsUsed.push('queryTeamMembers');
         dbContext.miembros = await this.tools.queryTeamMembers(empresaId);
       }
 
-      if (needsBranches) {
+      if (needsBranches && can('sucursales:read')) {
         toolsUsed.push('queryBranches');
         dbContext.sucursales = await this.tools.queryBranches(empresaId);
       }
@@ -265,6 +306,7 @@ export class AiAgentService {
       empresaId,
       userQuery,
       toolsUsed,
+      user.id,
     );
     let reply = '';
 
@@ -300,7 +342,7 @@ export class AiAgentService {
     }
 
     // Free Public AI Gateway
-    if (!reply) {
+    if (!reply && process.env.AI_PUBLIC_FALLBACK_ENABLED === 'true') {
       try {
         reply = await this.callFreePollinationsAI(
           userQuery,
@@ -365,6 +407,7 @@ export class AiAgentService {
       empresaId,
       userQuery,
       toolsUsed,
+      user.id,
     );
     onChunk({ type: 'tools', toolsUsed, conversationId: convId });
 
@@ -956,7 +999,10 @@ ${JSON.stringify(dbContext, null, 2)}
       const res = data.ventas.resumenVentasGlobal || {};
       const list = data.ventas.facturasRecientes || [];
       if (list.length === 0) {
-        return prefix + `### 💰 Ventas y Facturación\n\n> [!NOTE]\n> Aún no se han emitido facturas en esta empresa. Puedes registrar ventas desde el módulo [Ventas > Facturas](/admin/sales/invoices) o realizar cobros en el [Punto de Venta (POS)](/admin/sales/pos).`;
+        return (
+          prefix +
+          `### 💰 Ventas y Facturación\n\n> [!NOTE]\n> Aún no se han emitido facturas en esta empresa. Puedes registrar ventas desde el módulo [Ventas > Facturas](/admin/sales/invoices) o realizar cobros en el [Punto de Venta (POS)](/admin/sales/pos).`
+        );
       }
 
       let table = prefix + `### 💰 Resumen General de Ventas y Facturación\n\n`;
@@ -976,10 +1022,15 @@ ${JSON.stringify(dbContext, null, 2)}
     if (data.cotizaciones) {
       const list = data.cotizaciones.cotizaciones || [];
       if (list.length === 0) {
-        return prefix + `### 📑 Cotizaciones y Propuestas\n\n> [!NOTE]\n> No hay cotizaciones registradas actualmente. Puedes crear cotizaciones en [Ventas > Cotizaciones](/admin/sales/quotes).`;
+        return (
+          prefix +
+          `### 📑 Cotizaciones y Propuestas\n\n> [!NOTE]\n> No hay cotizaciones registradas actualmente. Puedes crear cotizaciones en [Ventas > Cotizaciones](/admin/sales/quotes).`
+        );
       }
 
-      let table = prefix + `### 📑 Cotizaciones Comerciales (${list.length} registros)\n\n`;
+      let table =
+        prefix +
+        `### 📑 Cotizaciones Comerciales (${list.length} registros)\n\n`;
       table += `| Cotización | Cliente | Fecha | Vence | Total | Estado |\n`;
       table += `| :--- | :--- | :---: | :---: | :---: | :---: |\n`;
       for (const q of list) {
@@ -993,7 +1044,10 @@ ${JSON.stringify(dbContext, null, 2)}
       const res = data.compras.resumenCuentasPorPagar || {};
       const list = data.compras.comprasRecientes || [];
       if (list.length === 0) {
-        return prefix + `### 🛒 Compras y Cuentas por Pagar (CxP)\n\n> [!NOTE]\n> No hay facturas de compra registradas. Puedes crearlas en [Compras > Facturas de Compra](/admin/purchases/invoices).`;
+        return (
+          prefix +
+          `### 🛒 Compras y Cuentas por Pagar (CxP)\n\n> [!NOTE]\n> No hay facturas de compra registradas. Puedes crearlas en [Compras > Facturas de Compra](/admin/purchases/invoices).`
+        );
       }
 
       let table = prefix + `### 🛒 Compras y Cuentas por Pagar (CxP)\n\n`;
@@ -1011,7 +1065,10 @@ ${JSON.stringify(dbContext, null, 2)}
     if (data.cuentasPorCobrar) {
       const list = data.cuentasPorCobrar.facturasPendientes || [];
       if (list.length === 0) {
-        return prefix + `### 💳 Cuentas por Cobrar (CxC)\n\n> [!TIP]\n> 🎉 **Excelente:** No hay facturas con saldos pendientes por cobrar en este momento. Todas las cuentas están al día.`;
+        return (
+          prefix +
+          `### 💳 Cuentas por Cobrar (CxC)\n\n> [!TIP]\n> 🎉 **Excelente:** No hay facturas con saldos pendientes por cobrar en este momento. Todas las cuentas están al día.`
+        );
       }
 
       let table = prefix + `### 💳 Cuentas por Cobrar (CxC)\n\n`;
@@ -1029,10 +1086,15 @@ ${JSON.stringify(dbContext, null, 2)}
     if (data.inventario) {
       const list = data.inventario.inventario || [];
       if (list.length === 0) {
-        return prefix + `### 📦 Control de Inventario y Almacenes\n\n> [!NOTE]\n> No hay existencias registradas en los almacenes. Gestiona tu stock en [Inventario](/admin/inventory).`;
+        return (
+          prefix +
+          `### 📦 Control de Inventario y Almacenes\n\n> [!NOTE]\n> No hay existencias registradas en los almacenes. Gestiona tu stock en [Inventario](/admin/inventory).`
+        );
       }
 
-      let table = prefix + `### 📦 Control de Inventario y Stock (${data.inventario.totalItemsAnalizados} items)\n\n`;
+      let table =
+        prefix +
+        `### 📦 Control de Inventario y Stock (${data.inventario.totalItemsAnalizados} items)\n\n`;
       if (data.inventario.alertasBajoStockCount > 0) {
         table += `> [!WARNING]\n> ⚠️ **Atención:** Se detectaron **${data.inventario.alertasBajoStockCount} producto(s)** con existencias en o por debajo del stock mínimo.\n\n`;
       }
@@ -1049,10 +1111,15 @@ ${JSON.stringify(dbContext, null, 2)}
     if (data.promociones) {
       const list = data.promociones.promociones || [];
       if (list.length === 0) {
-        return prefix + `### 🏷️ Promociones Comerciales\n\n> [!NOTE]\n> Actualmente no hay promociones activas registradas. Configura descuentos en [Ventas > Promociones](/admin/sales/promotions).`;
+        return (
+          prefix +
+          `### 🏷️ Promociones Comerciales\n\n> [!NOTE]\n> Actualmente no hay promociones activas registradas. Configura descuentos en [Ventas > Promociones](/admin/sales/promotions).`
+        );
       }
 
-      let table = prefix + `### 🏷️ Promociones y Descuentos Activos (${list.length} activas)\n\n`;
+      let table =
+        prefix +
+        `### 🏷️ Promociones y Descuentos Activos (${list.length} activas)\n\n`;
       table += `| Promoción | Tipo | Beneficio | Aplica A | Vigencia |\n`;
       table += `| :--- | :---: | :---: | :--- | :---: |\n`;
       for (const p of list) {
@@ -1065,10 +1132,15 @@ ${JSON.stringify(dbContext, null, 2)}
     if (data.secuenciasFiscales) {
       const list = data.secuenciasFiscales.secuencias || [];
       if (list.length === 0) {
-        return prefix + `### 🧾 Secuencias de Comprobantes Fiscales (NCF)\n\n> [!NOTE]\n> No hay secuencias NCF configuradas. Puedes agregarlas en [Ajustes > Secuencias](/admin/settings/sequences).`;
+        return (
+          prefix +
+          `### 🧾 Secuencias de Comprobantes Fiscales (NCF)\n\n> [!NOTE]\n> No hay secuencias NCF configuradas. Puedes agregarlas en [Ajustes > Secuencias](/admin/settings/sequences).`
+        );
       }
 
-      let table = prefix + `### 🧾 Secuencias Fiscales DGII (${list.length} configuradas)\n\n`;
+      let table =
+        prefix +
+        `### 🧾 Secuencias Fiscales DGII (${list.length} configuradas)\n\n`;
       table += `| Tipo NCF | Actual | Final | Disponibles | Vencimiento | Estado |\n`;
       table += `| :--- | :---: | :---: | :---: | :---: | :---: |\n`;
       for (const s of list) {

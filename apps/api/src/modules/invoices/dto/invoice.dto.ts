@@ -205,4 +205,3 @@ export class FilterInvoiceDto {
   @IsOptional()
   orderDir?: 'asc' | 'desc';
 }
-

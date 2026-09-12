@@ -61,7 +61,9 @@ export function createPrismaMock() {
     $executeRaw: jest.fn(),
     $connect: jest.fn(),
     $disconnect: jest.fn(),
-    $transaction: jest.fn((work: any) => typeof work === 'function' ? work({ ...prisma }) : Promise.all(work)),
+    $transaction: jest.fn((work: any) =>
+      typeof work === 'function' ? work({ ...prisma }) : Promise.all(work),
+    ),
   };
 
   return {

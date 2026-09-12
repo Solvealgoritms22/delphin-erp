@@ -1,0 +1,1 @@
+ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "oficio" TEXT, ADD COLUMN IF NOT EXISTS "telefono" TEXT, ADD COLUMN IF NOT EXISTS "documento_identidad" TEXT;

@@ -7,6 +7,19 @@ export type DolphinUpdater = {
   checkForUpdates: () => void;
   quitAndInstall: () => void;
   getAppVersion: () => Promise<string>;
+  getUpdateState?: () => Promise<{
+    status:
+      | 'idle'
+      | 'checking'
+      | 'available'
+      | 'downloading'
+      | 'ready'
+      | 'error'
+      | 'up-to-date';
+    info: UpdateInfo | null;
+    progress: DownloadProgress | null;
+    checkedAt: string | null;
+  }>;
   removeAllListeners: (channel: string) => void;
 };
 

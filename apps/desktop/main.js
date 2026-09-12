@@ -23,7 +23,25 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 let mainWindow;
+let updateState = { status: 'idle', info: null, progress: null, checkedAt: null };
 
+function trustedUrl(value) {
+  try {
+    const url = new URL(value);
+    return !url.username && !url.password && (process.argv.includes('--dev')
+      ? url.origin === 'http://localhost:3873'
+      : url.protocol === 'app:' && url.hostname === 'localhost' && !url.port);
+  } catch { return false; }
+}
+function trustedSender(event) {
+  return !!mainWindow && event.sender === mainWindow.webContents && event.senderFrame === mainWindow.webContents.mainFrame && trustedUrl(event.senderFrame.url);
+}
+function secureOn(channel, listener) {
+  ipcMain.on(channel, (event, ...args) => { if (trustedSender(event)) listener(event, ...args); });
+}
+function secureHandle(channel, listener) {
+  ipcMain.handle(channel, (event, ...args) => { if (!trustedSender(event)) throw new Error('Untrusted IPC sender'); return listener(event, ...args); });
+}
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1248,
@@ -52,7 +70,7 @@ function createWindow() {
   });
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!url.startsWith('app://') && !url.startsWith('http://localhost:3873')) event.preventDefault();
+    if (!trustedUrl(url)) event.preventDefault();
   });
 
   if (isDev) {
@@ -72,13 +90,15 @@ function createWindow() {
 
 function setupAutoUpdater() {
   autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoInstallOnAppQuit = false; // Installation requires an explicit restart.
 
   autoUpdater.on('checking-for-update', () => {
+    updateState = { ...updateState, status: 'checking' };
     log.info('Checking for update...');
   });
 
   autoUpdater.on('update-available', (info) => {
+    updateState = { status: 'available', info, progress: null, checkedAt: new Date().toISOString() };
     log.info('Update available:', info);
     if (mainWindow) {
       mainWindow.webContents.send('dolphin:update-available', info);
@@ -86,6 +106,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-not-available', (info) => {
+    updateState = { status: 'up-to-date', info: null, progress: null, checkedAt: new Date().toISOString() };
     log.info('Update not available:', info);
     if (mainWindow) {
       mainWindow.webContents.send('dolphin:update-not-available', info);
@@ -93,6 +114,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('error', (err) => {
+    updateState = { ...updateState, status: 'error' };
     log.error('Auto updater error:', err);
     if (mainWindow) {
       mainWindow.webContents.send('dolphin:update-error', err.message);
@@ -100,6 +122,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('download-progress', (progress) => {
+    updateState = { ...updateState, status: 'downloading', progress };
     if (mainWindow) {
       mainWindow.webContents.send('dolphin:download-progress', {
         percent: progress.percent,
@@ -111,18 +134,23 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-downloaded', (info) => {
+    updateState = { ...updateState, status: 'ready', info };
     log.info('Update downloaded:', info);
     if (mainWindow) {
       mainWindow.webContents.send('dolphin:update-downloaded', info);
     }
   });
 
-  ipcMain.handle('dolphin:get-app-version', () => {
+  secureHandle('dolphin:get-update-state', () => updateState);
+
+  secureHandle('dolphin:get-app-version', () => {
     return app.getVersion();
   });
 
-  ipcMain.on('dolphin:check-for-updates', () => {
+  secureOn('dolphin:check-for-updates', () => {
+    if (!['idle', 'up-to-date', 'error'].includes(updateState.status)) return;
     autoUpdater.checkForUpdates().catch((err) => {
+      updateState = { ...updateState, status: 'error' };
       log.error('Manual check failed:', err);
       if (mainWindow) {
         mainWindow.webContents.send('dolphin:update-error', err.message || 'Error checking for updates');
@@ -130,21 +158,21 @@ function setupAutoUpdater() {
     });
   });
 
-  ipcMain.on('dolphin:quit-and-install', () => {
-    autoUpdater.quitAndInstall();
+  secureOn('dolphin:quit-and-install', () => {
+    if (updateState.status === 'ready') autoUpdater.quitAndInstall();
   });
 
   // Custom frameless window controls
-  ipcMain.on('dolphin:window-minimize', () => mainWindow?.minimize());
-  ipcMain.on('dolphin:window-maximize', () => {
+  secureOn('dolphin:window-minimize', () => mainWindow?.minimize());
+  secureOn('dolphin:window-maximize', () => {
     if (mainWindow?.isMaximized()) {
       mainWindow.unmaximize();
     } else {
       mainWindow?.maximize();
     }
   });
-  ipcMain.on('dolphin:window-close', () => mainWindow?.close());
-  ipcMain.on('dolphin:open-external', (_event, url) => {
+  secureOn('dolphin:window-close', () => mainWindow?.close());
+  secureOn('dolphin:open-external', (_event, url) => {
     try {
       const parsed = new URL(url);
       if (parsed.protocol === 'https:') shell.openExternal(parsed.toString());
@@ -189,7 +217,7 @@ app.on('ready', () => {
   setupAutoUpdater();
 
   if (!process.argv.includes('--dev')) {
-    autoUpdater.checkForUpdates();
+    autoUpdater.checkForUpdates().catch(err => log.error('Startup update check failed:', err));
   }
 });
 

@@ -1,16 +1,32 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   DateRangeReportDto,
   TopProductsReportDto,
   InventoryReportDto,
-  TaxReportDto,
-} from './dto/reports.dto';
+  } from './dto/reports.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private reportingFactor(invoice: {
+    moneda: string;
+    tasaCambio: Prisma.Decimal;
+    facturaOriginalId: string | null;
+  }): Prisma.Decimal {
+    const rate =
+      invoice.moneda === 'DOP'
+        ? new Prisma.Decimal(1)
+        : new Prisma.Decimal(invoice.tasaCambio);
+    if (!rate.isFinite() || rate.lte(0))
+      throw new BadRequestException('Documento sin tasa de cambio válida.');
+    return invoice.facturaOriginalId ? rate.negated() : rate;
+  }
 
   /**
    * Helper: Limpia RNC o Cédula eliminando guiones y espacios
@@ -79,7 +95,7 @@ export class ReportsService {
   async getSalesReport(empresaId: string, dto?: DateRangeReportDto) {
     const where: Prisma.FacturaVentaWhereInput = {
       empresaId,
-      estado: { not: 'ANULADA' },
+      estado: { notIn: ['ANULADA', 'BORRADOR'] },
     };
 
     if (dto?.sucursalId) {
@@ -112,6 +128,8 @@ export class ReportsService {
         tipoPago: true,
         metodoPago: true,
         moneda: true,
+        tasaCambio: true,
+        facturaOriginalId: true,
       },
       orderBy: { fecha: 'asc' },
     });
@@ -128,25 +146,27 @@ export class ReportsService {
     > = {};
 
     for (const inv of invoices) {
-      totalVentas = totalVentas.add(inv.total);
-      totalItbis = totalItbis.add(inv.itbis);
-      totalDescuento = totalDescuento.add(inv.descuento);
-      totalSubtotal = totalSubtotal.add(inv.subtotal);
+      const factor = this.reportingFactor(inv);
+      totalVentas = totalVentas.add(inv.total.mul(factor));
+      totalItbis = totalItbis.add(inv.itbis.mul(factor));
+      totalDescuento = totalDescuento.add(inv.descuento.mul(factor));
+      totalSubtotal = totalSubtotal.add(inv.subtotal.mul(factor));
 
-      const method = inv.metodoPago || 'EFECTIVO';
+      const method =
+        inv.tipoPago === 'CONTADO' ? inv.metodoPago || 'EFECTIVO' : 'CREDITO';
       if (!paymentMethods[method]) {
         paymentMethods[method] = { count: 0, total: 0 };
       }
       paymentMethods[method].count += 1;
-      paymentMethods[method].total += Number(inv.total);
+      paymentMethods[method].total += Number(inv.total.mul(factor));
 
       const dateKey = inv.fecha.toISOString().split('T')[0];
       if (!periodsMap[dateKey]) {
         periodsMap[dateKey] = { date: dateKey, total: 0, count: 0, itbis: 0 };
       }
-      periodsMap[dateKey].total += Number(inv.total);
+      periodsMap[dateKey].total += Number(inv.total.mul(factor));
       periodsMap[dateKey].count += 1;
-      periodsMap[dateKey].itbis += Number(inv.itbis);
+      periodsMap[dateKey].itbis += Number(inv.itbis.mul(factor));
     }
 
     const count = invoices.length;
@@ -156,6 +176,7 @@ export class ReportsService {
     );
 
     return {
+      moneda: 'DOP',
       summary: {
         totalVentas: Number(totalVentas),
         totalItbis: Number(totalItbis),
@@ -178,7 +199,7 @@ export class ReportsService {
   async getTopProductsReport(empresaId: string, dto?: TopProductsReportDto) {
     const whereInvoice: Prisma.FacturaVentaWhereInput = {
       empresaId,
-      estado: { not: 'ANULADA' },
+      estado: { notIn: ['ANULADA', 'BORRADOR'] },
     };
 
     if (dto?.sucursalId) {
@@ -202,6 +223,7 @@ export class ReportsService {
         factura: whereInvoice,
       },
       include: {
+        factura: true,
         producto: {
           include: {
             categoria: true,
@@ -230,8 +252,8 @@ export class ReportsService {
 
     for (const d of details) {
       const pid = d.productoId;
-      const qty = Number(d.cantidad);
-      const tot = Number(d.total);
+      const qty = Number(d.cantidad) * (d.factura.facturaOriginalId ? -1 : 1);
+      const tot = Number(d.total.mul(this.reportingFactor(d.factura)));
       const cost = Number(d.producto?.costo || 0) * qty;
 
       grandTotal += tot;
@@ -477,7 +499,7 @@ export class ReportsService {
   async getSalesByClientReport(empresaId: string, dto?: DateRangeReportDto) {
     const where: Prisma.FacturaVentaWhereInput = {
       empresaId,
-      estado: { not: 'ANULADA' },
+      estado: { notIn: ['ANULADA', 'BORRADOR'] },
     };
 
     if (dto?.from || dto?.to) {
@@ -524,7 +546,7 @@ export class ReportsService {
 
     for (const inv of invoices) {
       const cid = inv.clienteId || 'sin_cliente';
-      const tot = Number(inv.total);
+      const tot = Number(inv.total.mul(this.reportingFactor(inv)));
       grandTotal += tot;
 
       if (!clientMap[cid]) {
@@ -572,7 +594,7 @@ export class ReportsService {
 
     const where: Prisma.FacturaCompraWhereInput = {
       empresaId,
-      estado: { not: 'ANULADA' },
+      estado: { notIn: ['ANULADA', 'BORRADOR'] },
       fecha: { gte: start, lte: end },
     };
 
@@ -721,7 +743,7 @@ export class ReportsService {
 
     const where: Prisma.FacturaVentaWhereInput = {
       empresaId,
-      estado: { not: 'ANULADA' },
+      estado: { notIn: ['ANULADA', 'BORRADOR'] },
       ncf: { not: null },
       fecha: { gte: start, lte: end },
     };
@@ -939,12 +961,8 @@ export class ReportsService {
     const itbisRetenidoCompras = rep606.summary.totalItbisRetenido;
 
     // Liquidación
-    const impuestoLiquidado =
-      itbisFacturadoVentas - totalItbisDeducibleCompras;
-    const itbisAPagar = Math.max(
-      0,
-      impuestoLiquidado - itbisRetenidoCompras,
-    );
+    const impuestoLiquidado = itbisFacturadoVentas - totalItbisDeducibleCompras;
+    const itbisAPagar = Math.max(0, impuestoLiquidado - itbisRetenidoCompras);
     const saldoAFavor = impuestoLiquidado < 0 ? Math.abs(impuestoLiquidado) : 0;
 
     return {

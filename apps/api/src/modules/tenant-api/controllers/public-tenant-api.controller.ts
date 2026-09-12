@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiHeader, ApiOperation } from '@nestjs/swagger';
 import { TenantApiKeyGuard } from '../guards/tenant-api-key.guard';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -27,7 +21,9 @@ export class PublicTenantApiController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get('company-info')
-  @ApiOperation({ summary: 'Consultar información y configuración general de la empresa' })
+  @ApiOperation({
+    summary: 'Consultar información y configuración general de la empresa',
+  })
   async getCompanyInfo(@Req() req: any) {
     const empresaId = req.empresaId;
     const empresa = await this.prisma.empresa.findUnique({
@@ -59,7 +55,9 @@ export class PublicTenantApiController {
   }
 
   @Get('products')
-  @ApiOperation({ summary: 'Listar catálogo de productos y servicios con paginación' })
+  @ApiOperation({
+    summary: 'Listar catálogo de productos y servicios con paginación',
+  })
   async getProducts(@Req() req: any, @Query() query: QueryPublicProductsDto) {
     const empresaId = req.empresaId;
     const page = Math.max(1, Number(query.page || 1));
@@ -98,7 +96,9 @@ export class PublicTenantApiController {
           imagenes: true,
           categoria: { select: { id: true, nombre: true } },
           marca: { select: { id: true, nombre: true } },
-          unidadMedida: { select: { id: true, nombre: true, abreviatura: true } },
+          unidadMedida: {
+            select: { id: true, nombre: true, abreviatura: true },
+          },
           stocks: {
             select: {
               almacen: { select: { id: true, nombre: true } },

@@ -10,18 +10,16 @@ describe('Notification alerts', () => {
           .mockResolvedValue([{ id: 'company', propietarioId: 'owner' }]),
       },
       facturaVenta: {
-        findMany: jest
-          .fn()
-          .mockResolvedValue([
-            {
-              id: 'invoice',
-              numeroFactura: 'FAC-1',
-              fiscalbridgeStatus: 'REJECTED',
-              balancePendiente: new Prisma.Decimal(100),
-              moneda: 'DOP',
-              fechaVencimiento: new Date(Date.now() - 86400000),
-            },
-          ]),
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: 'invoice',
+            numeroFactura: 'FAC-1',
+            fiscalbridgeStatus: 'REJECTED',
+            balancePendiente: new Prisma.Decimal(100),
+            moneda: 'DOP',
+            fechaVencimiento: new Date(Date.now() - 86400000),
+          },
+        ]),
       },
       cotizacion: {
         findMany: jest
@@ -33,17 +31,15 @@ describe('Notification alerts', () => {
       inventarioStock: { ...empty(), fields: { stockMinimo: 'stockMinimo' } },
       movimientoInventario: empty(),
       suscripcion: {
-        findUnique: jest
-          .fn()
-          .mockResolvedValue({
-            estado: 'ACTIVE',
-            plan: {
-              nombre: 'Plan',
-              maxUsuarios: 10,
-              maxProductos: 100,
-              maxSucursales: 5,
-            },
-          }),
+        findUnique: jest.fn().mockResolvedValue({
+          estado: 'ACTIVE',
+          plan: {
+            nombre: 'Plan',
+            maxUsuarios: 10,
+            maxProductos: 100,
+            maxSucursales: 5,
+          },
+        }),
       },
       membresia: { count: jest.fn().mockResolvedValue(8) },
       producto: { count: jest.fn().mockResolvedValue(0) },

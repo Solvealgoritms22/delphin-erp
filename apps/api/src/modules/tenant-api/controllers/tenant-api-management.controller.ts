@@ -10,9 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { TenantApiKeyService } from '../tenant-api-key.service';
-import {
-  CreateTenantApiAppDto,
-} from '../dto/tenant-api.dto';
+import { CreateTenantApiAppDto } from '../dto/tenant-api.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { RequirePermissions } from '../../auth/decorators/permissions.decorator';
@@ -34,7 +32,10 @@ export class TenantApiManagementController {
 
   @Post()
   @RequirePermissions('settings_company:write')
-  @ApiOperation({ summary: 'Registrar nueva aplicación API externa (Máx 2 por tenant Enterprise)' })
+  @ApiOperation({
+    summary:
+      'Registrar nueva aplicación API externa (Máx 2 por tenant Enterprise)',
+  })
   create(@CurrentUser() user: any, @Body() dto: CreateTenantApiAppDto) {
     return this.apiKeyService.create(user.empresaId, dto);
   }

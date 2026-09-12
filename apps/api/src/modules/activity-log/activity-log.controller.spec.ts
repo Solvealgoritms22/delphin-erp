@@ -22,7 +22,15 @@ describe('ActivityLogController', () => {
   });
 
   it('findMany pasa filtros y paginación de la empresa autenticada', () => {
-    controller.findMany({ user: { empresaId: 'e1' } }, 'products', 'CREATE', 'u1', '2026', '2', '10');
+    controller.findMany(
+      { user: { empresaId: 'e1' } },
+      'products',
+      'CREATE',
+      'u1',
+      '2026',
+      '2',
+      '10',
+    );
 
     expect(service.findMany).toHaveBeenCalledWith({
       empresaId: 'e1',

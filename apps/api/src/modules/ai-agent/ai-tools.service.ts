@@ -407,7 +407,9 @@ export class AiToolsService {
     params?: { search?: string; limit?: number; estado?: string },
   ) {
     const limit = Math.min(params?.limit || 20, 50);
-    this.logger.debug(`[AI-TOOL] querySalesAndInvoices for empresaId: ${empresaId}`);
+    this.logger.debug(
+      `[AI-TOOL] querySalesAndInvoices for empresaId: ${empresaId}`,
+    );
 
     const where: any = { empresaId };
     if (params?.estado) {
@@ -417,7 +419,11 @@ export class AiToolsService {
       where.OR = [
         { numeroFactura: { contains: params.search, mode: 'insensitive' } },
         { ncf: { contains: params.search, mode: 'insensitive' } },
-        { cliente: { nombreRazonSocial: { contains: params.search, mode: 'insensitive' } } },
+        {
+          cliente: {
+            nombreRazonSocial: { contains: params.search, mode: 'insensitive' },
+          },
+        },
       ];
     }
 
@@ -427,7 +433,9 @@ export class AiToolsService {
         take: limit,
         orderBy: { creadoEn: 'desc' },
         include: {
-          cliente: { select: { nombreRazonSocial: true, numeroDocumento: true } },
+          cliente: {
+            select: { nombreRazonSocial: true, numeroDocumento: true },
+          },
           detalles: {
             take: 5,
             select: {
@@ -439,7 +447,9 @@ export class AiToolsService {
           },
         },
       }),
-      this.prisma.facturaVenta.count({ where: { empresaId, estado: { not: 'ANULADA' } } }),
+      this.prisma.facturaVenta.count({
+        where: { empresaId, estado: { not: 'ANULADA' } },
+      }),
       this.prisma.facturaVenta.aggregate({
         where: { empresaId, estado: { not: 'ANULADA' } },
         _sum: { total: true, subtotal: true, itbis: true },
@@ -449,8 +459,12 @@ export class AiToolsService {
     return {
       resumenVentasGlobal: {
         totalFacturasEmitidas: totalVentasCount,
-        montoTotalFacturado: sumVentas._sum.total ? Number(sumVentas._sum.total) : 0,
-        subtotalTotal: sumVentas._sum.subtotal ? Number(sumVentas._sum.subtotal) : 0,
+        montoTotalFacturado: sumVentas._sum.total
+          ? Number(sumVentas._sum.total)
+          : 0,
+        subtotalTotal: sumVentas._sum.subtotal
+          ? Number(sumVentas._sum.subtotal)
+          : 0,
         itbisTotal: sumVentas._sum.itbis ? Number(sumVentas._sum.itbis) : 0,
       },
       facturasRecientes: invoices.map((inv) => ({
@@ -466,7 +480,10 @@ export class AiToolsService {
         estado: inv.estado,
         metodoPago: inv.metodoPago || 'EFECTIVO',
         tipoPago: inv.tipoPago || 'CONTADO',
-        items: inv.detalles.map((d) => `${d.cantidad}x ${d.producto?.nombre || 'Artículo'} (RD$ ${Number(d.total)})`),
+        items: inv.detalles.map(
+          (d) =>
+            `${d.cantidad.toString()}x ${d.producto?.nombre || 'Artículo'} (RD$ ${Number(d.total)})`,
+        ),
       })),
     };
   }
@@ -485,7 +502,11 @@ export class AiToolsService {
     if (params?.search) {
       where.OR = [
         { numeroCotizacion: { contains: params.search, mode: 'insensitive' } },
-        { cliente: { nombreRazonSocial: { contains: params.search, mode: 'insensitive' } } },
+        {
+          cliente: {
+            nombreRazonSocial: { contains: params.search, mode: 'insensitive' },
+          },
+        },
       ];
     }
 
@@ -504,7 +525,9 @@ export class AiToolsService {
         numero: q.numeroCotizacion,
         cliente: q.cliente?.nombreRazonSocial || 'Cliente General',
         fecha: q.fecha.toISOString().split('T')[0],
-        fechaVencimiento: q.fechaVencimiento ? q.fechaVencimiento.toISOString().split('T')[0] : 'N/A',
+        fechaVencimiento: q.fechaVencimiento
+          ? q.fechaVencimiento.toISOString().split('T')[0]
+          : 'N/A',
         total: Number(q.total),
         estado: q.estado,
       })),
@@ -526,7 +549,11 @@ export class AiToolsService {
       where.OR = [
         { numeroFactura: { contains: params.search, mode: 'insensitive' } },
         { ncf: { contains: params.search, mode: 'insensitive' } },
-        { proveedor: { nombreRazonSocial: { contains: params.search, mode: 'insensitive' } } },
+        {
+          proveedor: {
+            nombreRazonSocial: { contains: params.search, mode: 'insensitive' },
+          },
+        },
       ];
     }
 
@@ -536,7 +563,9 @@ export class AiToolsService {
         take: limit,
         orderBy: { creadoEn: 'desc' },
         include: {
-          proveedor: { select: { nombreRazonSocial: true, numeroDocumento: true } },
+          proveedor: {
+            select: { nombreRazonSocial: true, numeroDocumento: true },
+          },
         },
       }),
       this.prisma.facturaCompra.aggregate({
@@ -548,7 +577,9 @@ export class AiToolsService {
 
     return {
       resumenCuentasPorPagar: {
-        totalPendientePago: pendingPurchases._sum.balancePendiente ? Number(pendingPurchases._sum.balancePendiente) : 0,
+        totalPendientePago: pendingPurchases._sum.balancePendiente
+          ? Number(pendingPurchases._sum.balancePendiente)
+          : 0,
         facturasPendientesCount: pendingPurchases._count || 0,
       },
       comprasRecientes: purchases.map((p) => ({
@@ -579,11 +610,16 @@ export class AiToolsService {
       orderBy: { fechaVencimiento: 'asc' },
       take: 20,
       include: {
-        cliente: { select: { nombreRazonSocial: true, telefono: true, email: true } },
+        cliente: {
+          select: { nombreRazonSocial: true, telefono: true, email: true },
+        },
       },
     });
 
-    const sumPending = pendingInvoices.reduce((acc, inv) => acc + Number(inv.balancePendiente), 0);
+    const sumPending = pendingInvoices.reduce(
+      (acc, inv) => acc + Number(inv.balancePendiente),
+      0,
+    );
 
     return {
       totalPorCobrar: sumPending,
@@ -596,7 +632,9 @@ export class AiToolsService {
         total: Number(inv.total),
         balancePendiente: Number(inv.balancePendiente),
         fechaEmision: inv.fecha.toISOString().split('T')[0],
-        fechaVencimiento: inv.fechaVencimiento ? inv.fechaVencimiento.toISOString().split('T')[0] : 'Sin vencimiento',
+        fechaVencimiento: inv.fechaVencimiento
+          ? inv.fechaVencimiento.toISOString().split('T')[0]
+          : 'Sin vencimiento',
       })),
     };
   }
@@ -609,7 +647,9 @@ export class AiToolsService {
     params?: { search?: string; lowStockOnly?: boolean; limit?: number },
   ) {
     const limit = Math.min(params?.limit || 25, 50);
-    this.logger.debug(`[AI-TOOL] queryInventoryStock for empresaId: ${empresaId}`);
+    this.logger.debug(
+      `[AI-TOOL] queryInventoryStock for empresaId: ${empresaId}`,
+    );
 
     const where: any = { empresaId };
     if (params?.search) {
@@ -676,10 +716,15 @@ export class AiToolsService {
       promociones: promotions.map((p) => ({
         nombre: p.nombre,
         tipo: p.tipoDescuento,
-        valorDescuento: p.tipoDescuento === 'PORCENTAJE' ? `${p.valorDescuento}%` : `RD$ ${p.valorDescuento}`,
+        valorDescuento:
+          p.tipoDescuento === 'PORCENTAJE'
+            ? `${p.valorDescuento.toString()}%`
+            : `RD$ ${p.valorDescuento.toString()}`,
         alcance: p.alcance,
         fechaInicio: p.fechaInicio.toISOString().split('T')[0],
-        fechaFin: p.fechaFin ? p.fechaFin.toISOString().split('T')[0] : 'Indefinido',
+        fechaFin: p.fechaFin
+          ? p.fechaFin.toISOString().split('T')[0]
+          : 'Indefinido',
       })),
     };
   }
@@ -688,7 +733,9 @@ export class AiToolsService {
    * Query DGII Fiscal NCF Sequences
    */
   async queryFiscalSequences(empresaId: string) {
-    this.logger.debug(`[AI-TOOL] queryFiscalSequences for empresaId: ${empresaId}`);
+    this.logger.debug(
+      `[AI-TOOL] queryFiscalSequences for empresaId: ${empresaId}`,
+    );
 
     const secuencias = await this.prisma.secuenciaNCF.findMany({
       where: { empresaId },
@@ -707,11 +754,12 @@ export class AiToolsService {
           numeroFinal: s.numeroHasta,
           disponibles: remaining,
           alertaAgotamiento: remaining < 50,
-          fechaVencimiento: s.fechaVencimiento ? s.fechaVencimiento.toISOString().split('T')[0] : 'Sin vencimiento',
+          fechaVencimiento: s.fechaVencimiento
+            ? s.fechaVencimiento.toISOString().split('T')[0]
+            : 'Sin vencimiento',
           estado: s.activa ? 'ACTIVA' : 'INACTIVA',
         };
       }),
     };
   }
 }
-

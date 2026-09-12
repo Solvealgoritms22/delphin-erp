@@ -1,0 +1,177 @@
+[
+  {
+    "module": "activity-log",
+    "controllers": 2,
+    "routes": 5,
+    "unitSpecFiles": 3,
+    "statementCoverage": 89.87
+  },
+  {
+    "module": "ai-agent",
+    "controllers": 1,
+    "routes": 7,
+    "unitSpecFiles": 0,
+    "statementCoverage": 0
+  },
+  {
+    "module": "auth",
+    "controllers": 3,
+    "routes": 29,
+    "unitSpecFiles": 6,
+    "statementCoverage": 47.92
+  },
+  {
+    "module": "backups",
+    "controllers": 1,
+    "routes": 10,
+    "unitSpecFiles": 1,
+    "statementCoverage": 13.9
+  },
+  {
+    "module": "billing-config",
+    "controllers": 1,
+    "routes": 8,
+    "unitSpecFiles": 0,
+    "statementCoverage": 8.25
+  },
+  {
+    "module": "catalogs",
+    "controllers": 4,
+    "routes": 21,
+    "unitSpecFiles": 8,
+    "statementCoverage": 62.13
+  },
+  {
+    "module": "commercial",
+    "controllers": 2,
+    "routes": 10,
+    "unitSpecFiles": 4,
+    "statementCoverage": 95.45
+  },
+  {
+    "module": "credit-notes",
+    "controllers": 1,
+    "routes": 3,
+    "unitSpecFiles": 1,
+    "statementCoverage": 69.03
+  },
+  {
+    "module": "customer-payments",
+    "controllers": 1,
+    "routes": 6,
+    "unitSpecFiles": 0,
+    "statementCoverage": 0
+  },
+  {
+    "module": "dashboard",
+    "controllers": 1,
+    "routes": 1,
+    "unitSpecFiles": 2,
+    "statementCoverage": 100
+  },
+  {
+    "module": "email-templates",
+    "controllers": 1,
+    "routes": 4,
+    "unitSpecFiles": 2,
+    "statementCoverage": 65.02
+  },
+  {
+    "module": "empresas",
+    "controllers": 1,
+    "routes": 8,
+    "unitSpecFiles": 2,
+    "statementCoverage": 74.81
+  },
+  {
+    "module": "inventory",
+    "controllers": 1,
+    "routes": 8,
+    "unitSpecFiles": 0,
+    "statementCoverage": 0
+  },
+  {
+    "module": "invoices",
+    "controllers": 2,
+    "routes": 10,
+    "unitSpecFiles": 3,
+    "statementCoverage": 17.88
+  },
+  {
+    "module": "notifications",
+    "controllers": 1,
+    "routes": 13,
+    "unitSpecFiles": 3,
+    "statementCoverage": 78.63
+  },
+  {
+    "module": "payments",
+    "controllers": 1,
+    "routes": 6,
+    "unitSpecFiles": 5,
+    "statementCoverage": 87.79
+  },
+  {
+    "module": "promotions",
+    "controllers": 1,
+    "routes": 7,
+    "unitSpecFiles": 0,
+    "statementCoverage": 0
+  },
+  {
+    "module": "purchases",
+    "controllers": 1,
+    "routes": 5,
+    "unitSpecFiles": 0,
+    "statementCoverage": 0
+  },
+  {
+    "module": "quotes",
+    "controllers": 1,
+    "routes": 9,
+    "unitSpecFiles": 0,
+    "statementCoverage": 0
+  },
+  {
+    "module": "reports",
+    "controllers": 1,
+    "routes": 10,
+    "unitSpecFiles": 0,
+    "statementCoverage": 0
+  },
+  {
+    "module": "roles",
+    "controllers": 1,
+    "routes": 4,
+    "unitSpecFiles": 2,
+    "statementCoverage": 100
+  },
+  {
+    "module": "sequences",
+    "controllers": 1,
+    "routes": 5,
+    "unitSpecFiles": 0,
+    "statementCoverage": 7.06
+  },
+  {
+    "module": "sucursales",
+    "controllers": 1,
+    "routes": 5,
+    "unitSpecFiles": 2,
+    "statementCoverage": 100
+  },
+  {
+    "module": "tenant-api",
+    "controllers": 2,
+    "routes": 10,
+    "unitSpecFiles": 0,
+    "statementCoverage": 0
+  },
+  {
+    "module": "users",
+    "controllers": 1,
+    "routes": 6,
+    "unitSpecFiles": 2,
+    "statementCoverage": 58.93
+  }
+]

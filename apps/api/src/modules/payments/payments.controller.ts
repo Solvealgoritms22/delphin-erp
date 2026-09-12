@@ -140,143 +140,170 @@ export class PaymentsController {
       throw new BadRequestException('Número de tarjeta inválido.');
     }
 
-    return this.attempts.execute(empresaId, 'CARD_VERIFICATION', dto.idempotencyKey, async () => {
-    const orderNumber = `VERIFY-${dto.idempotencyKey}`;
+    return this.attempts.execute(
+      empresaId,
+      'CARD_VERIFICATION',
+      dto.idempotencyKey,
+      async () => {
+        const orderNumber = `VERIFY-${dto.idempotencyKey}`;
 
-    const azulResponse = await this.azulService.processCardSaleWithTokenization(
-      {
-        cardNumber: sanitizedCard,
-        expiration: dto.expiration,
-        cvc: dto.cvc,
-        cardHolder: dto.cardHolder,
-        amountCents: 100, // RD$1.00 verification charge
-        itbisCents: 18,
-        orderNumber,
+        const azulResponse =
+          await this.azulService.processCardSaleWithTokenization({
+            cardNumber: sanitizedCard,
+            expiration: dto.expiration,
+            cvc: dto.cvc,
+            cardHolder: dto.cardHolder,
+            amountCents: 100, // RD$1.00 verification charge
+            itbisCents: 18,
+            orderNumber,
+          });
+
+        if (!this.azulService.isApproved(azulResponse)) {
+          throw new BadRequestException(
+            `Tarjeta declinada: ${azulResponse.ResponseMessage || 'Error desconocido'}`,
+          );
+        }
+
+        if (!azulResponse.DataVaultToken) {
+          throw new BadRequestException('No se pudo tokenizar la tarjeta.');
+        }
+
+        // A failed void requires reconciliation; never silently keep the charge.
+        if (!azulResponse.AzuleOrderId)
+          throw new Error(
+            'CARD_VERIFICATION_RECONCILIATION_REQUIRED: missing order ID',
+          );
+        if (azulResponse.AzuleOrderId) {
+          const voided = await this.azulService.voidTransaction(
+            azulResponse.AzuleOrderId,
+          );
+          if (!this.azulService.isApproved(voided))
+            throw new Error('CARD_VERIFICATION_RECONCILIATION_REQUIRED');
+        }
+
+        if (!azulResponse.DataVaultExpiration)
+          throw new Error(
+            'CARD_VERIFICATION_RECONCILIATION_REQUIRED: missing token expiration',
+          );
+        // Upsert subscription for the tenant
+        await this.prisma.suscripcion.upsert({
+          where: { empresaId },
+          update: {
+            azulDataVaultToken: encryptSecret(azulResponse.DataVaultToken),
+            azulDataVaultExpiration: azulResponse.DataVaultExpiration,
+            azulCardLast4:
+              azulResponse.CardNumber?.slice(-4) || sanitizedCard.slice(-4),
+            azulCardBrand: azulResponse.CardBrand || 'UNKNOWN',
+            azulCardHolder: dto.cardHolder,
+          },
+          create: {
+            empresaId,
+            planId: 'starter', // fallback
+            azulDataVaultToken: encryptSecret(azulResponse.DataVaultToken),
+            azulDataVaultExpiration: azulResponse.DataVaultExpiration,
+            azulCardLast4:
+              azulResponse.CardNumber?.slice(-4) || sanitizedCard.slice(-4),
+            azulCardBrand: azulResponse.CardBrand || 'UNKNOWN',
+            azulCardHolder: dto.cardHolder,
+          },
+        });
+
+        return {
+          success: true,
+          message: 'Método de pago guardado correctamente.',
+          cardBrand: azulResponse.CardBrand,
+          cardLast4: azulResponse.CardNumber?.slice(-4),
+        };
       },
     );
-
-    if (!this.azulService.isApproved(azulResponse)) {
-      throw new BadRequestException(
-        `Tarjeta declinada: ${azulResponse.ResponseMessage || 'Error desconocido'}`,
-      );
-    }
-
-    if (!azulResponse.DataVaultToken) {
-      throw new BadRequestException('No se pudo tokenizar la tarjeta.');
-    }
-
-    // Upsert subscription for the tenant
-    await this.prisma.suscripcion.upsert({
-      where: { empresaId },
-      update: {
-        azulDataVaultToken: encryptSecret(azulResponse.DataVaultToken),
-        azulDataVaultExpiration: azulResponse.DataVaultExpiration || '202812',
-        azulCardLast4:
-          azulResponse.CardNumber?.slice(-4) || sanitizedCard.slice(-4),
-        azulCardBrand: azulResponse.CardBrand || 'UNKNOWN',
-        azulCardHolder: dto.cardHolder,
-      },
-      create: {
-        empresaId,
-        planId: 'starter', // fallback
-        azulDataVaultToken: encryptSecret(azulResponse.DataVaultToken),
-        azulDataVaultExpiration: azulResponse.DataVaultExpiration || '202812',
-        azulCardLast4:
-          azulResponse.CardNumber?.slice(-4) || sanitizedCard.slice(-4),
-        azulCardBrand: azulResponse.CardBrand || 'UNKNOWN',
-        azulCardHolder: dto.cardHolder,
-      },
-    });
-
-    // A failed void requires reconciliation; never silently keep the charge.
-    if (azulResponse.AzuleOrderId) {
-      const voided = await this.azulService.voidTransaction(azulResponse.AzuleOrderId);
-      if (!this.azulService.isApproved(voided)) throw new BadRequestException('La verificación requiere conciliación con el banco');
-    }
-
-    return {
-      success: true,
-      message: 'Método de pago guardado correctamente.',
-      cardBrand: azulResponse.CardBrand,
-      cardLast4: azulResponse.CardNumber?.slice(-4),
-    };
-    });
   }
 
   @Post('change-plan')
   @UseGuards(BillingOwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cambiar de plan de suscripción' })
-  async changePlan(
-    @CurrentUser() user: any,
-    @Body() dto: ChangePlanDto,
-  ) {
+  async changePlan(@CurrentUser() user: any, @Body() dto: ChangePlanDto) {
     const empresaId = user.empresaId;
     if (!empresaId) throw new BadRequestException('No tenant selected');
 
     assertAzulPlanCurrency();
-    return this.attempts.execute(empresaId, 'PLAN_CHANGED', dto.idempotencyKey, async () => {
-    const suscripcion = await this.prisma.suscripcion.findUnique({
-      where: { empresaId },
-    });
-    if (!suscripcion || !suscripcion.azulDataVaultToken) {
-      throw new BadRequestException(
-        'No tienes un método de pago registrado. Por favor agrega una tarjeta antes de cambiar de plan.',
-      );
-    }
+    return this.attempts.execute(
+      empresaId,
+      'PLAN_CHANGED',
+      dto.idempotencyKey,
+      async () => {
+        const suscripcion = await this.prisma.suscripcion.findUnique({
+          where: { empresaId },
+        });
+        if (
+          !suscripcion ||
+          !suscripcion.azulDataVaultToken ||
+          !suscripcion.azulDataVaultExpiration
+        ) {
+          throw new BadRequestException(
+            'No tienes un método de pago registrado. Por favor agrega una tarjeta antes de cambiar de plan.',
+          );
+        }
 
-    const plan = await this.prisma.plan.findUnique({
-      where: { id: dto.planId },
-    });
-    if (!plan) throw new BadRequestException('Plan no encontrado');
+        const plan = await this.prisma.plan.findUnique({
+          where: { id: dto.planId },
+        });
+        if (!plan) throw new BadRequestException('Plan no encontrado');
 
-    const amount =
-      dto.billingCycle === 'annual' ? plan.precioAnual : plan.precioMensual;
+        const amount =
+          dto.billingCycle === 'annual' ? plan.precioAnual : plan.precioMensual;
 
-    const numAmount = Number(amount);
+        const numAmount = Number(amount);
 
-    if (plan.id === 'trial' || !Number.isFinite(numAmount) || numAmount <= 0) {
-      throw new BadRequestException('Selecciona un plan de pago con tarifa válida; el trial no se puede activar como suscripción pagada.');
-    }
-    if (numAmount > 0) {
-      const orderNumber = `UPG-${dto.idempotencyKey}`;
-      const azulResponse = await this.azulService.processTokenSale({
-        dataVaultToken: decryptSecret(suscripcion.azulDataVaultToken),
-        dataVaultExpiration: suscripcion.azulDataVaultExpiration || '202812',
-        amountCents: Math.round(numAmount * 100),
-        itbisCents: Math.round(numAmount * 0.18 * 100),
-        orderNumber,
-      });
-      if (!this.azulService.isApproved(azulResponse)) {
-        throw new BadRequestException(
-          `El pago fue declinado: ${azulResponse.ResponseMessage}`,
-        );
-      }
-    }
+        if (
+          plan.id === 'trial' ||
+          !Number.isFinite(numAmount) ||
+          numAmount <= 0
+        ) {
+          throw new BadRequestException(
+            'Selecciona un plan de pago con tarifa válida; el trial no se puede activar como suscripción pagada.',
+          );
+        }
+        if (numAmount > 0) {
+          const orderNumber = `UPG-${dto.idempotencyKey}`;
+          const azulResponse = await this.azulService.processTokenSale({
+            dataVaultToken: decryptSecret(suscripcion.azulDataVaultToken),
+            dataVaultExpiration: suscripcion.azulDataVaultExpiration,
+            amountCents: Math.round(numAmount * 100),
+            itbisCents: Math.round(numAmount * 0.18 * 100),
+            orderNumber,
+          });
+          if (!this.azulService.isApproved(azulResponse)) {
+            throw new BadRequestException(
+              `El pago fue declinado: ${azulResponse.ResponseMessage}`,
+            );
+          }
+        }
 
-    const nextBilling = new Date();
-    if (dto.billingCycle === 'annual') {
-      nextBilling.setFullYear(nextBilling.getFullYear() + 1);
-    } else {
-      nextBilling.setMonth(nextBilling.getMonth() + 1);
-    }
+        const nextBilling = new Date();
+        if (dto.billingCycle === 'annual') {
+          nextBilling.setFullYear(nextBilling.getFullYear() + 1);
+        } else {
+          nextBilling.setMonth(nextBilling.getMonth() + 1);
+        }
 
-    await this.prisma.suscripcion.update({
-      where: { empresaId },
-      data: {
-        planId: plan.id,
-        periodicidad: dto.billingCycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-        fechaRenovacion: nextBilling,
-        estado: 'ACTIVE',
+        await this.prisma.suscripcion.update({
+          where: { empresaId },
+          data: {
+            planId: plan.id,
+            periodicidad: dto.billingCycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+            fechaRenovacion: nextBilling,
+            estado: 'ACTIVE',
+          },
+        });
+
+        return {
+          ok: true,
+          plan: plan.nombre,
+          simulated: process.env.AZUL_ENV === 'MOCK',
+        };
       },
-    });
-
-    return {
-      ok: true,
-      plan: plan.nombre,
-      simulated: process.env.AZUL_ENV === 'MOCK',
-    };
-    });
+    );
   }
 
   @Delete('azul/payment-method')

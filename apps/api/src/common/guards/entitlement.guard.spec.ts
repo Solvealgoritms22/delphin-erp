@@ -152,16 +152,24 @@ describe('EntitlementGuard', () => {
   it('aplica el límite configurado también durante el trial', async () => {
     reflector.getAllAndOverride.mockReturnValue('maxUsuarios');
     prisma.empresa.findUnique.mockResolvedValue({
-      suscripcion: suscripcion('TRIAL', {maxUsuarios:5}, new Date(Date.now()+86400000)),
+      suscripcion: suscripcion(
+        'TRIAL',
+        { maxUsuarios: 5 },
+        new Date(Date.now() + 86400000),
+      ),
     });
     prisma.membresia.count.mockResolvedValue(5);
-    const error = await guard.canActivate(makeCtx({empresaId:'e1'}) as any).catch(e=>e);
+    const error = await guard
+      .canActivate(makeCtx({ empresaId: 'e1' }) as any)
+      .catch((e) => e);
     expect(error.response.code).toBe('LIMIT_EXCEEDED');
   });
   it('no concede recursos a una empresa sin suscripción', async () => {
     reflector.getAllAndOverride.mockReturnValue('maxUsuarios');
-    prisma.empresa.findUnique.mockResolvedValue({suscripcion:null});
-    const error = await guard.canActivate(makeCtx({empresaId:'e1'}) as any).catch(e=>e);
+    prisma.empresa.findUnique.mockResolvedValue({ suscripcion: null });
+    const error = await guard
+      .canActivate(makeCtx({ empresaId: 'e1' }) as any)
+      .catch((e) => e);
     expect(error.response.code).toBe('SUBSCRIPTION_INACTIVE');
   });
 });

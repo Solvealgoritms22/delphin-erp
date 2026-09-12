@@ -69,7 +69,9 @@ export class NotificationsController {
   }
 
   @Get('push-configuration')
-  pushConfiguration() { return this.notifications.pushConfiguration(); }
+  pushConfiguration() {
+    return this.notifications.pushConfiguration();
+  }
 
   @Get('catalog')
   @ApiOperation({ summary: 'Obtener catálogo de notificaciones configurables' })
@@ -113,7 +115,9 @@ export class NotificationsController {
   }
 
   @Post('preferences/reset')
-  @ApiOperation({ summary: 'Restablecer preferencias a los valores por defecto' })
+  @ApiOperation({
+    summary: 'Restablecer preferencias a los valores por defecto',
+  })
   resetPreferences(@CurrentUser() user: any) {
     return this.notifications.resetPreferences(user.id);
   }

@@ -5,7 +5,15 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { IsUUID, IsNumber, IsOptional, IsString, MaxLength, Min, IsIn } from 'class-validator';
+import {
+  IsUUID,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  IsIn,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class TransferStockDto {
@@ -20,7 +28,8 @@ export class TransferStockDto {
 export class AdjustStockDto {
   @IsUUID() productoId!: string;
   @IsUUID() almacenId!: string;
-  @IsIn(['AJUSTE_POSITIVO','AJUSTE_NEGATIVO','COMPRA','VENTA']) tipo!: 'AJUSTE_POSITIVO' | 'AJUSTE_NEGATIVO' | 'COMPRA' | 'VENTA';
+  @IsIn(['AJUSTE_POSITIVO', 'AJUSTE_NEGATIVO', 'COMPRA', 'VENTA']) tipo!:
+    'AJUSTE_POSITIVO' | 'AJUSTE_NEGATIVO' | 'COMPRA' | 'VENTA';
   @Type(() => Number) @IsNumber() @Min(0.0001) cantidad!: number;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(0) costoUnitario?: number;
   @IsOptional() @IsString() @MaxLength(2000) motivo?: string;

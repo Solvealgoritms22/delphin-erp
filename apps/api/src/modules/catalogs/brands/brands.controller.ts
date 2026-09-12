@@ -47,7 +47,11 @@ export class BrandsController {
   @Patch(':id')
   @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Actualizar marca' })
-  update(@Param('id') id: string, @CurrentUser() user: any, @Body() data: UpdateCatalogDto) {
+  update(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+    @Body() data: UpdateCatalogDto,
+  ) {
     return this.brandsService.update(id, user.empresaId, data);
   }
 

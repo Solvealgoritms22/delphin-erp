@@ -1,3 +1,4 @@
+import { nextInvoiceNumber } from '../../common/invoice-number';
 import {
   Injectable,
   NotFoundException,
@@ -7,7 +8,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ActivityLogService } from '../activity-log/activity-log.service';
-import { TenantMailerService, OwnerSmtpConfig } from '../../common/tenant-mailer.service';
+import {
+  TenantMailerService,
+  OwnerSmtpConfig,
+} from '../../common/tenant-mailer.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import {
   CreateQuoteDto,
@@ -27,7 +31,7 @@ export class QuotesService {
     private readonly tenantMailer: TenantMailerService,
     private readonly emailTemplates: EmailTemplatesService,
     @Optional() private readonly notifications?: NotificationsService,
-  ) { }
+  ) {}
 
   /**
    * Genera el siguiente número secuencial correlativo de cotización por empresa (ej: COT-000001)
@@ -113,26 +117,32 @@ export class QuotesService {
    * Obtiene métricas reales agregadas para las tarjetas de KPIs
    */
   async getMetrics(empresaId: string) {
-    const [totalCotizaciones, totalEnviadas, totalAceptadas, totalFacturadas, totalBorradores, sumAggregate] =
-      await Promise.all([
-        this.prisma.cotizacion.count({ where: { empresaId } }),
-        this.prisma.cotizacion.count({
-          where: { empresaId, estado: 'ENVIADA' },
-        }),
-        this.prisma.cotizacion.count({
-          where: { empresaId, estado: 'ACEPTADA' },
-        }),
-        this.prisma.cotizacion.count({
-          where: { empresaId, estado: 'FACTURADA' },
-        }),
-        this.prisma.cotizacion.count({
-          where: { empresaId, estado: 'BORRADOR' },
-        }),
-        this.prisma.cotizacion.aggregate({
-          where: { empresaId, estado: { notIn: ['RECHAZADA', 'VENCIDA'] } },
-          _sum: { total: true },
-        }),
-      ]);
+    const [
+      totalCotizaciones,
+      totalEnviadas,
+      totalAceptadas,
+      totalFacturadas,
+      totalBorradores,
+      sumAggregate,
+    ] = await Promise.all([
+      this.prisma.cotizacion.count({ where: { empresaId } }),
+      this.prisma.cotizacion.count({
+        where: { empresaId, estado: 'ENVIADA' },
+      }),
+      this.prisma.cotizacion.count({
+        where: { empresaId, estado: 'ACEPTADA' },
+      }),
+      this.prisma.cotizacion.count({
+        where: { empresaId, estado: 'FACTURADA' },
+      }),
+      this.prisma.cotizacion.count({
+        where: { empresaId, estado: 'BORRADOR' },
+      }),
+      this.prisma.cotizacion.aggregate({
+        where: { empresaId, estado: { notIn: ['RECHAZADA', 'VENCIDA'] } },
+        _sum: { total: true },
+      }),
+    ]);
 
     return {
       totalCotizaciones,
@@ -162,7 +172,9 @@ export class QuotesService {
 
     // Validar items
     if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException('La cotización debe incluir al menos una línea de producto o servicio.');
+      throw new BadRequestException(
+        'La cotización debe incluir al menos una línea de producto o servicio.',
+      );
     }
 
     // Obtener configuración de facturación para la moneda base e impuesto por defecto
@@ -189,12 +201,19 @@ export class QuotesService {
       const cantidad = new Prisma.Decimal(item.cantidad);
       const precioUnitario = new Prisma.Decimal(item.precioUnitario);
       const itemDescuento = new Prisma.Decimal(item.descuento || 0);
-      const tasaItbis = new Prisma.Decimal(item.tasaItbis !== undefined ? item.tasaItbis : defaultTaxRate);
+      const tasaItbis = new Prisma.Decimal(
+        item.tasaItbis !== undefined ? item.tasaItbis : defaultTaxRate,
+      );
 
       const grossLine = cantidad.mul(precioUnitario);
       const netLine = grossLine.sub(itemDescuento);
-      const itemItbis = netLine.mul(tasaItbis).div(100).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
-      const itemTotal = netLine.add(itemItbis).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+      const itemItbis = netLine
+        .mul(tasaItbis)
+        .div(100)
+        .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+      const itemTotal = netLine
+        .add(itemItbis)
+        .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
 
       subtotalAcc = subtotalAcc.add(grossLine);
       descuentoLineasAcc = descuentoLineasAcc.add(itemDescuento);
@@ -225,7 +244,9 @@ export class QuotesService {
       .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
 
     if (totalCotizacion.lt(0)) {
-      throw new BadRequestException('El total de la cotización no puede ser negativo tras aplicar descuentos.');
+      throw new BadRequestException(
+        'El total de la cotización no puede ser negativo tras aplicar descuentos.',
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -242,7 +263,9 @@ export class QuotesService {
           almacenId: dto.almacenId || null,
           numeroCotizacion,
           fecha: dto.fecha ? new Date(dto.fecha) : new Date(),
-          fechaVencimiento: dto.fechaVencimiento ? new Date(dto.fechaVencimiento) : null,
+          fechaVencimiento: dto.fechaVencimiento
+            ? new Date(dto.fechaVencimiento)
+            : null,
           estado: 'BORRADOR',
           subtotal: subtotalAcc,
           descuento: totalDescuento,
@@ -423,7 +446,9 @@ export class QuotesService {
     }
 
     if (existing.estado === 'FACTURADA') {
-      throw new BadRequestException('No se puede modificar una cotización que ya fue convertida a Factura.');
+      throw new BadRequestException(
+        'No se puede modificar una cotización que ya fue convertida a Factura.',
+      );
     }
 
     let defaultTaxRate = 18;
@@ -448,12 +473,19 @@ export class QuotesService {
           const cantidad = new Prisma.Decimal(item.cantidad);
           const precioUnitario = new Prisma.Decimal(item.precioUnitario);
           const itemDescuento = new Prisma.Decimal(item.descuento || 0);
-          const tasaItbis = new Prisma.Decimal(item.tasaItbis !== undefined ? item.tasaItbis : defaultTaxRate);
+          const tasaItbis = new Prisma.Decimal(
+            item.tasaItbis !== undefined ? item.tasaItbis : defaultTaxRate,
+          );
 
           const grossLine = cantidad.mul(precioUnitario);
           const netLine = grossLine.sub(itemDescuento);
-          const itemItbis = netLine.mul(tasaItbis).div(100).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
-          const itemTotal = netLine.add(itemItbis).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+          const itemItbis = netLine
+            .mul(tasaItbis)
+            .div(100)
+            .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+          const itemTotal = netLine
+            .add(itemItbis)
+            .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
 
           subtotalAcc = subtotalAcc.add(grossLine);
           descuentoLineasAcc = descuentoLineasAcc.add(itemDescuento);
@@ -491,19 +523,32 @@ export class QuotesService {
         return tx.cotizacion.update({
           where: { id },
           data: {
-            clienteId: dto.clienteId !== undefined ? dto.clienteId : existing.clienteId,
-            sucursalId: dto.sucursalId !== undefined ? dto.sucursalId : existing.sucursalId,
-            almacenId: dto.almacenId !== undefined ? dto.almacenId : existing.almacenId,
+            clienteId:
+              dto.clienteId !== undefined ? dto.clienteId : existing.clienteId,
+            sucursalId:
+              dto.sucursalId !== undefined
+                ? dto.sucursalId
+                : existing.sucursalId,
+            almacenId:
+              dto.almacenId !== undefined ? dto.almacenId : existing.almacenId,
             fecha: dto.fecha ? new Date(dto.fecha) : existing.fecha,
-            fechaVencimiento: dto.fechaVencimiento ? new Date(dto.fechaVencimiento) : existing.fechaVencimiento,
+            fechaVencimiento: dto.fechaVencimiento
+              ? new Date(dto.fechaVencimiento)
+              : existing.fechaVencimiento,
             notas: dto.notas !== undefined ? dto.notas : existing.notas,
-            terminosCondiciones: dto.terminosCondiciones !== undefined ? dto.terminosCondiciones : existing.terminosCondiciones,
+            terminosCondiciones:
+              dto.terminosCondiciones !== undefined
+                ? dto.terminosCondiciones
+                : existing.terminosCondiciones,
             subtotal: subtotalAcc,
             descuento: totalDescuento,
             itbis: itbisAcc,
             total: totalCotizacion,
             moneda: dto.moneda !== undefined ? dto.moneda : existing.moneda,
-            tasaCambio: dto.tasaCambio !== undefined ? new Prisma.Decimal(dto.tasaCambio) : existing.tasaCambio,
+            tasaCambio:
+              dto.tasaCambio !== undefined
+                ? new Prisma.Decimal(dto.tasaCambio)
+                : existing.tasaCambio,
           },
           include: {
             cliente: true,
@@ -516,12 +561,21 @@ export class QuotesService {
       return tx.cotizacion.update({
         where: { id },
         data: {
-          clienteId: dto.clienteId !== undefined ? dto.clienteId : existing.clienteId,
-          fechaVencimiento: dto.fechaVencimiento ? new Date(dto.fechaVencimiento) : existing.fechaVencimiento,
+          clienteId:
+            dto.clienteId !== undefined ? dto.clienteId : existing.clienteId,
+          fechaVencimiento: dto.fechaVencimiento
+            ? new Date(dto.fechaVencimiento)
+            : existing.fechaVencimiento,
           notas: dto.notas !== undefined ? dto.notas : existing.notas,
-          terminosCondiciones: dto.terminosCondiciones !== undefined ? dto.terminosCondiciones : existing.terminosCondiciones,
+          terminosCondiciones:
+            dto.terminosCondiciones !== undefined
+              ? dto.terminosCondiciones
+              : existing.terminosCondiciones,
           moneda: dto.moneda !== undefined ? dto.moneda : existing.moneda,
-          tasaCambio: dto.tasaCambio !== undefined ? new Prisma.Decimal(dto.tasaCambio) : existing.tasaCambio,
+          tasaCambio:
+            dto.tasaCambio !== undefined
+              ? new Prisma.Decimal(dto.tasaCambio)
+              : existing.tasaCambio,
         },
         include: {
           cliente: true,
@@ -544,7 +598,9 @@ export class QuotesService {
     }
 
     if (existing.estado === 'FACTURADA') {
-      throw new BadRequestException('No se puede eliminar una cotización que ya fue convertida a Factura.');
+      throw new BadRequestException(
+        'No se puede eliminar una cotización que ya fue convertida a Factura.',
+      );
     }
 
     // Si es borrador, se puede eliminar físicamente; si ya fue enviada, se marca RECHAZADA
@@ -614,7 +670,12 @@ export class QuotesService {
       smtpSecure: prop?.smtpSecure ?? true,
     };
 
-    if (!smtpConfig.smtpEnabled || !smtpConfig.smtpHost || !smtpConfig.smtpUser || !smtpConfig.smtpPass) {
+    if (
+      !smtpConfig.smtpEnabled ||
+      !smtpConfig.smtpHost ||
+      !smtpConfig.smtpUser ||
+      !smtpConfig.smtpPass
+    ) {
       throw new BadRequestException({
         code: 'SMTP_NOT_CONFIGURED',
         message:
@@ -623,7 +684,8 @@ export class QuotesService {
     }
 
     // 3. Validar correo del destinatario
-    const targetEmail = dto.recipientEmail?.trim() || quote.cliente?.email?.trim();
+    const targetEmail =
+      dto.recipientEmail?.trim() || quote.cliente?.email?.trim();
     if (!targetEmail || !targetEmail.includes('@')) {
       throw new BadRequestException({
         code: 'CLIENT_EMAIL_MISSING',
@@ -641,28 +703,72 @@ export class QuotesService {
     }
 
     // 4. Construir la plantilla HTML corporativa
-    const email = await this.emailTemplates.render(empresaId, 'quote', {
-      company: empresa.razonSocial,
-      name: quote.cliente?.nombreRazonSocial || 'Cliente',
-      documentNumber: quote.numeroCotizacion,
-      total: new Prisma.Decimal(quote.total).toFixed(2),
-      currency: quote.moneda || 'DOP',
-    }, {
-      rows: [...quote.detalles.map((detail: any) => ({
-        label: `${detail.descripcion || detail.producto?.nombre || 'Producto o servicio'} · ${detail.cantidad} × ${new Prisma.Decimal(detail.precioUnitario).toFixed(2)}`,
-        value: `${new Prisma.Decimal(detail.total).toFixed(2)} ${quote.moneda || 'DOP'}`,
-      })),
-      {label:'Subtotal',value:new Prisma.Decimal(quote.subtotal).toFixed(2)+' '+quote.moneda},
-      {label:'Descuento',value:new Prisma.Decimal(quote.descuento).toFixed(2)+' '+quote.moneda},
-      {label:'ITBIS',value:new Prisma.Decimal(quote.itbis).toFixed(2)+' '+quote.moneda},
-      {label:'Total',value:new Prisma.Decimal(quote.total).toFixed(2)+' '+quote.moneda},
-      {label:'Fecha',value:quote.fecha.toISOString().slice(0,10)},
-      ...(quote.fechaVencimiento?[{label:'Válida hasta',value:quote.fechaVencimiento.toISOString().slice(0,10)}]:[]),
-      ...(quote.terminosCondiciones?[{label:'Condiciones comerciales',value:quote.terminosCondiciones}]:[])],
-      message: dto.customMessage?.trim() || undefined,
-    });
+    const email = await this.emailTemplates.render(
+      empresaId,
+      'quote',
+      {
+        company: empresa.razonSocial,
+        name: quote.cliente?.nombreRazonSocial || 'Cliente',
+        documentNumber: quote.numeroCotizacion,
+        total: new Prisma.Decimal(quote.total).toFixed(2),
+        currency: quote.moneda || 'DOP',
+      },
+      {
+        rows: [
+          ...quote.detalles.map((detail: any) => ({
+            label: `${detail.descripcion || detail.producto?.nombre || 'Producto o servicio'} · ${detail.cantidad} × ${new Prisma.Decimal(detail.precioUnitario).toFixed(2)}`,
+            value: `${new Prisma.Decimal(detail.total).toFixed(2)} ${quote.moneda || 'DOP'}`,
+          })),
+          {
+            label: 'Subtotal',
+            value:
+              new Prisma.Decimal(quote.subtotal).toFixed(2) +
+              ' ' +
+              quote.moneda,
+          },
+          {
+            label: 'Descuento',
+            value:
+              new Prisma.Decimal(quote.descuento).toFixed(2) +
+              ' ' +
+              quote.moneda,
+          },
+          {
+            label: 'ITBIS',
+            value:
+              new Prisma.Decimal(quote.itbis).toFixed(2) + ' ' + quote.moneda,
+          },
+          {
+            label: 'Total',
+            value:
+              new Prisma.Decimal(quote.total).toFixed(2) + ' ' + quote.moneda,
+          },
+          { label: 'Fecha', value: quote.fecha.toISOString().slice(0, 10) },
+          ...(quote.fechaVencimiento
+            ? [
+                {
+                  label: 'Válida hasta',
+                  value: quote.fechaVencimiento.toISOString().slice(0, 10),
+                },
+              ]
+            : []),
+          ...(quote.terminosCondiciones
+            ? [
+                {
+                  label: 'Condiciones comerciales',
+                  value: quote.terminosCondiciones,
+                },
+              ]
+            : []),
+        ],
+        message: dto.customMessage?.trim() || undefined,
+      },
+    );
     const customSubject = dto.customSubject?.trim();
-    if (customSubject && (/[\r\n\x00-\x1f]/.test(customSubject) || customSubject.length > 200))
+    if (
+      customSubject &&
+      (/[\r\n\x00-\x1f]/.test(customSubject) || customSubject.length > 200)
+    )
       throw new BadRequestException('El asunto personalizado no es válido.');
 
     // 5. Enviar el correo usando TenantMailerService
@@ -690,23 +796,29 @@ export class QuotesService {
     });
 
     if (this.notifications) {
-      await this.notifications.create({
-        empresaId,
-        tipo: 'QUOTE_SENT',
-        titulo: 'Cotización Despachada',
-        mensaje: `Cotización ${quote.numeroCotizacion} enviada por correo a ${targetEmail}.`,
-        severidad: 'SUCCESS',
-        icono: 'send',
-        payload: {
-          cotizacionId: id,
-          numeroCotizacion: quote.numeroCotizacion,
-          emailDestino: targetEmail,
-        },
-        canales: ['IN_APP'],
-      });
+      await this.notifications
+        .create({
+          empresaId,
+          tipo: 'QUOTE_SENT',
+          titulo: 'Cotización Despachada',
+          mensaje: `Cotización ${quote.numeroCotizacion} enviada por correo a ${targetEmail}.`,
+          severidad: 'SUCCESS',
+          icono: 'send',
+          payload: {
+            cotizacionId: id,
+            numeroCotizacion: quote.numeroCotizacion,
+            emailDestino: targetEmail,
+          },
+          canales: ['IN_APP'],
+        })
+        .catch((error) =>
+          this.logger.error('NOTIFICATION_DELIVERY_FAILED', error),
+        );
     }
 
-    this.logger.log(`[QuotesService] Cotización ${quote.numeroCotizacion} enviada por correo a ${targetEmail}`);
+    this.logger.log(
+      `[QuotesService] Cotización ${quote.numeroCotizacion} enviada por correo a ${targetEmail}`,
+    );
 
     return {
       success: true,
@@ -719,39 +831,37 @@ export class QuotesService {
    * Convierte una cotización directamente en una Factura de Venta
    */
   async convertToInvoice(empresaId: string, usuarioId: string, id: string) {
-    const quote = await this.prisma.cotizacion.findFirst({
-      where: { id, empresaId },
-      include: {
-        detalles: true,
-        cliente: true,
-      },
-    });
-
-    if (!quote) {
-      throw new NotFoundException('Cotización no encontrada.');
-    }
-
-    if (quote.estado === 'FACTURADA' && quote.facturaId) {
-      throw new BadRequestException('Esta cotización ya fue convertida previamente en una Factura de Venta.');
-    }
-
     return this.prisma.$transaction(async (tx) => {
-      // 1. Generar número de factura interna
-      const lastInvoice = await tx.facturaVenta.findFirst({
-        where: { empresaId },
-        orderBy: { creadoEn: 'desc' },
-        select: { numeroFactura: true },
+      await tx.$queryRaw`SELECT id FROM cotizaciones WHERE id = ${id} AND empresa_id = ${empresaId} FOR UPDATE`;
+      const quote = await tx.cotizacion.findFirst({
+        where: { id, empresaId },
+        include: {
+          detalles: true,
+          cliente: true,
+        },
       });
 
-      let nextNumber = 1;
-      if (lastInvoice?.numeroFactura) {
-        const match = lastInvoice.numeroFactura.match(/FAC-(\d+)/);
-        if (match) {
-          nextNumber = parseInt(match[1], 10) + 1;
-        }
+      if (!quote) {
+        throw new NotFoundException('Cotización no encontrada.');
       }
-      const numeroFactura = `FAC-${String(nextNumber).padStart(6, '0')}`;
 
+      if (quote.estado === 'FACTURADA' && quote.facturaId) {
+        throw new BadRequestException(
+          'Esta cotización ya fue convertida previamente en una Factura de Venta.',
+        );
+      }
+
+      if (
+        quote.estado === 'ANULADA' ||
+        quote.estado === 'RECHAZADA' ||
+        quote.facturaId
+      )
+        throw new BadRequestException('Esta cotización no puede convertirse.');
+      if (!quote.clienteId || quote.detalles.some((d) => !d.productoId))
+        throw new BadRequestException(
+          'Asigna cliente y productos antes de convertir a borrador.',
+        );
+      const numeroFactura = await nextInvoiceNumber(tx, empresaId);
       // 2. Crear la FacturaVenta
       const factura = await tx.facturaVenta.create({
         data: {
@@ -763,7 +873,7 @@ export class QuotesService {
           numeroFactura,
           fecha: new Date(),
           fechaVencimiento: quote.fechaVencimiento,
-          estado: 'EMITIDA',
+          estado: 'BORRADOR',
           tipoPago: 'CREDITO',
           metodoPago: 'EFECTIVO',
           subtotal: quote.subtotal,
@@ -771,7 +881,7 @@ export class QuotesService {
           itbis: quote.itbis,
           total: quote.total,
           montoPagado: new Prisma.Decimal(0),
-          balancePendiente: quote.total,
+          balancePendiente: new Prisma.Decimal(0),
           moneda: quote.moneda || 'DOP',
           tasaCambio: quote.tasaCambio || new Prisma.Decimal(1),
           notas: `Generada a partir de la Cotización ${quote.numeroCotizacion}.${quote.notas ? ' ' + quote.notas : ''}`,
@@ -800,27 +910,30 @@ export class QuotesService {
         },
       });
 
-      this.activityLog.log({
-        empresaId,
-        usuarioId,
-        modulo: 'commercial',
-        accion: 'CREATE',
-        resourceId: factura.id,
-        resourceName: factura.numeroFactura,
-        resourceType: 'Factura',
-        metadata: {
-          origen: 'COTIZACION',
-          cotizacionId: quote.id,
-          numeroCotizacion: quote.numeroCotizacion,
+      await this.activityLog.log(
+        {
+          empresaId,
+          usuarioId,
+          modulo: 'commercial',
+          accion: 'CREATE',
+          resourceId: factura.id,
+          resourceName: factura.numeroFactura,
+          resourceType: 'Factura',
+          metadata: {
+            origen: 'COTIZACION',
+            cotizacionId: quote.id,
+            numeroCotizacion: quote.numeroCotizacion,
+          },
         },
-      });
+        tx,
+      );
 
       if (this.notifications) {
         await this.notifications.create({
           empresaId,
           tipo: 'QUOTE_CONVERTED',
-          titulo: 'Cotización Facturada',
-          mensaje: `Cotización ${quote.numeroCotizacion} convertida a factura ${factura.numeroFactura}.`,
+          titulo: 'Borrador creado',
+          mensaje: `Cotización ${quote.numeroCotizacion} convertida a borrador de factura ${factura.numeroFactura}.`,
           severidad: 'SUCCESS',
           icono: 'check-circle',
           payload: {
@@ -835,7 +948,7 @@ export class QuotesService {
 
       return {
         success: true,
-        message: `Cotización ${quote.numeroCotizacion} convertida a Factura ${factura.numeroFactura}`,
+        message: `Cotización ${quote.numeroCotizacion} convertida a borrador de Factura ${factura.numeroFactura}`,
         quote: updatedQuote,
         invoice: factura,
       };

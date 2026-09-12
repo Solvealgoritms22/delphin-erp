@@ -3,7 +3,9 @@ import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class FilterCustomerPaymentsDto {
-  @ApiPropertyOptional({ description: 'Término de búsqueda (No. Recibo, Cliente, Referencia)' })
+  @ApiPropertyOptional({
+    description: 'Término de búsqueda (No. Recibo, Cliente, Referencia)',
+  })
   @IsOptional()
   @IsString()
   search?: string;
@@ -18,7 +20,9 @@ export class FilterCustomerPaymentsDto {
   @IsString()
   metodo?: string;
 
-  @ApiPropertyOptional({ description: 'Filtrar por estado (REGISTRADO, ANULADO)' })
+  @ApiPropertyOptional({
+    description: 'Filtrar por estado (REGISTRADO, ANULADO)',
+  })
   @IsOptional()
   @IsString()
   estado?: string;

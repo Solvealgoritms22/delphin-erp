@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('dolphinUpdater', {
   quitAndInstall: () => {
     ipcRenderer.send('dolphin:quit-and-install');
   },
+  getUpdateState: () => ipcRenderer.invoke('dolphin:get-update-state'),
   getAppVersion: () => {
     return ipcRenderer.invoke('dolphin:get-app-version');
   },

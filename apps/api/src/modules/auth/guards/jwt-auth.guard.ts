@@ -8,7 +8,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const allowed = await super.canActivate(context);
     const user = context.switchToHttp().getRequest().user;
     const store = TenantContext.getStore();
-    if (store) Object.assign(store, { empresaId: user.empresaId, usuarioId: user.id });
+    if (store)
+      Object.assign(store, { empresaId: user.empresaId, usuarioId: user.id });
     return Boolean(allowed);
   }
 }

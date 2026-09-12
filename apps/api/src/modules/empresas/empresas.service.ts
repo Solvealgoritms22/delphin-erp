@@ -8,10 +8,25 @@ import { encryptSecret } from '../../common/security/secrets';
 import { PrismaService } from '../../prisma/prisma.service';
 
 const PUBLIC_COMPANY_FIELDS = {
-  id: true, razonSocial: true, rnc: true, pais: true, direccion: true, telefono: true,
-  email: true, paginaWeb: true, descripcion: true, logo: true, estado: true, propietarioId: true,
-  creadoEn: true, fiscalbridgeUrl: true, fiscalbridgeAuthMethod: true, fiscalbridgeEmail: true,
-  fiscalbridgeClientId: true, fiscalbridgeEnv: true, fiscalbridgeEnabled: true,
+  id: true,
+  razonSocial: true,
+  rnc: true,
+  pais: true,
+  direccion: true,
+  telefono: true,
+  email: true,
+  paginaWeb: true,
+  descripcion: true,
+  logo: true,
+  estado: true,
+  propietarioId: true,
+  creadoEn: true,
+  fiscalbridgeUrl: true,
+  fiscalbridgeAuthMethod: true,
+  fiscalbridgeEmail: true,
+  fiscalbridgeClientId: true,
+  fiscalbridgeEnv: true,
+  fiscalbridgeEnabled: true,
 } as const;
 
 @Injectable()
@@ -92,7 +107,10 @@ export class EmpresasService {
   async findCurrent(empresaId: string) {
     const empresa = await this.prisma.empresa.findUnique({
       where: { id: empresaId },
-      select: { ...PUBLIC_COMPANY_FIELDS, propietario: { select: { id: true, email: true } } },
+      select: {
+        ...PUBLIC_COMPANY_FIELDS,
+        propietario: { select: { id: true, email: true } },
+      },
     });
     if (!empresa) throw new NotFoundException('Empresa no encontrada');
     return empresa;
@@ -253,24 +271,33 @@ export class EmpresasService {
     if (data.fiscalbridgeAuthMethod !== undefined)
       updateData.fiscalbridgeAuthMethod = data.fiscalbridgeAuthMethod;
     if (data.fiscalbridgeToken !== undefined)
-      updateData.fiscalbridgeToken = data.fiscalbridgeToken ? encryptSecret(data.fiscalbridgeToken) : null;
+      updateData.fiscalbridgeToken = data.fiscalbridgeToken
+        ? encryptSecret(data.fiscalbridgeToken)
+        : null;
     if (data.fiscalbridgeEmail !== undefined)
       updateData.fiscalbridgeEmail = data.fiscalbridgeEmail;
     if (data.fiscalbridgePassword !== undefined)
-      updateData.fiscalbridgePassword = data.fiscalbridgePassword ? encryptSecret(data.fiscalbridgePassword) : null;
+      updateData.fiscalbridgePassword = data.fiscalbridgePassword
+        ? encryptSecret(data.fiscalbridgePassword)
+        : null;
     if (data.fiscalbridgeClientId !== undefined)
       updateData.fiscalbridgeClientId = data.fiscalbridgeClientId;
     if (data.fiscalbridgeClientSecret !== undefined)
-      updateData.fiscalbridgeClientSecret = data.fiscalbridgeClientSecret ? encryptSecret(data.fiscalbridgeClientSecret) : null;
+      updateData.fiscalbridgeClientSecret = data.fiscalbridgeClientSecret
+        ? encryptSecret(data.fiscalbridgeClientSecret)
+        : null;
     if (data.fiscalbridgeEnv !== undefined)
       updateData.fiscalbridgeEnv = data.fiscalbridgeEnv;
     if (data.fiscalbridgeWebhookSecret !== undefined)
-      updateData.fiscalbridgeWebhookSecret =
-        data.fiscalbridgeWebhookSecret ? encryptSecret(data.fiscalbridgeWebhookSecret) : null;
+      updateData.fiscalbridgeWebhookSecret = data.fiscalbridgeWebhookSecret
+        ? encryptSecret(data.fiscalbridgeWebhookSecret)
+        : null;
     // SMTP fields were moved to User profile
 
     return this.prisma.empresa.update({
-      where: { id: empresaId }, data: updateData, select: PUBLIC_COMPANY_FIELDS,
+      where: { id: empresaId },
+      data: updateData,
+      select: PUBLIC_COMPANY_FIELDS,
     });
   }
 
@@ -285,10 +312,25 @@ export class EmpresasService {
       );
     }
 
-    return this.prisma.$transaction(async tx => {
-      const archived = await tx.empresa.update({ where: { id: empresaId }, data: { estado: 'ARCHIVADA' }, select: PUBLIC_COMPANY_FIELDS });
-      await tx.activityLog.create({ data: { empresaId, usuarioId: userId, modulo: 'SECURITY', accion: 'COMPANY_ARCHIVED', resourceId: empresaId } });
-      await tx.suscripcion.updateMany({ where: { empresaId }, data: { estado: 'CANCELED' } });
+    return this.prisma.$transaction(async (tx) => {
+      const archived = await tx.empresa.update({
+        where: { id: empresaId },
+        data: { estado: 'ARCHIVADA' },
+        select: PUBLIC_COMPANY_FIELDS,
+      });
+      await tx.activityLog.create({
+        data: {
+          empresaId,
+          usuarioId: userId,
+          modulo: 'SECURITY',
+          accion: 'COMPANY_ARCHIVED',
+          resourceId: empresaId,
+        },
+      });
+      await tx.suscripcion.updateMany({
+        where: { empresaId },
+        data: { estado: 'CANCELED' },
+      });
       return archived;
     });
   }

@@ -54,7 +54,9 @@ export class PurchasesService {
 
     // 3. Validar items
     if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException('La compra debe incluir al menos una línea de producto o gasto.');
+      throw new BadRequestException(
+        'La compra debe incluir al menos una línea de producto o gasto.',
+      );
     }
 
     // 4. Obtener productos para validación y snapshot
@@ -62,11 +64,12 @@ export class PurchasesService {
       .map((i) => i.productoId)
       .filter((id): id is string => Boolean(id));
 
-    const productosDb = productIds.length > 0
-      ? await this.prisma.producto.findMany({
-          where: { id: { in: productIds }, empresaId },
-        })
-      : [];
+    const productosDb =
+      productIds.length > 0
+        ? await this.prisma.producto.findMany({
+            where: { id: { in: productIds }, empresaId },
+          })
+        : [];
 
     const productMap = new Map(productosDb.map((p) => [p.id, p]));
 
@@ -78,12 +81,30 @@ export class PurchasesService {
       const cantidad = new Prisma.Decimal(item.cantidad);
       const costoUnitario = new Prisma.Decimal(item.costoUnitario);
       const itemDescuento = new Prisma.Decimal(item.descuento || 0);
-      const tasaItbis = new Prisma.Decimal(item.tasaItbis !== undefined ? item.tasaItbis : 18);
+      const tasaItbis = new Prisma.Decimal(
+        item.tasaItbis !== undefined ? item.tasaItbis : 18,
+      );
 
       const grossLine = cantidad.mul(costoUnitario);
+      if (
+        cantidad.lte(0) ||
+        costoUnitario.lt(0) ||
+        itemDescuento.lt(0) ||
+        itemDescuento.gt(grossLine) ||
+        tasaItbis.lt(0) ||
+        tasaItbis.gt(100)
+      )
+        throw new BadRequestException('Importes de línea inválidos.');
+      if (item.productoId && !productMap.has(item.productoId))
+        throw new BadRequestException('Producto no pertenece a la empresa.');
       const netLine = grossLine.sub(itemDescuento);
-      const itemItbis = netLine.mul(tasaItbis).div(100).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
-      const itemTotal = netLine.add(itemItbis).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+      const itemItbis = netLine
+        .mul(tasaItbis)
+        .div(100)
+        .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+      const itemTotal = netLine
+        .add(itemItbis)
+        .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
 
       subtotalAcc = subtotalAcc.add(grossLine);
       descuentoLineasAcc = descuentoLineasAcc.add(itemDescuento);
@@ -114,6 +135,36 @@ export class PurchasesService {
     });
 
     const globalDiscount = new Prisma.Decimal(dto.descuento || 0);
+    const discountBase = subtotalAcc.sub(descuentoLineasAcc);
+    if (globalDiscount.lt(0) || globalDiscount.gt(discountBase))
+      throw new BadRequestException('Descuento global inválido.');
+    let remainingDiscount = globalDiscount;
+    calculatedItems.forEach((item, index) => {
+      const allocation =
+        index === calculatedItems.length - 1
+          ? remainingDiscount
+          : discountBase.gt(0)
+            ? Prisma.Decimal.min(
+                remainingDiscount,
+                globalDiscount
+                  .mul(item.subtotal)
+                  .div(discountBase)
+                  .toDecimalPlaces(2),
+              )
+            : new Prisma.Decimal(0);
+      remainingDiscount = remainingDiscount.sub(allocation);
+      item.descuento = item.descuento.add(allocation);
+      item.subtotal = item.subtotal.sub(allocation);
+      item.itbis = item.subtotal
+        .mul(item.tasaItbis)
+        .div(100)
+        .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+      item.total = item.subtotal.add(item.itbis);
+    });
+    itbisAcc = calculatedItems.reduce(
+      (sum, item) => sum.add(item.itbis),
+      new Prisma.Decimal(0),
+    );
     const totalDescuento = descuentoLineasAcc.add(globalDiscount);
     const itbisRetenido = new Prisma.Decimal(dto.itbisRetenido || 0);
     const retencionRenta = new Prisma.Decimal(dto.retencionRenta || 0);
@@ -126,7 +177,9 @@ export class PurchasesService {
       .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
 
     if (totalCompra.lt(0)) {
-      throw new BadRequestException('El total de la compra no puede ser negativo tras descuentos y retenciones.');
+      throw new BadRequestException(
+        'El total de la compra no puede ser negativo tras descuentos y retenciones.',
+      );
     }
 
     const esContado = dto.tipoPago === PurchasePaymentType.CONTADO;
@@ -136,6 +189,7 @@ export class PurchasesService {
 
     // 5. Transacción Atómica
     const compra = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${empresaId + ':COM'}, 0))::text`;
       const numeroFactura = dto.numeroFactura?.trim()
         ? dto.numeroFactura.trim()
         : await this.generateNextNumeroCompra(tx, empresaId);
@@ -147,6 +201,8 @@ export class PurchasesService {
         const prod = productMap.get(item.productoId);
         if (!prod) continue;
 
+        await tx.$queryRaw`SELECT id FROM productos WHERE id = ${item.productoId} AND empresa_id = ${empresaId} FOR UPDATE`;
+        await tx.$queryRaw`SELECT id FROM inventario_stocks WHERE producto_id = ${item.productoId} AND almacen_id = ${almacenId} FOR UPDATE`;
         const stockExistente = await tx.inventarioStock.findUnique({
           where: {
             productoId_almacenId: {
@@ -161,16 +217,22 @@ export class PurchasesService {
 
         if (stockExistente) {
           const stockActual = new Prisma.Decimal(stockExistente.cantidad);
-          const costoActual = stockExistente.costoPromedio !== null
-            ? new Prisma.Decimal(stockExistente.costoPromedio)
-            : new Prisma.Decimal(prod.costo || 0);
+          const costoActual =
+            stockExistente.costoPromedio !== null
+              ? new Prisma.Decimal(stockExistente.costoPromedio)
+              : new Prisma.Decimal(prod.costo || 0);
 
           nuevoStock = stockActual.add(item.cantidad);
 
           if (nuevoStock.gt(0)) {
-            const valorActual = stockActual.gt(0) ? stockActual.mul(costoActual) : new Prisma.Decimal(0);
+            const valorActual = stockActual.gt(0)
+              ? stockActual.mul(costoActual)
+              : new Prisma.Decimal(0);
             const valorCompra = item.cantidad.mul(item.costoUnitario);
-            nuevoCostoPromedio = valorActual.add(valorCompra).div(nuevoStock).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+            nuevoCostoPromedio = valorActual
+              .add(valorCompra)
+              .div(nuevoStock)
+              .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
           }
 
           await tx.inventarioStock.update({
@@ -230,7 +292,9 @@ export class PurchasesService {
           tipoNcf: dto.tipoNcf || null,
           tipoGasto: dto.tipoGasto || '09', // Default 09: Compras y gastos costo de venta
           fecha: dto.fecha ? new Date(dto.fecha) : new Date(),
-          fechaVencimiento: dto.fechaVencimiento ? new Date(dto.fechaVencimiento) : null,
+          fechaVencimiento: dto.fechaVencimiento
+            ? new Date(dto.fechaVencimiento)
+            : null,
           estado: estadoCompra,
           tipoPago: dto.tipoPago,
           metodoPago: dto.metodoPago || 'TRANSFERENCIA',
@@ -314,21 +378,25 @@ export class PurchasesService {
     });
 
     if (this.notifications) {
-      await this.notifications.create({
-        empresaId,
-        tipo: 'PURCHASE_REGISTERED',
-        titulo: 'Nueva Factura de Compra',
-        mensaje: `Compra ${compra.numeroFactura} registrada de ${proveedor.nombreRazonSocial} por ${Number(compra.total).toLocaleString('es-DO', { style: 'currency', currency: compra.moneda || 'DOP' })}.`,
-        severidad: 'INFO',
-        icono: 'shopping-bag',
-        payload: {
-          compraId: compra.id,
-          numeroFactura: compra.numeroFactura,
-          proveedor: proveedor.nombreRazonSocial,
-          total: Number(compra.total),
-        },
-        canales: ['IN_APP'],
-      });
+      await this.notifications
+        .create({
+          empresaId,
+          tipo: 'PURCHASE_REGISTERED',
+          titulo: 'Nueva Factura de Compra',
+          mensaje: `Compra ${compra.numeroFactura} registrada de ${proveedor.nombreRazonSocial} por ${Number(compra.total).toLocaleString('es-DO', { style: 'currency', currency: compra.moneda || 'DOP' })}.`,
+          severidad: 'INFO',
+          icono: 'shopping-bag',
+          payload: {
+            compraId: compra.id,
+            numeroFactura: compra.numeroFactura,
+            proveedor: proveedor.nombreRazonSocial,
+            total: Number(compra.total),
+          },
+          canales: ['IN_APP'],
+        })
+        .catch((error) =>
+          this.logger.error('NOTIFICATION_DELIVERY_FAILED', error),
+        );
     }
 
     return compra;
@@ -342,8 +410,14 @@ export class PurchasesService {
       where.OR = [
         { numeroFactura: { contains: q, mode: 'insensitive' } },
         { ncf: { contains: q, mode: 'insensitive' } },
-        { proveedor: { nombreRazonSocial: { contains: q, mode: 'insensitive' } } },
-        { proveedor: { numeroDocumento: { contains: q, mode: 'insensitive' } } },
+        {
+          proveedor: {
+            nombreRazonSocial: { contains: q, mode: 'insensitive' },
+          },
+        },
+        {
+          proveedor: { numeroDocumento: { contains: q, mode: 'insensitive' } },
+        },
       ];
     }
 
@@ -436,9 +510,13 @@ export class PurchasesService {
       metrics: {
         totalComprasMes: statsMes._sum.total ? Number(statsMes._sum.total) : 0,
         cantidadComprasMes: statsMes._count.id,
-        totalCxPPendiente: statsCxP._sum.balancePendiente ? Number(statsCxP._sum.balancePendiente) : 0,
+        totalCxPPendiente: statsCxP._sum.balancePendiente
+          ? Number(statsCxP._sum.balancePendiente)
+          : 0,
         facturasPendientesCount: statsCxP._count.id,
-        totalVencido: statsVencidas._sum.balancePendiente ? Number(statsVencidas._sum.balancePendiente) : 0,
+        totalVencido: statsVencidas._sum.balancePendiente
+          ? Number(statsVencidas._sum.balancePendiente)
+          : 0,
         facturasVencidasCount: statsVencidas._count.id,
       },
     };
@@ -474,28 +552,45 @@ export class PurchasesService {
     compraId: string,
     dto: CreateSupplierPaymentDto,
   ) {
-    const compra = await this.findOne(empresaId, compraId);
-
-    if (compra.estado === 'ANULADA') {
-      throw new BadRequestException('No se pueden registrar pagos a una compra anulada.');
-    }
-
-    if (new Prisma.Decimal(compra.balancePendiente).lte(0)) {
-      throw new BadRequestException('Esta factura de compra ya se encuentra completamente pagada.');
-    }
-
-    const montoPago = new Prisma.Decimal(dto.monto);
-    if (montoPago.gt(compra.balancePendiente)) {
-      throw new BadRequestException(
-        `El monto a pagar (RD$ ${montoPago}) no puede ser mayor al balance pendiente (RD$ ${compra.balancePendiente}).`,
-      );
-    }
-
-    const nuevoBalance = new Prisma.Decimal(compra.balancePendiente).sub(montoPago);
-    const nuevoMontoPagado = new Prisma.Decimal(compra.montoPagado).add(montoPago);
-    const nuevoEstado = nuevoBalance.lte(0) ? 'PAGADA' : 'PAGADA_PARCIAL';
-
     const result = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM facturas_compra WHERE id = ${compraId} AND empresa_id = ${empresaId} FOR UPDATE`;
+      const compra = await tx.facturaCompra.findFirst({
+        where: { id: compraId, empresaId },
+      });
+      if (!compra) throw new NotFoundException('Compra no encontrada.');
+
+      if (compra.estado === 'ANULADA') {
+        throw new BadRequestException(
+          'No se pueden registrar pagos a una compra anulada.',
+        );
+      }
+
+      if (new Prisma.Decimal(compra.balancePendiente).lte(0)) {
+        throw new BadRequestException(
+          'Esta factura de compra ya se encuentra completamente pagada.',
+        );
+      }
+
+      const montoPago = new Prisma.Decimal(dto.monto);
+      if (
+        !montoPago.isFinite() ||
+        montoPago.lte(0) ||
+        montoPago.decimalPlaces() > 2 ||
+        montoPago.gt(compra.balancePendiente)
+      ) {
+        throw new BadRequestException(
+          `El monto a pagar (RD$ ${montoPago.toString()}) no puede ser mayor al balance pendiente (RD$ ${compra.balancePendiente.toString()}).`,
+        );
+      }
+
+      const nuevoBalance = new Prisma.Decimal(compra.balancePendiente).sub(
+        montoPago,
+      );
+      const nuevoMontoPagado = new Prisma.Decimal(compra.montoPagado).add(
+        montoPago,
+      );
+      const nuevoEstado = nuevoBalance.lte(0) ? 'PAGADA' : 'PAGADA_PARCIAL';
+
       const pago = await tx.pagoProveedor.create({
         data: {
           empresaId,
@@ -543,28 +638,44 @@ export class PurchasesService {
       usuarioId,
       modulo: 'purchases',
       accion: 'PAYMENT',
-      resourceId: compra.id,
-      resourceName: `${compra.numeroFactura} - Abono RD$ ${montoPago}`,
+      resourceId: result.updatedPurchase.id,
+      resourceName: `${result.updatedPurchase.numeroFactura} - Abono RD$ ${result.pago.monto.toString()}`,
       resourceType: 'Pago a Proveedor',
       metadata: {
-        monto: montoPago.toString(),
+        monto: result.pago.monto.toString(),
         metodo: dto.metodo,
         referencia: dto.referencia,
-        nuevoBalance: nuevoBalance.toString(),
+        nuevoBalance: result.updatedPurchase.balancePendiente.toString(),
       },
     });
 
     return result;
   }
 
-  async cancel(empresaId: string, usuarioId: string, id: string, motivo?: string) {
-    const compra = await this.findOne(empresaId, id);
-
-    if (compra.estado === 'ANULADA') {
-      throw new BadRequestException('Esta compra ya ha sido anulada previamente.');
-    }
-
+  async cancel(
+    empresaId: string,
+    usuarioId: string,
+    id: string,
+    motivo?: string,
+  ) {
     const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM facturas_compra WHERE id = ${id} AND empresa_id = ${empresaId} FOR UPDATE`;
+      const compra = await tx.facturaCompra.findFirst({
+        where: { id, empresaId },
+        include: { detalles: true },
+      });
+      if (!compra) throw new NotFoundException('Compra no encontrada.');
+      if (compra.montoPagado.gt(0))
+        throw new BadRequestException(
+          'Debe conciliar y revertir los pagos antes de anular esta compra.',
+        );
+
+      if (compra.estado === 'ANULADA') {
+        throw new BadRequestException(
+          'Esta compra ya ha sido anulada previamente.',
+        );
+      }
+
       // Revertir inventario si afectó almacén
       if (compra.almacenId) {
         for (const det of compra.detalles) {
@@ -619,7 +730,7 @@ export class PurchasesService {
       modulo: 'purchases',
       accion: 'CANCEL',
       resourceId: id,
-      resourceName: `${compra.numeroFactura}`,
+      resourceName: `${updated.numeroFactura}`,
       resourceType: 'Factura de Compra',
       metadata: { motivo },
     });

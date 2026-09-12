@@ -1,19 +1,43 @@
-import { IsBoolean, IsEmail, IsIn, IsOptional, IsString, IsUUID, Length, Matches, MaxLength, MinLength } from 'class-validator';
-export class EmailDto { @IsEmail() @MaxLength(254) email!: string; }
-export class OtpDto extends EmailDto { @Matches(/^\d{6}$/) otp!: string; }
-export class PasswordResetDto extends OtpDto { @IsString() @MinLength(6) @MaxLength(72) newPassword!: string; }
-export class PasswordChangeDto { @IsString() @MaxLength(72) currentPassword!: string; @IsString() @MinLength(6) @MaxLength(72) newPassword!: string; }
+import {
+  IsBoolean,
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+export class EmailDto {
+  @IsEmail() @MaxLength(254) email!: string;
+}
+export class OtpDto extends EmailDto {
+  @Matches(/^\d{6}$/) otp!: string;
+}
+export class PasswordResetDto extends OtpDto {
+  @IsString() @MinLength(6) @MaxLength(72) newPassword!: string;
+}
+export class PasswordChangeDto {
+  @IsString() @MaxLength(72) currentPassword!: string;
+  @IsString() @MinLength(6) @MaxLength(72) newPassword!: string;
+}
 export class DestructiveAuthDto {
   @IsOptional() @IsEmail() email?: string;
   @IsOptional() @IsString() @MaxLength(72) password?: string;
   @IsOptional() @IsString() @MaxLength(100) mfaCode?: string;
 }
-export class SwitchTenantDto { @IsUUID() empresaId!: string; }
+export class SwitchTenantDto {
+  @IsUUID() empresaId!: string;
+}
 export class GoogleStartDto {
   @Matches(/^[A-Za-z0-9_-]{43}$/) challenge!: string;
   @IsOptional() @IsString() @MaxLength(500) origin?: string;
 }
-export class GoogleFlowDto { @IsUUID() flowId!: string; @Matches(/^[A-Za-z0-9_-]{43,128}$/) verifier!: string; }
+export class GoogleFlowDto {
+  @IsUUID() flowId!: string;
+  @Matches(/^[A-Za-z0-9_-]{43,128}$/) verifier!: string;
+}
 export class GoogleCompleteDto extends GoogleFlowDto {
   @IsBoolean() acceptedPolicies!: boolean;
   @IsOptional() @IsString() @Length(1, 200) companyName?: string;

@@ -1,3 +1,4 @@
+import { hasActiveSubscription } from '../subscription-policy';
 import {
   Injectable,
   CanActivate,
@@ -75,7 +76,7 @@ export class EntitlementGuard implements CanActivate {
     // -----------------------------------------------
     // Lógica de suscripción de pago
     // -----------------------------------------------
-    if (!suscripcion || !['ACTIVE', 'TRIAL'].includes(suscripcion.estado)) {
+    if (!suscripcion || !hasActiveSubscription(suscripcion)) {
       throw new HttpException(
         {
           message:
@@ -88,8 +89,15 @@ export class EntitlementGuard implements CanActivate {
 
     // Resolver límites del plan
     const currentPlan = suscripcion.plan;
-    if (!['maxUsuarios', 'maxSucursales', 'maxProductos'].includes(requiredEntitlement) || !currentPlan) {
-      throw new ForbiddenException('El plan o el límite del recurso no está configurado.');
+    if (
+      !['maxUsuarios', 'maxSucursales', 'maxProductos'].includes(
+        requiredEntitlement,
+      ) ||
+      !currentPlan
+    ) {
+      throw new ForbiddenException(
+        'El plan o el límite del recurso no está configurado.',
+      );
     }
     const maxLimit = currentPlan[requiredEntitlement];
     if (!Number.isSafeInteger(maxLimit) || maxLimit < 0) {

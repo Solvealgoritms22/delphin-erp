@@ -1,4 +1,10 @@
-import { IsOptional, IsString, IsNumber, Min, IsNotEmpty } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  Min,
+  IsNotEmpty,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
@@ -39,7 +45,10 @@ export class InventoryReportDto {
 }
 
 export class TaxReportDto {
-  @ApiProperty({ description: 'Período fiscal en formato YYYYMM o YYYY-MM (ej: 202608 o 2026-08)' })
+  @ApiProperty({
+    description:
+      'Período fiscal en formato YYYYMM o YYYY-MM (ej: 202608 o 2026-08)',
+  })
   @IsString()
   @IsNotEmpty()
   periodo: string;

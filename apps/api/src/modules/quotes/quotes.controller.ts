@@ -84,7 +84,10 @@ export class QuotesController {
 
   @Post(':id/send-email')
   @RequirePermissions('commercial:write')
-  @ApiOperation({ summary: 'Enviar cotización por correo electrónico validando SMTP y destinatario' })
+  @ApiOperation({
+    summary:
+      'Enviar cotización por correo electrónico validando SMTP y destinatario',
+  })
   sendEmail(
     @CurrentUser() user: any,
     @Param('id') id: string,

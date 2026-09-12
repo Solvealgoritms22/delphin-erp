@@ -33,7 +33,9 @@ describe('AuthController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
-        { provide: GoogleOAuthService, useValue: {} },{ provide: AuthService, useValue: authService }],
+        { provide: GoogleOAuthService, useValue: {} },
+        { provide: AuthService, useValue: authService },
+      ],
     })
       .overrideGuard(LocalAuthGuard)
       .useValue({ canActivate: () => true })
@@ -88,7 +90,11 @@ describe('AuthController', () => {
 
   it('switchTenant usa user.id y empresaId del body', async () => {
     await controller.switchTenant({ id: 'u1' }, { empresaId: 'e1' });
-    expect(authService.switchTenant).toHaveBeenCalledWith('u1', 'e1', undefined);
+    expect(authService.switchTenant).toHaveBeenCalledWith(
+      'u1',
+      'e1',
+      undefined,
+    );
   });
 
   it('updateProfile usa user.id', async () => {

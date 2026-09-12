@@ -1,3 +1,4 @@
+import { hasActiveSubscription } from '../../../common/subscription-policy';
 import {
   Injectable,
   CanActivate,
@@ -33,7 +34,10 @@ export class TenantApiKeyGuard implements CanActivate {
     }
 
     // 2. Hash and lookup
-    const apiKeyHash = crypto.createHash('sha256').update(rawApiKey).digest('hex');
+    const apiKeyHash = crypto
+      .createHash('sha256')
+      .update(rawApiKey)
+      .digest('hex');
     const app = await this.prisma.tenantApiApp.findUnique({
       where: { apiKeyHash },
       include: {
@@ -58,14 +62,18 @@ export class TenantApiKeyGuard implements CanActivate {
       ''
     ).toLowerCase();
 
-    if (planId !== 'enterprise') {
+    if (
+      planId !== 'enterprise' ||
+      !hasActiveSubscription(app.empresa.suscripcion)
+    ) {
       throw new ForbiddenException(
         'La API externa está deshabilitada porque la empresa no cuenta con un plan Enterprise activo.',
       );
     }
 
     // 4. Validate Origin if configured
-    const requestOrigin = request.headers['origin'] || request.headers['referer'];
+    const requestOrigin =
+      request.headers['origin'] || request.headers['referer'];
     if (app.allowedOrigins && requestOrigin) {
       try {
         const allowed: string[] = JSON.parse(app.allowedOrigins);
@@ -92,7 +100,9 @@ export class TenantApiKeyGuard implements CanActivate {
         }
       } catch (err: any) {
         if (err instanceof ForbiddenException) throw err;
-        this.logger.warn(`Error parsing allowedOrigins for app ${app.id}: ${err?.message}`);
+        this.logger.warn(
+          `Error parsing allowedOrigins for app ${app.id}: ${err?.message}`,
+        );
       }
     }
 

@@ -23,25 +23,45 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GoogleOAuthService } from './google-oauth.service';
 import { Throttle } from '@nestjs/throttler';
-import { EmailDto, OtpDto, PasswordResetDto, PasswordChangeDto, DestructiveAuthDto, RegisterDto, InvitationDto, SwitchTenantDto, GoogleStartDto, GoogleFlowDto, GoogleCompleteDto } from './dto/auth.dto';
+import {
+  EmailDto,
+  OtpDto,
+  PasswordResetDto,
+  PasswordChangeDto,
+  DestructiveAuthDto,
+  RegisterDto,
+  InvitationDto,
+  SwitchTenantDto,
+  GoogleStartDto,
+  GoogleFlowDto,
+  GoogleCompleteDto,
+} from './dto/auth.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('Auth')
 @Throttle({ default: { limit: 10, ttl: 60_000 } })
 @Controller('v1/auth')
 export class AuthController {
-  constructor(private authService: AuthService, private googleOAuth: GoogleOAuthService) {}
+  constructor(
+    private authService: AuthService,
+    private googleOAuth: GoogleOAuthService,
+  ) {}
 
   @Post('google/start')
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   googleStart(@Body() body: GoogleStartDto, @Request() req: any) {
     const origin = body.origin || req?.headers?.origin || req?.headers?.referer;
-    return this.googleOAuth.start(body.challenge, typeof origin === 'string' ? origin : undefined);
+    return this.googleOAuth.start(
+      body.challenge,
+      typeof origin === 'string' ? origin : undefined,
+    );
   }
 
   @Post('google/status')
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
-  googleStatus(@Body() body: GoogleFlowDto) { return this.googleOAuth.status(body.flowId, body.verifier); }
+  googleStatus(@Body() body: GoogleFlowDto) {
+    return this.googleOAuth.status(body.flowId, body.verifier);
+  }
 
   @Get('google/callback')
   async googleCallback(
@@ -55,21 +75,38 @@ export class AuthController {
     response.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
     try {
       const result = await this.googleOAuth.callback(code, state, denied);
-      const origin = (result?.origin || process.env.FRONTEND_URL || 'http://localhost:4200').replace(/\/$/, '');
+      const origin = (
+        result?.origin ||
+        process.env.FRONTEND_URL ||
+        'http://localhost:4200'
+      ).replace(/\/$/, '');
       if (result?.rejected) {
-        return response.redirect(`${origin}/auth-callback.html?error=${encodeURIComponent(result.rejected)}`);
+        return response.redirect(
+          `${origin}/auth-callback.html?error=${encodeURIComponent(result.rejected)}`,
+        );
       }
       return response.redirect(`${origin}/auth-callback.html?status=success`);
     } catch (err: any) {
-      const origin = (process.env.FRONTEND_URL || 'http://localhost:4200').replace(/\/$/, '');
+      const origin = (
+        process.env.FRONTEND_URL || 'http://localhost:4200'
+      ).replace(/\/$/, '');
       const message = err?.message || 'failed';
-      return response.redirect(`${origin}/auth-callback.html?error=${encodeURIComponent(message)}`);
+      return response.redirect(
+        `${origin}/auth-callback.html?error=${encodeURIComponent(message)}`,
+      );
     }
   }
 
   @Post('google/complete')
   completeGoogle(@Body() body: GoogleCompleteDto, @Request() request) {
-    return this.googleOAuth.complete(body.flowId, body.verifier, body.acceptedPolicies, body.companyName, body.rnc, request);
+    return this.googleOAuth.complete(
+      body.flowId,
+      body.verifier,
+      body.acceptedPolicies,
+      body.companyName,
+      body.rnc,
+      request,
+    );
   }
 
   @UseGuards(LocalAuthGuard)
@@ -137,9 +174,7 @@ export class AuthController {
 
   @Post('reset-password')
   @ApiOperation({ summary: 'Resetear contraseña con OTP válido' })
-  async resetPassword(
-    @Body() body: PasswordResetDto,
-  ) {
+  async resetPassword(@Body() body: PasswordResetDto) {
     return this.authService.resetPassword(
       body.email,
       body.otp,
@@ -164,11 +199,12 @@ export class AuthController {
   @Post('switch-tenant')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cambiar de empresa activa (multi-tenant)' })
-  async switchTenant(
-    @CurrentUser() user: any,
-    @Body() body: SwitchTenantDto,
-  ) {
-    return this.authService.switchTenant(user.id, body.empresaId, user.authTime);
+  async switchTenant(@CurrentUser() user: any, @Body() body: SwitchTenantDto) {
+    return this.authService.switchTenant(
+      user.id,
+      body.empresaId,
+      user.authTime,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -228,7 +264,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('account/wipe-data')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Eliminar y restablecer todos los datos del tenant' })
+  @ApiOperation({
+    summary: 'Eliminar y restablecer todos los datos del tenant',
+  })
   async wipeData(@CurrentUser() user: any, @Body() body: DestructiveAuthDto) {
     return this.authService.wipeTenantData(user.id, body);
   }
@@ -236,8 +274,13 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Delete('account')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Eliminar permanentemente la cuenta del usuario y sus datos' })
-  async deleteAccount(@CurrentUser() user: any, @Body() body: DestructiveAuthDto) {
+  @ApiOperation({
+    summary: 'Eliminar permanentemente la cuenta del usuario y sus datos',
+  })
+  async deleteAccount(
+    @CurrentUser() user: any,
+    @Body() body: DestructiveAuthDto,
+  ) {
     return this.authService.deleteUserAccount(user.id, body);
   }
 }

@@ -39,7 +39,10 @@ export class UsersService {
       include: {
         usuario: {
           include: {
-            membresias: { where: { empresaId }, select: { empresaId: true, estado: true } },
+            membresias: {
+              where: { empresaId },
+              select: { empresaId: true, estado: true },
+            },
           },
         },
         role: true,
@@ -129,8 +132,13 @@ export class UsersService {
         },
       });
     } else {
-      const existingMembership = await this.prisma.membresia.findUnique({ where: { usuarioId_empresaId: { usuarioId: user.id, empresaId } } });
-      if (!existingMembership) throw new ForbiddenException('La cuenta existente debe autorizar su vinculación a esta empresa');
+      const existingMembership = await this.prisma.membresia.findUnique({
+        where: { usuarioId_empresaId: { usuarioId: user.id, empresaId } },
+      });
+      if (!existingMembership)
+        throw new ForbiddenException(
+          'La cuenta existente debe autorizar su vinculación a esta empresa',
+        );
       // If the user has not verified yet and invitation was requested, generate a new token
       if (!user.isVerified && usingInvitation) {
         invitationToken = randomBytes(32).toString('hex');
@@ -293,14 +301,24 @@ export class UsersService {
       process.env.FRONTEND_URL?.trim() || 'http://localhost:4200';
     const invitationUrl = `${frontendUrl}/auth/accept-invitation?token=${encodeURIComponent(token)}`;
     const email = this.emailTemplates
-      ? await this.emailTemplates.render(empresaId, 'invitation', {
-          name: name || 'bienvenido',
-          company: companies || 'Tu empresa',
-        }, { actionUrl: invitationUrl })
-      : renderEmail('invitation', {
-          name: name || 'bienvenido',
-          company: companies || 'Tu empresa',
-        }, undefined, { actionUrl: invitationUrl });
+      ? await this.emailTemplates.render(
+          empresaId,
+          'invitation',
+          {
+            name: name || 'bienvenido',
+            company: companies || 'Tu empresa',
+          },
+          { actionUrl: invitationUrl },
+        )
+      : renderEmail(
+          'invitation',
+          {
+            name: name || 'bienvenido',
+            company: companies || 'Tu empresa',
+          },
+          undefined,
+          { actionUrl: invitationUrl },
+        );
 
     await this.tenantMailer?.sendMail(config, {
       to,
@@ -318,48 +336,83 @@ export class UsersService {
     actorUserId?: string,
     actorSessionId?: string,
   ) {
-    if (!empresaId || !actorUserId) throw new BadRequestException('Empresa y actor requeridos');
+    if (!empresaId || !actorUserId)
+      throw new BadRequestException('Empresa y actor requeridos');
     let passwordHash: string | undefined;
     if (data.password) {
       if (id !== actorUserId) {
-        throw new BadRequestException('Utiliza el flujo de recuperación de contraseña');
+        throw new BadRequestException(
+          'Utiliza el flujo de recuperación de contraseña',
+        );
       }
       if (typeof data.password !== 'string' || data.password.length < 6) {
-        throw new BadRequestException('La contraseña debe tener al menos 6 caracteres');
+        throw new BadRequestException(
+          'La contraseña debe tener al menos 6 caracteres',
+        );
       }
       passwordHash = await bcrypt.hash(data.password, 10);
     }
-    const companyIds = data.empresaIds !== undefined
-      ? await this.validateAssignableCompanies(actorUserId, this.normalizeCompanyIds(data.empresaIds, empresaId), empresaId)
-      : [empresaId];
-    const managedIds = data.empresaIds !== undefined
-      ? (await this.findAssignableCompanies(actorUserId)).map(company => company.id) : [empresaId];
-    return this.prisma.$transaction(async tx => {
+    const companyIds =
+      data.empresaIds !== undefined
+        ? await this.validateAssignableCompanies(
+            actorUserId,
+            this.normalizeCompanyIds(data.empresaIds, empresaId),
+            empresaId,
+          )
+        : [empresaId];
+    const managedIds =
+      data.empresaIds !== undefined
+        ? (await this.findAssignableCompanies(actorUserId)).map(
+            (company) => company.id,
+          )
+        : [empresaId];
+    return this.prisma.$transaction(async (tx) => {
       const member = await tx.membresia.findUnique({
-        where: { usuarioId_empresaId: { usuarioId: id, empresaId } }, include: { usuario: true, empresa: true },
+        where: { usuarioId_empresaId: { usuarioId: id, empresaId } },
+        include: { usuario: true, empresa: true },
       });
-      if (!member) throw new NotFoundException('Usuario no encontrado en la empresa');
+      if (!member)
+        throw new NotFoundException('Usuario no encontrado en la empresa');
       const isOwner = member.empresa.propietarioId === id;
       if (isOwner) {
         if (data.estado === 'INACTIVO') {
-          throw new BadRequestException('No se puede desactivar o cambiar el rol del propietario');
+          throw new BadRequestException(
+            'No se puede desactivar o cambiar el rol del propietario',
+          );
         }
         if (!companyIds.includes(empresaId)) {
-          throw new BadRequestException('La empresa principal debe estar asignada al propietario');
+          throw new BadRequestException(
+            'La empresa principal debe estar asignada al propietario',
+          );
         }
         delete data.roleId;
       }
       const nombre = data.name ?? data.nombre;
-      const identityChanged = (nombre !== undefined && nombre !== member.usuario.nombre) ||
+      const identityChanged =
+        (nombre !== undefined && nombre !== member.usuario.nombre) ||
         (data.avatar !== undefined && data.avatar !== member.usuario.avatar);
       if (identityChanged && id !== actorUserId) {
-        const unrelated = await tx.membresia.count({ where: { usuarioId: id, empresa: { propietarioId: { not: actorUserId } } } });
-        if (unrelated) throw new BadRequestException('La identidad compartida solo puede modificarla su titular');
+        const unrelated = await tx.membresia.count({
+          where: {
+            usuarioId: id,
+            empresa: { propietarioId: { not: actorUserId } },
+          },
+        });
+        if (unrelated)
+          throw new BadRequestException(
+            'La identidad compartida solo puede modificarla su titular',
+          );
       }
       if (data.roleId) {
         for (const assignedId of companyIds) {
-          if (!await tx.role.findFirst({ where: { id: data.roleId, empresaId: assignedId } })) {
-            throw new BadRequestException('El rol debe pertenecer a la empresa asignada');
+          if (
+            !(await tx.role.findFirst({
+              where: { id: data.roleId, empresaId: assignedId },
+            }))
+          ) {
+            throw new BadRequestException(
+              'El rol debe pertenecer a la empresa asignada',
+            );
           }
         }
       }
@@ -374,27 +427,54 @@ export class UsersService {
         });
       }
       if (data.empresaIds !== undefined) {
-        await tx.membresia.deleteMany({ where: { usuarioId: id, empresaId: { in: managedIds, notIn: companyIds } } });
+        await tx.membresia.deleteMany({
+          where: {
+            usuarioId: id,
+            empresaId: { in: managedIds, notIn: companyIds },
+          },
+        });
       }
-      for (const assignedId of companyIds) await tx.membresia.upsert({
-        where: { usuarioId_empresaId: { usuarioId: id, empresaId: assignedId } },
-        create: { usuarioId: id, empresaId: assignedId, roleId: isOwner ? null : (data.roleId || null), estado: isOwner ? 'ACTIVO' : (data.estado || 'ACTIVO') },
-        update: { ...(isOwner ? {} : { roleId: data.roleId }), estado: isOwner ? 'ACTIVO' : data.estado },
-      });
+      for (const assignedId of companyIds)
+        await tx.membresia.upsert({
+          where: {
+            usuarioId_empresaId: { usuarioId: id, empresaId: assignedId },
+          },
+          create: {
+            usuarioId: id,
+            empresaId: assignedId,
+            roleId: isOwner ? null : data.roleId || null,
+            estado: isOwner ? 'ACTIVO' : data.estado || 'ACTIVO',
+          },
+          update: {
+            ...(isOwner ? {} : { roleId: data.roleId }),
+            estado: isOwner ? 'ACTIVO' : data.estado,
+          },
+        });
       if (id !== actorUserId || passwordHash) {
         await tx.userSession.updateMany({
           where: {
             usuarioId: id,
             revokedAt: null,
-            ...(id === actorUserId && actorSessionId ? { id: { not: actorSessionId } } : {}),
+            ...(id === actorUserId && actorSessionId
+              ? { id: { not: actorSessionId } }
+              : {}),
           },
           data: { revokedAt: new Date() },
         });
       }
-      await tx.activityLog.create({ data: {
-        empresaId, usuarioId: actorUserId, modulo: 'SECURITY', accion: 'USER_UPDATED', resourceId: id,
-        metadata: JSON.stringify({ severity: 'Medium', actionTaken: 'Membresía actualizada' }),
-      } });
+      await tx.activityLog.create({
+        data: {
+          empresaId,
+          usuarioId: actorUserId,
+          modulo: 'SECURITY',
+          accion: 'USER_UPDATED',
+          resourceId: id,
+          metadata: JSON.stringify({
+            severity: 'Medium',
+            actionTaken: 'Membresía actualizada',
+          }),
+        },
+      });
       return { usuarioId: id, empresaIds: companyIds };
     });
   }
@@ -456,7 +536,8 @@ export class UsersService {
       modulo: 'users',
       accion: 'DELETE',
       resourceId: id,
-      resourceName: member?.usuario?.nombre || member?.usuario?.email || 'Usuario',
+      resourceName:
+        member?.usuario?.nombre || member?.usuario?.email || 'Usuario',
       resourceType: 'Usuario',
     });
 

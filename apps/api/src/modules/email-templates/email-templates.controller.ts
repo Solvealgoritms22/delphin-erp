@@ -15,7 +15,7 @@ import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { EmailTemplatesService } from './email-templates.service';
-import type { EmailKey } from './email-template.catalog';
+import type { } from './email-template.catalog';
 class RevisionDto {
   @IsInt() @Min(0) revision: number;
 }
@@ -79,11 +79,6 @@ export class EmailTemplatesController {
     @Param('key') key: string,
     @Body() body: DesignDto,
   ) {
-    return this.templates.preview(
-      user.empresaId,
-      user.id,
-      key as EmailKey,
-      body,
-    );
+    return this.templates.preview(user.empresaId, user.id, key, body);
   }
 }

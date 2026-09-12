@@ -1,6 +1,10 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { createHash } from 'crypto';
 import { normalizePermissions } from '../../../common/permissions.util';
@@ -28,7 +32,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(request: Request, payload: any) {
     const token = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
-    if (!token || !payload.sessionId) throw new UnauthorizedException('Sesión inválida');
+    if (!token || !payload.sessionId)
+      throw new UnauthorizedException('Sesión inválida');
     if (payload.sessionId) {
       const session = await this.prisma.userSession.findFirst({
         where: {
@@ -43,27 +48,48 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         throw new UnauthorizedException('Sesión revocada o expirada');
       if (session.ultimoAcceso.getTime() < Date.now() - 5 * 60 * 1000) {
         await this.prisma.userSession.updateMany({
-          where: { id: payload.sessionId, ultimoAcceso: { lt: new Date(Date.now() - 5 * 60 * 1000) } },
+          where: {
+            id: payload.sessionId,
+            ultimoAcceso: { lt: new Date(Date.now() - 5 * 60 * 1000) },
+          },
           data: { ultimoAcceso: new Date() },
         });
       }
     }
 
-    if (!payload.empresaId) throw new UnauthorizedException('Empresa requerida');
-    if (process.env.MAINTENANCE_MODE === 'true' && process.env.MAINTENANCE_TENANT_ID?.split(',').map(id => id.trim()).includes(payload.empresaId)) {
-      throw new ServiceUnavailableException('La empresa se encuentra en mantenimiento');
+    if (!payload.empresaId)
+      throw new UnauthorizedException('Empresa requerida');
+    if (
+      process.env.MAINTENANCE_MODE === 'true' &&
+      process.env.MAINTENANCE_TENANT_ID?.split(',')
+        .map((id) => id.trim())
+        .includes(payload.empresaId)
+    ) {
+      throw new ServiceUnavailableException(
+        'La empresa se encuentra en mantenimiento',
+      );
     }
     const empresa = await this.prisma.empresa.findUnique({
-      where: { id: payload.empresaId }, select: { propietarioId: true, estado: true },
+      where: { id: payload.empresaId },
+      select: { propietarioId: true, estado: true },
     });
-    if (!empresa || empresa.estado !== 'ACTIVA') throw new UnauthorizedException('Empresa inactiva');
+    if (!empresa || empresa.estado !== 'ACTIVA')
+      throw new UnauthorizedException('Empresa inactiva');
     const member = await this.prisma.membresia.findUnique({
-      where: { usuarioId_empresaId: { usuarioId: payload.sub, empresaId: payload.empresaId } },
+      where: {
+        usuarioId_empresaId: {
+          usuarioId: payload.sub,
+          empresaId: payload.empresaId,
+        },
+      },
       include: { role: true },
     });
     const owner = empresa.propietarioId === payload.sub;
-    if (!owner && member?.estado !== 'ACTIVO') throw new UnauthorizedException('Membresía inactiva');
-    const permissions = owner ? ['*'] : normalizePermissions(member?.role?.permissions);
+    if (!owner && member?.estado !== 'ACTIVO')
+      throw new UnauthorizedException('Membresía inactiva');
+    const permissions = owner
+      ? ['*']
+      : normalizePermissions(member?.role?.permissions);
 
     // This payload matches what we signed in auth.service
     return {

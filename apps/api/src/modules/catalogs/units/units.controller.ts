@@ -48,7 +48,11 @@ export class UnitsController {
   @Patch(':id')
   @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Actualizar unidad de medida' })
-  update(@Param('id') id: string, @CurrentUser() user: any, @Body() data: UpdateUnitDto) {
+  update(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+    @Body() data: UpdateUnitDto,
+  ) {
     return this.unitsService.update(id, user.empresaId, data);
   }
 

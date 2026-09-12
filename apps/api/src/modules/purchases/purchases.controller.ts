@@ -56,7 +56,12 @@ export class PurchasesController {
     @Body() dto: CreateSupplierPaymentDto,
   ) {
     const userId = user.userId || user.id;
-    return this.purchasesService.registerPayment(user.empresaId, userId, id, dto);
+    return this.purchasesService.registerPayment(
+      user.empresaId,
+      userId,
+      id,
+      dto,
+    );
   }
 
   @Patch(':id/cancel')

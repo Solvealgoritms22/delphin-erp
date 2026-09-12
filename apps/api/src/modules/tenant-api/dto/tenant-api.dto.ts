@@ -4,8 +4,7 @@ import {
   IsOptional,
   IsString,
   ArrayMaxSize,
-  IsUrl,
-} from 'class-validator';
+  } from 'class-validator';
 
 export class CreateTenantApiAppDto {
   @IsString()
@@ -17,7 +16,9 @@ export class CreateTenantApiAppDto {
   descripcion?: string;
 
   @IsArray({ message: 'Los orígenes permitidos deben ser una lista.' })
-  @ArrayMaxSize(2, { message: 'Solo se permiten hasta 2 orígenes/sistemas externos.' })
+  @ArrayMaxSize(2, {
+    message: 'Solo se permiten hasta 2 orígenes/sistemas externos.',
+  })
   @IsString({ each: true })
   @IsOptional()
   allowedOrigins?: string[];
@@ -33,7 +34,9 @@ export class UpdateTenantApiAppDto {
   descripcion?: string;
 
   @IsArray()
-  @ArrayMaxSize(2, { message: 'Solo se permiten hasta 2 orígenes/sistemas externos.' })
+  @ArrayMaxSize(2, {
+    message: 'Solo se permiten hasta 2 orígenes/sistemas externos.',
+  })
   @IsString({ each: true })
   @IsOptional()
   allowedOrigins?: string[];

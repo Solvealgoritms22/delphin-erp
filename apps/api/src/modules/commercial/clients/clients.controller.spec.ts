@@ -36,7 +36,10 @@ describe('ClientsController', () => {
   });
 
   it('delega todos los CRUD usando req.user.empresaId', () => {
-    controller.create(req, { nombreRazonSocial: 'Juan', numeroDocumento: '001-0000000-1' });
+    controller.create(req, {
+      nombreRazonSocial: 'Juan',
+      numeroDocumento: '001-0000000-1',
+    });
     controller.findAll(req);
     controller.findOne(req, 'cl1');
     controller.update(req, 'cl1', { email: 'x@y.com' });

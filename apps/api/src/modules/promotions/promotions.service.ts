@@ -11,8 +11,7 @@ import { UpdatePromotionDto } from './dto/update-promotion.dto';
 import { FilterPromotionsDto } from './dto/filter-promotions.dto';
 import {
   EvaluatePromotionsDto,
-  EvaluateItemDto,
-} from './dto/evaluate-promotions.dto';
+  } from './dto/evaluate-promotions.dto';
 import { Prisma } from '@prisma/client';
 
 export interface EvaluatedLineResult {
@@ -72,14 +71,16 @@ export class PromotionsService {
       const cat = await this.prisma.categoria.findFirst({
         where: { id: dto.categoriaId, empresaId },
       });
-      if (!cat) throw new NotFoundException('La categoría especificada no existe');
+      if (!cat)
+        throw new NotFoundException('La categoría especificada no existe');
     }
 
     if (dto.alcance === 'MARCA' && dto.marcaId) {
       const marca = await this.prisma.marca.findFirst({
         where: { id: dto.marcaId, empresaId },
       });
-      if (!marca) throw new NotFoundException('La marca especificada no existe');
+      if (!marca)
+        throw new NotFoundException('La marca especificada no existe');
     }
 
     const promocion = await this.prisma.$transaction(async (tx) => {
@@ -171,10 +172,7 @@ export class PromotionsService {
         where.estado = 'ACTIVO';
         where.fechaInicio = { gt: now };
       } else if (filter.estado === 'EXPIRADO') {
-        where.OR = [
-          { estado: 'EXPIRADO' },
-          { fechaFin: { lt: now } },
-        ];
+        where.OR = [{ estado: 'EXPIRADO' }, { fechaFin: { lt: now } }];
       } else {
         where.estado = filter.estado;
       }
@@ -213,7 +211,10 @@ export class PromotionsService {
       if (p.estado === 'ACTIVO') {
         if (p.fechaInicio > now) {
           estadoEfectivo = 'PROGRAMADO';
-        } else if (p.fechaFin < now || (p.limiteUsos !== null && p.usosActuales >= p.limiteUsos)) {
+        } else if (
+          p.fechaFin < now ||
+          (p.limiteUsos !== null && p.usosActuales >= p.limiteUsos)
+        ) {
           estadoEfectivo = 'EXPIRADO';
         }
       }
@@ -261,7 +262,11 @@ export class PromotionsService {
     if (promocion.estado === 'ACTIVO') {
       if (promocion.fechaInicio > now) {
         estadoEfectivo = 'PROGRAMADO';
-      } else if (promocion.fechaFin < now || (promocion.limiteUsos !== null && promocion.usosActuales >= promocion.limiteUsos)) {
+      } else if (
+        promocion.fechaFin < now ||
+        (promocion.limiteUsos !== null &&
+          promocion.usosActuales >= promocion.limiteUsos)
+      ) {
         estadoEfectivo = 'EXPIRADO';
       }
     }
@@ -304,7 +309,8 @@ export class PromotionsService {
     }
     if (dto.fechaInicio !== undefined)
       updateData.fechaInicio = new Date(dto.fechaInicio);
-    if (dto.fechaFin !== undefined) updateData.fechaFin = new Date(dto.fechaFin);
+    if (dto.fechaFin !== undefined)
+      updateData.fechaFin = new Date(dto.fechaFin);
     if (dto.cantidadMinima !== undefined)
       updateData.cantidadMinima = new Prisma.Decimal(dto.cantidadMinima);
     if (dto.montoMinimo !== undefined)
@@ -324,7 +330,8 @@ export class PromotionsService {
       if (dto.productoIds !== undefined) {
         await tx.promocionProducto.deleteMany({ where: { promocionId: id } });
         if (
-          (dto.alcance === 'PRODUCTOS' || (!dto.alcance && res.alcance === 'PRODUCTOS')) &&
+          (dto.alcance === 'PRODUCTOS' ||
+            (!dto.alcance && res.alcance === 'PRODUCTOS')) &&
           Array.isArray(dto.productoIds) &&
           dto.productoIds.length > 0
         ) {
@@ -447,17 +454,24 @@ export class PromotionsService {
     });
 
     const evaluatedItems: EvaluatedLineResult[] = [];
-    const appliedPromosMap = new Map<string, { id: string; nombre: string; ahorro: number }>();
+    const appliedPromosMap = new Map<
+      string,
+      { id: string; nombre: string; ahorro: number }
+    >();
 
     for (const item of dto.items) {
       const prod = productMap.get(item.productoId);
       if (!prod) continue;
 
       const cantidad = Number(item.cantidad) || 1;
-      const precioLista = item.precioUnitario !== undefined ? Number(item.precioUnitario) : Number(prod.precioVenta);
+      const precioLista =
+        item.precioUnitario !== undefined
+          ? Number(item.precioUnitario)
+          : Number(prod.precioVenta);
       const subtotalBruto = precioLista * cantidad;
 
-      const maxAllowedPercent = prod.descuentoMaximo !== null ? Number(prod.descuentoMaximo) : 100;
+      const maxAllowedPercent =
+        prod.descuentoMaximo !== null ? Number(prod.descuentoMaximo) : 100;
       const maxAllowedDiscount = (subtotalBruto * maxAllowedPercent) / 100;
 
       // 1. Evaluar Oferta Directa del Producto
@@ -472,12 +486,18 @@ export class PromotionsService {
         if (prod.ofertaHasta && prod.ofertaHasta < now) isOfferActive = false;
 
         if (isOfferActive) {
-          if (prod.precioOferta !== null && Number(prod.precioOferta) < precioLista) {
+          if (
+            prod.precioOferta !== null &&
+            Number(prod.precioOferta) < precioLista
+          ) {
             const unitDisc = precioLista - Number(prod.precioOferta);
             bestDiscount = unitDisc * cantidad;
             appliedPromoNombre = 'Oferta de Producto (Precio Especial)';
             appliedPromoType = 'PRECIO_FIJO';
-          } else if (prod.descuentoPorcentaje !== null && Number(prod.descuentoPorcentaje) > 0) {
+          } else if (
+            prod.descuentoPorcentaje !== null &&
+            Number(prod.descuentoPorcentaje) > 0
+          ) {
             const pct = Number(prod.descuentoPorcentaje);
             bestDiscount = (subtotalBruto * pct) / 100;
             appliedPromoNombre = `Oferta de Producto (${pct}% OFF)`;
@@ -489,7 +509,10 @@ export class PromotionsService {
       // 2. Evaluar Campañas de Promoción
       for (const promo of activePromotions) {
         // Verificar cupón si se requiere
-        if (promo.codigoCupon && promo.codigoCupon !== dto.codigoCupon?.trim().toUpperCase()) {
+        if (
+          promo.codigoCupon &&
+          promo.codigoCupon !== dto.codigoCupon?.trim().toUpperCase()
+        ) {
           continue;
         }
 
@@ -505,9 +528,17 @@ export class PromotionsService {
         let applies = false;
         if (promo.alcance === 'TODOS') {
           applies = true;
-        } else if (promo.alcance === 'CATEGORIA' && promo.categoriaId && prod.categoriaId === promo.categoriaId) {
+        } else if (
+          promo.alcance === 'CATEGORIA' &&
+          promo.categoriaId &&
+          prod.categoriaId === promo.categoriaId
+        ) {
           applies = true;
-        } else if (promo.alcance === 'MARCA' && promo.marcaId && prod.marcaId === promo.marcaId) {
+        } else if (
+          promo.alcance === 'MARCA' &&
+          promo.marcaId &&
+          prod.marcaId === promo.marcaId
+        ) {
           applies = true;
         } else if (promo.alcance === 'PRODUCTOS') {
           applies = promo.productos.some((pp) => pp.productoId === prod.id);
@@ -544,7 +575,10 @@ export class PromotionsService {
       }
 
       // 3. Evaluar descuento manual ingresado en la línea
-      if (item.descuentoManual !== undefined && Number(item.descuentoManual) > 0) {
+      if (
+        item.descuentoManual !== undefined &&
+        Number(item.descuentoManual) > 0
+      ) {
         const manual = Number(item.descuentoManual);
         if (manual > bestDiscount) {
           bestDiscount = manual;
@@ -566,7 +600,8 @@ export class PromotionsService {
 
       const descuentoUnitario = cantidad > 0 ? bestDiscount / cantidad : 0;
       const subtotalNeto = Math.max(0, subtotalBruto - bestDiscount);
-      const porcentajeDescuento = subtotalBruto > 0 ? (bestDiscount / subtotalBruto) * 100 : 0;
+      const porcentajeDescuento =
+        subtotalBruto > 0 ? (bestDiscount / subtotalBruto) * 100 : 0;
       const precioFinalUnitario = Math.max(0, precioLista - descuentoUnitario);
 
       if (appliedPromoId && appliedPromoNombre && bestDiscount > 0) {
@@ -601,9 +636,18 @@ export class PromotionsService {
       });
     }
 
-    const subtotalBrutoTotal = evaluatedItems.reduce((acc, i) => acc + i.subtotalBruto, 0);
-    const descuentoTotal = evaluatedItems.reduce((acc, i) => acc + i.descuentoTotal, 0);
-    const subtotalNetoTotal = evaluatedItems.reduce((acc, i) => acc + i.subtotalNeto, 0);
+    const subtotalBrutoTotal = evaluatedItems.reduce(
+      (acc, i) => acc + i.subtotalBruto,
+      0,
+    );
+    const descuentoTotal = evaluatedItems.reduce(
+      (acc, i) => acc + i.descuentoTotal,
+      0,
+    );
+    const subtotalNetoTotal = evaluatedItems.reduce(
+      (acc, i) => acc + i.subtotalNeto,
+      0,
+    );
 
     return {
       items: evaluatedItems,

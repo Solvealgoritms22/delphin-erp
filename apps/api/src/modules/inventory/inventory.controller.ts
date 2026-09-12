@@ -1,4 +1,7 @@
-import { WarehouseDto, UpdateWarehouseDto } from '../../common/dto/resource.dto';
+import {
+  WarehouseDto,
+  UpdateWarehouseDto,
+} from '../../common/dto/resource.dto';
 import {
   Body,
   Controller,

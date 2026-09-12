@@ -46,7 +46,8 @@ export class PromotionsController {
   @Post('evaluate')
   @RequirePermissions('commercial:read')
   @ApiOperation({
-    summary: 'Evaluar y cotizar promociones aplicables para una canasta de productos',
+    summary:
+      'Evaluar y cotizar promociones aplicables para una canasta de productos',
   })
   evaluate(@CurrentUser() user: any, @Body() dto: EvaluatePromotionsDto) {
     return this.promotionsService.evaluatePromotions(user.empresaId, dto);

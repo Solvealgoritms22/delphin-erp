@@ -62,9 +62,14 @@ describe('ClientsService', () => {
 
   it('never retries a failed update without the tenant boundary', async () => {
     prisma.cliente.update.mockRejectedValueOnce(new Error('constraint'));
-    await expect(service.update('cl1', 'e1', { email: 'x@y.com' })).rejects.toThrow('constraint');
+    await expect(
+      service.update('cl1', 'e1', { email: 'x@y.com' }),
+    ).rejects.toThrow('constraint');
     expect(prisma.cliente.update).toHaveBeenCalledTimes(1);
-    expect(prisma.cliente.update).toHaveBeenCalledWith({ where: { id: 'cl1', empresaId: 'e1' }, data: { email: 'x@y.com' } });
+    expect(prisma.cliente.update).toHaveBeenCalledWith({
+      where: { id: 'cl1', empresaId: 'e1' },
+      data: { email: 'x@y.com' },
+    });
   });
 
   it('elimina un cliente', async () => {

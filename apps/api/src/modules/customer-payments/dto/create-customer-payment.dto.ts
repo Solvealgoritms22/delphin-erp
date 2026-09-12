@@ -30,7 +30,8 @@ export class CreateCustomerPaymentDto {
   clienteId: string;
 
   @ApiPropertyOptional({
-    description: 'Monto total pagado. Si no se pasa, se calcula como la suma de las aplicaciones.',
+    description:
+      'Monto total pagado. Si no se pasa, se calcula como la suma de las aplicaciones.',
   })
   @IsNumber()
   @IsPositive()
@@ -56,7 +57,14 @@ export class CreateCustomerPaymentDto {
 
   @ApiPropertyOptional({
     description: 'Método de cobro',
-    enum: ['EFECTIVO', 'TRANSFERENCIA', 'CHEQUE', 'TARJETA', 'DEPOSITO', 'OTRO'],
+    enum: [
+      'EFECTIVO',
+      'TRANSFERENCIA',
+      'CHEQUE',
+      'TARJETA',
+      'DEPOSITO',
+      'OTRO',
+    ],
     default: 'EFECTIVO',
   })
   @IsString()

@@ -49,7 +49,10 @@ export class SuppliersService {
   }
 
   async update(id: string, empresaId: string, data: any) {
-    const updated = await this.prisma.proveedor.update({ where: { id, empresaId }, data });
+    const updated = await this.prisma.proveedor.update({
+      where: { id, empresaId },
+      data,
+    });
 
     await this.activityLog.log({
       empresaId,

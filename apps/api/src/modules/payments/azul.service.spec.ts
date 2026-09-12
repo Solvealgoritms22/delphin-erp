@@ -59,15 +59,23 @@ describe('AzulService', () => {
 
     expect(res.IsoCode).toBe('00');
   });
-  it.each(['MOCK', 'SANDBOX', undefined])('rechaza modo %s en producción sin efectuar cobros', async mode => {
-    process.env.NODE_ENV = 'production';
-    if (mode) process.env.AZUL_ENV = mode;
-    else delete process.env.AZUL_ENV;
-    await expect(service.processTokenSale({
-      dataVaultToken:'synthetic-token', dataVaultExpiration:'202812',
-      amountCents:100, itbisCents:0, orderNumber:'synthetic-order',
-    })).rejects.toThrow(InternalServerErrorException);
-  });
+  it.each(['MOCK', 'SANDBOX', undefined])(
+    'rechaza modo %s en producción sin efectuar cobros',
+    async (mode) => {
+      process.env.NODE_ENV = 'production';
+      if (mode) process.env.AZUL_ENV = mode;
+      else delete process.env.AZUL_ENV;
+      await expect(
+        service.processTokenSale({
+          dataVaultToken: 'synthetic-token',
+          dataVaultExpiration: '202812',
+          amountCents: 100,
+          itbisCents: 0,
+          orderNumber: 'synthetic-order',
+        }),
+      ).rejects.toThrow(InternalServerErrorException);
+    },
+  );
 
   it('voidTransaction devuelve aprobación mock', async () => {
     const res = await service.voidTransaction('azul-1');

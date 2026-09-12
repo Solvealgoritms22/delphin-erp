@@ -13,6 +13,8 @@ describe('creation route quotas', () => {
   ] as const)('protects %s with its own quota', (controller, quota) => {
     const handler = controller.prototype.create;
     expect(Reflect.getMetadata(ENTITLEMENT_KEY, handler)).toBe(quota);
-    expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toContain(EntitlementGuard);
+    expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toContain(
+      EntitlementGuard,
+    );
   });
 });

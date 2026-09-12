@@ -449,7 +449,7 @@ export class NotificationsService {
           where: { id: delivery.id },
           data: { estado: 'SENT', providerMessageId, enviadaEn: new Date() },
         });
-      } catch (error) {
+      } catch {
         await this.prisma.notificationDelivery.update({
           where: { id: delivery.id },
           data: {

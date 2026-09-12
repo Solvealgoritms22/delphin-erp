@@ -121,6 +121,8 @@ import { EmailTemplatesModule } from './modules/email-templates/email-templates.
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TenantContextMiddleware, MaintenanceMiddleware).forRoutes('*');
+    consumer
+      .apply(TenantContextMiddleware, MaintenanceMiddleware)
+      .forRoutes('*');
   }
 }

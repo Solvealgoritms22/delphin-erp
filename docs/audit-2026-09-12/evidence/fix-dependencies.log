@@ -1,0 +1,85 @@
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: dolphin-erp@1.0.13
+npm warn Found: @angular/compiler@22.1.0
+npm warn node_modules/@angular/compiler
+npm warn   dev @angular/compiler@"22.1.6" from the root project
+npm warn   4 more (@angular/build, @angular/compiler-cli, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peerOptional @angular/compiler@"22.1.0" from @angular/core@22.1.0
+npm warn node_modules/@angular/core
+npm warn   peer @angular/core@"22.1.0" from @angular/animations@22.1.0
+npm warn   apps/desktop/node_modules/@angular/animations
+npm warn   14 more (@angular/aria, @angular/build, @angular/cdk, ...)
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: dolphin-erp@1.0.13
+npm warn Found: @angular/compiler@22.1.0
+npm warn node_modules/@angular/compiler
+npm warn   dev @angular/compiler@"22.1.6" from the root project
+npm warn   4 more (@angular/build, @angular/compiler-cli, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peerOptional @angular/compiler@"22.1.0" from @angular/core@22.1.0
+npm warn node_modules/@angular/core
+npm warn   peer @angular/core@"22.1.0" from @angular/animations@22.1.0
+npm warn   apps/desktop/node_modules/@angular/animations
+npm warn   14 more (@angular/aria, @angular/build, @angular/cdk, ...)
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: dolphin-erp@1.0.13
+npm warn Found: @angular/compiler@22.1.0
+npm warn node_modules/@angular/compiler
+npm warn   dev @angular/compiler@"22.1.6" from the root project
+npm warn   4 more (@angular/build, @angular/compiler-cli, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peerOptional @angular/compiler@"22.1.0" from @angular/core@22.1.0
+npm warn node_modules/@angular/core
+npm warn   peer @angular/core@"22.1.0" from @angular/animations@22.1.0
+npm warn   apps/desktop/node_modules/@angular/animations
+npm warn   14 more (@angular/aria, @angular/build, @angular/cdk, ...)
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: dolphin-erp@1.0.13
+npm warn Found: @angular/compiler@22.1.0
+npm warn node_modules/@angular/compiler
+npm warn   dev @angular/compiler@"22.1.6" from the root project
+npm warn   4 more (@angular/build, @angular/compiler-cli, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peerOptional @angular/compiler@"22.1.0" from @angular/core@22.1.0
+npm warn node_modules/@angular/core
+npm warn   peer @angular/core@"22.1.0" from @angular/animations@22.1.0
+npm warn   apps/desktop/node_modules/@angular/animations
+npm warn   14 more (@angular/aria, @angular/build, @angular/cdk, ...)
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: @angular/compiler-cli@22.1.0
+npm error Found: @angular/compiler@22.1.6
+npm error node_modules/@angular/compiler
+npm error   dev @angular/compiler@"22.1.6" from the root project
+npm error   @angular/compiler@"22.1.6" from desktop@1.0.13
+npm error   apps/desktop
+npm error     desktop@1.0.13
+npm error     node_modules/desktop
+npm error       workspace apps\desktop from the root project
+npm error   1 more (@angular/build)
+npm error
+npm error Could not resolve dependency:
+npm error peer @angular/compiler@"22.1.0" from @angular/compiler-cli@22.1.0
+npm error apps/desktop/node_modules/@angular/compiler-cli
+npm error   peer @angular/compiler-cli@"^22.0.0" from @angular/build@22.1.2
+npm error   apps/desktop/node_modules/@angular/build
+npm error
+npm error Conflicting peer dependency: @angular/compiler@22.1.0
+npm error node_modules/@angular/compiler
+npm error   peer @angular/compiler@"22.1.0" from @angular/compiler-cli@22.1.0
+npm error   apps/desktop/node_modules/@angular/compiler-cli
+npm error     peer @angular/compiler-cli@"^22.0.0" from @angular/build@22.1.2
+npm error     apps/desktop/node_modules/@angular/build
+npm error
+npm error Fix the upstream dependency conflict, or retry this command with --force or --legacy-peer-deps to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error C:\Users\dfajardo\AppData\Local\npm-cache\_logs\2026-09-12T19_46_45_441Z-eresolve-report.txt
+npm error A complete log of this run can be found in: C:\Users\dfajardo\AppData\Local\npm-cache\_logs\2026-09-12T19_46_45_441Z-debug-0.log

@@ -1,0 +1,91 @@
+
+> api@0.0.1 db:deploy
+> prisma migrate deploy
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "dolphin_test_audit20260912", schema "public" at "127.0.0.1:58935"
+
+24 migrations found in prisma/migrations
+
+Applying migration `20260811120000_postgresql_baseline`
+Applying migration `20260811130000_add_user_sessions`
+Applying migration `20260811140000_add_notifications`
+Applying migration `20260811150000_global_activity_logs`
+Applying migration `20260812160000_force_first_password_change`
+Applying migration `20260812170000_google_auth_policy_fields`
+Applying migration `20260812180000_user_invitations`
+Applying migration `20260812190000_supplier_country_logo_company_country`
+Applying migration `20260812200000_client_country_logo`
+Applying migration `20260817124936_add_tenant_smtp`
+Applying migration `20260817132055_move_smtp_to_user`
+Applying migration `20260818000000_add_backups`
+Applying migration `20260818010000_add_billing_configuration`
+Applying migration `20260818020000_add_fiscalbridge_webhooks`
+Applying migration `20260818030000_add_credit_notes_and_fiscal_outbox`
+Applying migration `20260909000000_complete_business_schema`
+Applying migration `20260909000100_auth_flows`
+Applying migration `20260909000200_document_counters`
+Applying migration `20260909000300_billing_attempts`
+Applying migration `20260909000400_tenant_integrity`
+Applying migration `20260909000500_detail_tenant_integrity`
+Applying migration `20260910000100_account_mfa`
+Applying migration `20260911000100_invoice_sequence_expiry`
+Applying migration `20260911000200_email_templates`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20260811120000_postgresql_baseline/
+    └─ migration.sql
+  └─ 20260811130000_add_user_sessions/
+    └─ migration.sql
+  └─ 20260811140000_add_notifications/
+    └─ migration.sql
+  └─ 20260811150000_global_activity_logs/
+    └─ migration.sql
+  └─ 20260812160000_force_first_password_change/
+    └─ migration.sql
+  └─ 20260812170000_google_auth_policy_fields/
+    └─ migration.sql
+  └─ 20260812180000_user_invitations/
+    └─ migration.sql
+  └─ 20260812190000_supplier_country_logo_company_country/
+    └─ migration.sql
+  └─ 20260812200000_client_country_logo/
+    └─ migration.sql
+  └─ 20260817124936_add_tenant_smtp/
+    └─ migration.sql
+  └─ 20260817132055_move_smtp_to_user/
+    └─ migration.sql
+  └─ 20260818000000_add_backups/
+    └─ migration.sql
+  └─ 20260818010000_add_billing_configuration/
+    └─ migration.sql
+  └─ 20260818020000_add_fiscalbridge_webhooks/
+    └─ migration.sql
+  └─ 20260818030000_add_credit_notes_and_fiscal_outbox/
+    └─ migration.sql
+  └─ 20260909000000_complete_business_schema/
+    └─ migration.sql
+  └─ 20260909000100_auth_flows/
+    └─ migration.sql
+  └─ 20260909000200_document_counters/
+    └─ migration.sql
+  └─ 20260909000300_billing_attempts/
+    └─ migration.sql
+  └─ 20260909000400_tenant_integrity/
+    └─ migration.sql
+  └─ 20260909000500_detail_tenant_integrity/
+    └─ migration.sql
+  └─ 20260910000100_account_mfa/
+    └─ migration.sql
+  └─ 20260911000100_invoice_sequence_expiry/
+    └─ migration.sql
+  └─ 20260911000200_email_templates/
+    └─ migration.sql
+      
+All migrations have been successfully applied.

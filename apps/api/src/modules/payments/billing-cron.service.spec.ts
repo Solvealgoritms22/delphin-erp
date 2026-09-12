@@ -32,7 +32,12 @@ describe('BillingCronService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BillingCronService,
-        { provide: BillingAttemptsService, useValue: { execute: jest.fn((_empresa, _kind, _key, operation) => operation()) } },
+        {
+          provide: BillingAttemptsService,
+          useValue: {
+            execute: jest.fn((_empresa, _kind, _key, operation) => operation()),
+          },
+        },
         mocks.provider,
         { provide: AzulService, useValue: azulService },
       ],

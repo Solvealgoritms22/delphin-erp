@@ -1,4 +1,7 @@
-import { CategoryDto, UpdateCategoryDto } from '../../../common/dto/resource.dto';
+import {
+  CategoryDto,
+  UpdateCategoryDto,
+} from '../../../common/dto/resource.dto';
 import {
   Controller,
   Get,
@@ -48,7 +51,11 @@ export class CategoriesController {
   @Patch(':id')
   @RequirePermissions('catalogs:write')
   @ApiOperation({ summary: 'Actualizar categoría' })
-  update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: UpdateCategoryDto) {
+  update(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body() data: UpdateCategoryDto,
+  ) {
     return this.categoriesService.update(user.empresaId, id, data);
   }
 

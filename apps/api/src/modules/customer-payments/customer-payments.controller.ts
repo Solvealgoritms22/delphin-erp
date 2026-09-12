@@ -41,7 +41,9 @@ export class CustomerPaymentsController {
   }
 
   @Get('metrics')
-  @ApiOperation({ summary: 'Obtener métricas y KPIs de Cuentas por Cobrar (CxC)' })
+  @ApiOperation({
+    summary: 'Obtener métricas y KPIs de Cuentas por Cobrar (CxC)',
+  })
   @RequirePermissions('commercial:read')
   getMetrics(@CurrentUser() user: any) {
     return this.service.getMetrics(user.empresaId);

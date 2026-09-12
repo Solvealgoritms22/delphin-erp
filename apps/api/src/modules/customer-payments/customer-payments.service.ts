@@ -83,16 +83,32 @@ export class CustomerPaymentsService {
       );
     }
 
-    const totalCalculado = apps.reduce((acc, a) => acc + Number(a.monto), 0);
-    if (totalCalculado <= 0) {
+    const seen = new Set<string>();
+    const totalCalculado = apps.reduce((total, application) => {
+      const amount = new Prisma.Decimal(application.monto);
+      if (
+        !amount.isFinite() ||
+        amount.lte(0) ||
+        amount.decimalPlaces() > 2 ||
+        seen.has(application.facturaId)
+      )
+        throw new BadRequestException(
+          'Aplicaciones inválidas: usa importes positivos con dos decimales y facturas únicas.',
+        );
+      seen.add(application.facturaId);
+      return total.add(amount);
+    }, new Prisma.Decimal(0));
+    const montoFinal = new Prisma.Decimal(dto.monto ?? totalCalculado);
+    if (!montoFinal.isFinite() || !montoFinal.eq(totalCalculado))
       throw new BadRequestException(
-        'El monto total del cobro debe ser mayor a cero.',
+        'El importe del recibo debe coincidir con la suma de sus aplicaciones.',
       );
-    }
-
-    const montoFinal = new Prisma.Decimal(dto.monto ? dto.monto : totalCalculado);
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // Serialize receipt allocation for the tenant, and lock invoices in stable order.
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${empresaId + ':REC'}, 0))::text`;
+      for (const invoiceId of [...seen].sort())
+        await tx.$queryRaw`SELECT id FROM facturas_venta WHERE id = ${invoiceId} AND empresa_id = ${empresaId} FOR UPDATE`;
       // 1. Validar cada factura y su saldo pendiente
       for (const app of apps) {
         const inv = await tx.facturaVenta.findFirst({
@@ -106,6 +122,8 @@ export class CustomerPaymentsService {
             numeroFactura: true,
             balancePendiente: true,
             estado: true,
+            moneda: true,
+            facturaOriginalId: true,
           },
         });
 
@@ -115,7 +133,11 @@ export class CustomerPaymentsService {
           );
         }
 
-        if (inv.estado === 'ANULADA') {
+        if (
+          !['EMITIDA', 'PARCIALMENTE_PAGADA'].includes(inv.estado) ||
+          inv.facturaOriginalId ||
+          inv.moneda !== (dto.moneda || 'DOP')
+        ) {
           throw new BadRequestException(
             `La factura ${inv.numeroFactura} está anulada y no acepta pagos.`,
           );
@@ -204,21 +226,25 @@ export class CustomerPaymentsService {
     });
 
     if (this.notifications) {
-      await this.notifications.create({
-        empresaId,
-        tipo: 'PAYMENT_RECEIVED',
-        titulo: 'Cobro de Cliente Registrado',
-        mensaje: `Cobro de ${Number(montoFinal).toLocaleString('es-DO', { style: 'currency', currency: result.moneda || 'DOP' })} (${result.numeroRecibo || 'Recibo'}) recibido de ${cliente.nombreRazonSocial}.`,
-        severidad: 'SUCCESS',
-        icono: 'dollar-sign',
-        payload: {
-          pagoId: result.id,
-          numeroRecibo: result.numeroRecibo,
-          monto: Number(montoFinal),
-          cliente: cliente.nombreRazonSocial,
-        },
-        canales: ['IN_APP'],
-      });
+      await this.notifications
+        .create({
+          empresaId,
+          tipo: 'PAYMENT_RECEIVED',
+          titulo: 'Cobro de Cliente Registrado',
+          mensaje: `Cobro de ${Number(montoFinal).toLocaleString('es-DO', { style: 'currency', currency: result.moneda || 'DOP' })} (${result.numeroRecibo || 'Recibo'}) recibido de ${cliente.nombreRazonSocial}.`,
+          severidad: 'SUCCESS',
+          icono: 'dollar-sign',
+          payload: {
+            pagoId: result.id,
+            numeroRecibo: result.numeroRecibo,
+            monto: Number(montoFinal),
+            cliente: cliente.nombreRazonSocial,
+          },
+          canales: ['IN_APP'],
+        })
+        .catch((error) =>
+          this.logger.error('NOTIFICATION_DELIVERY_FAILED', error),
+        );
     }
 
     return this.findOne(empresaId, result.id);
@@ -512,20 +538,25 @@ export class CustomerPaymentsService {
    * Anula un recibo de cobro y restituye los balances en las facturas involucradas
    */
   async cancel(empresaId: string, usuarioId: string, id: string) {
-    const payment = await this.prisma.pagoCliente.findFirst({
-      where: { id, empresaId },
-      include: { aplicaciones: true, cliente: true },
-    });
-
-    if (!payment) {
-      throw new NotFoundException('Recibo de cobro no encontrado.');
-    }
-
-    if (payment.estado === 'ANULADO') {
-      throw new BadRequestException('El recibo ya se encuentra anulado.');
-    }
-
     const result = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM pagos_clientes WHERE id = ${id} AND empresa_id = ${empresaId} FOR UPDATE`;
+      const payment = await tx.pagoCliente.findFirst({
+        where: { id, empresaId },
+        include: { aplicaciones: true, cliente: true },
+      });
+
+      if (!payment) {
+        throw new NotFoundException('Recibo de cobro no encontrado.');
+      }
+
+      if (payment.estado === 'ANULADO') {
+        throw new BadRequestException('El recibo ya se encuentra anulado.');
+      }
+
+      for (const invoiceId of payment.aplicaciones
+        .map((a) => a.facturaId)
+        .sort())
+        await tx.$queryRaw`SELECT id FROM facturas_venta WHERE id = ${invoiceId} AND empresa_id = ${empresaId} FOR UPDATE`;
       // Revertir cada aplicación
       for (const app of payment.aplicaciones) {
         const inv = await tx.facturaVenta.findUnique({
@@ -566,12 +597,13 @@ export class CustomerPaymentsService {
       usuarioId,
       modulo: 'commercial',
       accion: 'DELETE',
-      resourceId: payment.id,
-      resourceName: `Recibo de Cobro ${payment.numeroRecibo || payment.id}`,
+      resourceId: result.id,
+      resourceName: `Recibo de Cobro ${result.numeroRecibo || result.id}`,
       resourceType: 'PagoCliente',
       metadata: {
-        motivo: 'Anulación de recibo de cobro y reversión de saldos en facturas',
-        montoRevertido: payment.monto.toString(),
+        motivo:
+          'Anulación de recibo de cobro y reversión de saldos en facturas',
+        montoRevertido: result.monto.toString(),
       },
     });
 

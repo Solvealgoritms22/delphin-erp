@@ -51,7 +51,11 @@ export class SucursalesController {
   @Patch(':id')
   @RequirePermissions('sucursales:write')
   @ApiOperation({ summary: 'Actualizar sucursal' })
-  update(@Param('id') id: string, @CurrentUser() user: any, @Body() data: UpdateBranchDto) {
+  update(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+    @Body() data: UpdateBranchDto,
+  ) {
     return this.sucursalesService.update(id, user.empresaId, data);
   }
 

@@ -1,0 +1,71 @@
+
+> desktop@1.0.13 lint
+> ng lint
+
+
+Linting "desktop"...
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\core\currency\currency-config.service.ts
+  17:18  warning  Use a `type` instead of an `interface`  @typescript-eslint/consistent-type-definitions
+  27:18  warning  Use a `type` instead of an `interface`  @typescript-eslint/consistent-type-definitions
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\core\icons\fluent-icons.ts
+  4:1  warning  Unused eslint-disable directive (no problems were reported from 'max-len')
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\core\icons\provider.ts
+  59:13  warning  'aliases' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\core\maps\google-maps-loader.service.ts
+    7:18  warning  Use a `type` instead of an `interface`                                    @typescript-eslint/consistent-type-definitions
+   12:18  warning  Use a `type` instead of an `interface`                                    @typescript-eslint/consistent-type-definitions
+  120:25  warning  'e' is defined but never used. Allowed unused args must match /^_/u       unused-imports/no-unused-vars
+  139:42  warning  'reject' is defined but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\features\billing\billing-app\card-dialog.component.ts
+  279:14  warning  'error' is defined but never used  unused-imports/no-unused-vars
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\features\sales\features\pos\dialogs\pos-checkout-dialog.component.ts
+  474:3  error  Type number trivially inferred from a number literal, remove type annotation  @typescript-eslint/no-inferrable-types
+  475:3  error  Type number trivially inferred from a number literal, remove type annotation  @typescript-eslint/no-inferrable-types
+
+Lint warnings found in the listed files.
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\features\sales\features\promotions\promotion-dialog.component.ts
+  369:11  warning  'today' is assigned a value but never used. Allowed unused vars must match /^_/u      unused-imports/no-unused-vars
+  370:11  warning  'nextMonth' is assigned a value but never used. Allowed unused vars must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\layout\admin\ui\account-dialog.component.ts
+  920:16  warning  'res' is defined but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\layout\admin\ui\user-profile-menu.component.ts
+  171:7  error  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\shared\components\address-map-picker\address-map-picker.component.ts
+   20:18  warning  Use a `type` instead of an `interface`                                   @typescript-eslint/consistent-type-definitions
+  399:17  warning  'event' is defined but never used. Allowed unused args must match /^_/u  unused-imports/no-unused-vars
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\shared\components\markdown-renderer\markdown-renderer.component.ts
+  5:3  warning  'inject' is defined but never used  unused-imports/no-unused-imports
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\app\shared\utils\image-optimizer.util.ts
+  70:1  warning  Expected only 0 lines after block description      jsdoc/tag-lines
+  72:1  warning  There must be no hyphen before @param description  jsdoc/require-hyphen-before-param-description
+  73:1  warning  There must be no hyphen before @param description  jsdoc/require-hyphen-before-param-description
+  74:1  warning  There must be no hyphen before @param description  jsdoc/require-hyphen-before-param-description
+  75:1  warning  There must be no hyphen before @param description  jsdoc/require-hyphen-before-param-description
+
+C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\src\environments\environment.prod.ts
+  2:1  warning  JSDoc description does not satisfy the regex pattern  jsdoc/match-description
+
+✖ 24 problems (3 errors, 21 warnings)
+  2 errors and 12 warnings potentially fixable with the `--fix` option.
+
+Lint errors found in the listed files.
+
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop
+npm error workspace desktop@1.0.13
+npm error location C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop
+npm error command failed
+npm error command C:\Windows\system32\cmd.exe /d /s /c ng lint

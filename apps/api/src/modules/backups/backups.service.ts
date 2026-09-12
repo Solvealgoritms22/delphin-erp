@@ -37,7 +37,7 @@ export class BackupsService {
     private readonly prisma: PrismaService,
     private readonly activity: ActivityLogService,
     @Optional() private readonly notifications?: NotificationsService,
-  ) { }
+  ) {}
 
   async list(userId: string, empresaId?: string) {
     if (!empresaId) throw new BadRequestException('Empresa activa requerida');
@@ -248,10 +248,15 @@ export class BackupsService {
   async googleAuthorize(userId: string) {
     const client = this.oauthClient();
     const state = randomBytes(32).toString('hex');
-    await this.prisma.authFlow.create({ data: {
-      stateHash: createHash('sha256').update(state).digest('hex'), challenge: 'DRIVE', nonce: userId,
-      status: 'DRIVE_PENDING', expiresAt: new Date(Date.now() + 10 * 60_000),
-    } });
+    await this.prisma.authFlow.create({
+      data: {
+        stateHash: createHash('sha256').update(state).digest('hex'),
+        challenge: 'DRIVE',
+        nonce: userId,
+        status: 'DRIVE_PENDING',
+        expiresAt: new Date(Date.now() + 10 * 60_000),
+      },
+    });
     return {
       url: client.generateAuthUrl({
         access_type: 'offline',
@@ -267,10 +272,21 @@ export class BackupsService {
   }
 
   async googleCallback(code: string, state: string) {
-    const flow = await this.prisma.authFlow.findUnique({ where: { stateHash: createHash('sha256').update(state || '').digest('hex') } });
-    if (!flow || flow.status !== 'DRIVE_PENDING' || flow.expiresAt < new Date()) throw new BadRequestException('Estado OAuth expirado');
-    const claimed = await this.prisma.authFlow.updateMany({ where: { id: flow.id, status: 'DRIVE_PENDING' }, data: { status: 'CONSUMED' } });
-    if (claimed.count !== 1) throw new BadRequestException('Estado OAuth utilizado');
+    const flow = await this.prisma.authFlow.findUnique({
+      where: {
+        stateHash: createHash('sha256')
+          .update(state || '')
+          .digest('hex'),
+      },
+    });
+    if (!flow || flow.status !== 'DRIVE_PENDING' || flow.expiresAt < new Date())
+      throw new BadRequestException('Estado OAuth expirado');
+    const claimed = await this.prisma.authFlow.updateMany({
+      where: { id: flow.id, status: 'DRIVE_PENDING' },
+      data: { status: 'CONSUMED' },
+    });
+    if (claimed.count !== 1)
+      throw new BadRequestException('Estado OAuth utilizado');
     const pending = { userId: flow.nonce };
     const client = this.oauthClient();
     const { tokens } = await client.getToken(code);
@@ -473,7 +489,11 @@ export class BackupsService {
         const provider = (config.backupDestino || 'LOCAL') as Provider;
 
         const claimed = await this.prisma.configuracionEmpresa.updateMany({
-          where: { empresaId: config.empresaId, ultimoBackupAuto: config.ultimoBackupAuto }, data: { ultimoBackupAuto: now },
+          where: {
+            empresaId: config.empresaId,
+            ultimoBackupAuto: config.ultimoBackupAuto,
+          },
+          data: { ultimoBackupAuto: now },
         });
         if (claimed.count !== 1) continue;
         try {
@@ -556,9 +576,15 @@ export class BackupsService {
   }
 
   private async exportTenant(empresaId: string) {
-    const data = await this.prisma.$transaction(tx => exportTenantArchive(tx, empresaId),
-      { isolationLevel: 'RepeatableRead', timeout: 120_000 });
-    return Buffer.from(JSON.stringify(data, (_key, value) => typeof value === 'bigint' ? value.toString() : value));
+    const data = await this.prisma.$transaction(
+      (tx) => exportTenantArchive(tx, empresaId),
+      { isolationLevel: 'RepeatableRead', timeout: 120_000 },
+    );
+    return Buffer.from(
+      JSON.stringify(data, (_key, value) =>
+        typeof value === 'bigint' ? value.toString() : value,
+      ),
+    );
   }
 
   private async encrypt(plain: Buffer) {

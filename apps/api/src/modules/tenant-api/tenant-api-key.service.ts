@@ -1,3 +1,4 @@
+import { hasActiveSubscription } from '../../common/subscription-policy';
 import {
   Injectable,
   BadRequestException,
@@ -10,8 +11,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CreateTenantApiAppDto,
-  UpdateTenantApiAppDto,
-} from './dto/tenant-api.dto';
+  } from './dto/tenant-api.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import * as crypto from 'crypto';
 
@@ -19,7 +19,10 @@ import * as crypto from 'crypto';
 export class TenantApiKeyService {
   private readonly logger = new Logger(TenantApiKeyService.name);
 
-  constructor(private readonly prisma: PrismaService, @Optional() private readonly notifications?: NotificationsService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly notifications?: NotificationsService,
+  ) {}
 
   private async withNotice<T>(
     empresaId: string,
@@ -79,7 +82,11 @@ export class TenantApiKeyService {
     ).toLowerCase();
 
     // Check if Enterprise plan
-    return planId === 'enterprise';
+    return (
+      empresa.estado === 'ACTIVA' &&
+      planId === 'enterprise' &&
+      hasActiveSubscription(empresa.suscripcion)
+    );
   }
 
   /**
@@ -101,7 +108,9 @@ export class TenantApiKeyService {
         nombre: app.nombre,
         descripcion: app.descripcion,
         apiKeyPrefix: app.apiKeyPrefix,
-        allowedOrigins: app.allowedOrigins ? JSON.parse(app.allowedOrigins) : [],
+        allowedOrigins: app.allowedOrigins
+          ? JSON.parse(app.allowedOrigins)
+          : [],
         estado: app.estado,
         lastUsedAt: app.lastUsedAt,
         requestCount: Number(app.requestCount),
@@ -144,17 +153,22 @@ export class TenantApiKeyService {
     const apiKeyHash = this.hashKey(rawApiKey);
     const apiKeyPrefix = `${rawApiKey.slice(0, 14)}...${rawApiKey.slice(-4)}`;
 
-    const app = await this.withNotice(empresaId,'Se creó una credencial para '+dto.nombre+'.',tx=>tx.tenantApiApp.create({
-      data: {
-        empresaId,
-        nombre: dto.nombre.trim(),
-        descripcion: dto.descripcion?.trim() || null,
-        apiKeyHash,
-        apiKeyPrefix,
-        allowedOrigins: origins.length > 0 ? JSON.stringify(origins) : null,
-        estado: 'ACTIVO',
-      },
-    }));
+    const app = await this.withNotice(
+      empresaId,
+      'Se creó una credencial para ' + dto.nombre + '.',
+      (tx) =>
+        tx.tenantApiApp.create({
+          data: {
+            empresaId,
+            nombre: dto.nombre.trim(),
+            descripcion: dto.descripcion?.trim() || null,
+            apiKeyHash,
+            apiKeyPrefix,
+            allowedOrigins: origins.length > 0 ? JSON.stringify(origins) : null,
+            estado: 'ACTIVO',
+          },
+        }),
+    );
 
     return {
       message: 'Aplicación API creada con éxito.',
@@ -194,17 +208,23 @@ export class TenantApiKeyService {
     const apiKeyHash = this.hashKey(rawApiKey);
     const apiKeyPrefix = `${rawApiKey.slice(0, 14)}...${rawApiKey.slice(-4)}`;
 
-    const updated = await this.withNotice(empresaId,'Se modificó la credencial de '+app.nombre+'.',tx=>tx.tenantApiApp.update({
-      where: { id: appId },
-      data: {
-        apiKeyHash,
-        apiKeyPrefix,
-        estado: 'ACTIVO',
-      },
-    }));
+    const updated = await this.withNotice(
+      empresaId,
+      'Se modificó la credencial de ' + app.nombre + '.',
+      (tx) =>
+        tx.tenantApiApp.update({
+          where: { id: appId },
+          data: {
+            apiKeyHash,
+            apiKeyPrefix,
+            estado: 'ACTIVO',
+          },
+        }),
+    );
 
     return {
-      message: 'Clave API rotada con éxito. La clave anterior ha sido invalidada.',
+      message:
+        'Clave API rotada con éxito. La clave anterior ha sido invalidada.',
       rawApiKey, // ONLY RETURNED ONCE
       app: {
         id: updated.id,
@@ -225,10 +245,15 @@ export class TenantApiKeyService {
 
     if (!app) throw new NotFoundException('Aplicación API no encontrada.');
 
-    const updated = await this.withNotice(empresaId, 'Se revocó la credencial de ' + app.nombre + '.', tx => tx.tenantApiApp.update({
-      where: { id: appId },
-      data: { estado: 'REVOCADO' },
-    }));
+    const updated = await this.withNotice(
+      empresaId,
+      'Se revocó la credencial de ' + app.nombre + '.',
+      (tx) =>
+        tx.tenantApiApp.update({
+          where: { id: appId },
+          data: { estado: 'REVOCADO' },
+        }),
+    );
     return updated;
   }
 
@@ -242,7 +267,11 @@ export class TenantApiKeyService {
 
     if (!app) throw new NotFoundException('Aplicación API no encontrada.');
 
-    await this.withNotice(empresaId,'Se eliminó la integración '+app.nombre+' y su credencial.',tx=>tx.tenantApiApp.delete({where:{id:appId}}));
+    await this.withNotice(
+      empresaId,
+      'Se eliminó la integración ' + app.nombre + ' y su credencial.',
+      (tx) => tx.tenantApiApp.delete({ where: { id: appId } }),
+    );
 
     return { message: 'Aplicación API eliminada correctamente.' };
   }

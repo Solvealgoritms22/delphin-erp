@@ -62,14 +62,22 @@ describe('SuppliersService', () => {
 
   it('never retries a failed update without the tenant boundary', async () => {
     prisma.proveedor.update.mockRejectedValueOnce(new Error('constraint'));
-    await expect(service.update('sp1', 'e1', { email: 'x@y.com' })).rejects.toThrow('constraint');
+    await expect(
+      service.update('sp1', 'e1', { email: 'x@y.com' }),
+    ).rejects.toThrow('constraint');
     expect(prisma.proveedor.update).toHaveBeenCalledTimes(1);
-    expect(prisma.proveedor.update).toHaveBeenCalledWith({ where: { id: 'sp1', empresaId: 'e1' }, data: { email: 'x@y.com' } });
+    expect(prisma.proveedor.update).toHaveBeenCalledWith({
+      where: { id: 'sp1', empresaId: 'e1' },
+      data: { email: 'x@y.com' },
+    });
   });
 
   it('elimina un proveedor', async () => {
     prisma.proveedor.delete.mockResolvedValue({});
-    prisma.proveedor.findFirst.mockResolvedValue({ id: 'sp1', empresaId: 'e1' });
+    prisma.proveedor.findFirst.mockResolvedValue({
+      id: 'sp1',
+      empresaId: 'e1',
+    });
     await service.remove('sp1', 'e1');
     expect(prisma.proveedor.delete).toHaveBeenCalledWith({
       where: { id: 'sp1', empresaId: 'e1' },

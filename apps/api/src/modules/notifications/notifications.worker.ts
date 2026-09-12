@@ -74,7 +74,7 @@ export class NotificationsWorker {
             },
             data: { estado: 'PROCESSED', procesadoEn: new Date() },
           });
-        } catch (error) {
+        } catch {
           this.logger.error(
             `Notification event ${event.id} failed; attempt ${event.intentos + 1}`,
           );

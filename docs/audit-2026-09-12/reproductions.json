@@ -1,0 +1,44 @@
+{
+  "mode": "in-memory; no network or database",
+  "results": [
+    {
+      "finding": "F01",
+      "confirmed": true,
+      "received": 1,
+      "applied": 100
+    },
+    {
+      "finding": "F02",
+      "confirmed": true,
+      "paymentsTotal": 160,
+      "recordedPaid": 80,
+      "recordedBalance": 20,
+      "limitation": "In-memory concurrent service calls; PostgreSQL interleaving still requires integration test"
+    },
+    {
+      "finding": "F03",
+      "confirmed": true,
+      "state": "EMITIDA",
+      "customer": null,
+      "fiscalNumber": null,
+      "inventoryOrOutboxCalls": 0
+    },
+    {
+      "finding": "F04",
+      "confirmed": true,
+      "aggregate": 180,
+      "includesDraft": true,
+      "currencies": [
+        "DOP",
+        "USD"
+      ],
+      "note": "Third emitted positive row models a credit note; query does not select document type or original invoice"
+    },
+    {
+      "finding": "F05",
+      "confirmed": true,
+      "subscription": "CANCELED",
+      "apiAccess": true
+    }
+  ]
+}

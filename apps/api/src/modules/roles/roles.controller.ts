@@ -40,7 +40,11 @@ export class RolesController {
   @RequirePermissions('roles:write')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar rol' })
-  update(@CurrentUser() user: any, @Param('id') id: string, @Body() data: UpdateRoleDto) {
+  update(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body() data: UpdateRoleDto,
+  ) {
     return this.rolesService.update(user.empresaId, id, data);
   }
 

@@ -1,3 +1,4 @@
+import { nextInvoiceNumber } from '../../common/invoice-number';
 import {
   Injectable,
   BadRequestException,
@@ -137,7 +138,6 @@ export class InvoicesService {
     let ncf: string | null = null;
     let fechaVencimientoNcf: Date | null = null;
 
-
     // Calcular Subtotal, ITBIS, Descuentos y Total
     let subtotalBrutoAcc = new Prisma.Decimal(0);
     let descuentoLineasAcc = new Prisma.Decimal(0);
@@ -164,14 +164,24 @@ export class InvoicesService {
 
       const cantidad = new Prisma.Decimal(item.cantidad);
       const productCurrency = ((producto as any).moneda || 'DOP').toUpperCase();
-      const tasas = ((configuration as any).tasasCambio as Record<string, number>) || {};
+      const tasas =
+        ((configuration as any).tasasCambio as Record<string, number>) || {};
 
-      let effectivePrice = item.precioUnitario !== undefined ? Number(item.precioUnitario) : Number(producto.precioVenta);
-      let effectiveListPrice = item.precioLista !== undefined ? Number(item.precioLista) : Number(producto.precioVenta);
+      let effectivePrice =
+        item.precioUnitario !== undefined
+          ? Number(item.precioUnitario)
+          : Number(producto.precioVenta);
+      let effectiveListPrice =
+        item.precioLista !== undefined
+          ? Number(item.precioLista)
+          : Number(producto.precioVenta);
 
       // Conversión automática si el producto no trajo precio forzado y su moneda difiere de la factura
       if (item.precioUnitario === undefined && productCurrency !== currency) {
-        const usdRate = exchangeRate.toNumber() > 1 ? exchangeRate.toNumber() : (tasas['USD'] || 60);
+        const usdRate =
+          exchangeRate.toNumber() > 1
+            ? exchangeRate.toNumber()
+            : tasas['USD'] || 60;
         if (productCurrency === 'USD' && currency === 'DOP') {
           effectivePrice = effectivePrice * usdRate;
           effectiveListPrice = effectiveListPrice * usdRate;
@@ -185,10 +195,15 @@ export class InvoicesService {
       const precio = new Prisma.Decimal(effectivePrice);
 
       const defaultTax =
-        billing.impuestos.find((tax) => tax.activo && tax.indicadorFacturacion === '1' && Number(tax.tasa) > 0)
-        || billing.impuestos.find((tax) => tax.activo && Number(tax.tasa) > 0)
-        || billing.impuestos.find((tax) => tax.codigo === 'ITBIS18')
-        || billing.impuestos[0];
+        billing.impuestos.find(
+          (tax) =>
+            tax.activo &&
+            tax.indicadorFacturacion === '1' &&
+            Number(tax.tasa) > 0,
+        ) ||
+        billing.impuestos.find((tax) => tax.activo && Number(tax.tasa) > 0) ||
+        billing.impuestos.find((tax) => tax.codigo === 'ITBIS18') ||
+        billing.impuestos[0];
 
       const configuredTax = item.impuestoId
         ? billing.impuestos.find((tax) => tax.id === item.impuestoId)
@@ -205,34 +220,53 @@ export class InvoicesService {
           'La tasa de impuesto debe estar entre 0 y 100.',
         );
 
-      const grossSubtotal = cantidad.mul(precio).toDecimalPlaces(configuration.precisionMoneda, Prisma.Decimal.ROUND_HALF_UP);
+      const grossSubtotal = cantidad
+        .mul(precio)
+        .toDecimalPlaces(
+          configuration.precisionMoneda,
+          Prisma.Decimal.ROUND_HALF_UP,
+        );
 
       // Calcular descuento de la línea
       let lineDiscount = new Prisma.Decimal(0);
-      let appliedPromoId = item.promocionId || null;
+      const appliedPromoId = item.promocionId || null;
       let appliedPromoNombre = item.promocionNombre || null;
 
       if (item.descuento !== undefined && item.descuento !== null) {
         lineDiscount = new Prisma.Decimal(item.descuento);
       } else if (producto.enOferta) {
         let offerActive = true;
-        if (producto.ofertaDesde && producto.ofertaDesde > now) offerActive = false;
-        if (producto.ofertaHasta && producto.ofertaHasta < now) offerActive = false;
+        if (producto.ofertaDesde && producto.ofertaDesde > now)
+          offerActive = false;
+        if (producto.ofertaHasta && producto.ofertaHasta < now)
+          offerActive = false;
 
         if (offerActive) {
-          if (producto.precioOferta !== null && new Prisma.Decimal(producto.precioOferta).lt(precio)) {
-            const unitDisc = precio.sub(new Prisma.Decimal(producto.precioOferta));
+          if (
+            producto.precioOferta !== null &&
+            new Prisma.Decimal(producto.precioOferta).lt(precio)
+          ) {
+            const unitDisc = precio.sub(
+              new Prisma.Decimal(producto.precioOferta),
+            );
             lineDiscount = unitDisc.mul(cantidad);
             appliedPromoNombre = 'Oferta de Producto';
-          } else if (producto.descuentoPorcentaje !== null && new Prisma.Decimal(producto.descuentoPorcentaje).gt(0)) {
-            lineDiscount = grossSubtotal.mul(new Prisma.Decimal(producto.descuentoPorcentaje)).div(100);
+          } else if (
+            producto.descuentoPorcentaje !== null &&
+            new Prisma.Decimal(producto.descuentoPorcentaje).gt(0)
+          ) {
+            lineDiscount = grossSubtotal
+              .mul(new Prisma.Decimal(producto.descuentoPorcentaje))
+              .div(100);
             appliedPromoNombre = `Oferta (${producto.descuentoPorcentaje}% OFF)`;
           }
         }
       }
 
       // Validar contra descuento máximo permitido del producto
-      const maxDiscountPct = new Prisma.Decimal(producto.descuentoMaximo ?? 100);
+      const maxDiscountPct = new Prisma.Decimal(
+        producto.descuentoMaximo ?? 100,
+      );
       const maxAllowedDiscount = grossSubtotal.mul(maxDiscountPct).div(100);
       if (lineDiscount.gt(maxAllowedDiscount)) {
         lineDiscount = maxAllowedDiscount;
@@ -241,7 +275,10 @@ export class InvoicesService {
         lineDiscount = grossSubtotal;
       }
 
-      lineDiscount = lineDiscount.toDecimalPlaces(configuration.precisionMoneda, Prisma.Decimal.ROUND_HALF_UP);
+      lineDiscount = lineDiscount.toDecimalPlaces(
+        configuration.precisionMoneda,
+        Prisma.Decimal.ROUND_HALF_UP,
+      );
       const itemSubtotalNeto = grossSubtotal.sub(lineDiscount);
       const pctDiscount = grossSubtotal.gt(0)
         ? lineDiscount.mul(100).div(grossSubtotal)
@@ -284,7 +321,8 @@ export class InvoicesService {
         total: itemTotal,
         impuestoId: validTaxId || undefined,
         indicadorFacturacion:
-          configuredTax?.indicadorFacturacion || (tasaItbis.eq(0) ? '4' : tasaItbis.eq(16) ? '2' : '1'),
+          configuredTax?.indicadorFacturacion ||
+          (tasaItbis.eq(0) ? '4' : tasaItbis.eq(16) ? '2' : '1'),
         afectaInventario: producto.tipo !== 'SERVICIO',
       });
     }
@@ -296,8 +334,15 @@ export class InvoicesService {
       throw new BadRequestException(
         'El descuento total no puede superar el subtotal.',
       );
-    allocateGlobalDiscount(calculatedItems, globalDiscount, configuration.precisionMoneda);
-    itbisAcc = calculatedItems.reduce((sum, item) => sum.add(item.itbis), new Prisma.Decimal(0));
+    allocateGlobalDiscount(
+      calculatedItems,
+      globalDiscount,
+      configuration.precisionMoneda,
+    );
+    itbisAcc = calculatedItems.reduce(
+      (sum, item) => sum.add(item.itbis),
+      new Prisma.Decimal(0),
+    );
     const totalAfterDiscount = subtotalBrutoAcc
       .sub(totalDiscount)
       .add(itbisAcc)
@@ -313,7 +358,12 @@ export class InvoicesService {
     // Transacción de creación de factura y descuento de inventario
     const invoice = await this.prisma.$transaction(async (tx) => {
       if (!isDraft) {
-        const reserved = await this.sequencesService.getNextNCF(empresaId, tipoNcf, empresa.fiscalbridgeEnv || 'TEST', tx);
+        const reserved = await this.sequencesService.getNextNCF(
+          empresaId,
+          tipoNcf,
+          empresa.fiscalbridgeEnv || 'TEST',
+          tx,
+        );
         ncf = reserved.ncf;
         fechaVencimientoNcf = reserved.fechaVencimiento;
       }
@@ -374,9 +424,15 @@ export class InvoicesService {
       // Crear Factura
       const tipoPago = dto.tipoPago || 'CONTADO';
       const isContado = tipoPago === 'CONTADO';
-      const estadoFactura = isDraft ? 'BORRADOR' : (isContado ? 'PAGADA' : 'EMITIDA');
-      const montoPagado = (!isDraft && isContado) ? totalAfterDiscount : new Prisma.Decimal(0);
-      const balancePendiente = (!isDraft && isContado) ? new Prisma.Decimal(0) : totalAfterDiscount;
+      const estadoFactura = isDraft
+        ? 'BORRADOR'
+        : isContado
+          ? 'PAGADA'
+          : 'EMITIDA';
+      const montoPagado =
+        !isDraft && isContado ? totalAfterDiscount : new Prisma.Decimal(0);
+      const balancePendiente =
+        !isDraft && isContado ? new Prisma.Decimal(0) : totalAfterDiscount;
 
       const created = await tx.facturaVenta.create({
         data: {
@@ -434,7 +490,17 @@ export class InvoicesService {
           },
         },
         include: {
-          empresa: { select: { id: true, razonSocial: true, rnc: true, direccion: true, telefono: true, email: true, logo: true } },
+          empresa: {
+            select: {
+              id: true,
+              razonSocial: true,
+              rnc: true,
+              direccion: true,
+              telefono: true,
+              email: true,
+              logo: true,
+            },
+          },
           cliente: true,
           almacen: true,
           sucursal: true,
@@ -543,7 +609,9 @@ export class InvoicesService {
       modulo: 'invoices',
       accion: isDraft ? 'DRAFT' : 'CREATE',
       resourceId: invoice.id,
-      resourceName: invoice.ncf ? `${invoice.numeroFactura} (${invoice.ncf})` : invoice.numeroFactura,
+      resourceName: invoice.ncf
+        ? `${invoice.numeroFactura} (${invoice.ncf})`
+        : invoice.numeroFactura,
       resourceType: isDraft ? 'Borrador de Factura' : 'Factura de Venta',
       metadata: {
         ncf: invoice.ncf,
@@ -555,21 +623,27 @@ export class InvoicesService {
     });
 
     if (this.notifications && !isDraft) {
-      await this.notifications.create({
-        empresaId,
-        tipo: ['E34','B04'].includes(invoice.tipoNcf || '') ? 'CREDIT_NOTE_EMITTED' : 'INVOICE_EMITTED',
-        titulo: 'Nueva Factura Emitida',
-        mensaje: `Factura ${invoice.numeroFactura} (${invoice.ncf || 'Emitida'}) emitida exitosamente.`,
-        severidad: 'SUCCESS',
-        icono: 'file-text',
-        payload: {
-          facturaId: invoice.id,
-          numeroFactura: invoice.numeroFactura,
-          ncf: invoice.ncf,
-          total: Number(invoice.total),
-        },
-        canales: ['IN_APP'],
-      });
+      await this.notifications
+        .create({
+          empresaId,
+          tipo: ['E34', 'B04'].includes(invoice.tipoNcf || '')
+            ? 'CREDIT_NOTE_EMITTED'
+            : 'INVOICE_EMITTED',
+          titulo: 'Nueva Factura Emitida',
+          mensaje: `Factura ${invoice.numeroFactura} (${invoice.ncf || 'Emitida'}) emitida exitosamente.`,
+          severidad: 'SUCCESS',
+          icono: 'file-text',
+          payload: {
+            facturaId: invoice.id,
+            numeroFactura: invoice.numeroFactura,
+            ncf: invoice.ncf,
+            total: Number(invoice.total),
+          },
+          canales: ['IN_APP'],
+        })
+        .catch((error) =>
+          this.logger.error('NOTIFICATION_DELIVERY_FAILED', error),
+        );
     }
 
     return invoice;
@@ -607,10 +681,15 @@ export class InvoicesService {
       if (filterDto.hasta) where.fecha.lte = new Date(filterDto.hasta);
     }
 
-    if (filterDto?.minTotal !== undefined || filterDto?.maxTotal !== undefined) {
+    if (
+      filterDto?.minTotal !== undefined ||
+      filterDto?.maxTotal !== undefined
+    ) {
       where.total = {};
-      if (filterDto.minTotal !== undefined) where.total.gte = filterDto.minTotal;
-      if (filterDto.maxTotal !== undefined) where.total.lte = filterDto.maxTotal;
+      if (filterDto.minTotal !== undefined)
+        where.total.gte = filterDto.minTotal;
+      if (filterDto.maxTotal !== undefined)
+        where.total.lte = filterDto.maxTotal;
     }
 
     // Pagination
@@ -651,7 +730,6 @@ export class InvoicesService {
       totalPages: Math.ceil(total / limit),
     };
   }
-
 
   async findOne(empresaId: string, id: string) {
     const invoice = await this.prisma.facturaVenta.findFirst({
@@ -704,7 +782,8 @@ export class InvoicesService {
     const updated = await this.findOne(empresaId, id);
     if (updated.fiscalbridgeStatus === 'FAILED') {
       throw new BadRequestException(
-        updated.fiscalbridgeError || 'Error al transmitir la factura a FiscalBridge.',
+        updated.fiscalbridgeError ||
+          'Error al transmitir la factura a FiscalBridge.',
       );
     }
 
@@ -799,10 +878,23 @@ export class InvoicesService {
         where: { id, empresaId, estado: 'BORRADOR' },
         data: { estado: 'EMITIENDO' },
       });
-      if (claim.count !== 1) throw new BadRequestException('El borrador ya fue emitido o modificado.');
-      const { ncf, fechaVencimiento } = await this.sequencesService.getNextNCF(empresaId, tipoNcf, ambiente, tx);
-      if (!invoice.almacenId && invoice.detalles.some(det => det.producto?.tipo !== 'SERVICIO')) {
-        throw new BadRequestException('Selecciona un almacén para despachar los productos.');
+      if (claim.count !== 1)
+        throw new BadRequestException(
+          'El borrador ya fue emitido o modificado.',
+        );
+      const { ncf, fechaVencimiento } = await this.sequencesService.getNextNCF(
+        empresaId,
+        tipoNcf,
+        ambiente,
+        tx,
+      );
+      if (
+        !invoice.almacenId &&
+        invoice.detalles.some((det) => det.producto?.tipo !== 'SERVICIO')
+      ) {
+        throw new BadRequestException(
+          'Selecciona un almacén para despachar los productos.',
+        );
       }
       // Descontar inventario
       for (const det of invoice.detalles) {
@@ -864,7 +956,9 @@ export class InvoicesService {
           tipoNcf,
           estado: isContado ? 'PAGADA' : 'EMITIDA',
           montoPagado: isContado ? invoice.total : invoice.montoPagado,
-          balancePendiente: isContado ? new Prisma.Decimal(0) : invoice.balancePendiente,
+          balancePendiente: isContado
+            ? new Prisma.Decimal(0)
+            : invoice.balancePendiente,
           fiscalbridgeStatus: needsFiscal ? 'PENDING' : 'NOT_TRANSMITTED',
         },
         include: {
@@ -961,7 +1055,11 @@ export class InvoicesService {
       throw new BadRequestException('Esta factura ya ha sido anulada.');
     }
 
-    if (invoice.estado !== 'BORRADOR' || invoice.ncf || invoice.fiscalbridgeDocId) {
+    if (
+      invoice.estado !== 'BORRADOR' ||
+      invoice.ncf ||
+      invoice.fiscalbridgeDocId
+    ) {
       throw new BadRequestException(
         'Solo se pueden cancelar directamente los borradores sin comprobante. Para revertir una factura emitida utiliza el flujo de nota de crédito.',
       );
@@ -969,7 +1067,13 @@ export class InvoicesService {
 
     const cancelled = await this.prisma.$transaction(async (tx) => {
       const claimed = await tx.facturaVenta.updateMany({
-        where: { id, empresaId, estado: 'BORRADOR', ncf: null, fiscalbridgeDocId: null },
+        where: {
+          id,
+          empresaId,
+          estado: 'BORRADOR',
+          ncf: null,
+          fiscalbridgeDocId: null,
+        },
         data: { estado: 'ANULADA', balancePendiente: new Prisma.Decimal(0) },
       });
       if (claimed.count !== 1)
@@ -1024,7 +1128,9 @@ export class InvoicesService {
       modulo: 'invoices',
       accion: 'VOID',
       resourceId: id,
-      resourceName: invoice.ncf ? `${invoice.numeroFactura} (${invoice.ncf})` : invoice.numeroFactura,
+      resourceName: invoice.ncf
+        ? `${invoice.numeroFactura} (${invoice.ncf})`
+        : invoice.numeroFactura,
       resourceType: 'Factura Anulada',
       metadata: {
         ncf: invoice.ncf,
@@ -1033,19 +1139,23 @@ export class InvoicesService {
     });
 
     if (this.notifications) {
-      await this.notifications.create({
-        empresaId,
-        tipo: 'INVOICE_VOIDED',
-        titulo: 'Factura Anulada',
-        mensaje: `La factura ${invoice.numeroFactura} (${invoice.ncf || ''}) fue anulada y su stock restaurado.`,
-        severidad: 'WARNING',
-        icono: 'x-circle',
-        payload: {
-          facturaId: id,
-          numeroFactura: invoice.numeroFactura,
-        },
-        canales: ['IN_APP'],
-      });
+      await this.notifications
+        .create({
+          empresaId,
+          tipo: 'INVOICE_VOIDED',
+          titulo: 'Factura Anulada',
+          mensaje: `La factura ${invoice.numeroFactura} (${invoice.ncf || ''}) fue anulada y su stock restaurado.`,
+          severidad: 'WARNING',
+          icono: 'x-circle',
+          payload: {
+            facturaId: id,
+            numeroFactura: invoice.numeroFactura,
+          },
+          canales: ['IN_APP'],
+        })
+        .catch((error) =>
+          this.logger.error('NOTIFICATION_DELIVERY_FAILED', error),
+        );
     }
 
     return cancelled;
@@ -1056,14 +1166,6 @@ export class InvoicesService {
     empresaId: string,
     prefix: 'FAC' | 'NC' = 'FAC',
   ): Promise<string> {
-    // The counter is advanced in the same transaction as the invoice and stock.
-    const key = empresaId + ':' + prefix;
-    const rows = await tx.$queryRaw<Array<{ value: bigint }>>`
-      INSERT INTO document_counters (key, value)
-      VALUES (${key}, COALESCE((SELECT MAX(substring(numero_factura from '[0-9]+$')::bigint)
-        FROM facturas_venta WHERE empresa_id = ${empresaId} AND numero_factura ~ ${'^' + prefix + '-[0-9]+$'}), 0) + 1)
-      ON CONFLICT (key) DO UPDATE SET value = document_counters.value + 1 RETURNING value
-    `;
-    return prefix + '-' + String(rows[0].value).padStart(6, '0');
+    return nextInvoiceNumber(tx, empresaId, prefix);
   }
 }

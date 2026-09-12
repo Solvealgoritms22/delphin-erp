@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "errors": [],
+  "checks": [
+    "manual check",
+    "download progress",
+    "dismiss preserves state",
+    "ready notification",
+    "restart requires confirmation",
+    "cancel preserves ready",
+    "confirmed restart IPC stub",
+    "safe error message",
+    "light/dark",
+    "390px no horizontal overflow",
+    "English translations"
+  ],
+  "limitation": "Real Angular components with synthetic Electron bridge; no installer executed"
+}

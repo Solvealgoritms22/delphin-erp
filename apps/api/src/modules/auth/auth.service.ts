@@ -58,9 +58,28 @@ export class AuthService {
     const passwordMatches = await bcrypt.compare(pass, user.passwordHash);
     if (!passwordMatches) {
       if (this.notifications) {
-        await this.prisma.activityLog.create({data:{usuarioId:user.id,modulo:'SECURITY',accion:'LOGIN_FAILED'}});
-        const failures = await this.prisma.activityLog.count({where:{usuarioId:user.id,modulo:'SECURITY',accion:'LOGIN_FAILED',creadoEn:{gte:new Date(Date.now()-15*60000)}}});
-        if (failures >= 5) await this.accountNotice(user.id,'SECURITY_LOGIN_FAILED','Detectamos varios intentos fallidos de acceso. Revisa la seguridad de tu cuenta.',new Date().toISOString().slice(0,13));
+        await this.prisma.activityLog.create({
+          data: {
+            usuarioId: user.id,
+            modulo: 'SECURITY',
+            accion: 'LOGIN_FAILED',
+          },
+        });
+        const failures = await this.prisma.activityLog.count({
+          where: {
+            usuarioId: user.id,
+            modulo: 'SECURITY',
+            accion: 'LOGIN_FAILED',
+            creadoEn: { gte: new Date(Date.now() - 15 * 60000) },
+          },
+        });
+        if (failures >= 5)
+          await this.accountNotice(
+            user.id,
+            'SECURITY_LOGIN_FAILED',
+            'Detectamos varios intentos fallidos de acceso. Revisa la seguridad de tu cuenta.',
+            new Date().toISOString().slice(0, 13),
+          );
       }
       return null;
     }
@@ -98,10 +117,15 @@ export class AuthService {
   }
 
   async loginAfterMfa(id: string, request?: any) {
-    const user = await this.prisma.usuario.findUnique({ where: { id }, include: {
-      membresias: { include: { role: true, empresa: true } }, empresasPropiedad: true,
-    } });
-    if (!user?.isVerified) throw new UnauthorizedException('Cuenta no disponible');
+    const user = await this.prisma.usuario.findUnique({
+      where: { id },
+      include: {
+        membresias: { include: { role: true, empresa: true } },
+        empresasPropiedad: true,
+      },
+    });
+    if (!user?.isVerified)
+      throw new UnauthorizedException('Cuenta no disponible');
     return this.login(user, request, true);
   }
 
@@ -110,15 +134,25 @@ export class AuthService {
       const challenge = await this.mfa.challenge(user);
       if (challenge) return challenge;
     }
-    user = { ...user, empresasPropiedad: user.empresasPropiedad?.filter((e: any) => e.estado === 'ACTIVA'),
-      membresias: user.membresias?.filter((m: any) => m.estado === 'ACTIVO' && m.empresa?.estado === 'ACTIVA') };
-    if (!user.empresasPropiedad?.length && !user.membresias?.length) throw new UnauthorizedException('No hay empresas activas');
+    user = {
+      ...user,
+      empresasPropiedad: user.empresasPropiedad?.filter(
+        (e: any) => e.estado === 'ACTIVA',
+      ),
+      membresias: user.membresias?.filter(
+        (m: any) => m.estado === 'ACTIVO' && m.empresa?.estado === 'ACTIVA',
+      ),
+    };
+    if (!user.empresasPropiedad?.length && !user.membresias?.length)
+      throw new UnauthorizedException('No hay empresas activas');
     const activeMembership = user.membresias?.find(
       (m: any) => m.estado === 'ACTIVO',
     );
     const empresaId =
       user.empresasPropiedad?.[0]?.id || activeMembership?.empresaId || null;
-    const isOwner = Boolean(user.empresasPropiedad?.some((e: any) => e.id === empresaId));
+    const isOwner = Boolean(
+      user.empresasPropiedad?.some((e: any) => e.id === empresaId),
+    );
     const roleId = activeMembership?.roleId || null;
 
     let permissions: string[] = [];
@@ -375,7 +409,12 @@ export class AuthService {
       data: { otpCode: this.hashOtp(otp), otpExpiresAt: expiresAt },
     });
 
-    const emailContent = renderEmail('verification', { name: user.nombre || user.email }, undefined, { code: otp });
+    const emailContent = renderEmail(
+      'verification',
+      { name: user.nombre || user.email },
+      undefined,
+      { code: otp },
+    );
     await this.mailerService.sendMail({ to: user.email, ...emailContent });
 
     return {
@@ -399,7 +438,8 @@ export class AuthService {
     if (
       !user ||
       user.otpCode !== this.hashOtp(normalizedOtp) ||
-      (!user.otpExpiresAt || user.otpExpiresAt < new Date())
+      !user.otpExpiresAt ||
+      user.otpExpiresAt < new Date()
     ) {
       throw new BadRequestException('Código OTP inválido o expirado');
     }
@@ -412,7 +452,6 @@ export class AuthService {
         otpExpiresAt: null,
       },
     });
-
 
     return { success: true };
   }
@@ -443,13 +482,22 @@ export class AuthService {
       data: { otpCode: this.hashOtp(otp), otpExpiresAt: expiresAt },
     });
 
-    const emailContent = renderEmail('verification', { name: user.nombre || user.email }, undefined, { code: otp });
+    const emailContent = renderEmail(
+      'verification',
+      { name: user.nombre || user.email },
+      undefined,
+      { code: otp },
+    );
     await this.mailerService.sendMail({ to: user.email, ...emailContent });
 
     return { success: true };
   }
 
-  async switchTenant(userId: string, targetEmpresaId: string, authTime?: number) {
+  async switchTenant(
+    userId: string,
+    targetEmpresaId: string,
+    authTime?: number,
+  ) {
     const user = await this.prisma.usuario.findUnique({
       where: { id: userId },
       include: {
@@ -468,7 +516,9 @@ export class AuthService {
       (m) => m.empresaId === targetEmpresaId && m.estado === 'ACTIVO',
     );
     if (hasOwnedCompanies && !isOwner) {
-      throw new UnauthorizedException('No tienes acceso a empresas de otro tenant');
+      throw new UnauthorizedException(
+        'No tienes acceso a empresas de otro tenant',
+      );
     }
     if (!isOwner && !membership)
       throw new BadRequestException('User does not belong to this tenant');
@@ -485,7 +535,8 @@ export class AuthService {
       where: { id: targetEmpresaId },
       include: { suscripcion: { include: { plan: true } } },
     });
-    if (!empresa || empresa.estado !== 'ACTIVA') throw new UnauthorizedException('Empresa inactiva');
+    if (!empresa || empresa.estado !== 'ACTIVA')
+      throw new UnauthorizedException('Empresa inactiva');
     const plan = empresa?.suscripcion?.plan?.nombre || 'Free';
 
     const payload = {
@@ -549,11 +600,23 @@ export class AuthService {
 
     const isOwner = user.empresasPropiedad && user.empresasPropiedad.length > 0;
     const tenantEmpresa = user.membresias?.[0]?.empresa;
-    const emailContent = !isOwner && tenantEmpresa && this.emailTemplates
-      ? await this.emailTemplates.render(tenantEmpresa.id, 'collaborator_code', {
-          name: user.nombre || user.email, company: tenantEmpresa.razonSocial,
-        }, { code: otp })
-      : renderEmail('recovery', { name: user.nombre || user.email }, undefined, { code: otp });
+    const emailContent =
+      !isOwner && tenantEmpresa && this.emailTemplates
+        ? await this.emailTemplates.render(
+            tenantEmpresa.id,
+            'collaborator_code',
+            {
+              name: user.nombre || user.email,
+              company: tenantEmpresa.razonSocial,
+            },
+            { code: otp },
+          )
+        : renderEmail(
+            'recovery',
+            { name: user.nombre || user.email },
+            undefined,
+            { code: otp },
+          );
 
     if (isOwner) {
       // Propietario → SMTP del sistema
@@ -584,7 +647,8 @@ export class AuthService {
     if (
       !user ||
       user.otpCode !== this.hashOtp(otp) ||
-      (!user.otpExpiresAt || user.otpExpiresAt < new Date())
+      !user.otpExpiresAt ||
+      user.otpExpiresAt < new Date()
     ) {
       throw new BadRequestException('Código OTP inválido o expirado');
     }
@@ -597,29 +661,67 @@ export class AuthService {
     if (
       !user ||
       user.otpCode !== this.hashOtp(otp) ||
-      (!user.otpExpiresAt || user.otpExpiresAt < new Date())
+      !user.otpExpiresAt ||
+      user.otpExpiresAt < new Date()
     ) {
       throw new BadRequestException('Código OTP inválido o expirado');
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
-    await this.prisma.$transaction(async tx => {
+    await this.prisma.$transaction(async (tx) => {
       const consumed = await tx.usuario.updateMany({
-        where: { id: user.id, otpCode: user.otpCode, otpExpiresAt: { gt: new Date() } },
+        where: {
+          id: user.id,
+          otpCode: user.otpCode,
+          otpExpiresAt: { gt: new Date() },
+        },
         data: { passwordHash, otpCode: null, otpExpiresAt: null },
       });
-      if (consumed.count !== 1) throw new BadRequestException('Código OTP ya utilizado');
-      await tx.userSession.updateMany({ where: { usuarioId: user.id, revokedAt: null }, data: { revokedAt: new Date() } });
+      if (consumed.count !== 1)
+        throw new BadRequestException('Código OTP ya utilizado');
+      await tx.userSession.updateMany({
+        where: { usuarioId: user.id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
     });
-    await this.accountNotice(user.id,'SECURITY_PASSWORD_CHANGED','La contraseña de tu cuenta fue restablecida. Si no reconoces este cambio, contacta al administrador.');
+    await this.accountNotice(
+      user.id,
+      'SECURITY_PASSWORD_CHANGED',
+      'La contraseña de tu cuenta fue restablecida. Si no reconoces este cambio, contacta al administrador.',
+    );
 
     return { success: true };
   }
 
-  private async accountNotice(usuarioId:string,tipo:string,mensaje:string,deduplicationKey?:string) {
+  private async accountNotice(
+    usuarioId: string,
+    tipo: string,
+    mensaje: string,
+    deduplicationKey?: string,
+  ) {
     if (!this.notifications) return;
-    const companies = await this.prisma.empresa.findMany({where:{estado:'ACTIVA',OR:[{propietarioId:usuarioId},{membresias:{some:{usuarioId,estado:'ACTIVO'}}}]},select:{id:true}});
-    for (const company of companies) await this.notifications.create({empresaId:company.id,usuarioId,tipo,titulo:tipo==='SECURITY_LOGIN_FAILED'?'Intentos fallidos de acceso':'Contraseña modificada',mensaje,deduplicationKey});
+    const companies = await this.prisma.empresa.findMany({
+      where: {
+        estado: 'ACTIVA',
+        OR: [
+          { propietarioId: usuarioId },
+          { membresias: { some: { usuarioId, estado: 'ACTIVO' } } },
+        ],
+      },
+      select: { id: true },
+    });
+    for (const company of companies)
+      await this.notifications.create({
+        empresaId: company.id,
+        usuarioId,
+        tipo,
+        titulo:
+          tipo === 'SECURITY_LOGIN_FAILED'
+            ? 'Intentos fallidos de acceso'
+            : 'Contraseña modificada',
+        mensaje,
+        deduplicationKey,
+      });
   }
 
   async updateProfile(userId: string, data: any) {
@@ -627,8 +729,10 @@ export class AuthService {
     if (data.name !== undefined) updateData.nombre = data.name;
     if (data.avatar !== undefined) updateData.avatar = data.avatar;
     if (data.oficio !== undefined) updateData.oficio = data.oficio || null;
-    if (data.telefono !== undefined) updateData.telefono = data.telefono || null;
-    if (data.documentoIdentidad !== undefined) updateData.documentoIdentidad = data.documentoIdentidad || null;
+    if (data.telefono !== undefined)
+      updateData.telefono = data.telefono || null;
+    if (data.documentoIdentidad !== undefined)
+      updateData.documentoIdentidad = data.documentoIdentidad || null;
 
     // SMTP settings
     if (data.smtpEnabled !== undefined)
@@ -735,7 +839,11 @@ export class AuthService {
       data: { revokedAt: new Date() },
     });
 
-    await this.accountNotice(userId,'SECURITY_PASSWORD_CHANGED','La contraseña de tu cuenta fue modificada. Si no reconoces este cambio, contacta al administrador.');
+    await this.accountNotice(
+      userId,
+      'SECURITY_PASSWORD_CHANGED',
+      'La contraseña de tu cuenta fue modificada. Si no reconoces este cambio, contacta al administrador.',
+    );
     return { success: true };
   }
 
@@ -746,28 +854,52 @@ export class AuthService {
     const mfaStatus = await this.mfa.status(userId);
     if (mfaStatus.enabled) {
       if (!credentials.mfaCode || !credentials.mfaCode.trim()) {
-        throw new BadRequestException('Se requiere el código de verificación 2FA para autorizar esta acción');
+        throw new BadRequestException(
+          'Se requiere el código de verificación 2FA para autorizar esta acción',
+        );
       }
-      const valid = await this.mfa.verifyUserCode(userId, credentials.mfaCode.trim());
+      const valid = await this.mfa.verifyUserCode(
+        userId,
+        credentials.mfaCode.trim(),
+      );
       if (!valid) {
-        throw new UnauthorizedException('El código 2FA ingresado es inválido o ha expirado');
+        throw new UnauthorizedException(
+          'El código 2FA ingresado es inválido o ha expirado',
+        );
       }
     } else {
       if (!credentials.email || !credentials.password) {
-        throw new BadRequestException('Debes proporcionar tu correo electrónico y contraseña para confirmar esta acción');
+        throw new BadRequestException(
+          'Debes proporcionar tu correo electrónico y contraseña para confirmar esta acción',
+        );
       }
-      const user = await this.prisma.usuario.findUnique({ where: { id: userId } });
-      if (!user || user.email.toLowerCase() !== credentials.email.trim().toLowerCase()) {
-        throw new UnauthorizedException('El correo electrónico no coincide con tu cuenta');
+      const user = await this.prisma.usuario.findUnique({
+        where: { id: userId },
+      });
+      if (
+        !user ||
+        user.email.toLowerCase() !== credentials.email.trim().toLowerCase()
+      ) {
+        throw new UnauthorizedException(
+          'El correo electrónico no coincide con tu cuenta',
+        );
       }
-      const passwordMatches = await bcrypt.compare(credentials.password, user.passwordHash);
+      const passwordMatches = await bcrypt.compare(
+        credentials.password,
+        user.passwordHash,
+      );
       if (!passwordMatches) {
-        throw new UnauthorizedException('La contraseña ingresada es incorrecta');
+        throw new UnauthorizedException(
+          'La contraseña ingresada es incorrecta',
+        );
       }
     }
   }
 
-  async wipeTenantData(userId: string, credentials: { email?: string; password?: string; mfaCode?: string }) {
+  async wipeTenantData(
+    userId: string,
+    credentials: { email?: string; password?: string; mfaCode?: string },
+  ) {
     await this.verifyDestructiveActionAuth(userId, credentials);
 
     const user = await this.prisma.usuario.findUnique({
@@ -776,42 +908,82 @@ export class AuthService {
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');
     if (!user.empresasPropiedad?.length) {
-      throw new BadRequestException('Solo las cuentas propietarias pueden restablecer los datos de sus empresas');
+      throw new BadRequestException(
+        'Solo las cuentas propietarias pueden restablecer los datos de sus empresas',
+      );
     }
 
-    const empresaIds = user.empresasPropiedad.map(e => e.id);
+    const empresaIds = user.empresasPropiedad.map((e) => e.id);
 
-    return this.prisma.$transaction(async tx => {
+    return this.prisma.$transaction(async (tx) => {
       // 1. Invoices & Payments (sales & purchases)
-      await tx.pagoCliente.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.pagoProveedor.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.facturaVenta.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.facturaCompra.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.cotizacion.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.pagoCliente.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.pagoProveedor.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.facturaVenta.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.facturaCompra.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.cotizacion.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
 
       // 2. Inventory & Products
-      await tx.movimientoInventario.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.inventarioStock.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.promocionProducto.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.promocion.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.productoInsumo.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.producto.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.movimientoInventario.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.inventarioStock.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.promocionProducto.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.promocion.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.productoInsumo.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.producto.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
 
       // 3. Catalogs
-      await tx.categoria.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.categoria.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
       await tx.marca.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.unidadMedida.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.unidadMedida.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
 
       // 4. Commercial Entities
       await tx.cliente.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.proveedor.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.proveedor.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
 
       // 5. Fiscal & Notifications
-      await tx.secuenciaNCF.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.impuesto.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.terminoPago.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.notification.deleteMany({ where: { empresaId: { in: empresaIds } } });
-      await tx.aiConversation.deleteMany({ where: { empresaId: { in: empresaIds } } });
+      await tx.secuenciaNCF.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.impuesto.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.terminoPago.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.notification.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
+      await tx.aiConversation.deleteMany({
+        where: { empresaId: { in: empresaIds } },
+      });
 
       // Audit Log
       await tx.activityLog.create({
@@ -827,17 +999,24 @@ export class AuthService {
           resourceName: 'Datos comerciales restablecidos',
           metadata: JSON.stringify({
             severity: 'High',
-            actionTaken: 'Se restablecieron todos los catálogos y transacciones de las empresas del tenant',
+            actionTaken:
+              'Se restablecieron todos los catálogos y transacciones de las empresas del tenant',
             empresaIds,
           }),
         },
       });
 
-      return { success: true, message: 'Todos los datos comerciales fueron eliminados exitosamente' };
+      return {
+        success: true,
+        message: 'Todos los datos comerciales fueron eliminados exitosamente',
+      };
     });
   }
 
-  async deleteUserAccount(userId: string, credentials: { email?: string; password?: string; mfaCode?: string }) {
+  async deleteUserAccount(
+    userId: string,
+    credentials: { email?: string; password?: string; mfaCode?: string },
+  ) {
     await this.verifyDestructiveActionAuth(userId, credentials);
 
     const user = await this.prisma.usuario.findUnique({
@@ -846,32 +1025,72 @@ export class AuthService {
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    const empresaIds = (user.empresasPropiedad || []).map(e => e.id);
+    const empresaIds = (user.empresasPropiedad || []).map((e) => e.id);
 
-    return this.prisma.$transaction(async tx => {
+    return this.prisma.$transaction(async (tx) => {
       // 1. Delete owned companies (cascades operational data)
       if (empresaIds.length > 0) {
-        await tx.pagoCliente.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.pagoProveedor.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.facturaVenta.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.facturaCompra.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.cotizacion.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.movimientoInventario.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.inventarioStock.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.promocionProducto.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.promocion.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.productoInsumo.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.producto.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.categoria.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.pagoCliente.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.pagoProveedor.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.facturaVenta.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.facturaCompra.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.cotizacion.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.movimientoInventario.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.inventarioStock.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.promocionProducto.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.promocion.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.productoInsumo.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.producto.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.categoria.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
         await tx.marca.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.unidadMedida.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.cliente.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.proveedor.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.secuenciaNCF.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.impuesto.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.terminoPago.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.notification.deleteMany({ where: { empresaId: { in: empresaIds } } });
-        await tx.aiConversation.deleteMany({ where: { empresaId: { in: empresaIds } } });
+        await tx.unidadMedida.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.cliente.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.proveedor.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.secuenciaNCF.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.impuesto.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.terminoPago.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.notification.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
+        await tx.aiConversation.deleteMany({
+          where: { empresaId: { in: empresaIds } },
+        });
         await tx.empresa.deleteMany({ where: { id: { in: empresaIds } } });
       }
 
@@ -879,14 +1098,21 @@ export class AuthService {
       await tx.membresia.deleteMany({ where: { usuarioId: userId } });
       await tx.mfaCredential.deleteMany({ where: { usuarioId: userId } });
       await tx.userSession.deleteMany({ where: { usuarioId: userId } });
-      await tx.notificationPreference.deleteMany({ where: { usuarioId: userId } });
+      await tx.notificationPreference.deleteMany({
+        where: { usuarioId: userId },
+      });
       await tx.pushSubscription.deleteMany({ where: { usuarioId: userId } });
-      await tx.googleDriveConnection.deleteMany({ where: { propietarioId: userId } });
+      await tx.googleDriveConnection.deleteMany({
+        where: { propietarioId: userId },
+      });
 
       // 3. Delete user
       await tx.usuario.delete({ where: { id: userId } });
 
-      return { success: true, message: 'Cuenta y datos eliminados definitivamente' };
+      return {
+        success: true,
+        message: 'Cuenta y datos eliminados definitivamente',
+      };
     });
   }
 
@@ -948,9 +1174,18 @@ export class AuthService {
         data: { estado: 'ACTIVO' },
       }),
     ]);
-    if (this.notifications) for (const membership of user.membresias) {
-      if (['PENDIENTE','ACTIVO'].includes(membership.estado)) await this.notifications.create({empresaId:membership.empresaId,tipo:'USER_JOINED',titulo:'Nuevo colaborador',mensaje:'Un colaborador activó su invitación y ya puede acceder a la empresa.',deduplicationKey:user.id});
-    }
+    if (this.notifications)
+      for (const membership of user.membresias) {
+        if (['PENDIENTE', 'ACTIVO'].includes(membership.estado))
+          await this.notifications.create({
+            empresaId: membership.empresaId,
+            tipo: 'USER_JOINED',
+            titulo: 'Nuevo colaborador',
+            mensaje:
+              'Un colaborador activó su invitación y ya puede acceder a la empresa.',
+            deduplicationKey: user.id,
+          });
+      }
     return { success: true };
   }
 

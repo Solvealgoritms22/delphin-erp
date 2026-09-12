@@ -25,7 +25,14 @@ describe('AuthService', () => {
     nombre: 'Ana',
     avatar: null,
     empresasPropiedad: [{ id: 'e1', estado: 'ACTIVA' }],
-    membresias: [{ empresaId: 'e1', estado: 'ACTIVO', empresa: { estado: 'ACTIVA' }, role: null }],
+    membresias: [
+      {
+        empresaId: 'e1',
+        estado: 'ACTIVO',
+        empresa: { estado: 'ACTIVA' },
+        role: null,
+      },
+    ],
   };
 
   beforeEach(async () => {
@@ -38,7 +45,10 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: MfaService, useValue: { challenge: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: MfaService,
+          useValue: { challenge: jest.fn().mockResolvedValue(null) },
+        },
         mocks.provider,
         { provide: UsersService, useValue: usersService },
         { provide: JwtService, useValue: jwtService },
@@ -89,7 +99,8 @@ describe('AuthService', () => {
   describe('login', () => {
     it('genera token con permisos wildcard para el owner', async () => {
       prisma.empresa.findUnique.mockResolvedValue({
-        estado: 'ACTIVA', suscripcion: { plan: { nombre: 'Pro' } },
+        estado: 'ACTIVA',
+        suscripcion: { plan: { nombre: 'Pro' } },
       });
 
       const result: any = await service.login(baseUser);
@@ -102,14 +113,18 @@ describe('AuthService', () => {
     });
 
     it('parsea permisos desde el rol de la membresía', async () => {
-      prisma.empresa.findUnique.mockResolvedValue({ estado: 'ACTIVA', suscripcion: null });
+      prisma.empresa.findUnique.mockResolvedValue({
+        estado: 'ACTIVA',
+        suscripcion: null,
+      });
       const member = {
         ...baseUser,
         empresasPropiedad: [],
         membresias: [
           {
             empresaId: 'e1',
-            estado: 'ACTIVO', empresa: { estado: 'ACTIVA' },
+            estado: 'ACTIVO',
+            empresa: { estado: 'ACTIVA' },
             role: { permissions: '["a","b"]' },
           },
         ],
@@ -122,14 +137,18 @@ describe('AuthService', () => {
     });
 
     it('deja permisos vacíos si el JSON del rol está corrupto', async () => {
-      prisma.empresa.findUnique.mockResolvedValue({ estado: 'ACTIVA', suscripcion: null });
+      prisma.empresa.findUnique.mockResolvedValue({
+        estado: 'ACTIVA',
+        suscripcion: null,
+      });
       const member = {
         ...baseUser,
         empresasPropiedad: [],
         membresias: [
           {
             empresaId: 'e1',
-            estado: 'ACTIVO', empresa: { estado: 'ACTIVA' },
+            estado: 'ACTIVO',
+            empresa: { estado: 'ACTIVA' },
             role: { permissions: 'not-json' },
           },
         ],
@@ -141,7 +160,10 @@ describe('AuthService', () => {
     });
 
     it('registra el dispositivo y la actividad de seguridad', async () => {
-      prisma.empresa.findUnique.mockResolvedValue({ estado: 'ACTIVA', suscripcion: null });
+      prisma.empresa.findUnique.mockResolvedValue({
+        estado: 'ACTIVA',
+        suscripcion: null,
+      });
       prisma.userSession.findMany.mockResolvedValue([]);
 
       await service.login(baseUser, {
@@ -163,7 +185,10 @@ describe('AuthService', () => {
     });
 
     it('reutiliza la sesión activa del mismo dispositivo', async () => {
-      prisma.empresa.findUnique.mockResolvedValue({ estado: 'ACTIVA', suscripcion: null });
+      prisma.empresa.findUnique.mockResolvedValue({
+        estado: 'ACTIVA',
+        suscripcion: null,
+      });
       prisma.userSession.findMany.mockResolvedValue([
         {
           id: 's-device',
@@ -229,7 +254,10 @@ describe('AuthService', () => {
   describe('switchTenant', () => {
     it('cambia a una empresa donde el usuario es owner', async () => {
       prisma.usuario.findUnique.mockResolvedValue(baseUser);
-      prisma.empresa.findUnique.mockResolvedValue({ estado: 'ACTIVA', suscripcion: null });
+      prisma.empresa.findUnique.mockResolvedValue({
+        estado: 'ACTIVA',
+        suscripcion: null,
+      });
 
       const result = await service.switchTenant('u1', 'e1');
 
@@ -254,11 +282,17 @@ describe('AuthService', () => {
         ...baseUser,
         empresasPropiedad: [],
         membresias: [
-          { empresaId: 'e2', estado: 'ACTIVO', empresa: { estado: 'ACTIVA' }, role: { permissions: '["x"]' } },
+          {
+            empresaId: 'e2',
+            estado: 'ACTIVO',
+            empresa: { estado: 'ACTIVA' },
+            role: { permissions: '["x"]' },
+          },
         ],
       });
       prisma.empresa.findUnique.mockResolvedValue({
-        estado: 'ACTIVA', suscripcion: { plan: { nombre: 'Pro' } },
+        estado: 'ACTIVA',
+        suscripcion: { plan: { nombre: 'Pro' } },
       });
 
       const result = await service.switchTenant('u1', 'e2');
@@ -273,10 +307,18 @@ describe('AuthService', () => {
         ...baseUser,
         empresasPropiedad: [],
         membresias: [
-          { empresaId: 'e2', estado: 'ACTIVO', empresa: { estado: 'ACTIVA' }, role: { permissions: 'oops' } },
+          {
+            empresaId: 'e2',
+            estado: 'ACTIVO',
+            empresa: { estado: 'ACTIVA' },
+            role: { permissions: 'oops' },
+          },
         ],
       });
-      prisma.empresa.findUnique.mockResolvedValue({ estado: 'ACTIVA', suscripcion: null });
+      prisma.empresa.findUnique.mockResolvedValue({
+        estado: 'ACTIVA',
+        suscripcion: null,
+      });
 
       const result = await service.switchTenant('u1', 'e2');
 
@@ -315,7 +357,9 @@ describe('AuthService', () => {
     });
 
     it('verifyOtp rechaza un OTP inválido', async () => {
-      usersService.findOne.mockResolvedValue({ otpCode: createHash('sha256').update('111111').digest('hex') });
+      usersService.findOne.mockResolvedValue({
+        otpCode: createHash('sha256').update('111111').digest('hex'),
+      });
       await expect(service.verifyOtp('a@b.com', '000000')).rejects.toThrow(
         BadRequestException,
       );
@@ -333,7 +377,9 @@ describe('AuthService', () => {
     });
 
     it('resetPassword rechaza un OTP inválido', async () => {
-      usersService.findOne.mockResolvedValue({ otpCode: createHash('sha256').update('111111').digest('hex') });
+      usersService.findOne.mockResolvedValue({
+        otpCode: createHash('sha256').update('111111').digest('hex'),
+      });
 
       await expect(
         service.resetPassword('a@b.com', '999999', 'new-password-test'),
@@ -352,10 +398,17 @@ describe('AuthService', () => {
       await service.resetPassword('a@b.com', '111111', 'new-password-test');
 
       expect(prisma.usuario.updateMany).toHaveBeenCalledWith({
-        where: { id: 'u1', otpCode: createHash('sha256').update('111111').digest('hex'), otpExpiresAt: { gt: expect.any(Date) } },
+        where: {
+          id: 'u1',
+          otpCode: createHash('sha256').update('111111').digest('hex'),
+          otpExpiresAt: { gt: expect.any(Date) },
+        },
         data: { passwordHash: 'newhash', otpCode: null, otpExpiresAt: null },
       });
-      expect(prisma.userSession.updateMany).toHaveBeenCalledWith({ where: { usuarioId: 'u1', revokedAt: null }, data: { revokedAt: expect.any(Date) } });
+      expect(prisma.userSession.updateMany).toHaveBeenCalledWith({
+        where: { usuarioId: 'u1', revokedAt: null },
+        data: { revokedAt: expect.any(Date) },
+      });
     });
   });
 

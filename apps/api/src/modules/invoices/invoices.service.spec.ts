@@ -115,9 +115,9 @@ describe('InvoicesService', () => {
     it('debe lanzar NotFoundException si se intenta cancelar una factura inexistente', async () => {
       prisma.facturaVenta.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.cancel('emp-1', 'usr-1', 'fac-404'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.cancel('emp-1', 'usr-1', 'fac-404')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

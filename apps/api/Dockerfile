@@ -4,7 +4,7 @@
 # ==============================================================================
 
 # 1. Dependency Resolution Stage
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY apps/api/prisma ./apps/api/prisma/
 RUN npm ci --workspace=apps/api
 
 # 2. Build Stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -31,10 +31,10 @@ RUN npx prisma generate
 RUN npm run build
 
 # Prune devDependencies to keep image lean
-RUN npm prune --production
+RUN npm prune --omit=dev --workspace=apps/api
 
 # 3. Production Runtime Stage
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 RUN apk add --no-cache dumb-init curl
 WORKDIR /app
 
@@ -46,7 +46,9 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001 -G nodejs
 
 # Copy pruned production dependencies and compiled artifacts
-COPY --from=builder /app/apps/api/node_modules ./node_modules
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/apps/api/node_modules /app/apps/api/node_modules
+WORKDIR /app/apps/api
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/apps/api/prisma ./prisma
 COPY --from=builder /app/apps/api/package.json ./package.json
@@ -61,4 +63,4 @@ EXPOSE 3000
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Automatically deploy pending migrations on startup and run compiled server
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]

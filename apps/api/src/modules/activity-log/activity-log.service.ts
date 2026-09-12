@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export interface LogActivityDto {
@@ -25,7 +30,10 @@ export class ActivityLogService {
   /**
    * Registra una actividad. Falla silenciosamente para no interrumpir el flujo de negocio.
    */
-  async log(dto: LogActivityDto, db: Pick<PrismaService, 'activityLog'> = this.prisma): Promise<void> {
+  async log(
+    dto: LogActivityDto,
+    db: Pick<PrismaService, 'activityLog'> = this.prisma,
+  ): Promise<void> {
     try {
       await db.activityLog.create({
         data: {
@@ -44,8 +52,11 @@ export class ActivityLogService {
         },
       });
     } catch (error) {
-      this.logger.error('AUDIT_WRITE_FAILED', error instanceof Error ? error.stack : undefined);
-      throw error;
+      this.logger.error(
+        'AUDIT_WRITE_FAILED',
+        error instanceof Error ? error.stack : undefined,
+      );
+      if (db !== this.prisma) throw error;
     }
   }
 
@@ -72,7 +83,14 @@ export class ActivityLogService {
     } = params;
 
     if (!empresaId) throw new ForbiddenException('Empresa activa requerida');
-    if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 200) throw new BadRequestException('Paginación inválida');
+    if (
+      !Number.isInteger(page) ||
+      page < 1 ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 200
+    )
+      throw new BadRequestException('Paginación inválida');
     const where: any = { empresaId };
 
     if (modulo) where.modulo = modulo;
@@ -119,7 +137,11 @@ export class ActivityLogService {
       return {
         ...item,
         usuarioNombre:
-          item.usuarioNombre || user?.nombre || item.usuarioEmail || user?.email || 'Sistema',
+          item.usuarioNombre ||
+          user?.nombre ||
+          item.usuarioEmail ||
+          user?.email ||
+          'Sistema',
         usuarioEmail: item.usuarioEmail || user?.email,
         usuarioAvatar: user?.avatar || null,
         metadata: item.metadata ? JSON.parse(item.metadata) : null,
@@ -138,11 +160,11 @@ export class ActivityLogService {
       SELECT DISTINCT EXTRACT(YEAR FROM creado_en)::int AS year
       FROM activity_logs WHERE empresa_id = ${empresaId} ORDER BY year DESC
     `;
-    return rows.map(row => row.year);
+    return rows.map((row) => row.year);
   }
 
-  async clear(_empresaId: string, _modulo?: string): Promise<never> {
-    throw new ForbiddenException('Los registros de auditoría son inmutables');
+  clear(_empresaId: string, _modulo?: string): Promise<never> {
+    return Promise.reject(new ForbiddenException('Los registros de auditoría son inmutables'));
   }
 
   async findSecurityLogs(params: {

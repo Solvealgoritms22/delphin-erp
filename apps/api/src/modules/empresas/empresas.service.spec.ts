@@ -139,9 +139,12 @@ describe('EmpresasService', () => {
       await service.remove('u1', 'e1');
 
       expect(prisma.empresa.delete).not.toHaveBeenCalled();
-      expect(prisma.empresa.update).toHaveBeenCalledWith(expect.objectContaining({
-        where: { id: 'e1' }, data: { estado: 'ARCHIVADA' },
-      }));
+      expect(prisma.empresa.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'e1' },
+          data: { estado: 'ARCHIVADA' },
+        }),
+      );
     });
   });
 
@@ -154,20 +157,28 @@ describe('EmpresasService', () => {
 
       const result = await service.findAllForUser('u1');
 
-      expect(result).toEqual([{id:'e1',razonSocial:'A',isOwner:true}]);
-      expect(prisma.usuario.findUnique).toHaveBeenCalledWith(expect.objectContaining({
-        select: expect.objectContaining({
-          empresasPropiedad: expect.objectContaining({where:{estado:'ACTIVA'}}),
-          membresias: expect.objectContaining({where:{estado:'ACTIVO',empresa:{estado:'ACTIVA'}}}),
+      expect(result).toEqual([{ id: 'e1', razonSocial: 'A', isOwner: true }]);
+      expect(prisma.usuario.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          select: expect.objectContaining({
+            empresasPropiedad: expect.objectContaining({
+              where: { estado: 'ACTIVA' },
+            }),
+            membresias: expect.objectContaining({
+              where: { estado: 'ACTIVO', empresa: { estado: 'ACTIVA' } },
+            }),
+          }),
         }),
-      }));
+      );
     });
     it('devuelve las membresías del colaborador sin empresas propias', async () => {
       prisma.usuario.findUnique.mockResolvedValue({
         empresasPropiedad: [],
         membresias: [{ empresa: { id: 'e2', razonSocial: 'B' } }],
       });
-      expect(await service.findAllForUser('u1')).toEqual([{id:'e2',razonSocial:'B',isOwner:false}]);
+      expect(await service.findAllForUser('u1')).toEqual([
+        { id: 'e2', razonSocial: 'B', isOwner: false },
+      ]);
     });
   });
 });

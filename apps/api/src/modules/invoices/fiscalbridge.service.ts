@@ -8,7 +8,11 @@ export class FiscalBridgeService {
   private readonly logger = new Logger(FiscalBridgeService.name);
 
   private request(url: string, init: RequestInit = {}) {
-    return fetch(url, { ...init, redirect: 'error', signal: AbortSignal.timeout(15_000) });
+    return fetch(url, {
+      ...init,
+      redirect: 'error',
+      signal: AbortSignal.timeout(15_000),
+    });
   }
 
   /**
@@ -160,7 +164,9 @@ export class FiscalBridgeService {
   ): Promise<{ success: boolean; message: string; data?: any }> {
     try {
       const { headers, baseUrl } = await this.getAuthHeaders(empresa);
-      const res = await this.request(`${baseUrl}/documents?limit=1`, { headers });
+      const res = await this.request(`${baseUrl}/documents?limit=1`, {
+        headers,
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         return {
@@ -183,14 +189,22 @@ export class FiscalBridgeService {
   /**
    * Construye el JSON estándar ECF según la norma de la DGII de República Dominicana
    */
-  buildEcfPayload(invoice: any, empresa: any): any { return buildEcfPayload(invoice, empresa); }
+  buildEcfPayload(invoice: any, empresa: any): any {
+    return buildEcfPayload(invoice, empresa);
+  }
 
   /**
    * Extrae y formatea detalladamente cualquier estructura de error devuelta por FiscalBridge / DGII
    */
-  parseFiscalBridgeError(errData: any, statusText: string, statusHttp?: number): string {
+  parseFiscalBridgeError(
+    errData: any,
+    statusText: string,
+    statusHttp?: number,
+  ): string {
     if (!errData) {
-      return statusText ? `${statusText} (HTTP ${statusHttp || 500})` : 'Error desconocido de FiscalBridge';
+      return statusText
+        ? `${statusText} (HTTP ${statusHttp || 500})`
+        : 'Error desconocido de FiscalBridge';
     }
 
     // 1. Array de errores de validación (ej: [{ field, message }, { path, message }])
@@ -208,7 +222,11 @@ export class FiscalBridgeService {
     }
 
     // 2. Diccionario de errores por campo (ej: { errors: { RNCComprador: ['RNC no válido'] } })
-    if (errData.errors && typeof errData.errors === 'object' && !Array.isArray(errData.errors)) {
+    if (
+      errData.errors &&
+      typeof errData.errors === 'object' &&
+      !Array.isArray(errData.errors)
+    ) {
       const entries = Object.entries(errData.errors)
         .map(([field, val]) => {
           const text = Array.isArray(val) ? val.join(', ') : String(val);
@@ -232,14 +250,25 @@ export class FiscalBridgeService {
     }
 
     // 4. Error explícito devuelto por DGII (ej: rechazo con código tributario)
-    if (errData.dgii_error || errData.dgii_message || errData.codigoDgii || errData.dgiiCode) {
+    if (
+      errData.dgii_error ||
+      errData.dgii_message ||
+      errData.codigoDgii ||
+      errData.dgiiCode
+    ) {
       const code = errData.dgiiCode || errData.codigoDgii || '';
-      const msg = errData.dgii_message || errData.dgii_error || errData.message || '';
+      const msg =
+        errData.dgii_message || errData.dgii_error || errData.message || '';
       return `Rechazo DGII${code ? ' [' + code + ']' : ''}: ${msg}`;
     }
 
     // 5. Mensaje directo o error general
-    const finalMsg = errData.message || errData.error || errData.title || statusText || 'Error no especificado por FiscalBridge';
+    const finalMsg =
+      errData.message ||
+      errData.error ||
+      errData.title ||
+      statusText ||
+      'Error no especificado por FiscalBridge';
     return statusHttp ? `${finalMsg} (HTTP ${statusHttp})` : finalMsg;
   }
 
@@ -262,7 +291,11 @@ export class FiscalBridgeService {
 
     if (!res.ok) {
       const errData = await res.json().catch(() => null);
-      const formattedError = this.parseFiscalBridgeError(errData, res.statusText, res.status);
+      const formattedError = this.parseFiscalBridgeError(
+        errData,
+        res.statusText,
+        res.status,
+      );
       this.logger.error(
         `FiscalBridge rechazó factura ${invoice.numeroFactura}: ${formattedError}`,
       );
@@ -323,9 +356,12 @@ export class FiscalBridgeService {
    */
   async getDocumentStatus(documentUuid: string, empresa: any): Promise<any> {
     const { headers, baseUrl } = await this.getAuthHeaders(empresa);
-    const res = await this.request(`${baseUrl}/documents/${documentUuid}/status`, {
-      headers,
-    });
+    const res = await this.request(
+      `${baseUrl}/documents/${documentUuid}/status`,
+      {
+        headers,
+      },
+    );
     if (!res.ok) {
       return { status: 'UNKNOWN' };
     }

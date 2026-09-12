@@ -1,0 +1,86 @@
+
+> api@0.0.1 test:e2e
+> jest --config ./test/jest-e2e.json --runInBand
+
+[15:52:31.419] INFO (7084): request completed {"req":{"id":1,"method":"GET","url":"/","remoteAddress":"::ffff:127.0.0.1","remotePort":60048},"res":{"statusCode":200,"headers":{"x-powered-by":"Express","x-ratelimit-limit":"120","x-ratelimit-remaining":"119","x-ratelimit-reset":"60","content-type":"text/html; charset=utf-8","content-length":"12","etag":"W/\"c-Lve95gjOVATpfV8EL5X4nxwjKHE\""}},"responseTime":14}
+FAIL test/business-integrity.e2e-spec.ts
+  ● Business integrity on PostgreSQL › accepts only one of two concurrent customer payments exceeding the balance
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 1
+    Received length: 0
+    Received array:  []
+
+      29 |     const inv=await invoice(); const service=new CustomerPaymentsService(db as any,activity as any);
+      30 |     const results=await Promise.allSettled([1,2].map(()=>service.create(company.id,user.id,{clienteId:client.id,monto:80,facturaId:inv.id} as any)));
+    > 31 |     expect(results.filter(r=>r.status==='fulfilled')).toHaveLength(1);
+         |                                                       ^
+      32 |     const stored=await db.facturaVenta.findUniqueOrThrow({where:{id:inv.id}});expect(Number(stored.balancePendiente)).toBe(20);expect(Number(stored.montoPagado)).toBe(80);
+      33 |   });
+      34 |   it('reverses a receipt only once under concurrent cancellation', async () => {
+
+      at Object.<anonymous> (business-integrity.e2e-spec.ts:31:55)
+
+  ● Business integrity on PostgreSQL › reverses a receipt only once under concurrent cancellation
+
+    PrismaClientKnownRequestError: 
+    Invalid `prisma.$queryRaw()` invocation:
+
+
+    Raw query failed. Code: `N/A`. Message: `Failed to deserialize column of type 'void'. If you're using $queryRaw and this column is explicitly marked as `Unsupported` in your Prisma schema, try casting this column to any supported Prisma type such as `String`.`
+
+      107 |     const result = await this.prisma.$transaction(async (tx) => {
+      108 |       // Serialize receipt allocation for the tenant, and lock invoices in stable order.
+    > 109 |       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${empresaId + ':REC'}, 0))`;
+          |       ^
+      110 |       for (const invoiceId of [...seen].sort())
+      111 |         await tx.$queryRaw`SELECT id FROM facturas_venta WHERE id = ${invoiceId} AND empresa_id = ${empresaId} FOR UPDATE`;
+      112 |       // 1. Validar cada factura y su saldo pendiente
+
+      at ei.handleRequestError (../node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+      at ei.handleAndLogRequestError (../node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+      at ei.request (../node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+      at a (../node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+      at ../src/modules/customer-payments/customer-payments.service.ts:109:7
+      at Proxy._transactionWithCallback (../node_modules/@prisma/client/src/runtime/getPrismaClient.ts:722:18)
+      at CustomerPaymentsService.create (../src/modules/customer-payments/customer-payments.service.ts:107:20)
+      at Object.<anonymous> (business-integrity.e2e-spec.ts:36:19)
+
+  ● Business integrity on PostgreSQL › allocates global discount before computing mixed-rate taxes
+
+    PrismaClientKnownRequestError: 
+    Invalid `prisma.$queryRaw()` invocation:
+
+
+    Raw query failed. Code: `N/A`. Message: `Failed to deserialize column of type 'void'. If you're using $queryRaw and this column is explicitly marked as `Unsupported` in your Prisma schema, try casting this column to any supported Prisma type such as `String`.`
+
+      190 |     // 5. Transacción Atómica
+      191 |     const compra = await this.prisma.$transaction(async (tx) => {
+    > 192 |       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${empresaId + ':COM'}, 0))`;
+          |       ^
+      193 |       const numeroFactura = dto.numeroFactura?.trim()
+      194 |         ? dto.numeroFactura.trim()
+      195 |         : await this.generateNextNumeroCompra(tx, empresaId);
+
+      at ei.handleRequestError (../node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+      at ei.handleAndLogRequestError (../node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+      at ei.request (../node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+      at a (../node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+      at ../src/modules/purchases/purchases.service.ts:192:7
+      at Proxy._transactionWithCallback (../node_modules/@prisma/client/src/runtime/getPrismaClient.ts:722:18)
+      at PurchasesService.create (../src/modules/purchases/purchases.service.ts:191:20)
+      at Object.<anonymous> (business-integrity.e2e-spec.ts:51:20)
+
+Test Suites: 1 failed, 2 passed, 3 total
+Tests:       3 failed, 12 passed, 15 total
+Snapshots:   0 total
+Time:        43.625 s
+Ran all test suites.
+npm error Lifecycle script `test:e2e` failed with error:
+npm error code 1
+npm error path C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\api
+npm error workspace api@0.0.1
+npm error location C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\api
+npm error command failed
+npm error command C:\Windows\system32\cmd.exe /d /s /c jest --config ./test/jest-e2e.json --runInBand

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { CreditNotesService } from './credit-notes.service';
 import { SequencesService } from '../sequences/sequences.service';
@@ -197,11 +197,15 @@ describe('CreditNotesService', () => {
         motivoModificacion: '1',
         lines: [{ detalleOriginalId: 'det-1', cantidad: 1 }],
       }),
-    ).rejects.toThrow('No se puede emitir una nota de crédito sobre una factura anulada.');
+    ).rejects.toThrow(
+      'No se puede emitir una nota de crédito sobre una factura anulada.',
+    );
   });
 
   it('rechaza emitir nota de crédito sobre otra nota de crédito', async () => {
-    const original = mockOriginalInvoice({ facturaOriginalId: 'fac-original-id' });
+    const original = mockOriginalInvoice({
+      facturaOriginalId: 'fac-original-id',
+    });
     prisma.facturaVenta.findFirst.mockResolvedValue(original);
 
     await expect(
@@ -210,7 +214,9 @@ describe('CreditNotesService', () => {
         motivoModificacion: '1',
         lines: [{ detalleOriginalId: 'det-1', cantidad: 1 }],
       }),
-    ).rejects.toThrow('No se puede emitir una nota de crédito sobre otra nota de crédito.');
+    ).rejects.toThrow(
+      'No se puede emitir una nota de crédito sobre otra nota de crédito.',
+    );
   });
 
   it('registra saldo a favor explícito cuando la factura original ya estaba saldada', async () => {

@@ -17,7 +17,7 @@ const notificationTemplates: Record<string, EmailDefinition> =
       notificationEmailKey(event.id),
       {
         editable: true,
-        scope: 'tenant' as EmailScope,
+        scope: 'tenant',
         name: event.name,
         category: event.categoryLabel,
         subject: '{{title}} · {{company}}',
@@ -110,12 +110,12 @@ export const EMAIL_CATALOG: Record<string, EmailDefinition> = {
 };
 export type EmailKey = keyof typeof EMAIL_CATALOG;
 export function isSystemEmail(key: string): boolean {
-  return EMAIL_CATALOG[key as EmailKey]?.scope === 'system';
+  return EMAIL_CATALOG[key]?.scope === 'system';
 }
 export function emailDefinition(key: string) {
   if (!Object.hasOwn(EMAIL_CATALOG, key))
     throw new BadRequestException('Plantilla desconocida');
-  return EMAIL_CATALOG[key as EmailKey];
+  return EMAIL_CATALOG[key];
 }
 export function validateDesign(key: string, design: EmailDesign) {
   const definition = emailDefinition(key);
@@ -135,7 +135,7 @@ export function validateDesign(key: string, design: EmailDesign) {
         'El asunto y título deben ocupar una sola línea',
       );
     for (const match of value.matchAll(/{{\s*([^{}]+?)\s*}}/g))
-      if (!(definition.variables as readonly string[]).includes(match[1]))
+      if (!definition.variables.includes(match[1]))
         throw new BadRequestException('Variable no permitida: ' + match[1]);
     if (/[{}]/.test(value.replace(/{{\s*[^{}]+?\s*}}/g, '')))
       throw new BadRequestException('Sintaxis de variables inválida');

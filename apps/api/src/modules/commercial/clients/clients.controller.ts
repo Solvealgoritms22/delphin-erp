@@ -1,4 +1,7 @@
-import { BusinessContactDto, UpdateBusinessContactDto } from '../../../common/dto/resource.dto';
+import {
+  BusinessContactDto,
+  UpdateBusinessContactDto,
+} from '../../../common/dto/resource.dto';
 import {
   Controller,
   Get,
@@ -47,7 +50,11 @@ export class ClientsController {
   @Patch(':id')
   @RequirePermissions('commercial:write')
   @ApiOperation({ summary: 'Actualizar cliente' })
-  update(@Request() req, @Param('id') id: string, @Body() data: UpdateBusinessContactDto) {
+  update(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() data: UpdateBusinessContactDto,
+  ) {
     return this.clientsService.update(id, req.user.empresaId, data);
   }
 

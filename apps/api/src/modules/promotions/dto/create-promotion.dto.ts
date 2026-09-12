@@ -26,7 +26,8 @@ export class CreatePromotionDto {
 
   @IsString()
   @IsIn(['PORCENTAJE', 'MONTO_FIJO', 'PRECIO_FIJO'], {
-    message: 'El tipo de descuento debe ser PORCENTAJE, MONTO_FIJO o PRECIO_FIJO',
+    message:
+      'El tipo de descuento debe ser PORCENTAJE, MONTO_FIJO o PRECIO_FIJO',
   })
   tipoDescuento: 'PORCENTAJE' | 'MONTO_FIJO' | 'PRECIO_FIJO';
 
@@ -42,7 +43,9 @@ export class CreatePromotionDto {
 
   @ValidateIf((o) => o.alcance === 'CATEGORIA')
   @IsString()
-  @IsNotEmpty({ message: 'La categoría es obligatoria para el alcance CATEGORIA' })
+  @IsNotEmpty({
+    message: 'La categoría es obligatoria para el alcance CATEGORIA',
+  })
   categoriaId?: string;
 
   @ValidateIf((o) => o.alcance === 'MARCA')
@@ -55,10 +58,16 @@ export class CreatePromotionDto {
   @IsOptional()
   productoIds?: string[];
 
-  @IsDateString({}, { message: 'La fecha de inicio debe tener formato ISO válido' })
+  @IsDateString(
+    {},
+    { message: 'La fecha de inicio debe tener formato ISO válido' },
+  )
   fechaInicio: string;
 
-  @IsDateString({}, { message: 'La fecha de fin debe tener formato ISO válido' })
+  @IsDateString(
+    {},
+    { message: 'La fecha de fin debe tener formato ISO válido' },
+  )
   fechaFin: string;
 
   @IsNumber()

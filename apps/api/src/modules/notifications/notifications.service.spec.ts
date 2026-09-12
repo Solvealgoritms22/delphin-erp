@@ -5,7 +5,7 @@ import { NotificationsService } from './notifications.service';
 describe('NotificationsService', () => {
   const dependencies = () => {
     const { prisma } = createPrismaMock();
-    prisma.empresa.findFirst.mockResolvedValue({propietarioId:'u1'});
+    prisma.empresa.findFirst.mockResolvedValue({ propietarioId: 'u1' });
     prisma.membresia.findMany.mockResolvedValue([]);
     prisma.notificationPreference.findMany.mockResolvedValue([]);
     const realtime = { publish: jest.fn(), stream: jest.fn() };
@@ -49,7 +49,9 @@ describe('NotificationsService', () => {
 
   it('expande una notificación de empresa a sus miembros activos', async () => {
     const { prisma, service } = dependencies();
-    prisma.membresia.findMany.mockResolvedValue([{usuarioId:'u2',role:{permissions:'["*"]'}}]);
+    prisma.membresia.findMany.mockResolvedValue([
+      { usuarioId: 'u2', role: { permissions: '["*"]' } },
+    ]);
     prisma.notification.create.mockResolvedValue({ id: 'n1', payload: null });
 
     await service.create({
@@ -105,7 +107,10 @@ describe('NotificationsService', () => {
     await expect(
       service.savePushSubscription('u1', {
         endpoint: 'https://fcm.googleapis.com/subscription',
-        keys: { p256dh: Buffer.alloc(65).toString('base64'), auth: Buffer.alloc(16).toString('base64') },
+        keys: {
+          p256dh: Buffer.alloc(65).toString('base64'),
+          auth: Buffer.alloc(16).toString('base64'),
+        },
       }),
     ).resolves.toEqual({ id: 'p1' });
   });
