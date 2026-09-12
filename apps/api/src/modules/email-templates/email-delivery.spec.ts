@@ -33,14 +33,17 @@ describe('Email delivery contract', () => {
       expect(mail.html).toContain('Empresa &amp; Asociados');
     },
   );
-  it('system templates include the dolphin logo while tenant templates do not', () => {
+  it('system templates include the dolphin header brand while tenant templates include the signature', () => {
     const systemMail = renderEmail('verification', { name: 'Ana' }, undefined, { code: '123456' });
     expect(systemMail.html).toContain('cid:dolphin-brand');
     expect(systemMail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(true);
+    expect(systemMail.html).not.toContain('cid:dolphin-signature');
 
     const tenantMail = renderEmail('quote', values);
     expect(tenantMail.html).not.toContain('cid:dolphin-brand');
     expect(tenantMail.attachments.some((a) => a.cid === 'dolphin-brand')).toBe(false);
+    expect(tenantMail.html).toContain('cid:dolphin-signature');
+    expect(tenantMail.attachments.some((a) => a.cid === 'dolphin-signature')).toBe(true);
   });
   it.each([
     '<a href=javascript:alert(1)>x</a>',
@@ -83,7 +86,8 @@ describe('Email delivery contract', () => {
       ...EMAIL_CATALOG.quote,
       body: '<p><img src="data:image/png;base64,iVBORw0KGgo="></p>',
     });
-    expect(mail.attachments).toHaveLength(1);
+    expect(mail.attachments.some((a) => a.cid === 'email-image-1')).toBe(true);
+    expect(mail.attachments.some((a) => a.cid === 'dolphin-signature')).toBe(true);
     expect(mail.html).toContain('cid:email-image-1');
     expect(mail.html).not.toContain('src="data:');
   });

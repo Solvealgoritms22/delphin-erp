@@ -269,6 +269,27 @@ export function renderEmail(
     '@media(prefers-color-scheme:dark){html,body,*{scrollbar-color:#525252 transparent}::-webkit-scrollbar-thumb{background:#525252}::-webkit-scrollbar-thumb:hover{background:#737373}}' +
     '</style>';
 
+  let signatureHtml = '';
+  if (!isSystem) {
+    attachments.push({
+      filename: 'dolphin.png',
+      content: Buffer.from(DOLPHIN_LOGO_BASE64, 'base64'),
+      cid: 'dolphin-signature',
+      contentType: 'image/png',
+    });
+    signatureHtml =
+      '<table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:20px;border-top:1px solid #f1f5f9;padding-top:14px">' +
+      '<tr>' +
+      '<td style="vertical-align:middle;padding-right:8px;line-height:0">' +
+      '<img src="cid:dolphin-signature" alt="Dolphin ERP" width="20" height="18" style="display:block;border:0;opacity:0.85">' +
+      '</td>' +
+      '<td style="vertical-align:middle;font-size:11px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;line-height:1">' +
+      'Enviado con <strong style="color:#64748b;font-weight:600">Dolphin ERP</strong>' +
+      '</td>' +
+      '</tr>' +
+      '</table>';
+  }
+
   const html =
     '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     scrollbarStyles +
@@ -289,7 +310,9 @@ export function renderEmail(
     paragraphs(footerText) +
     '</p><p style="color:#64748b;font-size:12px">' +
     (isSystem ? 'Dolphin ERP' : escapeEmail(brand)) +
-    '</p></td></tr></table></td></tr></table></body></html>';
+    '</p>' +
+    signatureHtml +
+    '</td></tr></table></td></tr></table></body></html>';
 
   const plainBody = isHtml
     ? renderedBody
@@ -311,6 +334,7 @@ export function renderEmail(
       blocks.message,
       footerText,
       isSystem ? 'Dolphin ERP' : brand,
+      !isSystem ? 'Enviado con Dolphin ERP' : '',
     ]
       .filter(Boolean)
       .join('\n\n'),
