@@ -17,10 +17,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GoogleMapsLoaderService, LatLngCoords } from '../../../core/maps/google-maps-loader.service';
 
-export interface PlacePrediction {
+export type PlacePrediction = {
   description: string;
   placeId: string;
-}
+};
 
 @Component({
   selector: 'app-address-map-picker',
@@ -396,7 +396,7 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
     }
   }
 
-  onSearchInput(event: Event): void {
+  onSearchInput(_event: Event): void {
     if (this.searchDebounceTimer) {
       clearTimeout(this.searchDebounceTimer);
     }

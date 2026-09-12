@@ -4,17 +4,17 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export interface LatLngCoords {
+export type LatLngCoords = {
   lat: number;
   lng: number;
-}
+};
 
-export interface GeocodeResult {
+export type GeocodeResult = {
   lat: number;
   lng: number;
   formattedAddress: string;
   placeId?: string;
-}
+};
 
 @Injectable({
   providedIn: 'root',
@@ -117,7 +117,7 @@ export class GoogleMapsLoaderService {
       });
       script.src = `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
 
-      script.onerror = (e) => {
+      script.onerror = (_e) => {
         this.isLoading.set(false);
         const errMsg = 'Error al cargar el script de Google Maps JavaScript API.';
         this.loadError.set(errMsg);
@@ -136,7 +136,7 @@ export class GoogleMapsLoaderService {
     const maps = await this.load();
     const geocoder = new maps.Geocoder();
 
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<string>((resolve, _reject) => {
       geocoder.geocode({ location: coords }, (results: any[], status: string) => {
         if (status === 'OK' && results && results.length > 0) {
           resolve(results[0].formatted_address);

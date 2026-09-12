@@ -35,14 +35,16 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: apps/desktop/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            apps/desktop/package-lock.json
 
       - name: Install dependencies (root)
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: ${{ github.workspace }}
 
       - name: Install dependencies (desktop)
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: apps/desktop
 
       - name: Lint desktop

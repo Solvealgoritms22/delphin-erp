@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
       - run: npm run db:generate --workspace=apps/api
       - run: npm run db:deploy --workspace=apps/api
       - run: npm test --workspace=apps/api -- --coverage

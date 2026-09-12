@@ -34,8 +34,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps
         working-directory: apps/desktop
       - run: npm run db:generate --workspace=apps/api
       - run: npm run db:deploy --workspace=apps/api

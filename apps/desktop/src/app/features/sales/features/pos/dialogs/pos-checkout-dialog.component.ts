@@ -471,8 +471,8 @@ export class PosCheckoutDialogComponent {
   cashReceived: number = this.data.total;
 
   // Propiedades para Pago Mixto
-  splitCardAmount: number = Number((this.data.total / 2).toFixed(2));
-  splitCashToPay: number = Number((this.data.total - this.splitCardAmount).toFixed(2));
+  splitCardAmount = Number((this.data.total / 2).toFixed(2));
+  splitCashToPay = Number((this.data.total - this.splitCardAmount).toFixed(2));
   splitCashReceived: number = this.splitCashToPay;
   paymentReference = '';
 

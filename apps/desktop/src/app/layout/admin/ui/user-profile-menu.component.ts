@@ -168,7 +168,7 @@ export class User implements OnInit {
 
   constructor() {
     effect(() => {
-      this.user()?.avatar;
+      const _avatar = this.user()?.avatar;
       this.avatarFailed.set(false);
     });
   }
