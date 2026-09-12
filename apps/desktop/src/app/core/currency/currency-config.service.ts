@@ -14,7 +14,7 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   JPY: '¥',
 };
 
-export interface BillingTax {
+export type BillingTax = {
   id: string;
   codigo: string;
   nombre: string;
@@ -22,9 +22,9 @@ export interface BillingTax {
   tipo?: string;
   indicadorFacturacion?: string;
   activo?: boolean;
-}
+};
 
-export interface BillingCompanyConfig {
+export type BillingCompanyConfig = {
   monedaBase: string;
   zonaHoraria: string;
   locale: string;
@@ -34,7 +34,7 @@ export interface BillingCompanyConfig {
   redondeoPor: string;
   preciosIncluyenImpuesto: boolean;
   diasGracia: number;
-}
+};
 
 @Injectable({ providedIn: 'root' })
 export class CurrencyConfigService {

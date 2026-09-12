@@ -276,7 +276,7 @@ export class CardDialogComponent implements OnInit {
         expiracion,
         marca: response.cardBrand || this.cardType()
       });
-    } catch (error) {
+    } catch {
       console.error('Card verification failed');
       // Ideally show a snackbar with the error message here
     } finally {

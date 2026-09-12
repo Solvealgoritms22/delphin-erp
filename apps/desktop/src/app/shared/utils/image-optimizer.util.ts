@@ -68,11 +68,10 @@ function canvasToBase64(canvas: HTMLCanvasElement, mimeType: string, quality: nu
 
 /**
  * Optimizes an image file to WebP format.
- *
- * @param file - Source image to process and convert
- * @param quality - WebP quality between 0 and 1 (default: 0.85)
- * @param maxWidth - Maximum width in pixels (default: 2048)
- * @param maxHeight - Maximum height in pixels (default: 2048)
+ * @param file Source image to process and convert
+ * @param quality WebP quality between 0 and 1 (default: 0.85)
+ * @param maxWidth Maximum width in pixels (default: 2048)
+ * @param maxHeight Maximum height in pixels (default: 2048)
  * @returns ImageOptimizationResult with base64, sizes, dimensions and format info
  */
 export async function optimizeImageToWebP(

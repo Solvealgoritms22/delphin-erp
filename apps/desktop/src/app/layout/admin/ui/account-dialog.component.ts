@@ -917,7 +917,7 @@ export class AccountDialogComponent implements OnInit {
         `${environment.apiUrl}/auth/account`,
         { body: credentials },
       ).subscribe({
-        next: (res) => {
+        next: () => {
           this.isProcessingDestructive.set(false);
           this.confirmingAction.set(null);
           this.matDialog.closeAll();

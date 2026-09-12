@@ -366,11 +366,6 @@ export class PromotionDialogComponent implements OnInit {
     this.productsService.loadCatalogs();
     this.productsService.findAll().subscribe();
 
-    const today = new Date().toISOString().split('T')[0];
-    const nextMonth = new Date(Date.now() + 30 * 86400000)
-      .toISOString()
-      .split('T')[0];
-
     this.form = this.fb.group({
       nombre: [promo?.nombre || '', Validators.required],
       descripcion: [promo?.descripcion || ''],

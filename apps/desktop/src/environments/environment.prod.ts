@@ -1,10 +1,8 @@
-/**
- * Entorno de Producción Cloud para Dolphin ERP.
- * Resuelve dinámicamente la URL del API Cloud:
- * 1. Runtime injection de Electron / Windows (window.__DOLPHIN_API_URL__)
- * 2. Configuración guardada en perfil local (dolphin_custom_api_url)
- * 3. Endpoint Cloud de producción predeterminado (https://api.dolphinerp.com/v1)
- */
+// Entorno de Producción Cloud para Dolphin ERP.
+// Resuelve dinámicamente la URL del API Cloud:
+// 1. Runtime injection de Electron / Windows (window.__DOLPHIN_API_URL__)
+// 2. Configuración guardada en perfil local (dolphin_custom_api_url)
+// 3. Endpoint Cloud de producción predeterminado (https://api.dolphinerp.com/v1)
 const getCloudApiUrl = (): string => {
   if (typeof window !== 'undefined' && (window as any).__DOLPHIN_API_URL__) {
     return (window as any).__DOLPHIN_API_URL__;

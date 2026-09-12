@@ -56,7 +56,7 @@ export const provideIcons = (): EnvironmentProviders =>
       // (el sprite ya cubre: 'sparkles', 'ai-stars', 'check-circle', 'triangle-alert', etc.)
 
       // Aliases extra para nombres alternativos usados en el ERP
-      const aliases: Array<[string, string]> = [
+      const _aliases: Array<[string, string]> = [
         ['more-vertical', 'ellipsis-vertical'],
         ['arrow-right-left', 'arrow-left-right'],
         ['rotate-cw', 'refresh-cw'],
