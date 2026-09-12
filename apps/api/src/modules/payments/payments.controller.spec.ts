@@ -98,6 +98,7 @@ describe('PaymentsController', () => {
     azulService.processCardSaleWithTokenization.mockResolvedValue({
       IsoCode: '00',
       DataVaultToken: 'tok',
+      DataVaultExpiration: '202812',
       CardNumber: '****1111',
       CardBrand: 'VISA',
       AzuleOrderId: 'AZ1',

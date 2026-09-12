@@ -13,7 +13,11 @@ describe('EntitlementGuard', () => {
     switchToHttp: () => ({ getRequest: () => ({ user }) }),
   });
 
-  const suscripcion = (estado: string, plan?: any, fechaRenovacion?: Date) => ({
+  const suscripcion = (
+    estado: string,
+    plan?: any,
+    fechaRenovacion: Date | null = new Date(Date.now() + 86400000),
+  ) => ({
     estado,
     plan,
     fechaRenovacion,

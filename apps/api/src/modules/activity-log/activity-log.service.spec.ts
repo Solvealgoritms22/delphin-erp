@@ -49,11 +49,11 @@ describe('ActivityLogService', () => {
       });
     });
 
-    it('propaga el fallo de persistencia de auditoría', async () => {
-      prisma.activityLog.create.mockRejectedValue(new Error('db down'));
+    it('propaga el fallo de persistencia de auditoría en transacción', async () => {
+      const txPrisma = { activityLog: { create: jest.fn().mockRejectedValue(new Error('db down')) } };
 
       await expect(
-        service.log({ empresaId: 'e1', modulo: 'x', accion: 'CREATE' }),
+        service.log({ empresaId: 'e1', modulo: 'x', accion: 'CREATE' }, txPrisma as any),
       ).rejects.toThrow('db down');
     });
   });
