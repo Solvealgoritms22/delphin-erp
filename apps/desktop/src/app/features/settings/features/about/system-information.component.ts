@@ -67,4 +67,8 @@ import { UpdateStatusComponent } from '@shared/components/update-notification/up
 })
 export class AboutComponent {
   protected readonly service = inject(UpdateService);
+
+  constructor() {
+    this.service.dismissNotification(false);
+  }
 }

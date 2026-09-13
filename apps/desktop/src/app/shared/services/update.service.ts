@@ -6,6 +6,8 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
@@ -36,6 +38,7 @@ export type DownloadProgress = {
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router, { optional: true });
   private readonly transloco = inject(TranslocoService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
@@ -43,6 +46,7 @@ export class UpdateService {
     null;
   private checkingTimeout: ReturnType<typeof setTimeout> | null = null;
   private confirmingRestart = false;
+  private userDismissed = false;
   readonly status = signal<UpdateStatus>('idle');
   readonly updateInfo = signal<UpdateInfo | null>(null);
   readonly downloadProgress = signal<DownloadProgress | null>(null);
@@ -89,6 +93,7 @@ export class UpdateService {
     });
     updater.onUpdateDownloaded((info) => {
       received();
+      this.userDismissed = false;
       this.updateInfo.set(info);
       this.status.set('ready');
       this.showNotification();
@@ -121,6 +126,28 @@ export class UpdateService {
       .catch(() => {
         /* Live events and manual checks remain available. */
       });
+
+    if (this.router) {
+      this.router.events
+        .pipe(
+          filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+        )
+        .subscribe(() => {
+          if (this.isUpdatesPage()) {
+            this.dismissNotification(false);
+          } else if (
+            !this.userDismissed &&
+            ['available', 'downloading', 'ready', 'error'].includes(this.status())
+          ) {
+            this.showNotification();
+          }
+        });
+    }
+  }
+
+  isUpdatesPage(): boolean {
+    const url = this.router?.url || '';
+    return url.includes('/settings/about') || url.endsWith('/about');
   }
 
   private clearCheckingTimeout(): void {
@@ -171,12 +198,15 @@ export class UpdateService {
       });
   }
 
-  dismissNotification(): void {
+  dismissNotification(userInitiated = false): void {
+    if (userInitiated) {
+      this.userDismissed = true;
+    }
     this.snackbarRef?.dismiss();
   }
 
   private showNotification(): void {
-    if (this.snackbarRef) return;
+    if (this.isUpdatesPage() || this.snackbarRef || this.userDismissed) return;
     const ref = this.snackBar.openFromComponent(UpdateNotificationComponent, {
       data: { service: this },
       duration: 0,

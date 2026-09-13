@@ -25,6 +25,6 @@ export class UpdateNotificationComponent {
     MatSnackBarRef<UpdateNotificationComponent>
   );
   protected dismiss(): void {
-    this.snackBarRef.dismiss();
+    this.data.service.dismissNotification(true);
   }
 }

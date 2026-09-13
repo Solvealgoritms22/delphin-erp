@@ -7,11 +7,8 @@
     class="relative hidden md:flex md:w-1/2 lg:w-3/5 xl:w-[57%] flex-col justify-between overflow-hidden bg-[#0a1424] p-6 sm:p-8 lg:p-12 xl:p-14 select-none">
 
     <!-- Imagen Fotográfica de Fondo -->
-    <img
-      src="/images/auth-bg.jpg"
-      alt="Dolphin ERP"
-      class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none saturate-[0.6] brightness-[0.95]"
-    />
+    <img src="/images/auth-bg.jpg" alt="Dolphin ERP"
+      class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none saturate-[0.6] brightness-[0.95]" />
 
     <!-- Sombras tipo viñeta -->
     <div
@@ -28,11 +25,8 @@
     <div class="relative z-10 flex items-start justify-between w-full">
       <!-- Logo + Nombre de Marca -->
       <div class="flex items-center gap-3.5">
-        <img
-          src="/images/logo/logo_dolphin_dark.png"
-          alt="Dolphin ERP"
-          class="h-9 sm:h-11 w-auto object-contain shrink-0"
-        />
+        <img src="/images/logo/logo_dolphin_dark.png" alt="Dolphin ERP"
+          class="h-9 sm:h-11 w-auto object-contain shrink-0" />
         <div class="flex flex-col">
           <span class="text-xl sm:text-2xl font-bold tracking-tight text-white leading-none">
             Dolphin ERP
@@ -61,7 +55,8 @@
       <div class="mt-6 sm:mt-8 lg:mt-10 flex items-center gap-4 sm:gap-6 max-w-md w-full pt-2">
         <!-- Pilar 1: Greater Efficiency -->
         <div class="flex flex-col items-start min-w-0 flex-1">
-          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
             <polyline points="16 7 22 7 22 13" />
           </svg>
@@ -76,7 +71,8 @@
 
         <!-- Pilar 2: Stronger Collaboration -->
         <div class="flex flex-col items-start min-w-0 flex-1">
-          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -93,8 +89,10 @@
 
         <!-- Pilar 3: Secure and Reliable -->
         <div class="flex flex-col items-start min-w-0 flex-1">
-          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
             <path d="m9 12 2 2 4-4" />
           </svg>
           <div class="flex flex-col text-xs sm:text-[13px] font-semibold text-white mt-2 leading-tight">
@@ -119,7 +117,8 @@
           <img src="/images/logo/logo_dolphin_light.png"
             class="h-6 sm:h-7 w-auto max-w-[130px] object-contain object-left dark:hidden" alt="Dolphin logo" />
           <img src="/images/logo/logo_dolphin_dark.png"
-            class="h-6.5 sm:h-7.5 w-auto max-w-[130px] object-contain object-left hidden dark:block" alt="Dolphin logo" />
+            class="h-6.5 sm:h-7.5 w-auto max-w-[130px] object-contain object-left hidden dark:block"
+            alt="Dolphin logo" />
         </div>
         <div class="hidden md:block"></div>
         <language-switcher class="shrink-0" />
@@ -137,39 +136,28 @@
       <form class="mt-4" (ngSubmit)="verify()">
         <div class="flex flex-col gap-y-1 sm:gap-y-1.5">
           <mat-form-field class="w-full" appearance="outline" subscriptSizing="dynamic">
-            <mat-label>{{ 'mfa.code' | transloco }}</mat-label>
-            <input
-              id="mfaCode"
-              matInput
-              name="code"
-              [(ngModel)]="code"
-              autocomplete="one-time-code"
-              placeholder="123456"
-              maxlength="40"
-              required
-            />
+            <mat-label class="pt-2.5">{{ 'mfa.code' | transloco }}</mat-label>
+            <input id="mfaCode" matInput name="code" [(ngModel)]="code" autocomplete="one-time-code"
+              placeholder="123456" maxlength="40" required />
           </mat-form-field>
 
           @if (error()) {
-            <p role="alert" class="text-xs text-rose-600 dark:text-rose-400 mt-1">
-              {{ 'mfa.invalidCode' | transloco }}
-            </p>
+          <p role="alert" class="text-xs text-rose-600 dark:text-rose-400 mt-1">
+            {{ 'mfa.invalidCode' | transloco }}
+          </p>
           }
         </div>
 
-        <button
-          type="submit"
-          matButton="filled"
-          class="mt-4 w-full !h-8.5 sm:!h-9 !rounded-xl text-xs font-semibold"
-          [disabled]="busy() || !code.trim()"
-        >
+        <button type="submit" matButton="filled" class="mt-4 w-full !h-8.5 sm:!h-9 !rounded-xl text-xs font-semibold"
+          [disabled]="busy() || !code.trim()">
           @if (busy()) {
-            <div class="flex items-center justify-center gap-2">
-              <span class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></span>
-              <span>{{ 'mfa.verify' | transloco }}</span>
-            </div>
+          <div class="flex items-center justify-center gap-2">
+            <span
+              class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></span>
+            <span>{{ 'mfa.verify' | transloco }}</span>
+          </div>
           } @else {
-            {{ 'mfa.verify' | transloco }}
+          {{ 'mfa.verify' | transloco }}
           }
         </button>
 
@@ -183,15 +171,18 @@
       <!-- Enlaces Legales Inferiores -->
       <div
         class="mt-4 text-center text-[10px] text-neutral-400 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5">
-        <a routerLink="/legal/terms" class="hover:underline hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+        <a routerLink="/legal/terms"
+          class="hover:underline hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
           {{ 'legal.terms' | transloco }}
         </a>
         <span class="text-neutral-300 dark:text-neutral-700">•</span>
-        <a routerLink="/legal/privacy" class="hover:underline hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+        <a routerLink="/legal/privacy"
+          class="hover:underline hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
           {{ 'legal.privacy' | transloco }}
         </a>
         <span class="text-neutral-300 dark:text-neutral-700">•</span>
-        <a routerLink="/legal/cookies" class="hover:underline hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+        <a routerLink="/legal/cookies"
+          class="hover:underline hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
           {{ 'legal.cookies' | transloco }}
         </a>
       </div>

@@ -156,4 +156,30 @@ describe('UpdateService', () => {
     expect(restored.status()).toBe('ready');
     expect(restored.updateInfo()?.version).toBe('1.0.14');
   });
+
+  it('does not show notification popup when on the updates page', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: PLATFORM_ID, useValue: 'browser' },
+        {
+          provide: TranslocoService,
+          useValue: { translate: (key: string) => key },
+        },
+        { provide: MatSnackBar, useValue: { openFromComponent: open } },
+        {
+          provide: MatDialog,
+          useValue: { open: () => ({ afterClosed: () => of(false) }) },
+        },
+        {
+          provide: (require('@angular/router').Router),
+          useValue: { url: '/admin/settings/about', events: of() },
+        },
+      ],
+    });
+    const pageService = TestBed.inject(UpdateService);
+    expect(pageService.isUpdatesPage()).toBe(true);
+    available({ version: '1.0.18' });
+    expect(open).not.toHaveBeenCalled();
+  });
 });
