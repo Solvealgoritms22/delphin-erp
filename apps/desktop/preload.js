@@ -40,6 +40,9 @@ contextBridge.exposeInMainWorld('dolphinWindow', {
   onMaximizeChange: (callback) => {
     ipcRenderer.on('dolphin:window-maximized', (_e, isMaximized) => callback(isMaximized));
   },
+  removeMaximizeListener: (callback) => {
+    ipcRenderer.removeListener('dolphin:window-maximized', callback);
+  },
 });
 
 // Server configuration & diagnostics bridge
