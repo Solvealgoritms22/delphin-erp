@@ -41,3 +41,9 @@ contextBridge.exposeInMainWorld('dolphinWindow', {
     ipcRenderer.on('dolphin:window-maximized', (_e, isMaximized) => callback(isMaximized));
   },
 });
+
+// Server configuration & diagnostics bridge
+contextBridge.exposeInMainWorld('dolphinServer', {
+  getApiUrl: () => process.env.DOLPHIN_API_URL || null,
+  toggleDevTools: () => ipcRenderer.send('dolphin:toggle-devtools'),
+});

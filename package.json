@@ -1,6 +1,6 @@
 {
   "name": "dolphin-erp",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "private": true,
   "workspaces": [
     "apps/*"

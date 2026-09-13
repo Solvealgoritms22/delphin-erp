@@ -63,15 +63,17 @@ function createWindow() {
     backgroundColor: '#09090b',
   });
 
-  const isDev = process.argv.includes('--dev');
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'F12' && input.type === 'keyDown') {
+      mainWindow.webContents.toggleDevTools();
+      event.preventDefault();
+    }
+  });
 
-  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-    log.error(`Failed to load ${validatedURL}: [${errorCode}] ${errorDescription}`);
-  });
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!trustedUrl(url)) event.preventDefault();
-  });
+  const apiUrlArg = process.argv.find(arg => arg && arg.startsWith('--api-url='));
+  if (apiUrlArg) {
+    process.env.DOLPHIN_API_URL = apiUrlArg.slice(10);
+  }
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:3873');
@@ -179,6 +181,10 @@ function setupAutoUpdater() {
     } catch {
       log.warn('Rejected invalid external URL');
     }
+  });
+
+  secureOn('dolphin:toggle-devtools', () => {
+    mainWindow?.webContents.toggleDevTools();
   });
 
   // Notify renderer when maximize state changes
