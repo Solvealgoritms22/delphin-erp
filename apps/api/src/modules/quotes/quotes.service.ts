@@ -767,7 +767,7 @@ export class QuotesService {
     const customSubject = dto.customSubject?.trim();
     if (
       customSubject &&
-      (/[\r\n\x00-\x1f]/.test(customSubject) || customSubject.length > 200)
+      ([...customSubject].some(char => char.charCodeAt(0) < 32) || customSubject.length > 200)
     )
       throw new BadRequestException('El asunto personalizado no es válido.');
 
@@ -831,7 +831,7 @@ export class QuotesService {
    * Convierte una cotización directamente en una Factura de Venta
    */
   async convertToInvoice(empresaId: string, usuarioId: string, id: string) {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM cotizaciones WHERE id = ${id} AND empresa_id = ${empresaId} FOR UPDATE`;
       const quote = await tx.cotizacion.findFirst({
         where: { id, empresaId },
@@ -928,23 +928,6 @@ export class QuotesService {
         tx,
       );
 
-      if (this.notifications) {
-        await this.notifications.create({
-          empresaId,
-          tipo: 'QUOTE_CONVERTED',
-          titulo: 'Borrador creado',
-          mensaje: `Cotización ${quote.numeroCotizacion} convertida a borrador de factura ${factura.numeroFactura}.`,
-          severidad: 'SUCCESS',
-          icono: 'check-circle',
-          payload: {
-            cotizacionId: quote.id,
-            facturaId: factura.id,
-            numeroCotizacion: quote.numeroCotizacion,
-            numeroFactura: factura.numeroFactura,
-          },
-          canales: ['IN_APP'],
-        });
-      }
 
       return {
         success: true,
@@ -953,6 +936,15 @@ export class QuotesService {
         invoice: factura,
       };
     });
+    // Notification failure must not undo or misreport an already committed conversion.
+    if (this.notifications) {
+      try {
+        await this.notifications.create({ empresaId, tipo: 'QUOTE_CONVERTED', titulo: 'Borrador creado',
+          mensaje: result.message, severidad: 'SUCCESS', icono: 'check-circle',
+          payload: { cotizacionId: result.quote.id, facturaId: result.invoice.id }, canales: ['IN_APP'] });
+      } catch { this.logger.warn('No se pudo notificar la conversión de cotización ' + result.quote.id); }
+    }
+    return result;
   }
 
   /**

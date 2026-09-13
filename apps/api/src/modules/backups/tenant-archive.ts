@@ -45,6 +45,8 @@ export async function exportTenantArchive(
   empresaId: string,
 ): Promise<TenantArchive> {
   const tables: Record<string, Row[]> = {};
+  let archiveBytes = 0;
+  let archiveRows = 0;
   const company = await db.empresa.findUnique({ where: { id: empresaId } });
   if (!company) throw new Error('Company not found');
   tables.Empresa = [company];
@@ -63,7 +65,22 @@ export async function exportTenantArchive(
         : null;
     if (!where)
       throw new Error('Backup ownership mapping missing for ' + model.name);
-    tables[model.name] = await delegate(db, model.name).findMany({ where });
+    const rows: Row[] = [];
+    let cursor: string | undefined;
+    for (;;) {
+      const batch: Row[] = await delegate(db, model.name).findMany({
+        where, take: 100, orderBy: { id: 'asc' },
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      });
+      archiveRows += batch.length;
+      archiveBytes += Buffer.byteLength(JSON.stringify(batch, (_key, value) => typeof value === 'bigint' ? value.toString() : value));
+      if (archiveRows > 100000 || archiveBytes > 64 * 1024 * 1024)
+        throw new Error('El respaldo excede el límite seguro de esta exportación (100000 registros / 64 MB). Solicita un respaldo administrado.');
+      rows.push(...batch);
+      if (batch.length < 100) break;
+      cursor = batch[batch.length - 1].id as string;
+    }
+    tables[model.name] = rows;
   }
   const userIds = new Set<string>(
     [

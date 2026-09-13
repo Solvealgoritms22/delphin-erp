@@ -419,7 +419,8 @@ export class CustomerPaymentsService {
       allPaymentsCount,
     ] = await Promise.all([
       // Total por cobrar y facturas con balance
-      this.prisma.facturaVenta.aggregate({
+      this.prisma.facturaVenta.groupBy({
+        by: ['moneda', 'tasaCambio'],
         where: {
           empresaId,
           tipoPago: { not: 'CONTADO' },
@@ -430,7 +431,8 @@ export class CustomerPaymentsService {
         _count: { id: true },
       }),
       // Total vencido (fechaVencimiento < now)
-      this.prisma.facturaVenta.aggregate({
+      this.prisma.facturaVenta.groupBy({
+        by: ['moneda', 'tasaCambio'],
         where: {
           empresaId,
           tipoPago: { not: 'CONTADO' },
@@ -442,7 +444,8 @@ export class CustomerPaymentsService {
         _count: { id: true },
       }),
       // Cobrado en el mes actual
-      this.prisma.pagoCliente.aggregate({
+      this.prisma.pagoCliente.groupBy({
+        by: ['moneda', 'tasaCambio'],
         where: {
           empresaId,
           estado: 'REGISTRADO',
@@ -468,13 +471,38 @@ export class CustomerPaymentsService {
       }),
     ]);
 
+    const money = (
+      groups: Array<{
+        moneda: string;
+        tasaCambio: Prisma.Decimal;
+        _sum: {
+          balancePendiente?: Prisma.Decimal | null;
+          monto?: Prisma.Decimal | null;
+        };
+      }>,
+    ) =>
+      groups
+        .reduce(
+          (sum, row) =>
+            sum.add(
+              new Prisma.Decimal(
+                row._sum.balancePendiente ?? row._sum.monto ?? 0,
+              ).mul(row.moneda === 'DOP' ? 1 : row.tasaCambio),
+            ),
+          new Prisma.Decimal(0),
+        )
+        .toDecimalPlaces(2)
+        .toNumber();
+    const count = (groups: Array<{ _count: { id: number } }>) =>
+      groups.reduce((sum, row) => sum + row._count.id, 0);
     return {
-      totalPorCobrar: Number(cxcAgg._sum.balancePendiente || 0),
-      facturasPendientesCount: cxcAgg._count.id || 0,
-      totalVencido: Number(vencidoAgg._sum.balancePendiente || 0),
-      facturasVencidasCount: vencidoAgg._count.id || 0,
-      cobradoMes: Number(cobradoMesAgg._sum.monto || 0),
-      cobrosMesCount: cobradoMesAgg._count.id || 0,
+      moneda: 'DOP',
+      totalPorCobrar: money(cxcAgg),
+      facturasPendientesCount: count(cxcAgg),
+      totalVencido: money(vencidoAgg),
+      facturasVencidasCount: count(vencidoAgg),
+      cobradoMes: money(cobradoMesAgg),
+      cobrosMesCount: count(cobradoMesAgg),
       clientesConSaldoCount: distinctClientsWithBalance.length,
       totalCobrosHistoricos: allPaymentsCount,
     };

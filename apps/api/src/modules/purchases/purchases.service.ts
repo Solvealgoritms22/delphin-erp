@@ -138,20 +138,21 @@ export class PurchasesService {
     const discountBase = subtotalAcc.sub(descuentoLineasAcc);
     if (globalDiscount.lt(0) || globalDiscount.gt(discountBase))
       throw new BadRequestException('Descuento global inválido.');
+    // Allocate against the remaining base, so rounding never overdraws a zero/small line.
     let remainingDiscount = globalDiscount;
-    calculatedItems.forEach((item, index) => {
-      const allocation =
-        index === calculatedItems.length - 1
-          ? remainingDiscount
-          : discountBase.gt(0)
-            ? Prisma.Decimal.min(
-                remainingDiscount,
-                globalDiscount
-                  .mul(item.subtotal)
-                  .div(discountBase)
-                  .toDecimalPlaces(2),
-              )
-            : new Prisma.Decimal(0);
+    let remainingBase = discountBase;
+    for (const item of calculatedItems) {
+      const allocation = remainingBase.gt(0)
+        ? Prisma.Decimal.min(
+            item.subtotal,
+            remainingDiscount,
+            remainingDiscount
+              .mul(item.subtotal)
+              .div(remainingBase)
+              .toDecimalPlaces(2),
+          )
+        : new Prisma.Decimal(0);
+      remainingBase = remainingBase.sub(item.subtotal);
       remainingDiscount = remainingDiscount.sub(allocation);
       item.descuento = item.descuento.add(allocation);
       item.subtotal = item.subtotal.sub(allocation);
@@ -160,7 +161,13 @@ export class PurchasesService {
         .div(100)
         .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
       item.total = item.subtotal.add(item.itbis);
-    });
+    }
+    if (!remainingDiscount.eq(0))
+      throw new BadRequestException('Descuento no distribuible a centavos.');
+    if (!almacenId && calculatedItems.some((item) => item.afectaInventario))
+      throw new BadRequestException(
+        'Selecciona un almacén para los productos de inventario.',
+      );
     itbisAcc = calculatedItems.reduce(
       (sum, item) => sum.add(item.itbis),
       new Prisma.Decimal(0),
@@ -213,7 +220,9 @@ export class PurchasesService {
         });
 
         let nuevoStock = item.cantidad;
-        let nuevoCostoPromedio = item.costoUnitario;
+        let nuevoCostoPromedio = item.subtotal
+          .div(item.cantidad)
+          .toDecimalPlaces(2);
 
         if (stockExistente) {
           const stockActual = new Prisma.Decimal(stockExistente.cantidad);
@@ -228,7 +237,7 @@ export class PurchasesService {
             const valorActual = stockActual.gt(0)
               ? stockActual.mul(costoActual)
               : new Prisma.Decimal(0);
-            const valorCompra = item.cantidad.mul(item.costoUnitario);
+            const valorCompra = item.subtotal;
             nuevoCostoPromedio = valorActual
               .add(valorCompra)
               .div(nuevoStock)
@@ -271,7 +280,7 @@ export class PurchasesService {
             usuarioId,
             tipo: 'COMPRA',
             cantidad: item.cantidad,
-            costoUnitario: item.costoUnitario,
+            costoUnitario: item.subtotal.div(item.cantidad).toDecimalPlaces(2),
             referenciaDoc: `${numeroFactura}${dto.ncf ? ` (NCF: ${dto.ncf})` : ''}`,
             motivo: `Compra a Proveedor: ${proveedor.nombreRazonSocial}`,
           },
@@ -681,6 +690,8 @@ export class PurchasesService {
         for (const det of compra.detalles) {
           if (!det.afectaInventario || !det.productoId) continue;
 
+          await tx.$queryRaw`SELECT id FROM productos WHERE id = ${det.productoId} AND empresa_id = ${empresaId} FOR UPDATE`;
+          await tx.$queryRaw`SELECT id FROM inventario_stocks WHERE producto_id = ${det.productoId} AND almacen_id = ${compra.almacenId} FOR UPDATE`;
           const stock = await tx.inventarioStock.findUnique({
             where: {
               productoId_almacenId: {
@@ -690,14 +701,33 @@ export class PurchasesService {
             },
           });
 
-          if (stock) {
-            await tx.inventarioStock.update({
-              where: { id: stock.id },
-              data: {
-                cantidad: { decrement: det.cantidad },
-              },
-            });
-          }
+          if (
+            !stock ||
+            stock.cantidad.lt(det.cantidad) ||
+            stock.costoPromedio === null
+          )
+            throw new BadRequestException(
+              'No se puede anular: existencias o valoración insuficientes.',
+            );
+          const quantity = stock.cantidad.sub(det.cantidad);
+          const value = stock.cantidad
+            .mul(stock.costoPromedio)
+            .sub(det.subtotal);
+          if (value.lt(0) || (quantity.eq(0) && value.abs().gt(0.01)))
+            throw new BadRequestException(
+              'La compra tiene movimientos posteriores; requiere conciliación de inventario.',
+            );
+          const cost = quantity.gt(0)
+            ? value.div(quantity).toDecimalPlaces(2)
+            : new Prisma.Decimal(0);
+          await tx.inventarioStock.update({
+            where: { id: stock.id },
+            data: { cantidad: quantity, costoPromedio: cost },
+          });
+          await tx.producto.update({
+            where: { id: det.productoId },
+            data: { costo: cost },
+          });
 
           // Kardex de anulación de compra
           await tx.movimientoInventario.create({

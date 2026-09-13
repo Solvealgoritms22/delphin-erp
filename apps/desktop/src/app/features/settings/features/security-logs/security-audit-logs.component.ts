@@ -66,10 +66,10 @@ import {
         <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700/80 rounded-2xl overflow-hidden shadow-sm">
 
           <!-- TOOLBAR -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 border-b border-neutral-200 dark:border-neutral-700/80 gap-3">
+          <div class="flex flex-wrap items-center justify-between p-3.5 sm:p-4 border-b border-neutral-200 dark:border-neutral-700/80 gap-3">
 
             <!-- Left: Search Box + Filters + Columns Toggle -->
-            <div class="flex items-center gap-2.5 flex-1 min-w-0 flex-wrap sm:flex-nowrap">
+            <div class="flex items-center gap-2.5 flex-1 min-w-[280px] flex-wrap">
 
               <!-- Search Input with Clear Button -->
               <div class="relative flex items-center h-10 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/40 min-w-[200px] sm:min-w-64 max-w-sm flex-1 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
@@ -231,7 +231,7 @@ import {
             </div>
 
             <!-- Right: Push Alerts Toggle + Actions Menu -->
-            <div class="flex items-center gap-3 sm:gap-4 self-end sm:self-auto shrink-0">
+            <div class="flex items-center gap-3 sm:gap-4 shrink-0">
 
               <!-- Push Alerts Switch -->
               <div class="flex items-center gap-2 whitespace-nowrap shrink-0 text-xs font-semibold text-neutral-700 dark:text-neutral-300">

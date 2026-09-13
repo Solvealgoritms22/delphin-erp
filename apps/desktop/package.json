@@ -29,7 +29,8 @@
       "dist/desktop/browser/**/*",
       "main.js",
       "preload.js",
-      "package.json"
+      "package.json",
+      "oauth-browser.js"
     ],
     "publish": {
       "provider": "github",
@@ -115,7 +116,7 @@
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "typescript-eslint": "8.65.0",
-    "vitest": "4.1.10",
+    "vitest": "4.1.11",
     "wait-on": "^9.1.0"
   },
   "engines": {

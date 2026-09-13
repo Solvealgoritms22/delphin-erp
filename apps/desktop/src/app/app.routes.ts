@@ -2,6 +2,7 @@ import { Route } from '@angular/router';
 import { authGuard } from './core/auth/auth.guards';
 
 export const routes: Route[] = [
+  { path: 'release-notes', loadComponent: () => import('./features/public/release-notes/release-notes.component').then(m => m.ReleaseNotesComponent) },
 
   {
     path: 'home',

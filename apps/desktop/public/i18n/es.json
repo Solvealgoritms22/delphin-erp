@@ -826,7 +826,8 @@
       "greaterEfficiency": "Mayor Eficiencia",
       "strongerCollaboration": "Mayor Colaboración",
       "secureReliable": "Seguro y Confiable"
-    }
+    },
+    "googleBrowserMissing": "Instala Microsoft Edge o Google Chrome para iniciar sesión con Google en una ventana independiente."
   },
   "layout": {
     "sidebar": {
@@ -1931,7 +1932,14 @@
     "upToDate": "Estás en la última versión",
     "checkFailed": "Error al buscar actualizaciones",
     "notElectron": "Las actualizaciones solo están disponibles en la app de escritorio",
-    "currentVersion": "Versión actual"
+    "currentVersion": "Versión actual",
+    "notesTitle": "Notas de la versión",
+    "notesHelp": "Novedades, mejoras y correcciones de Dolphin ERP.",
+    "notesBack": "Volver",
+    "notesEmpty": "No hay notas publicadas para esta versión.",
+    "notesRetry": "Volver a cargar",
+    "copyCode": "Copiar",
+    "copied": "Copiado"
   },
   "reports": {
     "title": "Reportes y Estadísticas",

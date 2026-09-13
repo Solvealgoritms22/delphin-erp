@@ -29,6 +29,12 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     response.status(status).json({
       statusCode: status,
+      ...(typeof exceptionResponse === 'object' &&
+      exceptionResponse !== null &&
+      'code' in exceptionResponse &&
+      typeof exceptionResponse.code === 'string'
+        ? { code: exceptionResponse.code }
+        : {}),
       message,
       timestamp: new Date().toISOString(),
       path: request.url,

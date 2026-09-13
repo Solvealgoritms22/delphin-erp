@@ -60,13 +60,25 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Enforce MFA on every authenticated request, including tokens issued by
     // older clients/servers and sessions opened before MFA was enabled.
     const [account, credential] = await Promise.all([
-      this.prisma.usuario.findUnique({ where: { id: payload.sub }, select: { mfaHabilitado: true } }),
-      this.prisma.mfaCredential.findUnique({ where: { usuarioId: payload.sub }, select: { enabledAt: true } }),
+      this.prisma.usuario.findUnique({
+        where: { id: payload.sub },
+        select: { mfaHabilitado: true },
+      }),
+      this.prisma.mfaCredential.findUnique({
+        where: { usuarioId: payload.sub },
+        select: { enabledAt: true },
+      }),
     ]);
     if (!account) throw new UnauthorizedException('Cuenta no disponible');
-    if ((account.mfaHabilitado || credential?.enabledAt) &&
-        (!credential?.enabledAt || payload.mfaVerified !== true)) {
-      throw new UnauthorizedException({ code: 'MFA_REQUIRED', message: 'Vuelve a iniciar sesión y completa la verificación de dos pasos. Si tu aplicación no la admite, actualízala.' });
+    if (
+      (account.mfaHabilitado || credential?.enabledAt) &&
+      (!credential?.enabledAt || payload.mfaVerified !== true)
+    ) {
+      throw new UnauthorizedException({
+        code: 'MFA_REQUIRED',
+        message:
+          'Vuelve a iniciar sesión y completa la verificación de dos pasos. Si tu aplicación no la admite, actualízala.',
+      });
     }
 
     if (!payload.empresaId)

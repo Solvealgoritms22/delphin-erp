@@ -1,0 +1,14 @@
+
+> api@0.0.1 test:e2e
+> jest --config ./test/jest-e2e.json --runInBand
+
+[14:13:13.984] INFO (9676): request completed {"req":{"id":1,"method":"GET","url":"/","remoteAddress":"::ffff:127.0.0.1","remotePort":60156},"res":{"statusCode":200,"headers":{"x-powered-by":"Express","x-ratelimit-limit":"120","x-ratelimit-remaining":"119","x-ratelimit-reset":"60","content-type":"text/html; charset=utf-8","content-length":"12","etag":"W/\"c-Lve95gjOVATpfV8EL5X4nxwjKHE\""}},"responseTime":21}
+
+Test Suites: 3 passed, 3 total
+Tests:       18 passed, 18 total
+Snapshots:   0 total
+Time:        53.645 s
+Ran all test suites.
+Jest did not exit one second after the test run has completed.
+
+'This usually means that there are asynchronous operations that weren't stopped in your tests. Consider running Jest with `--detectOpenHandles` to troubleshoot this issue.

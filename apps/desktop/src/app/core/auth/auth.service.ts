@@ -122,7 +122,7 @@ export class AuthService {
     if (this.googleLoading() || typeof window === 'undefined') return;
     this.googleLoading.set(true);
     const attempt = ++this.googleAttempt;
-    const bridge = (window as unknown as { dolphinWindow?: { openExternal(url: string): void } }).dolphinWindow;
+    const bridge = window.dolphinGoogle;
     const popup = bridge ? null : window.open('about:blank', 'dolphin-google', 'width=520,height=720');
     try {
       if (!bridge && !popup) throw new Error('popup_blocked');
@@ -134,6 +134,7 @@ export class AuthService {
       if (target.origin !== 'https://accounts.google.com') throw new Error('invalid_provider');
       let messageReceived = false;
       const onMessage = (e: MessageEvent) => {
+        if (e.origin !== new URL(this.apiUrl).origin || e.source !== popup) return;
         if (e.data?.type === 'GOOGLE_AUTH_SUCCESS' || e.data?.type === 'GOOGLE_AUTH_FAILED') {
           messageReceived = true;
           popup?.close();
@@ -154,7 +155,7 @@ export class AuthService {
         }
       } catch {}
 
-      if (bridge) bridge.openExternal(target.href);
+      if (bridge) await bridge.open(target.href);
       else if (popup) { popup.location.href = target.href; }
       const expiresAt = Date.now() + 10 * 60_000;
       try {
@@ -162,6 +163,7 @@ export class AuthService {
           const result = await firstValueFrom(this.http.post<{ status: string; needsCompany?: boolean; needsPolicies?: boolean }>(
             this.apiUrl + '/google/status', { flowId: flow.flowId, verifier }));
           if (result.status === 'ready') {
+            await bridge?.close();
             popup?.close();
             const winBridge = (window as unknown as { dolphinWindow?: { focus?: () => void } }).dolphinWindow;
             winBridge?.focus?.();
@@ -172,7 +174,7 @@ export class AuthService {
             } else await this.router.navigateByUrl('/auth/google/setup');
             return;
           }
-          if (popup?.closed) {
+          if (popup?.closed || (bridge && await bridge.isClosed())) {
             await new Promise(resolve => setTimeout(resolve, 800));
             const final = await firstValueFrom(this.http.post<{ status: string; needsCompany?: boolean; needsPolicies?: boolean }>(
               this.apiUrl + '/google/status', { flowId: flow.flowId, verifier }));
@@ -201,13 +203,15 @@ export class AuthService {
       popup?.close();
       sessionStorage.removeItem('google_setup');
       const serverMessage = (err as any)?.error?.message as string | undefined;
-      const displayMessage = serverMessage
+      const displayMessage = err instanceof Error && err.message.includes('OAUTH_BROWSER_UNAVAILABLE')
+        ? this.transloco.translate('auth.googleBrowserMissing')
+        : serverMessage
         ? serverMessage
         : this.transloco.translate('auth.googleSetup.error');
       this.snackBar.open(displayMessage, this.transloco.translate('common.close'), {
         duration: 8000, horizontalPosition: 'center', verticalPosition: 'bottom',
       });
-    } finally { this.googleLoading.set(false); }
+    } finally { await bridge?.close(); this.googleLoading.set(false); }
   }
 
   private base64url(bytes: Uint8Array): string {

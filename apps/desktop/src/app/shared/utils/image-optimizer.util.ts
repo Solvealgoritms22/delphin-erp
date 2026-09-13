@@ -3,7 +3,6 @@
  * Converts any browser-compatible image to WebP format using the Canvas API.
  * Falls back to the original format if WebP is not supported or conversion fails.
  */
-
 export type ImageOptimizationResult = {
   base64: string;
   mimeType: string;

@@ -85,7 +85,7 @@ export class PaymentsService {
   ) {
     const plan = this.findPlan(planId);
     const amount =
-      billingCycle === 'annual' ? plan.precioAnual : plan.precioMensual;
+      billingCycle === 'annual' ? Number(plan.precioAnual) * 12 : plan.precioMensual;
 
     // Simulated mode: no real PayPal credentials configured.
     if (!this.credentialsConfigured) {

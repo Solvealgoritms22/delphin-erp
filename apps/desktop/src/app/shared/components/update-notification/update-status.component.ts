@@ -1,3 +1,4 @@
+import { RouterLink } from '@angular/router';
 import { Component, computed, inject, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -8,7 +9,7 @@ import type { UpdateService } from '../../services/update.service';
 @Component({
   selector: 'app-update-status',
   standalone: true,
-  imports: [MatButtonModule, MatProgressBarModule, TranslocoPipe, XIcon],
+  imports: [RouterLink, MatButtonModule, MatProgressBarModule, TranslocoPipe, XIcon],
   template: `
     <section
       class="overflow-hidden rounded-2xl border border-neutral-200 bg-white text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
@@ -52,13 +53,14 @@ import type { UpdateService } from '../../services/update.service';
               class="rounded-md bg-neutral-100 px-2 py-1 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
               >{{ service().currentVersion() || '—' }}</span
             >
-            <span aria-hidden="true">→</span>
+            @if (info.version !== service().currentVersion()) { <span aria-hidden="true">→</span> }
             <span
               class="rounded-md border border-blue-200 bg-blue-50 px-2 py-1 font-semibold text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400"
               >{{ info.version }}</span
             >
           </div>
         }
+        <a mat-button routerLink="/release-notes" class="mt-3">{{ 'updater.notesTitle' | transloco }}</a>
         @if (
           status() === 'checking' ||
           status() === 'available' ||

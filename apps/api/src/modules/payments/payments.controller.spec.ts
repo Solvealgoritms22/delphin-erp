@@ -319,4 +319,12 @@ describe('PaymentsController', () => {
       data: expect.objectContaining({ azulDataVaultToken: null }),
     });
   });
+
+  it('rejects an over-quota downgrade before contacting the bank', async () => {
+    prisma.suscripcion.findUnique.mockResolvedValue({ azulDataVaultToken: 'tok', azulDataVaultExpiration: '202812' });
+    prisma.plan.findUnique.mockResolvedValue({ id: 'small', precioMensual: 19, maxUsuarios: 1, maxSucursales: 1, maxProductos: 1 });
+    prisma.membresia.count.mockResolvedValue(2); prisma.sucursal.count.mockResolvedValue(1); prisma.producto.count.mockResolvedValue(1);
+    await expect(controller.changePlan(user, { idempotencyKey: '10000000-0000-4000-8000-000000000003', planId: 'small', billingCycle: 'monthly' })).rejects.toThrow('límites');
+    expect(azulService.processTokenSale).not.toHaveBeenCalled();
+  });
 });

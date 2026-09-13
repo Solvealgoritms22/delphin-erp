@@ -9,7 +9,12 @@ import {
 } from './email-template.catalog';
 
 export const escapeEmail = (value: unknown) =>
-  (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? String(value) : '').replace(
+  (typeof value === 'string' ||
+  typeof value === 'number' ||
+  typeof value === 'boolean'
+    ? String(value)
+    : ''
+  ).replace(
     /[&<>"']/g,
     (char) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
@@ -107,7 +112,9 @@ export function renderEmail(
         : effectiveValues[name];
     });
   const subject = fill(design.subject, false)
-    .split('').map(char => char.charCodeAt(0) < 32 ? ' ' : char).join('')
+    .split('')
+    .map((char) => (char.charCodeAt(0) < 32 ? ' ' : char))
+    .join('')
     .slice(0, 200);
   const heading = fill(design.heading, false);
   const brand = isSystem

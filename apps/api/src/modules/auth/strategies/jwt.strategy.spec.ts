@@ -16,7 +16,9 @@ describe('JwtStrategy session and tenant boundary', () => {
   let strategy: JwtStrategy;
   beforeEach(() => {
     prisma = {
-      usuario: { findUnique: jest.fn().mockResolvedValue({ mfaHabilitado: false }) },
+      usuario: {
+        findUnique: jest.fn().mockResolvedValue({ mfaHabilitado: false }),
+      },
       mfaCredential: { findUnique: jest.fn().mockResolvedValue(null) },
       userSession: {
         findFirst: jest.fn().mockResolvedValue({ ultimoAcceso: new Date() }),
@@ -36,27 +38,46 @@ describe('JwtStrategy session and tenant boundary', () => {
     };
     strategy = new JwtStrategy(prisma);
   });
-  it.each([undefined, false, 'true', 1])('rejects legacy or unverified MFA claim %s', async mfaVerified => {
-    prisma.usuario.findUnique.mockResolvedValue({ mfaHabilitado: true });
-    prisma.mfaCredential.findUnique.mockResolvedValue({ enabledAt: new Date() });
-    await expect(strategy.validate(request, { ...payload, mfaVerified })).rejects.toMatchObject({ response: expect.objectContaining({ code: 'MFA_REQUIRED' }) });
-  });
+  it.each([undefined, false, 'true', 1])(
+    'rejects legacy or unverified MFA claim %s',
+    async (mfaVerified) => {
+      prisma.usuario.findUnique.mockResolvedValue({ mfaHabilitado: true });
+      prisma.mfaCredential.findUnique.mockResolvedValue({
+        enabledAt: new Date(),
+      });
+      await expect(
+        strategy.validate(request, { ...payload, mfaVerified }),
+      ).rejects.toMatchObject({
+        response: expect.objectContaining({ code: 'MFA_REQUIRED' }),
+      });
+    },
+  );
   it('preserves a verified MFA claim for tenant switching', async () => {
     prisma.usuario.findUnique.mockResolvedValue({ mfaHabilitado: true });
-    prisma.mfaCredential.findUnique.mockResolvedValue({ enabledAt: new Date() });
-    await expect(strategy.validate(request, { ...payload, mfaVerified: true })).resolves.toMatchObject({ mfaVerified: true });
+    prisma.mfaCredential.findUnique.mockResolvedValue({
+      enabledAt: new Date(),
+    });
+    await expect(
+      strategy.validate(request, { ...payload, mfaVerified: true }),
+    ).resolves.toMatchObject({ mfaVerified: true });
   });
   it('fails closed when the flag and credential disagree', async () => {
     prisma.usuario.findUnique.mockResolvedValue({ mfaHabilitado: true });
-    await expect(strategy.validate(request, { ...payload, mfaVerified: true })).rejects.toThrow();
+    await expect(
+      strategy.validate(request, { ...payload, mfaVerified: true }),
+    ).rejects.toThrow();
     prisma.usuario.findUnique.mockResolvedValue({ mfaHabilitado: false });
-    prisma.mfaCredential.findUnique.mockResolvedValue({ enabledAt: new Date() });
+    prisma.mfaCredential.findUnique.mockResolvedValue({
+      enabledAt: new Date(),
+    });
     await expect(strategy.validate(request, payload)).rejects.toThrow();
   });
   it('applies an MFA activation to an already open session on its next request', async () => {
     await expect(strategy.validate(request, payload)).resolves.toBeDefined();
     prisma.usuario.findUnique.mockResolvedValue({ mfaHabilitado: true });
-    prisma.mfaCredential.findUnique.mockResolvedValue({ enabledAt: new Date() });
+    prisma.mfaCredential.findUnique.mockResolvedValue({
+      enabledAt: new Date(),
+    });
     await expect(strategy.validate(request, payload)).rejects.toThrow();
   });
   it('rejects tokens without a tracked session', async () => {

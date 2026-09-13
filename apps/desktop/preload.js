@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('dolphinUpdater', {
   quitAndInstall: () => {
     ipcRenderer.send('dolphin:quit-and-install');
   },
+  getReleaseNotes: (version) => ipcRenderer.invoke('dolphin:get-release-notes', version),
   getUpdateState: () => ipcRenderer.invoke('dolphin:get-update-state'),
   getAppVersion: () => {
     return ipcRenderer.invoke('dolphin:get-app-version');
@@ -50,4 +51,10 @@ contextBridge.exposeInMainWorld('dolphinWindow', {
 contextBridge.exposeInMainWorld('dolphinServer', {
   getApiUrl: () => process.env.DOLPHIN_API_URL || null,
   toggleDevTools: () => ipcRenderer.send('dolphin:toggle-devtools'),
+});
+
+contextBridge.exposeInMainWorld('dolphinGoogle', {
+  open: (url) => ipcRenderer.invoke('dolphin:google-open', url),
+  close: () => ipcRenderer.invoke('dolphin:google-close'),
+  isClosed: () => ipcRenderer.invoke('dolphin:google-closed'),
 });

@@ -1,0 +1,17 @@
+{
+  "scope": "Compiled services, synthetic Prisma/providers; no external requests",
+  "results": {
+    "aiSalesWithoutInvoicePermission": true,
+    "publicFallbackWithFlagFalse": true,
+    "receivablesMixedCurrencies": {
+      "totalPendiente": 110,
+      "totalFacturasPendientes": 2,
+      "aging": {
+        "corriente": 110,
+        "de31a60": 0,
+        "de61a90": 0,
+        "masDe90": 0
+      }
+    }
+  }
+}

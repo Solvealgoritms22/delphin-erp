@@ -231,78 +231,99 @@ export class PaymentsController {
       empresaId,
       'PLAN_CHANGED',
       dto.idempotencyKey,
-      async () => {
-        const suscripcion = await this.prisma.suscripcion.findUnique({
-          where: { empresaId },
-        });
-        if (
-          !suscripcion ||
-          !suscripcion.azulDataVaultToken ||
-          !suscripcion.azulDataVaultExpiration
-        ) {
-          throw new BadRequestException(
-            'No tienes un método de pago registrado. Por favor agrega una tarjeta antes de cambiar de plan.',
-          );
-        }
+      async () =>
+        this.prisma.$transaction(
+          async (tx) => {
+            await tx.$queryRaw`SELECT id FROM empresas WHERE id = ${empresaId} FOR UPDATE`;
+            const suscripcion = await tx.suscripcion.findUnique({
+              where: { empresaId },
+            });
+            if (
+              !suscripcion ||
+              !suscripcion.azulDataVaultToken ||
+              !suscripcion.azulDataVaultExpiration
+            ) {
+              throw new BadRequestException(
+                'No tienes un método de pago registrado. Por favor agrega una tarjeta antes de cambiar de plan.',
+              );
+            }
 
-        const plan = await this.prisma.plan.findUnique({
-          where: { id: dto.planId },
-        });
-        if (!plan) throw new BadRequestException('Plan no encontrado');
+            const plan = await tx.plan.findUnique({
+              where: { id: dto.planId },
+            });
+            if (!plan) throw new BadRequestException('Plan no encontrado');
+            const [users, branches, products] = await Promise.all([
+              tx.membresia.count({ where: { empresaId, estado: 'ACTIVO' } }),
+              tx.sucursal.count({ where: { empresaId, estado: 'ACTIVO' } }),
+              tx.producto.count({ where: { empresaId, estado: 'ACTIVO' } }),
+            ]);
+            if (
+              users > plan.maxUsuarios ||
+              branches > plan.maxSucursales ||
+              products > plan.maxProductos
+            )
+              throw new BadRequestException(
+                'El uso actual supera los límites del plan. Ajusta usuarios, sucursales o productos antes de cambiarlo.',
+              );
 
-        const amount =
-          dto.billingCycle === 'annual' ? plan.precioAnual : plan.precioMensual;
+            const amount =
+              dto.billingCycle === 'annual'
+                ? plan.precioAnual
+                : plan.precioMensual;
 
-        const numAmount = Number(amount);
+            const numAmount = Number(amount);
 
-        if (
-          plan.id === 'trial' ||
-          !Number.isFinite(numAmount) ||
-          numAmount <= 0
-        ) {
-          throw new BadRequestException(
-            'Selecciona un plan de pago con tarifa válida; el trial no se puede activar como suscripción pagada.',
-          );
-        }
-        if (numAmount > 0) {
-          const orderNumber = `UPG-${dto.idempotencyKey}`;
-          const azulResponse = await this.azulService.processTokenSale({
-            dataVaultToken: decryptSecret(suscripcion.azulDataVaultToken),
-            dataVaultExpiration: suscripcion.azulDataVaultExpiration,
-            amountCents: Math.round(numAmount * 100),
-            itbisCents: Math.round(numAmount * 0.18 * 100),
-            orderNumber,
-          });
-          if (!this.azulService.isApproved(azulResponse)) {
-            throw new BadRequestException(
-              `El pago fue declinado: ${azulResponse.ResponseMessage}`,
-            );
-          }
-        }
+            if (
+              plan.id === 'trial' ||
+              !Number.isFinite(numAmount) ||
+              numAmount <= 0
+            ) {
+              throw new BadRequestException(
+                'Selecciona un plan de pago con tarifa válida; el trial no se puede activar como suscripción pagada.',
+              );
+            }
+            if (numAmount > 0) {
+              const orderNumber = `UPG-${dto.idempotencyKey}`;
+              const azulResponse = await this.azulService.processTokenSale({
+                dataVaultToken: decryptSecret(suscripcion.azulDataVaultToken),
+                dataVaultExpiration: suscripcion.azulDataVaultExpiration,
+                amountCents: Math.round(numAmount * 100),
+                itbisCents: Math.round(numAmount * 0.18 * 100),
+                orderNumber,
+              });
+              if (!this.azulService.isApproved(azulResponse)) {
+                throw new BadRequestException(
+                  `El pago fue declinado: ${azulResponse.ResponseMessage}`,
+                );
+              }
+            }
 
-        const nextBilling = new Date();
-        if (dto.billingCycle === 'annual') {
-          nextBilling.setFullYear(nextBilling.getFullYear() + 1);
-        } else {
-          nextBilling.setMonth(nextBilling.getMonth() + 1);
-        }
+            const nextBilling = new Date();
+            if (dto.billingCycle === 'annual') {
+              nextBilling.setFullYear(nextBilling.getFullYear() + 1);
+            } else {
+              nextBilling.setMonth(nextBilling.getMonth() + 1);
+            }
 
-        await this.prisma.suscripcion.update({
-          where: { empresaId },
-          data: {
-            planId: plan.id,
-            periodicidad: dto.billingCycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-            fechaRenovacion: nextBilling,
-            estado: 'ACTIVE',
+            await tx.suscripcion.update({
+              where: { empresaId },
+              data: {
+                planId: plan.id,
+                periodicidad:
+                  dto.billingCycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+                fechaRenovacion: nextBilling,
+                estado: 'ACTIVE',
+              },
+            });
+
+            return {
+              ok: true,
+              plan: plan.nombre,
+              simulated: process.env.AZUL_ENV === 'MOCK',
+            };
           },
-        });
-
-        return {
-          ok: true,
-          plan: plan.nombre,
-          simulated: process.env.AZUL_ENV === 'MOCK',
-        };
-      },
+          { timeout: 45000 },
+        ),
     );
   }
 

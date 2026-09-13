@@ -164,7 +164,9 @@ export class ActivityLogService {
   }
 
   clear(_empresaId: string, _modulo?: string): Promise<never> {
-    return Promise.reject(new ForbiddenException('Los registros de auditoría son inmutables'));
+    return Promise.reject(
+      new ForbiddenException('Los registros de auditoría son inmutables'),
+    );
   }
 
   async findSecurityLogs(params: {

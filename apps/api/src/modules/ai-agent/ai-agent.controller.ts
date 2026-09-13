@@ -138,6 +138,10 @@ export class AiAgentController {
       (res as any).flushHeaders();
     }
 
+    const abort = new AbortController();
+    const onClose = () => abort.abort();
+    res.once('close', onClose);
+    try {
     await this.aiAgentService.processChatStream(
       empresaId,
       {
@@ -147,14 +151,18 @@ export class AiAgentController {
       },
       dto,
       (chunk: any) => {
+        if (res.destroyed || res.writableEnded) return;
         res.write(`data: ${JSON.stringify(chunk)}\n\n`);
         if (typeof (res as any).flush === 'function') {
           (res as any).flush();
         }
       },
+      abort.signal,
     );
-
-    res.end();
+    } finally {
+      res.removeListener('close', onClose);
+      if (!res.destroyed) res.end();
+    }
   }
 
   @Get('status')

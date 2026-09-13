@@ -1,0 +1,9 @@
+
+> desktop@1.0.15 lint
+> ng lint
+
+
+Linting "desktop"...
+
+All files pass linting.
+

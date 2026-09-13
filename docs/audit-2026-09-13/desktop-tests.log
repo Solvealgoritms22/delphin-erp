@@ -1,0 +1,17 @@
+
+> desktop@1.0.15 test
+> ng test --watch=false
+
+> Building...
+√ Building...
+Application bundle generation complete. [28.475 seconds] - 2026-09-13T13:06:55.999Z
+
+
+ RUN  v4.1.10 C:/Users/dfajardo/OneDrive - COMISION NACIONAL DE ENERGIA/Documentos/github/delphin-erp/apps/desktop
+
+
+ Test Files  5 passed (5)
+      Tests  12 passed (12)
+   Start at  09:06:57
+   Duration  14.47s (transform 2.20s, setup 3.39s, import 14.24s, tests 2.76s, environment 24.33s)
+

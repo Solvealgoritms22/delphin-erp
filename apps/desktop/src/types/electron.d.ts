@@ -6,6 +6,7 @@ export type DolphinUpdater = {
   onError: (callback: (error: string) => void) => void;
   checkForUpdates: () => void;
   quitAndInstall: () => void;
+  getReleaseNotes?: (version: string) => Promise<string>;
   getAppVersion: () => Promise<string>;
   getUpdateState?: () => Promise<{
     status:
@@ -25,7 +26,7 @@ export type DolphinUpdater = {
 
 export type UpdateInfo = {
   version: string;
-  releaseNotes?: string;
+  releaseNotes?: string | Array<{ version: string; note: string }>;
   releaseDate?: string;
   files?: Array<{ url: string; size: number }>;
 };
@@ -41,6 +42,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
     dolphinUpdater: DolphinUpdater;
+    dolphinGoogle?: { open(url: string): Promise<void>; close(): Promise<void>; isClosed(): Promise<boolean> };
     dolphinWindow: { openExternal: (url: string) => void };
   }
 }

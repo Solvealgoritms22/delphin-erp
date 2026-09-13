@@ -508,7 +508,8 @@ export class AuthService {
     });
 
     if (!user) throw new NotFoundException('User not found');
-    if (user.mfaHabilitado && mfaVerified !== true) throw new UnauthorizedException('Se requiere verificación de dos pasos.');
+    if (user.mfaHabilitado && mfaVerified !== true)
+      throw new UnauthorizedException('Se requiere verificación de dos pasos.');
 
     const hasOwnedCompanies = user.empresasPropiedad.length > 0;
     const isOwner = user.empresasPropiedad.some(

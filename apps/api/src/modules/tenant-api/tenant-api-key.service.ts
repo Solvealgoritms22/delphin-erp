@@ -9,9 +9,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import {
-  CreateTenantApiAppDto,
-  } from './dto/tenant-api.dto';
+import { CreateTenantApiAppDto } from './dto/tenant-api.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import * as crypto from 'crypto';
 

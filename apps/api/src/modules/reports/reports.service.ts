@@ -1,13 +1,10 @@
-import {
-  Injectable,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   DateRangeReportDto,
   TopProductsReportDto,
   InventoryReportDto,
-  } from './dto/reports.dto';
+} from './dto/reports.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -341,7 +338,10 @@ export class ReportsService {
     > = {};
 
     for (const inv of invoices) {
-      const balance = Number(inv.balancePendiente);
+      const balance = new Prisma.Decimal(inv.balancePendiente)
+        .mul(this.reportingFactor(inv))
+        .toDecimalPlaces(2)
+        .toNumber();
       totalPendiente += balance;
 
       const dueDate = inv.fechaVencimiento
@@ -379,6 +379,7 @@ export class ReportsService {
 
     return {
       summary: {
+        moneda: 'DOP',
         totalPendiente,
         totalFacturasPendientes: invoices.length,
         aging: {
@@ -397,8 +398,16 @@ export class ReportsService {
         ncf: i.ncf,
         fecha: i.fecha,
         fechaVencimiento: i.fechaVencimiento,
-        total: Number(i.total),
-        balancePendiente: Number(i.balancePendiente),
+        moneda: 'DOP',
+        monedaOriginal: i.moneda,
+        total: new Prisma.Decimal(i.total)
+          .mul(this.reportingFactor(i))
+          .toDecimalPlaces(2)
+          .toNumber(),
+        balancePendiente: new Prisma.Decimal(i.balancePendiente)
+          .mul(this.reportingFactor(i))
+          .toDecimalPlaces(2)
+          .toNumber(),
         clienteNombre: i.cliente?.nombreRazonSocial || 'Cliente General',
         clienteDocumento: i.cliente?.numeroDocumento || '-',
       })),
@@ -446,7 +455,7 @@ export class ReportsService {
 
     for (const s of stocks) {
       const qty = Number(s.cantidad);
-      const cost = Number(s.producto?.costo || s.costoPromedio || 0);
+      const cost = Number(s.costoPromedio ?? s.producto?.costo ?? 0);
       const price = Number(s.producto?.precioVenta || 0);
       const minStock = Number(s.stockMinimo || 0);
 
@@ -772,9 +781,19 @@ export class ReportsService {
       const tipoId = rncCedula ? this.getTipoIdentificacion(rncCedula) : '';
       const tipoIngreso = '01'; // 01: Ingresos por operaciones (no financieros)
 
-      const sub = Number(v.subtotal);
-      const itb = Number(v.itbis);
-      const tot = Number(v.total);
+      const rate = this.reportingFactor(v).abs();
+      const sub = new Prisma.Decimal(v.subtotal)
+        .mul(rate)
+        .toDecimalPlaces(2)
+        .toNumber();
+      const itb = new Prisma.Decimal(v.itbis)
+        .mul(rate)
+        .toDecimalPlaces(2)
+        .toNumber();
+      const tot = new Prisma.Decimal(v.total)
+        .mul(rate)
+        .toDecimalPlaces(2)
+        .toNumber();
 
       totalMontoFacturado += sub;
       totalItbisFacturado += itb;

@@ -258,7 +258,7 @@ export class InvoicesService {
             lineDiscount = grossSubtotal
               .mul(new Prisma.Decimal(producto.descuentoPorcentaje))
               .div(100);
-            appliedPromoNombre = `Oferta (${producto.descuentoPorcentaje}% OFF)`;
+            appliedPromoNombre = `Oferta (${producto.descuentoPorcentaje.toString()}% OFF)`;
           }
         }
       }

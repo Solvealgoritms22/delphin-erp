@@ -1,7 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-const money = (value: unknown) => value instanceof Prisma.Decimal ? value : new Prisma.Decimal(typeof value === 'string' || typeof value === 'number' ? value : 0);
+const money = (value: unknown) =>
+  value instanceof Prisma.Decimal
+    ? value
+    : new Prisma.Decimal(
+        typeof value === 'string' || typeof value === 'number' ? value : 0,
+      );
 const fixed = (value: Prisma.Decimal) => value.toFixed(2);
 function date(
   value: string | Date | undefined | null,

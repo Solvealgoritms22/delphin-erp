@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, protocol, net, shell } = require('electron'
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
+const oauthBrowser = require('./oauth-browser').createOAuthBrowser();
 
 log.transports.file.level = 'info';
 autoUpdater.logger = log;
@@ -118,7 +119,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-not-available', (info) => {
-    updateState = { status: 'up-to-date', info: null, progress: null, checkedAt: new Date().toISOString() };
+    updateState = { status: 'up-to-date', info, progress: null, checkedAt: new Date().toISOString() };
     log.info('Update not available:', info);
     if (mainWindow) {
       mainWindow.webContents.send('dolphin:update-not-available', info);
@@ -153,6 +154,20 @@ function setupAutoUpdater() {
     }
   });
 
+  const notesCache = new Map();
+  secureHandle('dolphin:get-release-notes', async (_event, version) => {
+    if (typeof version !== 'string' || !/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/.test(version)) throw new Error('Invalid release version');
+    if (notesCache.has(version)) return notesCache.get(version);
+    const response = await net.fetch('https://api.github.com/repos/Solvealgoritms22/delphin-erp/releases/tags/v' + encodeURIComponent(version), {
+      headers: { Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new Error('Release notes unavailable');
+    const data = await response.json();
+    const notes = typeof data.body === 'string' ? data.body.slice(0, 200000) : '';
+    if (notesCache.size >= 5) notesCache.delete(notesCache.keys().next().value);
+    notesCache.set(version, notes);
+    return notes;
+  });
   secureHandle('dolphin:get-update-state', () => updateState);
 
   secureHandle('dolphin:get-app-version', () => {
@@ -173,6 +188,10 @@ function setupAutoUpdater() {
   secureOn('dolphin:quit-and-install', () => {
     if (updateState.status === 'ready') autoUpdater.quitAndInstall();
   });
+
+  secureHandle('dolphin:google-open', (_event, url) => oauthBrowser.open(url));
+  secureHandle('dolphin:google-close', () => oauthBrowser.close());
+  secureHandle('dolphin:google-closed', () => oauthBrowser.isClosed());
 
   // Custom frameless window controls
   secureOn('dolphin:window-minimize', () => mainWindow?.minimize());
@@ -245,6 +264,7 @@ app.on('ready', () => {
 });
 
 app.on('window-all-closed', () => {
+  void oauthBrowser.close();
   if (process.platform !== 'darwin') {
     app.quit();
   }

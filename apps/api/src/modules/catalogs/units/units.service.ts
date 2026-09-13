@@ -35,23 +35,10 @@ export class UnitsService {
   }
 
   async update(id: string, empresaId: string, data: any) {
-    return this.prisma.unidadMedida
-      .update({
-        where: { id_empresaId: { id, empresaId } } as any,
-        data,
-      })
-      .catch(() => {
-        // fallback if unique constraint is not on id_empresaId
-        return this.prisma.unidadMedida.update({
-          where: { id },
-          data,
-        });
-      });
+    return this.prisma.unidadMedida.update({ where: { id, empresaId }, data });
   }
 
-  async remove(id: string, _empresaId: string) {
-    return this.prisma.unidadMedida.delete({
-      where: { id },
-    });
+  async remove(id: string, empresaId: string) {
+    return this.prisma.unidadMedida.delete({ where: { id, empresaId } });
   }
 }

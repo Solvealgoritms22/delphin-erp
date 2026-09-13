@@ -253,15 +253,25 @@ describe('AuthService', () => {
 
   describe('switchTenant', () => {
     it('does not issue a tenant token without required MFA proof', async () => {
-      prisma.usuario.findUnique.mockResolvedValue({ ...baseUser, mfaHabilitado: true });
-      await expect(service.switchTenant('u1', 'e1', 123)).rejects.toThrow('dos pasos');
+      prisma.usuario.findUnique.mockResolvedValue({
+        ...baseUser,
+        mfaHabilitado: true,
+      });
+      await expect(service.switchTenant('u1', 'e1', 123)).rejects.toThrow(
+        'dos pasos',
+      );
       expect(jwtService.sign).not.toHaveBeenCalled();
     });
     it('retains verified MFA when switching tenants', async () => {
-      prisma.usuario.findUnique.mockResolvedValue({ ...baseUser, mfaHabilitado: true });
+      prisma.usuario.findUnique.mockResolvedValue({
+        ...baseUser,
+        mfaHabilitado: true,
+      });
       prisma.empresa.findUnique.mockResolvedValue({ estado: 'ACTIVA' });
       await service.switchTenant('u1', 'e1', 123, true);
-      expect(jwtService.sign).toHaveBeenCalledWith(expect.objectContaining({ mfaVerified: true, authTime: 123 }));
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({ mfaVerified: true, authTime: 123 }),
+      );
     });
     it('cambia a una empresa donde el usuario es owner', async () => {
       prisma.usuario.findUnique.mockResolvedValue(baseUser);

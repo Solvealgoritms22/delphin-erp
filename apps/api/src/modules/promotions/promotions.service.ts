@@ -9,9 +9,7 @@ import { ActivityLogService } from '../activity-log/activity-log.service';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
 import { FilterPromotionsDto } from './dto/filter-promotions.dto';
-import {
-  EvaluatePromotionsDto,
-  } from './dto/evaluate-promotions.dto';
+import { EvaluatePromotionsDto } from './dto/evaluate-promotions.dto';
 import { Prisma } from '@prisma/client';
 
 export interface EvaluatedLineResult {

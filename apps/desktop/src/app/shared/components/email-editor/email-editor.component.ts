@@ -390,7 +390,9 @@ export class EmailEditorComponent implements OnInit, OnChanges, OnDestroy {
     this.editor = new Editor({
       element: this.editorContainer.nativeElement,
       extensions: [
-        StarterKit,
+        StarterKit.configure({
+          link: false,
+        }),
         Image.configure({
           inline: true,
           allowBase64: true,

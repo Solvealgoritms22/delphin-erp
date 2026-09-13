@@ -478,7 +478,7 @@ export class PlansComponent implements OnInit {
       data: {
         planId: plan.id,
         planNombre: plan.nombre,
-        amount: this.billingCycle === 'monthly' ? plan.precioMensual : plan.precioAnual,
+        amount: this.billingCycle === 'monthly' ? plan.precioMensual : plan.precioAnual * 12,
         billingCycle: this.billingCycle,
         simulated: this.simulatedMode(),
       } as CheckoutDialogData,

@@ -403,14 +403,13 @@ Genera un resumen ejecutivo de máximo 2 a 3 oraciones usando Markdown (puedes u
 
 Generate a concise executive summary (maximum 2-3 sentences) using Markdown with bold highlights. Provide a clear takeaway on current operational capacity and an immediate strategic recommendation.`;
 
-    this.http.post<{ content?: string; message?: string }>(`${environment.apiUrl}/ai/chat`, {
-      prompt,
-      messages: [{ role: 'user', content: prompt }]
+    this.http.post<{ reply?: string; content?: string; message?: string }>(`${environment.apiUrl}/ai/chat`, {
+      message: prompt
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          const content = res?.content || res?.message || (typeof res === 'string' ? res : '');
+          const content = res?.reply || res?.content || res?.message || (typeof res === 'string' ? res : '');
           if (content) {
             this.aiInsight.set(content);
             const now = new Date();

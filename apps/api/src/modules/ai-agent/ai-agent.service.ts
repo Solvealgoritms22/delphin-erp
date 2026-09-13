@@ -188,7 +188,7 @@ export class AiAgentService {
         dbContext.metricas = await this.tools.getExecutiveMetrics(empresaId);
       }
 
-      if (needsSales && can('commercial:read')) {
+      if (needsSales && can('invoices:read')) {
         toolsUsed.push('querySalesAndInvoices');
         dbContext.ventas = await this.tools.querySalesAndInvoices(empresaId, {
           limit: 20,
@@ -288,9 +288,7 @@ export class AiAgentService {
     const userQuery = (dto.message || '').trim();
     const toolsUsed: string[] = [];
 
-    this.logger.log(
-      `[AI-AGENT] Processing query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`,
-    );
+    this.logger.log(`[AI-AGENT] Processing request (empresa: ${empresaId})`);
 
     // Ensure conversation exists in DB and persist user message
     const conv = await this.ensureConversation(
@@ -384,12 +382,13 @@ export class AiAgentService {
     user: { id: string; name?: string; email: string },
     dto: ChatRequestDto,
     onChunk: (event: StreamEvent) => void,
+    signal?: AbortSignal,
   ): Promise<void> {
     const userQuery = (dto.message || '').trim();
     const toolsUsed: string[] = [];
 
     this.logger.log(
-      `[AI-AGENT-STREAM] Processing stream query from ${user.email} (empresa: ${empresaId}): "${userQuery}"`,
+      `[AI-AGENT-STREAM] Processing stream (empresa: ${empresaId})`,
     );
 
     // Ensure conversation exists in DB and persist user message
@@ -415,6 +414,7 @@ export class AiAgentService {
     let accumulatedReply = '';
 
     const handleToken = (token: string) => {
+      signal?.throwIfAborted();
       accumulatedReply += token;
       onChunk({ type: 'token', token, conversationId: convId });
     };
@@ -430,6 +430,7 @@ export class AiAgentService {
           dbContext,
           dto.history || [],
           handleToken,
+          signal,
         );
         streamedSuccessfully = true;
       } catch (err: any) {
@@ -440,6 +441,7 @@ export class AiAgentService {
     const isThinking = !!dto.thinking;
 
     // 3. Try OpenRouter / Groq streaming
+    signal?.throwIfAborted();
     if (!streamedSuccessfully) {
       const apiKey = process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY;
       if (apiKey) {
@@ -452,6 +454,7 @@ export class AiAgentService {
             handleToken,
             dto.images,
             isThinking,
+            signal,
           );
           streamedSuccessfully = true;
         } catch (err: any) {
@@ -466,6 +469,7 @@ export class AiAgentService {
     if (!streamedSuccessfully) {
       let fullText = '';
       try {
+        if (process.env.AI_PUBLIC_FALLBACK_ENABLED !== 'true') throw new Error('Public fallback disabled');
         fullText = await this.callFreePollinationsAI(
           userQuery,
           dbContext,
@@ -522,6 +526,7 @@ export class AiAgentService {
     emit: (token: string) => void,
     images?: string[],
     thinking?: boolean,
+    signal?: AbortSignal,
   ): Promise<void> {
     const isGroq =
       !!process.env.GROQ_API_KEY && !process.env.OPENROUTER_API_KEY;
@@ -571,6 +576,7 @@ ${JSON.stringify(dbContext, null, 2)}
 
     const response = await fetch(endpoint, {
       method: 'POST',
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(60000)]) : AbortSignal.timeout(60000),
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
@@ -629,6 +635,7 @@ ${JSON.stringify(dbContext, null, 2)}
     dbContext: any,
     history: ChatMessage[],
     emit: (token: string) => void,
+    signal?: AbortSignal,
   ): Promise<void> {
     const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
     const model = process.env.OLLAMA_MODEL || 'qwen2.5:3b';
@@ -637,6 +644,7 @@ ${JSON.stringify(dbContext, null, 2)}
 
     const response = await fetch(`${baseUrl}/api/chat`, {
       method: 'POST',
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(60000)]) : AbortSignal.timeout(60000),
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model,

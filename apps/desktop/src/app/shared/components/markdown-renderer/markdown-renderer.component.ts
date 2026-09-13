@@ -1,11 +1,13 @@
 import {
   Component,
+  inject,
   ElementRef,
   computed,
   input,
   viewChild,
   effect,
 } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { marked } from 'marked';
 import * as Prism from 'prismjs';
 
@@ -29,6 +31,7 @@ import 'prismjs/components/prism-markdown';
   `,
 })
 export class MarkdownRendererComponent {
+  private readonly transloco = inject(TranslocoService);
   private container = viewChild<ElementRef<HTMLDivElement>>('container');
 
   content = input<string>('');
@@ -41,6 +44,7 @@ export class MarkdownRendererComponent {
     const renderer = new marked.Renderer();
     renderer.html = ({ text }) => escapeHtml(text);
 
+    const copyLabel = escapeHtml(this.transloco.translate('updater.copyCode'));
     renderer.code = function ({ text, lang }: { text: string; lang?: string }) {
       const language = (lang || 'text').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
       let highlighted = escapeHtml(text);
@@ -56,7 +60,7 @@ export class MarkdownRendererComponent {
         <div class="flex items-center justify-between px-3 py-1.5 bg-neutral-800/80 border-b border-neutral-700/60 text-[11px] text-neutral-400">
           <span>${language}</span>
           <button type="button" class="copy-code-btn px-2 py-0.5 rounded bg-neutral-700/60 hover:bg-neutral-600 text-neutral-200 hover:text-white transition-colors cursor-pointer text-[10px]" data-code="${encodeURIComponent(text)}">
-            Copiar
+            ${copyLabel}
           </button>
         </div>
         <pre class="p-3.5 overflow-x-auto m-0 bg-transparent"><code>${highlighted}</code></pre>
@@ -83,8 +87,8 @@ export class MarkdownRendererComponent {
             titleColor = 'text-emerald-600 dark:text-emerald-400';
             iconSvg = '💡';
           } else if (t === 'IMPORTANT') {
-            borderClass = 'border-purple-500 bg-purple-50/60 dark:bg-purple-950/20 text-purple-900 dark:text-purple-200';
-            titleColor = 'text-purple-600 dark:text-purple-400';
+            borderClass = 'border-blue-500 bg-blue-50/60 dark:bg-blue-950/20 text-blue-900 dark:text-blue-200';
+            titleColor = 'text-blue-600 dark:text-blue-400';
             iconSvg = '📌';
           } else if (t === 'WARNING') {
             borderClass = 'border-amber-500 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200';
@@ -126,7 +130,7 @@ export class MarkdownRendererComponent {
             if (rawCode && navigator.clipboard) {
               navigator.clipboard.writeText(rawCode).then(() => {
                 const originalText = btn.textContent;
-                btn.textContent = '¡Copiado!';
+                btn.textContent = this.transloco.translate('updater.copied');
                 btn.classList.add('bg-green-600', 'text-white');
                 setTimeout(() => {
                   btn.textContent = originalText;

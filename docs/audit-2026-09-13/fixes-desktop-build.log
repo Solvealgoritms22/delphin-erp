@@ -1,0 +1,38 @@
+
+> dolphin-erp@1.0.17 build:desktop
+> npm run build --workspace=apps/desktop
+
+
+> desktop@1.0.17 build
+> ng build --base-href ./
+
+> Building...
+√ Building...
+Initial chunk files | Names                     |  Raw size | Estimated transfer size
+main-CVREHI5A.js    | main                      | 399.40 kB |               100.27 kB
+styles-RHLFRYZG.css | styles                    | 304.02 kB |                26.72 kB
+
+                    | Initial total             | 703.42 kB |               126.99 kB
+
+Lazy chunk files    | Names                     |  Raw size | Estimated transfer size
+chunk-XTVQTSUW.js   | apexcharts-ssr-esm        | 620.40 kB |               140.38 kB
+chunk-B4t3fBEx.js   | apexcharts-esm            | 615.59 kB |               139.21 kB
+chunk-D13G7k952.js  | email-templates-component | 429.50 kB |               114.22 kB
+chunk-2ZXIFDPD.js   | core-esm                  | 375.72 kB |                87.35 kB
+chunk-BmmRTmSA2.js  | routes                    | 201.74 kB |                42.19 kB
+chunk-Bn3Rkpq8.js   | -                         | 182.60 kB |                53.48 kB
+chunk-Clu4wb6s.js   | -                         | 115.70 kB |                23.24 kB
+chunk-D5pDLntg2.js  | reports-component         |  96.44 kB |                17.79 kB
+chunk-BVSVV3am2.js  | -                         |  91.39 kB |                16.78 kB
+chunk-CwaGsmQ9.js   | -                         |  88.77 kB |                17.25 kB
+chunk-bLXxFPtf.js   | -                         |  87.82 kB |                25.10 kB
+chunk-BiRwxerD.js   | -                         |  85.74 kB |                 6.78 kB
+chunk-OUG2PMLG.js   | invoices-component        |  78.71 kB |                15.65 kB
+chunk-CcxhEFMu.js   | pos-component             |  76.20 kB |                14.85 kB
+chunk-DRiiyDxi2.js  | quotes-component          |  70.13 kB |                14.54 kB
+...and 104 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [127.920 seconds] - 2026-09-13T18:06:30.893Z
+
+Output location: C:\Users\dfajardo\OneDrive - COMISION NACIONAL DE ENERGIA\Documentos\github\delphin-erp\apps\desktop\dist\desktop
+

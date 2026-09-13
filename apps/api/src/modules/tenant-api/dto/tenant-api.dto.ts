@@ -4,7 +4,7 @@ import {
   IsOptional,
   IsString,
   ArrayMaxSize,
-  } from 'class-validator';
+} from 'class-validator';
 
 export class CreateTenantApiAppDto {
   @IsString()

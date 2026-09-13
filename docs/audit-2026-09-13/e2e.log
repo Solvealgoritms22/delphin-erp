@@ -1,0 +1,11 @@
+
+> api@0.0.1 test:e2e
+> jest --config ./test/jest-e2e.json --runInBand
+
+[09:05:48.758] INFO (18744): request completed {"req":{"id":1,"method":"GET","url":"/","remoteAddress":"::ffff:127.0.0.1","remotePort":65471},"res":{"statusCode":200,"headers":{"x-powered-by":"Express","x-ratelimit-limit":"120","x-ratelimit-remaining":"119","x-ratelimit-reset":"60","content-type":"text/html; charset=utf-8","content-length":"12","etag":"W/\"c-Lve95gjOVATpfV8EL5X4nxwjKHE\""}},"responseTime":10}
+
+Test Suites: 3 passed, 3 total
+Tests:       15 passed, 15 total
+Snapshots:   0 total
+Time:        43.59 s
+Ran all test suites.

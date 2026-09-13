@@ -1,3 +1,4 @@
+import { finalize } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@/environments/environment';
@@ -9,7 +10,9 @@ import { AuthState } from './auth.state';
 export class SessionMonitorService {
   private readonly http = inject(HttpClient);
   private readonly state = inject(AuthState);
-  private readonly intervalMs = 10000;
+  private readonly intervalMs = 60000;
+  private inFlight = false;
+  private lastCheck = 0;
   private timer: ReturnType<typeof setInterval> | null = null;
   private boundFocus: (() => void) | null = null;
   private boundVisibility: (() => void) | null = null;
@@ -55,7 +58,10 @@ export class SessionMonitorService {
       return;
     }
 
-    this.http.get<void>(`${environment.apiUrl}/auth/me`).subscribe({
+    if (this.inFlight || document.visibilityState === 'hidden' || Date.now() - this.lastCheck < 5000) return;
+    this.inFlight = true;
+    this.lastCheck = Date.now();
+    this.http.get<void>(`${environment.apiUrl}/auth/me`).pipe(finalize(() => { this.inFlight = false; })).subscribe({
       error: () => {},
     });
   }

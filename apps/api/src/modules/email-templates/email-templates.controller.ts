@@ -15,7 +15,7 @@ import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { EmailTemplatesService } from './email-templates.service';
-import type { } from './email-template.catalog';
+import type {} from './email-template.catalog';
 class RevisionDto {
   @IsInt() @Min(0) revision: number;
 }

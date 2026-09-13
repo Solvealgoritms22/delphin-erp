@@ -114,7 +114,7 @@ describe('Email delivery contract', () => {
           from: 'system@example.invalid',
           ...options,
         });
-        mime = result.message.toString();
+        mime = Buffer.isBuffer(result.message) ? result.message.toString('utf8') : typeof result.message === 'string' ? result.message : '';
         return result;
       },
     };

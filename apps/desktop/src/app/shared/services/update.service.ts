@@ -24,7 +24,7 @@ export type UpdateStatus =
   | 'up-to-date';
 export type UpdateInfo = {
   version: string;
-  releaseNotes?: string;
+  releaseNotes?: string | Array<{ version: string; note: string }>;
   releaseDate?: string;
   files?: Array<{ url: string; size: number }>;
 };
@@ -81,7 +81,8 @@ export class UpdateService {
       this.lastChecked.set(new Date());
       this.showNotification();
     });
-    updater.onUpdateNotAvailable?.(() => {
+    updater.onUpdateNotAvailable?.((info) => {
+      this.updateInfo.set(info);
       received();
       this.status.set('up-to-date');
       this.lastChecked.set(new Date());
@@ -147,7 +148,7 @@ export class UpdateService {
 
   isUpdatesPage(): boolean {
     const url = this.router?.url || '';
-    return url.includes('/settings/about') || url.endsWith('/about');
+    return url.startsWith('/release-notes') || url.includes('/settings/about') || url.endsWith('/about');
   }
 
   private clearCheckingTimeout(): void {
