@@ -184,6 +184,13 @@ function setupAutoUpdater() {
     }
   });
   secureOn('dolphin:window-close', () => mainWindow?.close());
+  secureOn('dolphin:window-focus', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
   secureOn('dolphin:open-external', (_event, url) => {
     try {
       const parsed = new URL(url);

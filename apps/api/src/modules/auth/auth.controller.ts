@@ -73,27 +73,46 @@ export class AuthController {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Referrer-Policy', 'no-referrer');
     response.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+    response.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+    );
     try {
       const result = await this.googleOAuth.callback(code, state, denied);
-      const origin = (
-        result?.origin ||
-        process.env.FRONTEND_URL ||
-        'http://localhost:4200'
-      ).replace(/\/$/, '');
       if (result?.rejected) {
-        return response.redirect(
-          `${origin}/auth-callback.html?error=${encodeURIComponent(result.rejected)}`,
-        );
+        return response.type('html')
+          .send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Dolphin ERP</title></head>
+<body style="margin:0;background:#09090b;">
+<script>
+  try { if (window.opener) window.opener.postMessage({ type: 'GOOGLE_AUTH_FAILED', error: ${JSON.stringify(result.rejected)} }, '*'); } catch(e){}
+  try { const bc = new BroadcastChannel('dolphin_auth'); bc.postMessage({ type: 'GOOGLE_AUTH_FAILED', error: ${JSON.stringify(result.rejected)} }); bc.close(); } catch(e){}
+  try { window.open('', '_self', ''); window.close(); } catch(e){}
+  setTimeout(function(){ try { window.close(); } catch(e){} }, 100);
+</script>
+</body></html>`);
       }
-      return response.redirect(`${origin}/auth-callback.html?status=success`);
+      return response.type('html')
+        .send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Dolphin ERP</title></head>
+<body style="margin:0;background:#09090b;">
+<script>
+  try { if (window.opener) window.opener.postMessage({ type: 'GOOGLE_AUTH_SUCCESS' }, '*'); } catch(e){}
+  try { const bc = new BroadcastChannel('dolphin_auth'); bc.postMessage({ type: 'GOOGLE_AUTH_SUCCESS' }); bc.close(); } catch(e){}
+  try { window.open('', '_self', ''); window.close(); } catch(e){}
+  setTimeout(function(){ try { window.close(); } catch(e){} }, 100);
+</script>
+</body></html>`);
     } catch (err: any) {
-      const origin = (
-        process.env.FRONTEND_URL || 'http://localhost:4200'
-      ).replace(/\/$/, '');
       const message = err?.message || 'failed';
-      return response.redirect(
-        `${origin}/auth-callback.html?error=${encodeURIComponent(message)}`,
-      );
+      return response.type('html')
+        .send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Dolphin ERP</title></head>
+<body style="margin:0;background:#09090b;">
+<script>
+  try { if (window.opener) window.opener.postMessage({ type: 'GOOGLE_AUTH_FAILED', error: ${JSON.stringify(message)} }, '*'); } catch(e){}
+  try { const bc = new BroadcastChannel('dolphin_auth'); bc.postMessage({ type: 'GOOGLE_AUTH_FAILED', error: ${JSON.stringify(message)} }); bc.close(); } catch(e){}
+  try { window.open('', '_self', ''); window.close(); } catch(e){}
+  setTimeout(function(){ try { window.close(); } catch(e){} }, 100);
+</script>
+</body></html>`);
     }
   }
 

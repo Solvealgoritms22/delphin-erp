@@ -163,6 +163,8 @@ export class AuthService {
             this.apiUrl + '/google/status', { flowId: flow.flowId, verifier }));
           if (result.status === 'ready') {
             popup?.close();
+            const winBridge = (window as unknown as { dolphinWindow?: { focus?: () => void } }).dolphinWindow;
+            winBridge?.focus?.();
             sessionStorage.setItem('google_setup', JSON.stringify({ flowId: flow.flowId, verifier, expiresAt, ...result }));
             if (!result.needsCompany && !result.needsPolicies) {
               const response = await firstValueFrom(this.completeGoogleSetup({ acceptedPolicies: false }), { defaultValue: null });
@@ -175,6 +177,8 @@ export class AuthService {
             const final = await firstValueFrom(this.http.post<{ status: string; needsCompany?: boolean; needsPolicies?: boolean }>(
               this.apiUrl + '/google/status', { flowId: flow.flowId, verifier }));
             if (final.status === 'ready') {
+              const winBridge = (window as unknown as { dolphinWindow?: { focus?: () => void } }).dolphinWindow;
+              winBridge?.focus?.();
               sessionStorage.setItem('google_setup', JSON.stringify({ flowId: flow.flowId, verifier, expiresAt, ...final }));
               if (!final.needsCompany && !final.needsPolicies) {
                 const response = await firstValueFrom(this.completeGoogleSetup({ acceptedPolicies: false }), { defaultValue: null });

@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld('dolphinWindow', {
   minimize: () => ipcRenderer.send('dolphin:window-minimize'),
   maximize: () => ipcRenderer.send('dolphin:window-maximize'),
   close:    () => ipcRenderer.send('dolphin:window-close'),
+  focus:    () => ipcRenderer.send('dolphin:window-focus'),
   openExternal: (url) => ipcRenderer.send('dolphin:open-external', url),
   onMaximizeChange: (callback) => {
     ipcRenderer.on('dolphin:window-maximized', (_e, isMaximized) => callback(isMaximized));
