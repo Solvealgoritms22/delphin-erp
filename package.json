@@ -26,5 +26,8 @@
     "multer": "2.3.0",
     "qs": "6.16.0",
     "svgo": "4.1.0"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
   }
 }

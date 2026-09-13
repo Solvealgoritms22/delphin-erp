@@ -25,6 +25,7 @@ jobs:
       CSC_LINK: ${{ secrets.CSC_LINK }}
       CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
       CSC_IDENTITY_AUTO_DISCOVERY: false
+      NODE_PATH: ${{ github.workspace }}/node_modules;${{ github.workspace }}/apps/desktop/node_modules
 
     steps:
       - name: Checkout repository
@@ -57,14 +58,20 @@ jobs:
         run: npm run test -- --watch=false
         working-directory: apps/desktop
         continue-on-error: true
+        env:
+          NODE_PATH: ${{ github.workspace }}/node_modules;${{ github.workspace }}/apps/desktop/node_modules
 
       - name: Typecheck desktop
         run: npx tsc --noEmit
         working-directory: apps/desktop
+        env:
+          NODE_PATH: ${{ github.workspace }}/node_modules;${{ github.workspace }}/apps/desktop/node_modules
 
       - name: Build & package desktop (electron-builder --dir for validation)
         run: npm run electron:pack
         working-directory: apps/desktop
+        env:
+          NODE_PATH: ${{ github.workspace }}/node_modules;${{ github.workspace }}/apps/desktop/node_modules
 
       - name: Check signing credentials
         shell: pwsh
@@ -81,6 +88,7 @@ jobs:
         working-directory: apps/desktop
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_PATH: ${{ github.workspace }}/node_modules;${{ github.workspace }}/apps/desktop/node_modules
 
       - name: Create Release Notes
         id: release_notes
