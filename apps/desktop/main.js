@@ -63,6 +63,16 @@ function createWindow() {
     backgroundColor: '#09090b',
   });
 
+  const isDev = process.argv.includes('--dev');
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    log.error(`Failed to load ${validatedURL}: [${errorCode}] ${errorDescription}`);
+  });
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!trustedUrl(url)) event.preventDefault();
+  });
+
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F12' && input.type === 'keyDown') {
       mainWindow.webContents.toggleDevTools();
