@@ -204,6 +204,7 @@ export class AuthController {
       user.id,
       body.empresaId,
       user.authTime,
+      user.mfaVerified === true,
     );
   }
 

@@ -1,0 +1,10 @@
+
+> api@0.0.1 test
+> jest --runInBand auth.service.spec auth.controller.spec jwt.strategy.spec
+
+
+Test Suites: 3 passed, 3 total
+Tests:       44 passed, 44 total
+Snapshots:   0 total
+Time:        13.578 s, estimated 39 s
+Ran all test suites matching auth.service.spec|auth.controller.spec|jwt.strategy.spec.

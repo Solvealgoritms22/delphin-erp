@@ -497,6 +497,7 @@ export class AuthService {
     userId: string,
     targetEmpresaId: string,
     authTime?: number,
+    mfaVerified = false,
   ) {
     const user = await this.prisma.usuario.findUnique({
       where: { id: userId },
@@ -507,6 +508,7 @@ export class AuthService {
     });
 
     if (!user) throw new NotFoundException('User not found');
+    if (user.mfaHabilitado && mfaVerified !== true) throw new UnauthorizedException('Se requiere verificación de dos pasos.');
 
     const hasOwnedCompanies = user.empresasPropiedad.length > 0;
     const isOwner = user.empresasPropiedad.some(
@@ -544,6 +546,7 @@ export class AuthService {
       sub: user.id,
       empresaId: targetEmpresaId,
       authTime: authTime || Math.floor(Date.now() / 1000),
+      mfaVerified: mfaVerified === true,
       sessionId: randomUUID(),
       name: user.nombre,
       avatar: user.avatar,

@@ -94,6 +94,7 @@ describe('AuthController', () => {
       'u1',
       'e1',
       undefined,
+      false,
     );
   });
 
