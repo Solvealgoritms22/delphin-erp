@@ -1,9 +1,10 @@
-import { Routes } from '@angular/router';
+import { Routes } from "@angular/router";
 
 const routes: Routes = [
   {
-    path: '',
-    loadComponent: () => import('./features/home'),
+    path: "",
+    title: "Dolphine ERP",
+    loadComponent: () => import("./features/home"),
   },
 ];
 

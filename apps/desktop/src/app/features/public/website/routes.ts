@@ -1,24 +1,13 @@
-import { Routes } from '@angular/router';
-import { WebLayout } from '@features/public/website/layout/layout';
+import { Routes } from "@angular/router";
+import { WebLayout } from "@features/public/website/layout/layout";
 
 const routes: Routes = [
   {
-    path: '',
+    path: "",
     component: WebLayout,
     children: [
-
-      {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'home',
-      },
-
-      {
-        path: '',
-        loadChildren: () => import('./modules/home/routes'),
-      },
-
-      { path: '**', redirectTo: '/' },
+      { path: "", loadChildren: () => import("./modules/home/routes") },
+      { path: "**", redirectTo: "" },
     ],
   },
 ];

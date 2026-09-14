@@ -34,29 +34,35 @@ public class IconGenerator
                 g.Clear(Color.Transparent);
 
                 float padding = 16f;
-                float radius = 90f;
+                float radius = 96f;
                 RectangleF badgeRect = new RectangleF(padding, padding, masterSize - padding * 2f, masterSize - padding * 2f);
 
                 using (GraphicsPath badgePath = CreateRoundedPath(badgeRect, radius))
                 {
-                    // Dark navy gradient
-                    Color c1 = Color.FromArgb(255, 14, 23, 42);   // #0e172a
-                    Color c2 = Color.FromArgb(255, 23, 37, 84);   // #172554
-                    using (LinearGradientBrush brush = new LinearGradientBrush(badgeRect, c1, c2, LinearGradientMode.ForwardDiagonal))
+                    // Clean white background
+                    using (SolidBrush brush = new SolidBrush(Color.White))
                     {
                         g.FillPath(brush, badgePath);
                     }
 
-                    // Subtle border
-                    using (Pen pen = new Pen(Color.FromArgb(75, 59, 130, 246), 4f))
+                    // Subtle crisp border (Slate-200 / neutral-200) so it stands out cleanly on white surfaces
+                    using (Pen pen = new Pen(Color.FromArgb(220, 226, 232, 240), 3f))
                     {
                         g.DrawPath(pen, badgePath);
                     }
                 }
 
-                // Center dolphin logo
-                float margin = 72f;
-                RectangleF dolphinRect = new RectangleF(margin, margin, masterSize - margin * 2f, masterSize - margin * 2f);
+                // Center dolphin logo preserving aspect ratio
+                float availableWidth = masterSize - padding * 2f;
+                float scale = 0.80f;
+                float targetWidth = availableWidth * scale;
+                float ratio = (float)dolphinBmp.Width / (float)dolphinBmp.Height;
+                float targetHeight = targetWidth / ratio;
+
+                float drawX = (masterSize - targetWidth) / 2f;
+                float drawY = (masterSize - targetHeight) / 2f;
+
+                RectangleF dolphinRect = new RectangleF(drawX, drawY, targetWidth, targetHeight);
                 g.DrawImage(dolphinBmp, dolphinRect);
             }
 
@@ -150,4 +156,26 @@ $pngPath  = (Join-Path $PSScriptRoot "icon.png")
 $png512Path = (Join-Path $PSScriptRoot "icon-512.png")
 
 [IconGenerator]::Generate($logoPath, $icoPath, $pngPath, $png512Path)
-Write-Host "Icono generado con esquinas 100% transparentes en: $icoPath"
+
+$faviconPng = Join-Path $PSScriptRoot "..\public\favicon.png"
+$faviconIco = Join-Path $PSScriptRoot "..\public\favicon.ico"
+
+if (Test-Path (Split-Path $faviconPng)) {
+    Copy-Item -Path $pngPath -Destination $faviconPng -Force
+    Copy-Item -Path $icoPath -Destination $faviconIco -Force
+    Write-Host "Favicons sincronizados en public/ (PNG e ICO)"
+}
+
+# Sincronizar también con directorios dist existentes
+$distDir = Join-Path $PSScriptRoot "..\dist"
+if (Test-Path $distDir) {
+    Get-ChildItem -Path $distDir -Filter "favicon.png" -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+        Copy-Item -Path $pngPath -Destination $_.FullName -Force
+    }
+    Get-ChildItem -Path $distDir -Filter "favicon.ico" -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+        Copy-Item -Path $icoPath -Destination $_.FullName -Force
+    }
+    Write-Host "Favicons sincronizados en dist/"
+}
+
+Write-Host "Icono y favicons generados exitosamente con fondo blanco y delfin centrado: $icoPath"
