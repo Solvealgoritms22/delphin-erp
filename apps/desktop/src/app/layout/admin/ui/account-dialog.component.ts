@@ -382,7 +382,7 @@ type AccountTab = 'profile' | 'security' | 'smtp' | 'danger';
                   </button>
 
                   <button type="button" (click)="saveSmtp()" [disabled]="isSavingSmtp()"
-                    class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer shadow-xs flex items-center gap-2">
+                    class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer shadow-xs flex items-center gap-2">
                     @if (isSavingSmtp()) {
                       <span>Guardando...</span>
                     } @else {

@@ -1551,6 +1551,7 @@
       "title": "Cuentas por Cobrar y Recibos de Ingreso (CxC)",
       "subtitle": "Control de facturas a crédito, recaudación de cobros, recibos oficiales de ingreso y gestión de cartera de clientes.",
       "newReceipt": "Nuevo Recibo de Cobro",
+      "collect": "Cobrar",
       "emptyPendingTitle": "No hay facturas pendientes de cobro",
       "emptyPendingSubtitle": "Todas las facturas a crédito están saldadas al día o no coinciden con los filtros.",
       "emptyReceiptsTitle": "No hay recibos de ingreso registrados",

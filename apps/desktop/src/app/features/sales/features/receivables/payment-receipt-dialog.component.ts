@@ -291,7 +291,7 @@ type InvoiceSelectionRow = {
           type="button"
           (click)="submit()"
           [disabled]="isSubmitting() || !isValid()"
-          class="px-5 py-2.5 text-sm font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 transition-all cursor-pointer shadow-sm"
+          class="px-5 py-2.5 text-sm font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 transition-all cursor-pointer shadow-sm"
         >
           {{ isSubmitting() ? 'Registrando...' : ('commercial.receivables.dialog.submit' | transloco) }}
         </button>

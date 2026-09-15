@@ -69,7 +69,7 @@ import { CurrencyConfigService } from '@core/currency/currency-config.service';
           <button
             mat-flat-button
             (click)="openReceiptModal()"
-            class="!rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+            class="!rounded-xl bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
           >
             <mat-icon svgIcon="plus" class="icon-size-5 mr-2"></mat-icon>
             {{ 'commercial.receivables.newReceipt' | transloco }}
@@ -350,10 +350,10 @@ import { CurrencyConfigService } from '@core/currency/currency-config.service';
                   <div class="flex items-center justify-end">
                     <button
                       (click)="openReceiptModal(inv.clienteId || undefined, inv.id)"
-                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
                     >
                       <mat-icon svgIcon="credit-card" class="icon-size-3.5"></mat-icon>
-                      <span>Cobrar</span>
+                      <span>{{ 'commercial.receivables.collect' | transloco }}</span>
                     </button>
                   </div>
                 </div>

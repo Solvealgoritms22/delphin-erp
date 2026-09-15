@@ -777,7 +777,7 @@ export type ReportTab =
                   <button
                     type="button"
                     (click)="printIt1Form()"
-                    class="flex items-center gap-2 h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                    class="flex items-center gap-2 h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                   >
                     <mat-icon svgIcon="printer" class="icon-size-4"></mat-icon>
                     <span>{{ 'reports.taxDgii.printIt1' | transloco }}</span>

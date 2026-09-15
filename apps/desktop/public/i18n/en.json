@@ -1551,6 +1551,7 @@
       "title": "Accounts Receivable & Payment Receipts (AR)",
       "subtitle": "Credit invoice management, customer payment receipts, collections history, and customer receivables.",
       "newReceipt": "New Payment Receipt",
+      "collect": "Collect",
       "emptyPendingTitle": "No pending credit invoices",
       "emptyPendingSubtitle": "All credit invoices are fully paid or do not match current filters.",
       "emptyReceiptsTitle": "No payment receipts recorded",
