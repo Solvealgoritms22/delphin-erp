@@ -21,7 +21,7 @@ import { TrialEligibilityModule } from '../trial-eligibility/trial-eligibility.m
     UsersModule,
     EmailTemplatesModule,
     TrialEligibilityModule,
-    NotificationsModule
+    NotificationsModule,
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,

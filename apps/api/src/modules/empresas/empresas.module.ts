@@ -8,5 +8,6 @@ import { TrialEligibilityModule } from '../trial-eligibility/trial-eligibility.m
   imports: [TrialEligibilityModule],
   providers: [EmpresasService, TenantMailerService],
   controllers: [EmpresasController],
+  exports: [EmpresasService],
 })
 export class EmpresasModule {}

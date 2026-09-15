@@ -24,6 +24,7 @@ export class GoogleOAuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auth: AuthService,
+    private readonly trialEligibility: TrialEligibilityService,
   ) {}
 
   private config() {

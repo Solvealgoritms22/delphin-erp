@@ -10,7 +10,8 @@ describe('EmpresasService', () => {
 
   beforeEach(async () => {
     const mocks = createPrismaMock();
-    prisma = mocks.prisma;`r`n    prisma.usuario.findUnique.mockResolvedValue({ email: 'owner@example.com' });
+    prisma = mocks.prisma;
+    prisma.usuario.findUnique.mockResolvedValue({ email: 'owner@example.com' });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
