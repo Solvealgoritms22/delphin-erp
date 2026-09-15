@@ -201,7 +201,7 @@ import { AddressMapPickerComponent } from '@shared/components/address-map-picker
 
         <div class="space-y-1.5">
           <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
-            Dirección y Ubicación en Mapa
+            Dirección y Ubicación
           </label>
           <app-address-map-picker
             formControlName="direccion"
@@ -274,8 +274,18 @@ import { AddressMapPickerComponent } from '@shared/components/address-map-picker
               >
               <span class="text-xs text-neutral-500"
                 >Transmisión automática de facturas a la DGII conforme a la Ley
-                32-23</span
-              >
+                32-23. Requiere cuenta en
+                <a
+                  href="https://www.fiscalbridge.app/"
+                  (click)="openFiscalBridge($event)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-semibold text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300 inline-flex items-center gap-0.5 cursor-pointer"
+                >
+                  fiscalbridge.app
+                  <mat-icon svgIcon="arrow-up-right" class="!w-3 !h-3 !text-[12px]"></mat-icon>
+                </a>
+              </span>
             </div>
             <mat-slide-toggle
               formControlName="fiscalbridgeEnabled"
@@ -287,6 +297,35 @@ import { AddressMapPickerComponent } from '@shared/components/address-map-picker
             *ngIf="form.get('fiscalbridgeEnabled')?.value"
             class="flex flex-col gap-4 pt-2"
           >
+            <!-- Banner informativo para obtener credenciales -->
+            <div
+              class="flex items-start gap-3 rounded-xl border border-blue-200/80 bg-white/90 p-3.5 shadow-2xs backdrop-blur-xs dark:border-blue-800/60 dark:bg-neutral-900/80"
+            >
+              <div
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 mt-0.5"
+              >
+                <mat-icon svgIcon="key" class="!h-4 !w-4 !text-[16px]"></mat-icon>
+              </div>
+              <div class="flex-1 text-xs text-neutral-600 dark:text-neutral-300">
+                <p class="font-semibold text-neutral-900 dark:text-white">
+                  ¿Necesitas credenciales de API?
+                </p>
+                <p class="mt-0.5 leading-relaxed text-neutral-500 dark:text-neutral-400">
+                  Para emitir comprobantes fiscales electrónicos (e-CF), debes registrar una cuenta en
+                  <a
+                    href="https://www.fiscalbridge.app/"
+                    (click)="openFiscalBridge($event)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="font-semibold text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300 inline-flex items-center gap-0.5 cursor-pointer"
+                  >
+                    fiscalbridge.app
+                    <mat-icon svgIcon="arrow-up-right" class="!h-3 !w-3 !text-[12px]"></mat-icon>
+                  </a>
+                  para obtener tu API Token o credenciales OAuth y vincular la facturación electrónica.
+                </p>
+              </div>
+            </div>
             <mat-form-field
               appearance="outline"
               class="w-full"
@@ -671,6 +710,19 @@ export class EmpresaDialogComponent implements OnInit {
           );
         },
       });
+    }
+  }
+
+  openFiscalBridge(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const url = 'https://www.fiscalbridge.app/';
+    if ((window as any).dolphinWindow?.openExternal) {
+      (window as any).dolphinWindow.openExternal(url);
+    } else {
+      window.open(url, '_blank');
     }
   }
 }

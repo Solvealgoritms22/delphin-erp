@@ -20,10 +20,9 @@ export default class WebsiteHome {
   readonly menuOpen = signal(false);
   readonly activeModule = signal(0);
   readonly modules = ["sales", "inventory", "intelligence"];
-  readonly repository = "https://github.com/Solvealgoritms22/delphin-erp";
+  readonly faqItems = ["q1", "q2", "q3", "q4", "q5"] as const;
   readonly installer =
-    this.repository + "/releases/download/v1.0.17/Dolphin-ERP-Setup-1.0.17.exe";
-  readonly source = this.repository + "/archive/refs/tags/v1.0.17.zip";
+    "https://github.com/Solvealgoritms22/delphin-erp/releases/download/v1.0.17/Dolphin-ERP-Setup-1.0.17.exe";
   constructor() {
     if (
       typeof localStorage !== "undefined" &&

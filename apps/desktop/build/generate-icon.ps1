@@ -39,16 +39,22 @@ public class IconGenerator
 
                 using (GraphicsPath badgePath = CreateRoundedPath(badgeRect, radius))
                 {
-                    // Clean white background
-                    using (SolidBrush brush = new SolidBrush(Color.White))
+                    // Slate gradient background matching landing page (Slate-100 -> Slate-200 -> Slate-300)
+                    using (LinearGradientBrush brush = new LinearGradientBrush(
+                        badgeRect,
+                        Color.FromArgb(241, 245, 249),
+                        Color.FromArgb(203, 213, 225),
+                        65f))
                     {
+                        ColorBlend cb = new ColorBlend(3);
+                        cb.Colors = new Color[] {
+                            Color.FromArgb(241, 245, 249),
+                            Color.FromArgb(226, 232, 240),
+                            Color.FromArgb(203, 213, 225)
+                        };
+                        cb.Positions = new float[] { 0f, 0.55f, 1f };
+                        brush.InterpolationColors = cb;
                         g.FillPath(brush, badgePath);
-                    }
-
-                    // Subtle crisp border (Slate-200 / neutral-200) so it stands out cleanly on white surfaces
-                    using (Pen pen = new Pen(Color.FromArgb(220, 226, 232, 240), 3f))
-                    {
-                        g.DrawPath(pen, badgePath);
                     }
                 }
 

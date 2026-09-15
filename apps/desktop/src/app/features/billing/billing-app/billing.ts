@@ -86,9 +86,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
                 </div>
                 <div class="mt-4 flex justify-end">
                   <button (click)="manageMembers()"
-                          class="h-9 px-4 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
-                    <mat-icon svgIcon="users" class="!w-4 !h-4 !text-[16px] mr-2 text-neutral-500"></mat-icon>
-                     {{ 'billingPage.manageMembers' | transloco }}
+                          class="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer">
+                    <mat-icon svgIcon="users" class="!w-4 !h-4 !text-[16px] text-neutral-500 shrink-0"></mat-icon>
+                    <span class="leading-none">{{ 'billingPage.manageMembers' | transloco }}</span>
                   </button>
                 </div>
               </div>

@@ -127,7 +127,7 @@ import { Product } from '../../data/products.service';
                 <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
                   <span class="text-xs text-neutral-500 font-medium block">Unidad de Medida</span>
                   <span class="font-semibold text-neutral-900 dark:text-white mt-0.5 block truncate">
-                    {{ product.unidadMedida ? product.unidadMedida.nombre + ' (' + product.unidadMedida.abreviatura + ')' : 'Ninguna / Unidad' }}
+                    {{ product.unidadMedida ? product.unidadMedida.nombre + ' (' + product.unidadMedida.abreviatura + ')' : 'Ninguna' }}
                   </span>
                 </div>
 
@@ -275,7 +275,7 @@ import { Product } from '../../data/products.service';
             <div class="p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800">
               <span class="text-xs text-neutral-500 font-medium block">Unidad de Medida</span>
               <span class="font-semibold text-neutral-900 dark:text-white mt-0.5 block truncate">
-                {{ product.unidadMedida ? product.unidadMedida.nombre + ' (' + product.unidadMedida.abreviatura + ')' : 'Ninguna / Unidad' }}
+                {{ product.unidadMedida ? product.unidadMedida.nombre + ' (' + product.unidadMedida.abreviatura + ')' : 'Ninguna' }}
               </span>
             </div>
 

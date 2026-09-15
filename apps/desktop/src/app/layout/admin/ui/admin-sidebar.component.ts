@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@/environments/environment';
 import { AuthState } from '@core/auth/auth.state';
@@ -13,6 +13,7 @@ import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, ArrowU
   selector: 'admin-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RouterLink,
     Navigation,
     User,
     TranslocoPipe,
@@ -28,27 +29,30 @@ import { SearchIcon, XIcon, TriangleAlertIcon, ArrowRightIcon, ClockIcon, ArrowU
   },
   template: `
 
-    <div class="relative flex shrink-0 items-center gap-x-2.5 pt-5 pr-4 pb-0 pl-6 h-16 select-none" style="-webkit-app-region: drag">
-
-      <img
-        src="/images/logo/logo_dolphin_light.png"
-        class="h-8 w-auto max-w-[200px] object-contain object-left pointer-events-none select-none dark:hidden"
-        alt="Dolphin ERP"
-      />
-      <img
-        src="/images/logo/logo_dolphin_dark.png"
-        class="h-12 w-auto max-w-[200px] object-contain object-left pointer-events-none select-none hidden dark:block"
-        alt="Dolphin logo"
-      />
-
-      <div class="flex flex-col ml-1 pointer-events-none select-none">
-        <div class="text-neutral-900 dark:text-white text-lg leading-none font-extrabold tracking-widest uppercase">
-          Dolphin
-        </div>
-        <div class="text-blue-600 dark:text-blue-400 text-[10px] leading-3 font-bold tracking-[0.2em] mt-0.5">
+    <div class="relative flex shrink-0 items-center pt-5 pr-4 pb-0 pl-6 h-16 select-none" style="-webkit-app-region: drag">
+      <a
+        routerLink="/admin"
+        class="inline-flex items-center gap-2 select-none no-underline cursor-pointer text-neutral-900 dark:text-white"
+        style="-webkit-app-region: no-drag"
+        aria-label="Dolphine ERP"
+      >
+        <img
+          src="/images/logo/logo_dolphin_light.png"
+          class="h-7 w-auto object-contain pointer-events-none select-none dark:hidden"
+          alt="Dolphine ERP"
+        />
+        <img
+          src="/images/logo/logo_dolphin_dark.png"
+          class="h-7 w-auto object-contain pointer-events-none select-none hidden dark:block"
+          alt="Dolphine ERP"
+        />
+        <span class="text-[25px] font-[650] tracking-[-1.2px] leading-none pointer-events-none select-none">
+          dolphine
+        </span>
+        <span class="text-[10px] font-medium tracking-[1px] self-start mt-[5px] ml-[2px] pointer-events-none select-none">
           ERP
-        </div>
-      </div>
+        </span>
+      </a>
     </div>
 
     <div class="relative shrink-0 px-4 pt-4 pb-1">
