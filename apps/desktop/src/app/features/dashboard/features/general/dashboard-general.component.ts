@@ -67,7 +67,7 @@ type DashboardMetric = {
           <section class="flex min-h-[380px] flex-col items-center justify-center rounded-3xl border border-neutral-200/80 bg-neutral-50/50 p-8 text-center dark:border-neutral-800/80 dark:bg-neutral-900/40">
 
             <div class="mb-4 flex size-16 items-center justify-center rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border border-neutral-200/60 dark:border-neutral-700/60 shadow-xs">
-              <i-rotate-ccw [size]="26" class="text-neutral-500 dark:text-neutral-400" />
+              <mat-icon svgIcon="frown" class="icon-size-7 text-neutral-500 dark:text-neutral-400"></mat-icon>
             </div>
 
             <h2 class="text-xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-2xl">

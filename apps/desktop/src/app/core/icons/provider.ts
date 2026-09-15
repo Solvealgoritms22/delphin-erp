@@ -51,6 +51,17 @@ export const provideIcons = (): EnvironmentProviders =>
         )
       );
 
+      // ─── Carita triste (Frown / Sad face) ─────────────────────────────────────
+      const sadFaceSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20m0 1.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17m0 10c1.63 0 3.16.65 4.28 1.8a.75.75 0 1 1-1.07 1.04 4.5 4.5 0 0 0-6.43 0 .75.75 0 1 1-1.07-1.04A6 6 0 0 1 12 13.5M9 8.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5m6 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5"/></svg>`;
+      matIconRegistry.addSvgIconLiteral(
+        'frown',
+        domSanitizer.bypassSecurityTrustHtml(sadFaceSvg)
+      );
+      matIconRegistry.addSvgIconLiteral(
+        'sad',
+        domSanitizer.bypassSecurityTrustHtml(sadFaceSvg)
+      );
+
       // ─── Aliases de nombres para compatibilidad con templates ─────────────────
       // Los siguientes ya están en el sprite pero se necesita el alias adicional:
       // (el sprite ya cubre: 'sparkles', 'ai-stars', 'check-circle', 'triangle-alert', etc.)
