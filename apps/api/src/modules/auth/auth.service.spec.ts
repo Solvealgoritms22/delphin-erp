@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { createPrismaMock } from '../../test/mocks/prisma.mock';
 import * as bcrypt from 'bcrypt';
+import { TrialEligibilityService } from '../trial-eligibility/trial-eligibility.service';
 
 jest.mock('bcrypt');
 
@@ -50,6 +51,14 @@ describe('AuthService', () => {
           useValue: { challenge: jest.fn().mockResolvedValue(null) },
         },
         mocks.provider,
+        {
+          provide: TrialEligibilityService,
+          useValue: {
+            claimTrial: jest.fn().mockResolvedValue(false),
+            ensureTrialPlan: jest.fn(),
+            recordConsumedOnDeletion: jest.fn(),
+          },
+        },
         { provide: UsersService, useValue: usersService },
         { provide: JwtService, useValue: jwtService },
         { provide: MailerService, useValue: mailerService },

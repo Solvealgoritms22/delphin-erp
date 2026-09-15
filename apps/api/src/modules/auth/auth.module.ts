@@ -14,12 +14,14 @@ import { SessionController } from './session.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { TenantMailerService } from '../../common/tenant-mailer.service';
 import { EmailTemplatesModule } from '../email-templates/email-templates.module';
+import { TrialEligibilityModule } from '../trial-eligibility/trial-eligibility.module';
 
 @Module({
   imports: [
     UsersModule,
     EmailTemplatesModule,
-    NotificationsModule,
+    TrialEligibilityModule,
+    NotificationsModule
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,

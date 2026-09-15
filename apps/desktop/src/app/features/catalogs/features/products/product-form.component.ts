@@ -768,6 +768,16 @@ export type InsumoRow = {
                 formControlName="categoriaId"
                 [placeholder]="'common.select' | transloco"
               >
+                <mat-select-trigger>
+                  @if (getSelectedCategory(); as cat) {
+                    <div class="flex items-center gap-2">
+                      @if (cat.icono) {
+                        <img [src]="getCatImg(cat.icono)" alt="" class="size-4.5 object-contain shrink-0" />
+                      }
+                      <span class="truncate font-medium">{{ cat.nombre }}</span>
+                    </div>
+                  }
+                </mat-select-trigger>
                 <mat-option [value]="null">{{
                   'common.select' | transloco
                 }}</mat-option>
@@ -775,7 +785,7 @@ export type InsumoRow = {
                   <mat-option [value]="cat.id">
                     <div class="flex items-center gap-2">
                       @if (cat.icono) {
-                        <img [src]="getCatImg(cat.icono)" alt="" class="size-4 object-contain" />
+                        <img [src]="getCatImg(cat.icono)" alt="" class="size-4.5 object-contain shrink-0" />
                       }
                       <span>{{ cat.nombre }}</span>
                     </div>
@@ -819,14 +829,47 @@ export type InsumoRow = {
             }
 
             <!-- Etiquetas -->
-            <mat-form-field class="w-full">
-              <mat-label>{{ 'common.tags' | transloco }}</mat-label>
-              <input
-                matInput
-                formControlName="tags"
-                [placeholder]="'catalogs.products.tagsPlaceholder' | transloco"
-              />
-            </mat-form-field>
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+                {{ 'common.tags' | transloco }}
+              </label>
+
+              <div
+                (click)="tagInput.focus()"
+                class="flex min-h-[44px] flex-wrap items-center gap-1.5 rounded-xl border border-neutral-300 bg-white p-2 transition-all focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-600/20 dark:border-neutral-700 dark:bg-neutral-850 cursor-text"
+              >
+                @for (tag of tagsList(); track $index) {
+                  <span
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60 select-none shadow-2xs"
+                  >
+                    <mat-icon svgIcon="tag" class="!size-3.5 !text-[14px] text-blue-500 shrink-0"></mat-icon>
+                    <span>{{ tag }}</span>
+                    <button
+                      type="button"
+                      (click)="$event.stopPropagation(); removeTag($index)"
+                      class="ml-0.5 inline-flex size-4 items-center justify-center rounded-full hover:bg-blue-200/80 hover:text-blue-900 dark:hover:bg-blue-800 dark:hover:text-white cursor-pointer transition-colors"
+                      title="Eliminar etiqueta"
+                    >
+                      <mat-icon svgIcon="x" class="!size-3 !text-[12px]"></mat-icon>
+                    </button>
+                  </span>
+                }
+
+                <input
+                  #tagInput
+                  type="text"
+                  [placeholder]="tagsList().length === 0 ? ('catalogs.products.tagsPlaceholder' | transloco) : 'Agregar etiqueta...'"
+                  (keydown.enter)="$event.preventDefault(); addTag(tagInput.value); tagInput.value = ''"
+                  (keydown.comma)="$event.preventDefault(); addTag(tagInput.value); tagInput.value = ''"
+                  (keydown.backspace)="tagInput.value === '' && tagsList().length > 0 ? removeTag(tagsList().length - 1) : null"
+                  (blur)="addTag(tagInput.value); tagInput.value = ''"
+                  class="min-w-[130px] flex-1 bg-transparent px-1.5 py-1 text-xs text-neutral-800 placeholder:text-neutral-400 focus:outline-none dark:text-neutral-200"
+                />
+              </div>
+              <p class="text-[11px] text-neutral-400">
+                Presiona <kbd class="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-[10px] font-mono border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300">Enter</kbd> o <kbd class="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-[10px] font-mono border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300">,</kbd> para agregar etiquetas.
+              </p>
+            </div>
           </div>
         </div>
       </form>
@@ -849,12 +892,19 @@ export type InsumoRow = {
           type="button"
           (click)="submit()"
           [disabled]="form.invalid || isLoading()"
-          class="!rounded-xl ml-3 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+          class="!rounded-xl ml-3 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer inline-flex items-center gap-2"
         >
-          {{
-            (isEdit ? 'common.saveChanges' : (isService() ? 'catalogs.products.createService' : 'catalogs.products.create'))
-              | transloco
-          }}
+          @if (isLoading()) {
+            <mat-icon svgIcon="rotate-cw" class="!w-4 !h-4 !text-[16px] shrink-0 animate-spin"></mat-icon>
+          } @else {
+            <mat-icon svgIcon="save" class="!w-4 !h-4 !text-[16px] shrink-0"></mat-icon>
+          }
+          <span>
+            {{
+              (isEdit ? 'common.saveChanges' : (isService() ? 'catalogs.products.createService' : 'catalogs.products.create'))
+                | transloco
+            }}
+          </span>
         </button>
       </div>
     </div>
@@ -892,6 +942,40 @@ export default class ProductFormComponent implements OnInit {
   insumosList = signal<InsumoRow[]>([]);
 
   isService = signal(false);
+
+  // Tags state
+  tagsList = signal<string[]>([]);
+
+  getSelectedCategory(): any {
+    const catId = this.form?.get('categoriaId')?.value;
+    if (!catId) return null;
+    return this.productsService.categories().find((c) => c.id === catId) || null;
+  }
+
+  addTag(raw: string): void {
+    if (!raw) return;
+    const pieces = raw
+      .split(',')
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+
+    if (pieces.length === 0) return;
+
+    this.tagsList.update((curr) => {
+      const set = new Set(curr);
+      for (const p of pieces) {
+        set.add(p);
+      }
+      return Array.from(set);
+    });
+
+    this.form?.patchValue({ tags: this.tagsList().join(',') });
+  }
+
+  removeTag(index: number): void {
+    this.tagsList.update((curr) => curr.filter((_, i) => i !== index));
+    this.form?.patchValue({ tags: this.tagsList().join(',') });
+  }
 
   // Image Upload Handling
   imagePreviews: string[] = [];
@@ -1043,6 +1127,16 @@ export default class ProductFormComponent implements OnInit {
                 ? Number(data.descuentoMaximo)
                 : 100,
           });
+
+          if (data.tags) {
+            const parsedTags = data.tags
+              .split(',')
+              .map((t: string) => t.trim())
+              .filter((t: string) => t.length > 0);
+            this.tagsList.set(parsedTags);
+          } else {
+            this.tagsList.set([]);
+          }
 
           // Insumos if any
           if (data.insumos && data.insumos.length > 0) {

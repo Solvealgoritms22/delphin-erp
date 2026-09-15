@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { EmpresasService } from './empresas.service';
 import { createPrismaMock } from '../../test/mocks/prisma.mock';
+import { TrialEligibilityService } from '../trial-eligibility/trial-eligibility.service';
 
 describe('EmpresasService', () => {
   let service: EmpresasService;
@@ -9,10 +10,20 @@ describe('EmpresasService', () => {
 
   beforeEach(async () => {
     const mocks = createPrismaMock();
-    prisma = mocks.prisma;
+    prisma = mocks.prisma;`r`n    prisma.usuario.findUnique.mockResolvedValue({ email: 'owner@example.com' });
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EmpresasService, mocks.provider],
+      providers: [
+        EmpresasService,
+        mocks.provider,
+        {
+          provide: TrialEligibilityService,
+          useValue: {
+            claimTrial: jest.fn().mockResolvedValue(true),
+            ensureTrialPlan: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<EmpresasService>(EmpresasService);

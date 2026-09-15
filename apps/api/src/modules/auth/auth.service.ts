@@ -18,6 +18,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { TenantMailerService } from '../../common/tenant-mailer.service';
 import { EmailTemplatesService } from '../email-templates/email-templates.service';
 import { renderEmail } from '../email-templates/email-renderer';
+import { TrialEligibilityService } from '../trial-eligibility/trial-eligibility.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
     private jwtService: JwtService,
     private mailerService: MailerService,
     private prisma: PrismaService,
+    private readonly trialEligibility: TrialEligibilityService,
     private readonly mfa: MfaService,
     @Optional() private tenantMailer?: TenantMailerService,
     @Optional() private readonly notifications?: NotificationsService,
@@ -373,31 +375,51 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
-    const user = await this.prisma.usuario.create({
-      data: {
-        email: email,
-        passwordHash,
-        nombre: data.name || data.nombre || null,
-        politicasAceptadasEn: new Date(),
-      },
-    });
-
-    // The main account owns the company and registers its membership
-    await this.prisma.empresa.create({
-      data: {
-        razonSocial: data.company || data.empresa || 'Nueva Empresa',
-        rnc: data.documentNumber || data.rnc || null,
-        pais: data.country || 'DO',
-        telefono: data.phone || null,
-        email: data.companyEmail || data.email || null,
-        propietarioId: user.id,
-        membresias: {
-          create: {
-            usuarioId: user.id,
-            estado: 'ACTIVO',
-          },
+    const { user, trialGranted } = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.usuario.create({
+        data: {
+          email,
+          passwordHash,
+          nombre: data.name || data.nombre || null,
+          politicasAceptadasEn: new Date(),
         },
-      },
+      });
+      const trialGranted = await this.trialEligibility.claimTrial(
+        tx,
+        email,
+        user.id,
+      );
+      if (trialGranted) await this.trialEligibility.ensureTrialPlan(tx);
+
+      await tx.empresa.create({
+        data: {
+          razonSocial: data.company || data.empresa || 'Nueva Empresa',
+          rnc: data.documentNumber || data.rnc || null,
+          pais: data.country || 'DO',
+          telefono: data.phone || null,
+          email: data.companyEmail || data.email || null,
+          propietarioId: user.id,
+          membresias: {
+            create: {
+              usuarioId: user.id,
+              estado: 'ACTIVO',
+            },
+          },
+          ...(trialGranted
+            ? {
+                suscripcion: {
+                  create: {
+                    planId: 'trial',
+                    estado: 'TRIAL',
+                    periodicidad: 'MONTHLY',
+                    fechaRenovacion: new Date(Date.now() + 15 * 86400_000),
+                  },
+                },
+              }
+            : {}),
+        } as any,
+      });
+      return { user, trialGranted };
     });
 
     // Send verification email
@@ -421,9 +443,10 @@ export class AuthService {
       success: true,
       needsVerification: true,
       email: user.email,
+      trialGranted,
+      requiresPlan: !trialGranted,
     };
   }
-
   async verifyAccount(email: string, otp: string) {
     const normalizedEmail = email?.trim().toLowerCase();
     const normalizedOtp = otp?.trim();
@@ -1025,13 +1048,26 @@ export class AuthService {
 
     const user = await this.prisma.usuario.findUnique({
       where: { id: userId },
-      include: { empresasPropiedad: true },
+      include: { empresasPropiedad: { include: { suscripcion: true } } },
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
     const empresaIds = (user.empresasPropiedad || []).map((e) => e.id);
+    const hadTrial = (user.empresasPropiedad || []).some(
+      (empresa: any) =>
+        empresa.suscripcion?.planId === 'trial' ||
+        empresa.suscripcion?.estado === 'TRIAL',
+    );
 
     return this.prisma.$transaction(async (tx) => {
+      // Registrar el consumo antes de borrar el usuario y sus empresas.
+      await this.trialEligibility.recordConsumedOnDeletion(
+        tx,
+        user.email,
+        userId,
+        hadTrial,
+      );
+
       // 1. Delete owned companies (cascades operational data)
       if (empresaIds.length > 0) {
         await tx.pagoCliente.deleteMany({

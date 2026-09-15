@@ -9,6 +9,7 @@ import { google } from 'googleapis';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthService } from './auth.service';
+import { TrialEligibilityService } from '../trial-eligibility/trial-eligibility.service';
 
 type GoogleIdentity = {
   sub: string;
@@ -342,7 +343,6 @@ export class GoogleOAuthService {
           );
 
         if (!account) {
-          await this.ensureTrialPlan(tx);
           const created = await tx.usuario.create({
             data: {
               email: identity.email,
@@ -355,30 +355,37 @@ export class GoogleOAuthService {
                 12,
               ),
               politicasAceptadasEn: new Date(),
-              empresasPropiedad: {
-                create: {
-                  razonSocial: companyName!.trim(),
-                  rnc: rnc?.trim() || null,
-                  suscripcion: {
-                    create: {
-                      planId: 'trial',
-                      estado: 'TRIAL',
-                      periodicidad: 'MONTHLY',
-                      fechaRenovacion: new Date(Date.now() + 15 * 86400_000),
-                    },
-                  },
-                },
-              },
             },
-            include: { empresasPropiedad: true },
           });
-          await tx.membresia.create({
+          const trialGranted = await this.trialEligibility.claimTrial(
+            tx,
+            identity.email,
+            created.id,
+          );
+          if (trialGranted) await this.trialEligibility.ensureTrialPlan(tx);
+          const createdEmpresa = await tx.empresa.create({
             data: {
-              usuarioId: created.id,
-              empresaId: created.empresasPropiedad[0].id,
-              estado: 'ACTIVO',
+              razonSocial: companyName!.trim(),
+              rnc: rnc?.trim() || null,
+              propietarioId: created.id,
+              membresias: {
+                create: { usuarioId: created.id, estado: 'ACTIVO' },
+              },
+              ...(trialGranted
+                ? {
+                    suscripcion: {
+                      create: {
+                        planId: 'trial',
+                        estado: 'TRIAL',
+                        periodicidad: 'MONTHLY',
+                        fechaRenovacion: new Date(Date.now() + 15 * 86400_000),
+                      },
+                    },
+                  }
+                : {}),
             },
           });
+          void createdEmpresa;
           // Re-fetch para incluir la membresía recién creada con su role antes de llamar a auth.login()
           account = await tx.usuario.findUniqueOrThrow({
             where: { id: created.id },
@@ -404,20 +411,29 @@ export class GoogleOAuthService {
           }
 
           if (!hasOwnedCompany && companyName?.trim()) {
-            await this.ensureTrialPlan(tx);
+            const trialGranted = await this.trialEligibility.claimTrial(
+              tx,
+              identity.email,
+              account.id,
+            );
+            if (trialGranted) await this.trialEligibility.ensureTrialPlan(tx);
             const createdEmpresa = await tx.empresa.create({
               data: {
                 razonSocial: companyName.trim(),
                 rnc: rnc?.trim() || null,
                 propietarioId: account.id,
-                suscripcion: {
-                  create: {
-                    planId: 'trial',
-                    estado: 'TRIAL',
-                    periodicidad: 'MONTHLY',
-                    fechaRenovacion: new Date(Date.now() + 15 * 86400_000),
-                  },
-                },
+                ...(trialGranted
+                  ? {
+                      suscripcion: {
+                        create: {
+                          planId: 'trial',
+                          estado: 'TRIAL',
+                          periodicidad: 'MONTHLY',
+                          fechaRenovacion: new Date(Date.now() + 15 * 86400_000),
+                        },
+                      },
+                    }
+                  : {}),
               },
             });
             await tx.membresia.create({

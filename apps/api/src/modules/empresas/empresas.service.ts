@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { encryptSecret } from '../../common/security/secrets';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TrialEligibilityService } from '../trial-eligibility/trial-eligibility.service';
 
 const PUBLIC_COMPANY_FIELDS = {
   id: true,
@@ -98,7 +99,10 @@ export class EmpresasService {
     },
   ];
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly trialEligibility: TrialEligibilityService,
+  ) {}
 
   getPlans() {
     return EmpresasService.PLANS;
@@ -204,38 +208,54 @@ export class EmpresasService {
       }
     }
 
-    // Calcular la fecha de expiración del trial: +15 días
-    const trialExpiry = new Date();
-    trialExpiry.setDate(trialExpiry.getDate() + 15);
+    const owner = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (!owner) throw new NotFoundException('Usuario no encontrado');
 
-    return this.prisma.empresa.create({
-      data: {
-        razonSocial: razonSocial || 'Nueva Empresa',
-        rnc: rnc || null,
-        pais: pais || 'DO',
-        direccion: direccion || null,
-        telefono: telefono || null,
-        email: email || null,
-        paginaWeb: paginaWeb || null,
-        descripcion: descripcion || null,
-        logo: logo || null,
-        propietarioId: userId,
-        membresias: {
-          create: {
-            usuarioId: userId,
-            estado: 'ACTIVO',
+    return this.prisma.$transaction(async (tx) => {
+      // El derecho al trial se reclama una sola vez por identidad verificada,
+      // incluso si la cuenta o la empresa anterior fueron eliminadas.
+      const trialGranted = await this.trialEligibility.claimTrial(
+        tx,
+        owner.email,
+        userId,
+      );
+      if (trialGranted) await this.trialEligibility.ensureTrialPlan(tx);
+
+      return tx.empresa.create({
+        data: {
+          razonSocial: razonSocial || 'Nueva Empresa',
+          rnc: rnc || null,
+          pais: pais || 'DO',
+          direccion: direccion || null,
+          telefono: telefono || null,
+          email: email || null,
+          paginaWeb: paginaWeb || null,
+          descripcion: descripcion || null,
+          logo: logo || null,
+          propietarioId: userId,
+          membresias: {
+            create: {
+              usuarioId: userId,
+              estado: 'ACTIVO',
+            },
           },
-        },
-        // Trial gratuito de 15 días al crear la empresa
-        suscripcion: {
-          create: {
-            planId: 'trial',
-            estado: 'TRIAL',
-            periodicidad: 'MONTHLY',
-            fechaRenovacion: trialExpiry,
-          },
-        },
-      } as any,
+          ...(trialGranted
+            ? {
+                suscripcion: {
+                  create: {
+                    planId: 'trial',
+                    estado: 'TRIAL',
+                    periodicidad: 'MONTHLY',
+                    fechaRenovacion: new Date(Date.now() + 15 * 86400_000),
+                  },
+                },
+              }
+            : {}),
+        } as any,
+      });
     });
   }
 
