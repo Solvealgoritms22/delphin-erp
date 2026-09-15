@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { optimizeImageToWebP, formatBytes } from '@shared/utils/image-optimizer.util';
 import {
   FormBuilder,
@@ -424,10 +424,9 @@ export type InsumoRow = {
                 <mat-form-field class="w-full">
                   <mat-label>Almacén</mat-label>
                   <mat-select formControlName="almacenId" placeholder="Seleccionar almacén">
-                    <mat-option [value]="null">Almacén Principal (Predeterminado)</mat-option>
                     @for (w of productsService.warehouses(); track w.id) {
                       <mat-option [value]="w.id">
-                        {{ w.nombre }} {{ w.esPrincipal ? '(Principal)' : '' }}
+                        {{ w.nombre }} {{ (w.esPrincipal && !w.nombre.toLowerCase().includes('principal')) ? '(Principal)' : '' }}
                       </mat-option>
                     }
                   </mat-select>
@@ -876,6 +875,18 @@ export default class ProductFormComponent implements OnInit {
   productId: string | null = null;
   isLoading = signal(false);
 
+  constructor() {
+    effect(() => {
+      const warehouses = this.productsService.warehouses();
+      if (this.form && warehouses.length > 0 && !this.form.get('almacenId')?.value && !this.isEdit) {
+        const mainWh = warehouses.find((w) => w.esPrincipal) || warehouses[0];
+        if (mainWh) {
+          this.form.patchValue({ almacenId: mainWh.id }, { emitEvent: false });
+        }
+      }
+    });
+  }
+
   // Insumos / Recipe for Services
   consumesInsumos = signal(false);
   insumosList = signal<InsumoRow[]>([]);
@@ -958,6 +969,12 @@ export default class ProductFormComponent implements OnInit {
     this.productId = this.route.snapshot.paramMap.get('id');
     this.isEdit = !!this.productId && this.productId !== 'new';
 
+    const initialWarehouses = this.productsService.warehouses();
+    const defaultWarehouseId =
+      initialWarehouses.length > 0
+        ? (initialWarehouses.find((w) => w.esPrincipal)?.id || initialWarehouses[0].id)
+        : null;
+
     this.form = this.fb.group({
       nombre: ['', Validators.required],
       codigo: [''],
@@ -969,7 +986,7 @@ export default class ProductFormComponent implements OnInit {
       costo: [0, [Validators.min(0)]],
       stockInicial: [0, [Validators.min(0)]],
       stockMinimo: [0, [Validators.min(0)]],
-      almacenId: [null],
+      almacenId: [defaultWarehouseId],
       impuestoId: [null],
       categoriaId: [null],
       marcaId: [null],

@@ -283,7 +283,7 @@ export default class ServicesComponent implements OnInit {
     const dialogRef = this.dialog.open(ProductDetailDialogComponent, {
       data: service,
       autoFocus: false,
-      width: '740px',
+      width: '780px',
       maxWidth: '95vw',
       panelClass: 'product-detail-dialog-panel',
     });

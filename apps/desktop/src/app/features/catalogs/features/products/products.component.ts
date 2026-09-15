@@ -279,7 +279,7 @@ export default class ProductsComponent implements OnInit {
     const dialogRef = this.dialog.open(ProductDetailDialogComponent, {
       data: product,
       autoFocus: false,
-      width: '740px',
+      width: '780px',
       maxWidth: '95vw',
       panelClass: 'product-detail-dialog-panel',
     });

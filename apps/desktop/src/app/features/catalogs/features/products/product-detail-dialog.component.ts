@@ -3,6 +3,7 @@ import { CurrencyPipe, CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Product } from '../../data/products.service';
 
@@ -14,6 +15,7 @@ import { Product } from '../../data/products.service';
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
     CurrencyPipe,
     TranslocoPipe,
   ],
@@ -61,19 +63,19 @@ import { Product } from '../../data/products.service';
               </div>
 
               @if (images().length > 1) {
-                <div class="flex items-center gap-2 overflow-x-auto pb-1">
+                <div class="flex items-center gap-2.5 overflow-x-auto p-1.5 -m-1.5">
                   @for (img of images(); track $index) {
                     <button
                       type="button"
                       (click)="selectedImage.set(img)"
-                      class="relative size-14 shrink-0 rounded-xl overflow-hidden border transition-all cursor-pointer"
+                      class="relative size-14 shrink-0 rounded-xl p-1 bg-white dark:bg-neutral-800 border transition-all cursor-pointer shadow-2xs"
                       [class.ring-2]="selectedImage() === img"
                       [class.ring-blue-600]="selectedImage() === img"
                       [class.border-transparent]="selectedImage() === img"
                       [class.border-neutral-200]="selectedImage() !== img"
                       [class.dark:border-neutral-700]="selectedImage() !== img"
                     >
-                      <img [src]="img" alt="Miniatura" class="w-full h-full object-cover" />
+                      <img [src]="img" alt="Miniatura" class="w-full h-full object-cover rounded-lg" />
                     </button>
                   }
                 </div>
@@ -81,26 +83,30 @@ import { Product } from '../../data/products.service';
             </div>
 
             <!-- Right: Financials & Specs -->
-            <div class="md:col-span-7 flex flex-col gap-5">
+            <div class="md:col-span-7 flex flex-col gap-5 min-w-0">
               <!-- Precios e Indicadores -->
-              <div class="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
-                <div>
-                  <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">Precio Venta</span>
-                  <div class="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-0.5">
-                    {{ product.precioVenta | currency:(product.moneda || 'DOP') }}
+              <div class="grid grid-cols-3 gap-3 sm:gap-4 p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
+                <div class="min-w-0 pr-1">
+                  <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block truncate">Precio Venta</span>
+                  <div class="text-base sm:text-lg font-extrabold text-blue-600 dark:text-blue-400 mt-0.5 tracking-tight truncate" [matTooltip]="(product.moneda || 'DOP') + ' ' + (product.precioVenta | number:'1.2-2')">
+                    <span class="text-xs font-semibold opacity-80 mr-0.5">{{ product.moneda || 'DOP' }}</span>{{ product.precioVenta | number:'1.2-2' }}
                   </div>
                 </div>
-                <div>
-                  <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">
+                <div class="min-w-0 pr-1">
+                  <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block truncate">
                     {{ product.tipo === 'SERVICIO' ? 'Costo Base' : 'Costo' }}
                   </span>
-                  <div class="text-lg font-bold text-neutral-700 dark:text-neutral-300 mt-0.5">
-                    {{ (product.costo !== null && product.costo !== undefined) ? (product.costo | currency:(product.moneda || 'DOP')) : '-' }}
+                  <div class="text-sm sm:text-base font-bold text-neutral-700 dark:text-neutral-300 mt-0.5 tracking-tight truncate" [matTooltip]="(product.costo !== null && product.costo !== undefined) ? ((product.moneda || 'DOP') + ' ' + (product.costo | number:'1.2-2')) : '-'">
+                    @if (product.costo !== null && product.costo !== undefined) {
+                      <span class="text-xs font-semibold text-neutral-400 mr-0.5">{{ product.moneda || 'DOP' }}</span>{{ product.costo | number:'1.2-2' }}
+                    } @else {
+                      -
+                    }
                   </div>
                 </div>
-                <div>
-                  <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">Margen</span>
-                  <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                <div class="min-w-0">
+                  <span class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block truncate">Margen</span>
+                  <div class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tracking-tight">
                     {{ marginPercent() !== null ? '+' + marginPercent() + '%' : '-' }}
                   </div>
                 </div>
