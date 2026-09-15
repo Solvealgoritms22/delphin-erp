@@ -98,7 +98,7 @@ export type PromotionDialogData = {
               [placeholder]="'commercial.promotions.namePlaceholder' | transloco"
             />
             @if (form.get('nombre')?.touched && form.get('nombre')?.invalid) {
-              <mat-error>El nombre es obligatorio</mat-error>
+              <mat-error>{{ 'commercial.promotions.nameRequired' | transloco }}</mat-error>
             }
           </mat-form-field>
 
@@ -109,7 +109,7 @@ export type PromotionDialogData = {
               formControlName="codigoCupon"
               placeholder="VERANO2026"
             />
-            <mat-hint class="text-[11px]">Opcional. Si se deja vacío aplica automáticamente</mat-hint>
+            <mat-hint class="text-[11px]">{{ 'commercial.promotions.couponHint' | transloco }}</mat-hint>
           </mat-form-field>
         </div>
 
@@ -164,7 +164,7 @@ export type PromotionDialogData = {
                 placeholder="0.00"
               />
               @if (form.get('valorDescuento')?.touched && form.get('valorDescuento')?.invalid) {
-                <mat-error>Ingresa un valor válido</mat-error>
+                <mat-error>{{ 'commercial.promotions.invalidValue' | transloco }}</mat-error>
               }
             </mat-form-field>
           </div>
@@ -289,7 +289,7 @@ export type PromotionDialogData = {
               min="1"
               step="1"
               formControlName="limiteUsos"
-              placeholder="Ilimitado"
+              [placeholder]="'commercial.promotions.unlimited' | transloco"
             />
           </mat-form-field>
         </div>
@@ -334,7 +334,8 @@ export type PromotionDialogData = {
           [disabled]="form.invalid || isSaving()"
           class="!rounded-xl bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
         >
-          {{ (isEdit ? 'common.saveChanges' : 'common.create') | transloco }}
+          <mat-icon [svgIcon]="isEdit ? 'save' : 'plus'" class="icon-size-4 mr-2"></mat-icon>
+          <span>{{ (isEdit ? 'common.saveChanges' : 'common.create') | transloco }}</span>
         </button>
       </div>
     </div>

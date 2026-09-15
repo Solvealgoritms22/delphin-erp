@@ -137,7 +137,7 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
                 : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/50'"
             >
               <mat-icon svgIcon="sliders-horizontal" class="icon-size-4" />
-              Filtros
+              {{ 'common.filters' | transloco }}
               @if (activeFiltersCount > 0) {
                 <span class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">{{ activeFiltersCount }}</span>
               }
@@ -213,77 +213,77 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
             <div class="grid grid-cols-2 gap-3 pt-4 sm:grid-cols-3 lg:grid-cols-4">
 
               <div class="flex flex-col gap-1">
-                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Estado</label>
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{{ 'common.status' | transloco }}</label>
                 <button
                   type="button"
                   [matMenuTriggerFor]="estadoFilterMenu"
                   class="flex h-10 w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900 shadow-2xs transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800 cursor-pointer"
                 >
-                  <span>{{ getEstadoFilterLabel(advancedFilters.estado) }}</span>
+                  <span>{{ getEstadoFilterLabel(advancedFilters.estado) | transloco }}</span>
                   <mat-icon svgIcon="chevron-down" class="!h-3.5 !w-3.5 !text-[14px] text-neutral-400"></mat-icon>
                 </button>
                 <mat-menu #estadoFilterMenu="matMenu">
-                  <button mat-menu-item (click)="advancedFilters.estado = ''" [class.font-bold]="!advancedFilters.estado">Todos</button>
-                  <button mat-menu-item (click)="advancedFilters.estado = 'EMITIDA'" [class.font-bold]="advancedFilters.estado === 'EMITIDA'">Emitida</button>
-                  <button mat-menu-item (click)="advancedFilters.estado = 'BORRADOR'" [class.font-bold]="advancedFilters.estado === 'BORRADOR'">Borrador</button>
-                  <button mat-menu-item (click)="advancedFilters.estado = 'PAGADA'" [class.font-bold]="advancedFilters.estado === 'PAGADA'">Pagada</button>
-                  <button mat-menu-item (click)="advancedFilters.estado = 'ANULADA'" [class.font-bold]="advancedFilters.estado === 'ANULADA'">Anulada</button>
+                  <button mat-menu-item (click)="advancedFilters.estado = ''" [class.font-bold]="!advancedFilters.estado">{{ 'common.all' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.estado = 'EMITIDA'" [class.font-bold]="advancedFilters.estado === 'EMITIDA'">{{ 'commercial.invoices.statuses.EMITIDA' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.estado = 'BORRADOR'" [class.font-bold]="advancedFilters.estado === 'BORRADOR'">{{ 'commercial.invoices.statuses.BORRADOR' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.estado = 'PAGADA'" [class.font-bold]="advancedFilters.estado === 'PAGADA'">{{ 'commercial.invoices.statuses.PAGADA' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.estado = 'ANULADA'" [class.font-bold]="advancedFilters.estado === 'ANULADA'">{{ 'commercial.invoices.statuses.ANULADA' | transloco }}</button>
                 </mat-menu>
               </div>
 
               <div class="flex flex-col gap-1">
-                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Tipo de Pago</label>
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{{ 'common.paymentType' | transloco }}</label>
                 <button
                   type="button"
                   [matMenuTriggerFor]="tipoPagoFilterMenu"
                   class="flex h-10 w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900 shadow-2xs transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800 cursor-pointer"
                 >
-                  <span>{{ getTipoPagoFilterLabel(advancedFilters.tipoPago) }}</span>
+                  <span>{{ getTipoPagoFilterLabel(advancedFilters.tipoPago) | transloco }}</span>
                   <mat-icon svgIcon="chevron-down" class="!h-3.5 !w-3.5 !text-[14px] text-neutral-400"></mat-icon>
                 </button>
                 <mat-menu #tipoPagoFilterMenu="matMenu">
-                  <button mat-menu-item (click)="advancedFilters.tipoPago = ''" [class.font-bold]="!advancedFilters.tipoPago">Todos</button>
-                  <button mat-menu-item (click)="advancedFilters.tipoPago = 'CONTADO'" [class.font-bold]="advancedFilters.tipoPago === 'CONTADO'">Contado</button>
-                  <button mat-menu-item (click)="advancedFilters.tipoPago = 'CREDITO'" [class.font-bold]="advancedFilters.tipoPago === 'CREDITO'">Crédito</button>
+                  <button mat-menu-item (click)="advancedFilters.tipoPago = ''" [class.font-bold]="!advancedFilters.tipoPago">{{ 'common.all' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.tipoPago = 'CONTADO'" [class.font-bold]="advancedFilters.tipoPago === 'CONTADO'">{{ 'reports.tables.cash' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.tipoPago = 'CREDITO'" [class.font-bold]="advancedFilters.tipoPago === 'CREDITO'">{{ 'reports.tables.credit' | transloco }}</button>
                 </mat-menu>
               </div>
 
               <div class="flex flex-col gap-1">
-                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Método de Pago</label>
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{{ 'common.paymentMethod' | transloco }}</label>
                 <button
                   type="button"
                   [matMenuTriggerFor]="metodoPagoFilterMenu"
                   class="flex h-10 w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900 shadow-2xs transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800 cursor-pointer"
                 >
-                  <span>{{ getMetodoPagoFilterLabel(advancedFilters.metodoPago) }}</span>
+                  <span>{{ getMetodoPagoFilterLabel(advancedFilters.metodoPago) | transloco }}</span>
                   <mat-icon svgIcon="chevron-down" class="!h-3.5 !w-3.5 !text-[14px] text-neutral-400"></mat-icon>
                 </button>
                 <mat-menu #metodoPagoFilterMenu="matMenu">
-                  <button mat-menu-item (click)="advancedFilters.metodoPago = ''" [class.font-bold]="!advancedFilters.metodoPago">Todos</button>
-                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'EFECTIVO'" [class.font-bold]="advancedFilters.metodoPago === 'EFECTIVO'">Efectivo</button>
-                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'TARJETA'" [class.font-bold]="advancedFilters.metodoPago === 'TARJETA'">Tarjeta</button>
-                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'TRANSFERENCIA'" [class.font-bold]="advancedFilters.metodoPago === 'TRANSFERENCIA'">Transferencia</button>
-                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'CHEQUE'" [class.font-bold]="advancedFilters.metodoPago === 'CHEQUE'">Cheque</button>
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = ''" [class.font-bold]="!advancedFilters.metodoPago">{{ 'common.all' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'EFECTIVO'" [class.font-bold]="advancedFilters.metodoPago === 'EFECTIVO'">{{ 'reports.tables.cash' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'TARJETA'" [class.font-bold]="advancedFilters.metodoPago === 'TARJETA'">{{ 'reports.tables.card' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'TRANSFERENCIA'" [class.font-bold]="advancedFilters.metodoPago === 'TRANSFERENCIA'">{{ 'common.methods.transfer' | transloco }}</button>
+                  <button mat-menu-item (click)="advancedFilters.metodoPago = 'CHEQUE'" [class.font-bold]="advancedFilters.metodoPago === 'CHEQUE'">{{ 'common.methods.cheque' | transloco }}</button>
                 </mat-menu>
               </div>
 
               <div class="flex flex-col gap-1">
-                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Desde</label>
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{{ 'common.from' | transloco }}</label>
                 <input type="date" [(ngModel)]="advancedFilters.desde" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
               </div>
 
               <div class="flex flex-col gap-1">
-                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Hasta</label>
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{{ 'common.to' | transloco }}</label>
                 <input type="date" [(ngModel)]="advancedFilters.hasta" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
               </div>
 
               <div class="flex flex-col gap-1">
-                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Monto Mín.</label>
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{{ 'common.minAmount' | transloco }}</label>
                 <input type="number" min="0" [(ngModel)]="advancedFilters.minTotal" placeholder="0.00" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
               </div>
 
               <div class="flex flex-col gap-1">
-                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Monto Máx.</label>
+                <label class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{{ 'common.maxAmount' | transloco }}</label>
                 <input type="number" min="0" [(ngModel)]="advancedFilters.maxTotal" placeholder="0.00" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:border-blue-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
               </div>
 
@@ -291,10 +291,10 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
 
             <div class="mt-3 flex items-center gap-3">
               <button (click)="applyAdvancedFilters()" class="cursor-pointer rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white transition-colors hover:bg-blue-700">
-                Aplicar filtros
+                {{ 'common.applyFilters' | transloco }}
               </button>
               <button (click)="resetFilters()" class="cursor-pointer rounded-xl border border-neutral-200 px-5 py-2 text-xs font-bold text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700">
-                Limpiar
+                {{ 'common.clear' | transloco }}
               </button>
             </div>
           </div>
@@ -986,6 +986,7 @@ import { InvoicePreviewComponent } from './invoice-preview.component';
                   (click)="saveDraft()"
                   class="rounded-xl"
                 >
+                  <mat-icon svgIcon="save" class="icon-size-4 mr-1.5"></mat-icon>
                   {{ 'commercial.invoices.modal.saveDraft' | transloco }}
                 </button>
               }
@@ -1836,10 +1837,12 @@ export class InvoicesComponent implements OnInit {
   openPreview(inv: FacturaVenta) {
     this.dialog.open(InvoicePreviewComponent, {
       data: inv,
-      width: '100%',
-      maxWidth: '820px',
-      maxHeight: '95vh',
-      panelClass: 'dialog-panel-no-padding',
+      width: '780px',
+      maxWidth: '100vw',
+      height: '100vh',
+      maxHeight: '100vh',
+      position: { top: '0', right: '0' },
+      panelClass: ['quote-preview-panel'],
     });
   }
 }

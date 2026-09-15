@@ -378,6 +378,7 @@ export const COLOR_OPTIONS = [
             [disabled]="form.invalid"
             class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl cursor-pointer"
           >
+            <mat-icon svgIcon="save" class="icon-size-4 mr-2"></mat-icon>
             {{ 'common.save' | transloco }}
           </button>
         </div>

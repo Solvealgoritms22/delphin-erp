@@ -97,7 +97,7 @@ export type RolePermissions = {
                         </div>
                       }
                       @if (getRoleUsersCount(role.id) === 0) {
-                        <span class="text-xs text-neutral-400 dark:text-neutral-500 italic">0 miembros</span>
+                        <span class="text-xs text-neutral-400 dark:text-neutral-500 italic">0 {{ 'roles.members' | transloco }}</span>
                       }
                     </div>
                     <button (click)="openRoleModal(role)" class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
@@ -125,7 +125,7 @@ export type RolePermissions = {
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="relative w-full sm:w-72 flex-auto sm:flex-initial">
               <i-search [size]="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input type="text" placeholder="Search..." [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500">
+              <input type="text" [placeholder]="'common.search' | transloco" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
@@ -134,14 +134,14 @@ export type RolePermissions = {
                 <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-32 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap cursor-pointer">
                   <div class="flex items-center gap-2">
                     <div class="w-2.5 h-2.5 rounded-full" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div>
-                    {{ statusFilter() === 'All' ? 'All Status' : statusFilter() }}
+                    {{ (statusFilter() === 'All' ? 'roles.allStatus' : (statusFilter() === 'Active' ? 'common.active' : 'common.inactive')) | transloco }}
                   </div>
                   <i-chevron-down [size]="16" class="text-neutral-500" />
                 </button>
                 <mat-menu #statusMenu="matMenu">
-                  <button mat-menu-item (click)="statusFilter.set('All')">All Status</button>
-                  <button mat-menu-item (click)="statusFilter.set('Active')">Active</button>
-                  <button mat-menu-item (click)="statusFilter.set('Inactive')">Inactive</button>
+                  <button mat-menu-item (click)="statusFilter.set('All')">{{ 'roles.allStatus' | transloco }}</button>
+                  <button mat-menu-item (click)="statusFilter.set('Active')">{{ 'common.active' | transloco }}</button>
+                  <button mat-menu-item (click)="statusFilter.set('Inactive')">{{ 'common.inactive' | transloco }}</button>
                 </mat-menu>
               </div>
 
@@ -151,7 +151,7 @@ export type RolePermissions = {
                   <i-chevron-down [size]="16" class="text-neutral-500 shrink-0" />
                 </button>
                 <mat-menu #roleFilterMenu="matMenu">
-                  <button mat-menu-item (click)="roleFilter.set('All')">All Roles</button>
+                  <button mat-menu-item (click)="roleFilter.set('All')">{{ 'roles.allRoles' | transloco }}</button>
                   @for (r of roles(); track r.id) {
                     <button mat-menu-item (click)="roleFilter.set(r.id)">{{ r.nombre }}</button>
                   }
@@ -173,10 +173,10 @@ export type RolePermissions = {
                       <div class="w-4 h-4 rounded-[4px] border-2 border-neutral-200 dark:border-neutral-700 mx-auto"></div>
                     }
                   </th>
-                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Name <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
-                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Status <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
-                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Last Online <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
-                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">Role <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
+                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">{{ 'common.name' | transloco }} <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
+                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">{{ 'common.status' | transloco }} <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
+                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">{{ 'common.lastOnline' | transloco }} <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
+                  <th class="py-4 px-4"><div class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">{{ 'common.role' | transloco }} <i-chevron-down [size]="14" class="ml-1 text-neutral-400 dark:text-neutral-500" /></div></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -211,12 +211,12 @@ export type RolePermissions = {
                     <td class="py-4 px-4">
                       <div class="flex items-center gap-2">
                         <div class="w-2 h-2 rounded-full" [ngClass]="account.estado === 'ACTIVO' ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-600'"></div>
-                        <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">{{ account.estado === 'ACTIVO' ? 'Active' : 'Inactive' }}</span>
+                        <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">{{ (account.estado === 'ACTIVO' ? 'common.active' : 'common.inactive') | transloco }}</span>
                       </div>
                     </td>
                     <td class="py-4 px-4">
                       <div class="flex flex-col">
-                        <span class="text-sm font-bold text-neutral-900 dark:text-white leading-none mb-1">{{ account.lastOnlineDate || 'Never' }}</span>
+                        <span class="text-sm font-bold text-neutral-900 dark:text-white leading-none mb-1">{{ account.lastOnlineDate || ('common.never' | transloco) }}</span>
                         <span class="text-xs text-neutral-500 dark:text-neutral-400 leading-none">{{ account.lastOnlineTime || '' }}</span>
                       </div>
                     </td>
@@ -224,7 +224,7 @@ export type RolePermissions = {
                       @if (account.isOwner) {
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-bold text-xs border border-neutral-200 dark:border-neutral-700">
                           <i-award [size]="14" class="text-amber-500 dark:text-amber-400" />
-                          Owner
+                          {{ 'roles.owner' | transloco }}
                         </span>
                       } @else {
 
@@ -247,9 +247,9 @@ export type RolePermissions = {
                     <td colspan="5" class="py-12">
                       <app-empty-state
                         icon="users"
-                        title="No accounts found"
-                        message="We couldn't find any accounts matching your current filters."
-                        actionLabel="Clear filters"
+                        [title]="'roles.noAccountsFound' | transloco"
+                        [description]="'roles.noAccountsFoundDesc' | transloco"
+                        [actionLabel]="'roles.clearFilters' | transloco"
                         (actionClick)="clearFilters()">
                       </app-empty-state>
                     </td>
@@ -288,7 +288,7 @@ export type RolePermissions = {
 
           <div class="flex items-center justify-between px-8 py-5 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
             <h2 class="text-xl font-bold text-neutral-900 dark:text-white">
-              {{ editingRole ? 'Edit role' : 'Create role' }}
+              {{ editingRole ? ('roles.editRole' | transloco) : ('roles.createRole' | transloco) }}
             </h2>
             <button (click)="closeRoleModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors cursor-pointer">
               <i-x [size]="16" />
@@ -299,7 +299,7 @@ export type RolePermissions = {
 
             <div class="flex flex-col gap-6">
               <div class="flex flex-col gap-2">
-                <label class="text-sm font-bold text-neutral-500">Role name</label>
+                <label class="text-sm font-bold text-neutral-500">{{ 'roles.roleName' | transloco }}</label>
                 <input
                   type="text"
                   [(ngModel)]="modalRoleData.name"
@@ -308,7 +308,7 @@ export type RolePermissions = {
                 />
               </div>
               <div class="flex flex-col gap-2">
-                <label class="text-sm font-bold text-neutral-500">Description</label>
+                <label class="text-sm font-bold text-neutral-500">{{ 'roles.roleDescription' | transloco }}</label>
                 <textarea
                   [(ngModel)]="modalRoleData.description"
                   rows="3"
@@ -320,14 +320,14 @@ export type RolePermissions = {
 
             <div class="flex flex-col gap-4">
               <div class="flex items-center justify-between gap-3">
-                <h3 class="text-sm font-bold text-neutral-500">Permissions Assignment</h3>
+                <h3 class="text-sm font-bold text-neutral-500">{{ 'roles.permissionsAssignment' | transloco }}</h3>
                 <div class="relative">
                   <i-search [size]="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input
                     type="text"
                     [value]="permissionsSearch()"
                     (input)="permissionsSearch.set($any($event.target).value)"
-                    placeholder="Buscar módulo…"
+                    [placeholder]="'roles.searchModulePlaceholder' | transloco"
                     class="w-52 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 py-1.5 pl-8 pr-3 text-xs font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none transition-colors"
                   />
                   @if (permissionsSearch()) {
@@ -358,13 +358,13 @@ export type RolePermissions = {
                     </div>
                     <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
                       <button (click)="togglePermission(mod.slug, 'read')" [ngClass]="getPermissionClass(mod.slug, 'read')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors cursor-pointer">
-                        @if(modalRoleData.permissions[mod.slug]?.read){<i-check [size]="14" />} Read
+                        @if(modalRoleData.permissions[mod.slug]?.read){<i-check [size]="14" />} {{ 'roles.read' | transloco }}
                       </button>
                       <button (click)="togglePermission(mod.slug, 'write')" [ngClass]="getPermissionClass(mod.slug, 'write')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors cursor-pointer">
-                        @if(modalRoleData.permissions[mod.slug]?.write){<i-check [size]="14" />} Write
+                        @if(modalRoleData.permissions[mod.slug]?.write){<i-check [size]="14" />} {{ 'roles.write' | transloco }}
                       </button>
                       <button (click)="togglePermission(mod.slug, 'delete')" [ngClass]="getPermissionClass(mod.slug, 'delete')" class="px-4 py-1.5 rounded-full border text-[13px] font-bold flex items-center gap-2 transition-colors cursor-pointer">
-                        @if(modalRoleData.permissions[mod.slug]?.delete){<i-check [size]="14" />} Delete
+                        @if(modalRoleData.permissions[mod.slug]?.delete){<i-check [size]="14" />} {{ 'roles.delete' | transloco }}
                       </button>
                     </div>
                   </div>
@@ -373,13 +373,13 @@ export type RolePermissions = {
                     <div class="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
                       <i-search [size]="20" class="text-neutral-400" />
                     </div>
-                    <p class="text-sm font-semibold text-neutral-900 dark:text-white">Sin resultados</p>
+                    <p class="text-sm font-semibold text-neutral-900 dark:text-white">{{ 'common.noResults' | transloco }}</p>
                     <p class="text-xs text-neutral-500 dark:text-neutral-400">Ningún módulo coincide con "{{ permissionsSearch() }}"</p>
                     <button
                       type="button"
                       (click)="permissionsSearch.set('')"
                       class="mt-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                    >Limpiar búsqueda</button>
+                    >{{ 'common.clear' | transloco }}</button>
                   </div>
                 }
 
@@ -388,8 +388,8 @@ export type RolePermissions = {
           </div>
 
           <div class="flex items-center justify-end gap-3 px-8 py-5 border-t border-neutral-100 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900">
-            <button (click)="closeRoleModal()" class="px-6 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">Cancel</button>
-            <button (click)="saveRole()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-8 py-2.5 rounded-xl transition-colors shadow-sm">Save Role</button>
+            <button (click)="closeRoleModal()" class="px-6 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">{{ 'common.cancel' | transloco }}</button>
+            <button (click)="saveRole()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-8 py-2.5 rounded-xl transition-colors shadow-sm">{{ 'common.save' | transloco }}</button>
           </div>
 
         </div>

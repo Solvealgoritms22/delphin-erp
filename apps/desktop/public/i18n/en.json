@@ -219,7 +219,47 @@
     "thisYear": "This year",
     "lastYear": "Last year",
     "customRange": "Custom range",
-    "total": "Total"
+    "total": "Total",
+    "docType": "Doc Type",
+    "photo": "Photo",
+    "unit": "Unit",
+    "cover": "Cover",
+    "role": "Role",
+    "lastOnline": "Last Online",
+    "client": "Client",
+    "supplier": "Supplier",
+    "date": "Date",
+    "issueDate": "Issue Date",
+    "dueDate": "Due Date",
+    "terms": "Terms",
+    "email": "Email",
+    "quantity": "Qty.",
+    "unitCost": "Unit Cost",
+    "unitPrice": "Unit Price",
+    "vatPercent": "% Tax",
+    "discount": "Discount",
+    "subtotal": "Subtotal",
+    "never": "Never",
+    "from": "From",
+    "to": "To",
+    "minAmount": "Min Amount",
+    "maxAmount": "Max Amount",
+    "applyFilters": "Apply filters",
+    "clear": "Clear",
+    "filters": "Filters",
+    "refreshList": "Refresh list",
+    "noResults": "No results",
+    "paymentType": "Payment Type",
+    "paymentMethod": "Payment Method",
+    "apply": "Apply",
+    "done": "Done",
+    "year": "Year",
+    "loadMore": "Load more",
+    "methods": {
+      "transfer": "Transfer",
+      "cheque": "Cheque",
+      "deposit": "Deposit"
+    }
   },
   "paginator": {
     "rowsPerPage": "Rows per page",
@@ -746,7 +786,8 @@
     "phone": "Phone",
     "emailInvalid": "Enter a valid email address",
     "emptyTitle": "No branches registered",
-    "emptyDescription": "Each company can manage its own branches, offices, or points of sale."
+    "emptyDescription": "Each company can manage its own branches, offices, or points of sale.",
+    "deleteTitle": "Delete Branch"
   },
   "billingPage": {
     "title": "Plan & Billing",
@@ -1073,7 +1114,14 @@
       "deleteAccountTitle": "Permanently Delete My Account",
       "deleteAccountDesc": "Permanently deletes your user account, your companies, accesses, and all associated data. You will not be able to recover access.",
       "deleteAccountBtn": "Delete Account Permanently"
-    }
+    },
+    "profilePhoto": "Profile picture",
+    "deletePhoto": "Delete photo",
+    "changePhoto": "Change photo",
+    "uploadPhoto": "Upload photo",
+    "basicInfo": "Basic Information",
+    "basicInfoDesc": "Update personal details shown in system and receipts.",
+    "nameRequired": "Full name is required"
   },
   "catalogs": {
     "products": {
@@ -1155,7 +1203,8 @@
       "maxAllowedDiscount": "Maximum Allowed Discount in Sales (%)",
       "maxAllowedDiscountHint": "Maximum discount percentage that cashiers can apply to this item (0-100%).",
       "emptyTitle": "No physical products registered",
-      "emptyDescription": "Create your first physical product to manage inventory and pricing."
+      "emptyDescription": "Create your first physical product to manage inventory and pricing.",
+      "deleteConfirm": "Are you sure you want to delete this product?"
     },
     "services": {
       "title": "Services",
@@ -1256,7 +1305,10 @@
         "type": "Type",
         "branch": "Branch",
         "central": "Central Warehouse",
-        "transferFromHere": "Transfer from here"
+        "transferFromHere": "Transfer from here",
+        "emptyTitle": "No warehouses registered",
+        "emptyDescription": "Create warehouses or storage rooms to manage your physical inventory.",
+        "newWarehouse": "New Warehouse"
       },
       "movementTypes": {
         "TRANSFERENCIA": "Transfer",
@@ -1318,6 +1370,9 @@
         "nameRequired": "Warehouse name is required",
         "warehouseSuccess": "Warehouse created successfully",
         "warehouseError": "Error creating warehouse"
+      },
+      "kardex": {
+        "general": "General Kardex"
       }
     }
   },
@@ -1339,7 +1394,70 @@
       "accepted": "Accepted",
       "invoiced": "Invoiced",
       "rejected": "Rejected",
-      "expired": "Expired"
+      "expired": "Expired",
+      "preview": {
+        "title": "Quote {{ number }}",
+        "subtitle": "Preview and formal printing",
+        "badge": "COMMERCIAL QUOTE",
+        "date": "Date",
+        "validUntil": "Valid until",
+        "validDays": "30 days",
+        "quotedFor": "Quoted For",
+        "finalConsumer": "Final Consumer",
+        "offerStatus": "Offer Status",
+        "sentTo": "Sent to {{ email }}",
+        "itemNumber": "#",
+        "description": "Product / Service Description",
+        "qty": "Qty",
+        "unitPrice": "Unit Price",
+        "tax": "Tax",
+        "total": "Total",
+        "discountApplied": "Discount applied",
+        "commercialNotes": "Commercial Notes:",
+        "terms": "Delivery and Payment Terms:",
+        "subtotalNet": "Net Subtotal:",
+        "discount": "Discount:",
+        "totalQuoted": "TOTAL QUOTED:",
+        "close": "Close",
+        "print": "Print Quote"
+      },
+      "table": {
+        "number": "# Quote",
+        "client": "Client",
+        "issueDate": "Issue Date",
+        "dueDate": "Due Date",
+        "total": "Total Amount",
+        "status": "Status",
+        "email": "Email",
+        "actions": "Actions"
+      },
+      "stats": {
+        "total": "Total Quotes",
+        "totalSub": "quotes issued",
+        "sent": "Sent / Active",
+        "sentSub": "delivered to clients",
+        "invoiced": "Invoiced / Accepted",
+        "invoicedSub": "converted to sales",
+        "totalAmount": "Total Quoted Amount",
+        "totalAmountSub": "Commercial proposals volume"
+      },
+      "searchPlaceholder": "Search by quote #, client or RNC...",
+      "actions": {
+        "viewDetail": "View Full Detail",
+        "sendEmail": "Send by Email",
+        "convertToInvoice": "Convert to Fiscal Invoice",
+        "editQuote": "Edit Quote"
+      },
+      "filters": {
+        "all": "All Quotes",
+        "drafts": "Drafts",
+        "sent": "Sent",
+        "accepted": "Accepted",
+        "invoiced": "Invoiced",
+        "rejected": "Rejected"
+      },
+      "emptyTitle": "No quotes registered",
+      "emptyDescription": "Create your first commercial quote to send it directly to your clients by email."
     },
     "clients": {
       "title": "Clients",
@@ -1350,7 +1468,8 @@
       "back": "Back to clients",
       "emptyTitle": "No clients registered",
       "emptyDescription": "Create your first client to manage commercial operations.",
-      "deleteConfirm": "Are you sure you want to delete this client?"
+      "deleteConfirm": "Are you sure you want to delete this client?",
+      "deleteTitle": "Delete Client"
     },
     "suppliers": {
       "title": "Suppliers",
@@ -1361,7 +1480,8 @@
       "back": "Back to suppliers",
       "emptyTitle": "No suppliers registered",
       "emptyDescription": "Create your first supplier to manage commercial operations.",
-      "deleteConfirm": "Are you sure you want to delete this supplier?"
+      "deleteConfirm": "Are you sure you want to delete this supplier?",
+      "deleteTitle": "Delete Supplier"
     },
     "purchases": {
       "title": "Purchases & Accounts Payable (AP)",
@@ -1374,7 +1494,8 @@
         "monthPurchases": "Month Purchases",
         "pendingCxP": "Accounts Payable (AP)",
         "overdueCxP": "Overdue AP",
-        "suppliersCount": "Suppliers"
+        "suppliersCount": "Suppliers",
+        "suppliersDirectory": "Suppliers in directory"
       },
       "dialog": {
         "title": "Record Purchase / Expense Invoice",
@@ -1398,7 +1519,30 @@
         "method": "Payment Method",
         "reference": "Check No. / Bank Reference",
         "date": "Payment Date",
-        "submit": "Record Payment"
+        "submit": "Record Payment",
+        "payFull": "Pay in Full",
+        "paid": "Paid"
+      },
+      "table": {
+        "numberNcf": "Purchase No. / NCF",
+        "supplier": "Supplier",
+        "dateDue": "Date / Due",
+        "terms": "Terms",
+        "status": "Status",
+        "total": "Invoice Total",
+        "pending": "Pending",
+        "actions": "Actions"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "registered": "Registered / Pending",
+        "partial": "Partially Paid",
+        "paid": "Fully Paid",
+        "cancelled": "Cancelled",
+        "allTerms": "Cash & Credit",
+        "cashOnly": "Cash Only",
+        "creditOnly": "Credit Only",
+        "allSuppliers": "All Suppliers"
       }
     },
     "receivables": {
@@ -1413,7 +1557,8 @@
         "totalCxC": "Total Accounts Receivable (AR)",
         "overdueCxC": "Overdue Invoices",
         "monthCollected": "Collected this Month",
-        "clientsWithBalance": "Clients with Balance"
+        "clientsWithBalance": "Clients with Balance",
+        "activeCreditClients": "Clients with active credit"
       },
       "dialog": {
         "title": "Record Payment Receipt",
@@ -1424,7 +1569,40 @@
         "date": "Payment Date",
         "pendingInvoices": "Invoices with Outstanding Balance",
         "submit": "Save & Print Receipt"
-      }
+      },
+      "tabs": {
+        "pending": "Pending Invoices (AR)",
+        "receipts": "Receipts History"
+      },
+      "table": {
+        "invoiceNcf": "Invoice No. / NCF",
+        "client": "Client",
+        "dates": "Issue / Due",
+        "delinquency": "Delinquency Status",
+        "invoiceTotal": "Invoice Total",
+        "balanceDue": "Balance Due",
+        "action": "Action",
+        "receiptNumber": "Receipt No.",
+        "paymentDate": "Payment Date",
+        "methodRef": "Method / Ref.",
+        "amountReceived": "Amount Received",
+        "status": "Status",
+        "actions": "Actions",
+        "invoiceNumber": "Invoice No.",
+        "ncf": "NCF",
+        "appliedAmount": "Applied Amount"
+      },
+      "amountToCollect": "Amount to Collect",
+      "searchPendingPlaceholder": "Search by Invoice, NCF or Client...",
+      "searchReceiptsPlaceholder": "Search by receipt, client, ref...",
+      "filters": {
+        "allClients": "All Clients",
+        "allStatuses": "All Statuses",
+        "paid": "Collected Payments",
+        "cancelled": "Cancelled",
+        "allMethods": "All Methods"
+      },
+      "payAll": "Settle All Invoices"
     },
     "form": {
       "name": "Name or company",
@@ -1634,7 +1812,35 @@
         "cancelSuccess": "Invoice voided and stock returned to warehouse",
         "cancelError": "Could not void invoice"
       },
-      "print": "Print"
+      "print": "Print",
+      "preview": {
+        "title": "Invoice {{ number }}",
+        "subtitle": "Preview and formal printing",
+        "invoiceDoc": "INVOICE",
+        "issued": "Issued",
+        "due": "Due",
+        "billedTo": "Billed to",
+        "from": "From",
+        "productService": "Service / Product",
+        "qty": "Qty",
+        "rate": "Rate",
+        "lineTotal": "Line total",
+        "discount": "Discount",
+        "subtotal": "Subtotal",
+        "tax": "Taxes",
+        "total": "Total",
+        "amountDue": "Amount due",
+        "thankYou": "Thank you for the business!",
+        "defaultNote": "Please pay within the agreed terms.",
+        "securityCode": "Security Code",
+        "signDate": "Signature",
+        "print": "Print Invoice",
+        "downloadEcf": "Download e-CF",
+        "close": "Close",
+        "retry": "Retry Transmission",
+        "retrying": "Retrying...",
+        "fiscalErrorTitle": "Electronic Billing Rejection (DGII / FiscalBridge)"
+      }
     },
     "promotions": {
       "title": "Promotions & Discounts",
@@ -1658,10 +1864,14 @@
       "scopeSection": "Application Scope",
       "scope": "Applies to",
       "scopes": {
-        "all": "Entire Catalog",
-        "category": "Specific Category",
-        "brand": "Specific Brand",
-        "products": "Selected Products"
+        "all": "All Catalog",
+        "category": "By Category",
+        "brand": "By Brand",
+        "products": "Selected Products",
+        "todos": "All Catalog",
+        "categoria": "By Category",
+        "marca": "By Brand",
+        "productos": "Selected Products"
       },
       "selectProducts": "Select Products",
       "startDate": "Start Date",
@@ -1680,7 +1890,11 @@
         "total": "Total Promotions",
         "active": "Active Now",
         "scheduled": "Scheduled",
-        "expired": "Expired"
+        "expired": "Expired",
+        "totalSubtitle": "Registered campaigns",
+        "activeSubtitle": "Active and applicable",
+        "scheduledSubtitle": "Upcoming launch",
+        "expiredSubtitle": "Out of validity"
       },
       "searchPlaceholder": "Search promotions by name, coupon...",
       "table": {
@@ -1692,7 +1906,12 @@
       "emptyTitle": "No promotions registered",
       "emptyDescription": "Create promotional campaigns or discount coupons to boost your sales.",
       "deleteTitle": "Delete Promotion",
-      "deleteConfirm": "Are you sure you want to delete this promotion?"
+      "deleteConfirm": "Are you sure you want to delete this promotion?",
+      "until": "until",
+      "nameRequired": "Name is required",
+      "couponHint": "Optional. If left blank it applies automatically",
+      "invalidValue": "Enter a valid value",
+      "unlimited": "Unlimited"
     }
   },
   "maintenance": {
@@ -1812,7 +2031,13 @@
       "upgradeCta": "View Plans & Upgrade to Enterprise",
       "connectedApps": "Connected Applications",
       "originsLimitNotice": "Your Enterprise plan allows you to connect up to 2 external applications with specific origins.",
-      "addApplication": "Connect Application"
+      "addApplication": "Connect Application",
+      "rotate": "Rotate",
+      "revoke": "Revoke",
+      "createIntegration": "Create Integration",
+      "generateKey": "Generate API Key",
+      "understood": "Understood & Saved",
+      "keyGenerated": "API Key Generated"
     }
   },
   "companies": {
@@ -1856,12 +2081,27 @@
     "defaultDescription": "Full access control and system administration.",
     "emptyTitle": "No roles created yet",
     "emptyDescription": "Create custom roles to manage permissions and user access.",
-    "allRoles": "All roles",
+    "allRoles": "All Roles",
     "noRole": "No role",
     "unknown": "Unknown",
     "updated": "Role updated",
     "created": "Role created",
-    "search": "Search..."
+    "search": "Search...",
+    "members": "members",
+    "allStatus": "All Status",
+    "noAccountsFound": "No accounts found",
+    "noAccountsFoundDesc": "We could not find any accounts matching your current filters.",
+    "clearFilters": "Clear filters",
+    "editRole": "Edit role",
+    "createRole": "Create role",
+    "roleName": "Role name",
+    "roleDescription": "Description",
+    "permissionsAssignment": "Permissions Assignment",
+    "searchModulePlaceholder": "Search module…",
+    "read": "Read",
+    "write": "Write",
+    "delete": "Delete",
+    "owner": "Owner"
   },
   "securityLogs": {
     "title": "Security logs",
@@ -1902,7 +2142,8 @@
     "clearTitle": "Clear security logs",
     "clearMessage": "This permanently deletes all security logs for the active company. This action cannot be undone.",
     "cleared": "{{count}} security logs cleared",
-    "clearError": "Unable to clear security logs"
+    "clearError": "Unable to clear security logs",
+    "system": "System"
   },
   "sessions": {
     "title": "Current sessions",
@@ -2093,28 +2334,129 @@
       "taxDeducted": "Fiscal taxes",
       "perInvoice": "Average per sale",
       "discountsGiven": "Granted in sales",
-      "timeline": "Sales Evolution",
-      "dataPoints": "periods",
-      "byPaymentMethod": "Breakdown by Payment Method"
+      "timeline": "Sales Timeline",
+      "dataPoints": "points",
+      "byPaymentMethod": "Breakdown by Payment Method",
+      "emptySalesTitle": "No sales in this period",
+      "emptySalesDesc": "No transactions found in the selected date range.",
+      "emptyPaymentMethodsTitle": "No payment methods",
+      "emptyPaymentMethodsDesc": "No payment methods registered in the current period."
     },
     "topProducts": {
-      "ranking": "Best-Selling Products Ranking",
+      "ranking": "Sold Items & Services Ranking",
       "unitsSold": "Units Sold",
       "totalRevenue": "Total Revenue",
-      "estimatedMargin": "Estimated Margin"
+      "estimatedMargin": "Estimated Margin",
+      "productsAnalyzed": "products analyzed",
+      "emptyTitle": "No products sold",
+      "emptyDesc": "No sales of items or services recorded for selected dates."
     },
     "receivables": {
-      "debtorClients": "Clients with Outstanding Balance"
+      "debtorClients": "Clients with Pending Balance Detail",
+      "aging0to30": "0 - 30 Days",
+      "aging0to30Sub": "Current up to date",
+      "aging31to60": "31 - 60 Days",
+      "aging31to60Sub": "Recent overdue",
+      "aging61to90": "61 - 90 Days",
+      "aging61to90Sub": "Intermediate overdue",
+      "aging90Plus": "Over 90 Days",
+      "aging90PlusSub": "Critical overdue",
+      "totalPending": "Total Pending",
+      "emptyTitle": "100% Up to Date Portfolio!",
+      "emptyDesc": "No clients with overdue invoices or pending balances."
     },
     "inventory": {
       "totalCostValue": "Cost Valuation",
       "totalRetailValue": "Retail Valuation",
       "potentialProfit": "Potential Profit",
       "lowStockAlerts": "Low Stock Alerts",
-      "lowStockNotice": "Items with Critical Stock Level (Equal or Below Minimum)"
+      "lowStockNotice": "Critical Stock Control / Restock Alerts",
+      "costSubtitle": "Acquisition cost",
+      "retailSubtitle": "Catalog price",
+      "profitSubtitle": "Projected margin",
+      "lowStockSubtitle": "Below minimum",
+      "optimalStockTitle": "Optimal inventory level",
+      "optimalStockDesc": "All products in warehouse have stock above their minimum threshold."
     },
     "clients": {
       "rankingTitle": "Client Revenue Ranking"
+    },
+    "tables": {
+      "client": "Client",
+      "supplier": "Supplier",
+      "rncCedula": "Tax ID / ID",
+      "contact": "Contact",
+      "pendingInvoices": "Pending Invoices",
+      "pendingBalance": "Pending Balance",
+      "code": "Code",
+      "product": "Product",
+      "warehouse": "Warehouse",
+      "currentStock": "Current Stock",
+      "minStock": "Minimum Stock",
+      "invoices": "Invoices",
+      "avgTicket": "Average Ticket",
+      "totalInvoiced": "Total Invoiced",
+      "share": "% Share",
+      "ncf": "NCF",
+      "date": "Date",
+      "services": "Services",
+      "goods": "Goods",
+      "itbisBilled": "Billed VAT",
+      "withholdings": "Withholdings",
+      "billedAmount": "Billed Amount",
+      "cash": "Cash",
+      "card": "Card",
+      "credit": "Credit",
+      "cancelledNcf": "Cancelled NCF",
+      "invoiceNumber": "Invoice No.",
+      "cancellationDate": "Cancellation Date",
+      "dgiiCancellationType": "DGII Cancellation Type",
+      "reason": "Reason",
+      "paymentMethod": "Payment Method",
+      "transactions": "Transactions",
+      "totalAmount": "Total Amount",
+      "box": "Box",
+      "taxConceptDesc": "Tax Concept Description",
+      "accumulatedAmount": "Accumulated Amount",
+      "deductibleAmount": "Deductible Amount"
+    },
+    "taxDgii": {
+      "form606": "Format 606 (Purchases)",
+      "form607": "Format 607 (Sales)",
+      "form608": "Format 608 (Cancelled)",
+      "formIt1": "IT-1 Draft (Settlement)",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "period": "Period",
+      "downloadTxt": "Download DGII TXT",
+      "exportCsv": "Export CSV",
+      "printIt1": "Print IT-1 Return",
+      "purchasesTotalReported": "Total Purchases Reported",
+      "billedAmount": "Total Billed Amount",
+      "itbisBilled": "Billed ITBIS",
+      "itbisDeductibleSub": "Deductible tax credit in IT-1",
+      "withholdings": "Withholdings (ITBIS + ISR)",
+      "invoicesIssued607": "Issued NCF Invoices",
+      "taxBaseSub": "Sales tax base",
+      "itbisSales": "ITBIS Collected on Sales",
+      "debitFiscalSub": "Tax debit for IT-1",
+      "creditSales": "Credit Sales",
+      "totalCancelled608": "Total Cancelled Invoices",
+      "invalidatedSeqSub": "Invalidated DGII sequences",
+      "empty606Title": "No purchases recorded in this period",
+      "empty606Desc": "Register supplier invoices to automatically generate fiscal 606 report.",
+      "empty607Title": "No sales recorded with NCF in this period",
+      "empty607Desc": "Issue electronic or fiscal invoices to automatically generate 607 report.",
+      "empty608Title": "No cancelled fiscal receipts registered",
+      "empty608Desc": "All NCF sequences issued in this period are active and valid.",
+      "it1Title": "Sworn Return and Payment of ITBIS (IT-1)",
+      "it1Subtitle": "Consolidated Tax Settlement Draft",
+      "rncTaxpayer": "Taxpayer RNC",
+      "sec1Title": "Operations Reported in Period (Tax Debit)",
+      "sec2Title": "Deductions & ITBIS Paid on Purchases (Tax Credit)",
+      "sec3ToPay": "Box 33: TOTAL ITBIS TO PAY TO DGII",
+      "sec3Favor": "Box 34: TAXPAYER CREDIT BALANCE",
+      "sec3Desc": "Net settlement (ITBIS Collected on Sales - ITBIS Deductible on Purchases - Withholdings)"
     }
   },
   "weather": {
@@ -2224,6 +2566,25 @@
     "cardPaymentNotice": "Total payment via card terminal / POS",
     "transferPaymentNotice": "Total payment via bank transfer",
     "splitTotalMismatch": "The sum of card and cash must equal the total amount",
-    "splitRemainingCash": "Remaining balance to cover in cash"
+    "splitRemainingCash": "Remaining balance to cover in cash",
+    "fixedAmount": "Fixed Amount",
+    "percentage": "Percentage",
+    "appliedDiscount": "Applied discount",
+    "removeDiscount": "Remove Discount"
+  },
+  "billing": {
+    "plans": {
+      "modulesAndFeatures": "Modules & Features",
+      "currentPlan": "Current plan",
+      "select": "Select",
+      "customPlanQuestion": "Need a custom plan or higher capacity?",
+      "contactUs": "Contact us",
+      "compareTitle": "Compare real system capabilities",
+      "compareSubtitle": "Exact detail of features included in each subscription tier"
+    },
+    "cards": {
+      "manageTitle": "Manage cards",
+      "noCards": "No saved cards."
+    }
   }
 }

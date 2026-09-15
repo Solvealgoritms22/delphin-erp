@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,7 +17,7 @@ import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
   host: {
     class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
   },
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatDialogModule, EmptyStateComponent, TableSkeletonComponent, TranslocoPipe, PlusIcon, PencilIcon, TrashIcon],
+  imports: [NgClass, RouterLink, MatButtonModule, MatIconModule, MatDialogModule, EmptyStateComponent, TableSkeletonComponent, TranslocoPipe, PlusIcon, PencilIcon, TrashIcon],
   template: `
     <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
 
@@ -37,6 +38,7 @@ import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
         <div class="grid">
 
             <div class="suppliers-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
+              <div class="hidden sm:block">{{ 'common.docType' | transloco }}</div>
               <div>{{ 'common.document' | transloco }}</div>
               <div>{{ 'common.name' | transloco }}</div>
               <div class="hidden sm:block">{{ 'common.contact' | transloco }}</div>
@@ -60,21 +62,29 @@ import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
             } @else {
               @for (supplier of suppliersService.suppliers(); track supplier.id) {
                 <div class="suppliers-grid grid items-center gap-4 py-3 px-6 md:px-8 border-b border-neutral-100 dark:border-neutral-800">
-                  <div class="text-sm font-medium">{{ supplier.tipoDocumento }} - {{ supplier.numeroDocumento }}</div>
+                  <!-- Tipo Documento -->
+                  <div class="hidden sm:block">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide"
+                      [ngClass]="{
+                        'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20': supplier.tipoDocumento === 'CEDULA' || supplier.tipoDocumento === 'CÉDULA',
+                        'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20': supplier.tipoDocumento === 'RNC',
+                        'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200/60 dark:border-neutral-700/50': supplier.tipoDocumento !== 'CEDULA' && supplier.tipoDocumento !== 'CÉDULA' && supplier.tipoDocumento !== 'RNC'
+                      }">
+                      {{ supplier.tipoDocumento || '—' }}
+                    </span>
+                  </div>
+                  <!-- Solo número de documento -->
+                  <div class="text-sm font-mono font-medium text-neutral-700 dark:text-neutral-300">{{ supplier.numeroDocumento || '—' }}</div>
                   <div class="font-medium text-neutral-900 dark:text-white truncate">{{ supplier.nombreRazonSocial }}</div>
                   <div class="hidden sm:block text-sm text-neutral-500">
                     <div>{{ supplier.email || '-' }}</div>
                     <div>{{ supplier.telefono || '-' }}</div>
                   </div>
                   <div class="hidden sm:block">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                          [class.bg-emerald-100]="supplier.estado === 'ACTIVO'"
-                          [class.text-emerald-800]="supplier.estado === 'ACTIVO'"
-                          [class.dark:bg-emerald-500]="supplier.estado === 'ACTIVO'"
-                          [class.dark:bg-opacity-10]="supplier.estado === 'ACTIVO'"
-                          [class.dark:text-emerald-400]="supplier.estado === 'ACTIVO'"
-                          [class.bg-red-100]="supplier.estado !== 'ACTIVO'"
-                          [class.text-red-800]="supplier.estado !== 'ACTIVO'">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border"
+                      [ngClass]="supplier.estado === 'ACTIVO'
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20'
+                        : 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/60 dark:border-rose-500/20'">
                       {{ supplier.estado }}
                     </span>
                   </div>
@@ -95,7 +105,7 @@ import { PlusIcon, PencilIcon, TrashIcon } from 'ng-animated-icons';
   `,
   styles: [`
     .suppliers-grid {
-      grid-template-columns: 140px auto 180px 100px 96px;
+      grid-template-columns: 90px 130px auto 180px 100px 96px;
     }
     @media (max-width: 640px) {
       .suppliers-grid {
@@ -110,7 +120,7 @@ export class Suppliers implements OnInit {
   router = inject(Router);
   transloco = inject(TranslocoService);
 
-  cells5 = ['90%', '80%', '70%', '40%', '50%'];
+  cells5 = ['90%', '80%', '70%', '60%', '40%', '50%'];
 
   ngOnInit() {
     this.suppliersService.findAll().subscribe();

@@ -50,6 +50,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
           {{ 'common.cancel' | transloco }}
         </button>
         <button mat-flat-button color="primary" (click)="save()" class="!rounded-xl !px-6 !text-xs !font-bold">
+          <mat-icon svgIcon="save" class="icon-size-4 mr-2"></mat-icon>
           {{ 'common.save' | transloco }}
         </button>
       </div>

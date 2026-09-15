@@ -6,8 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Cotizacion, QuotesService, CreateQuoteDto } from '../../data/quotes.service';
 import { ClientsService, Client } from '../../data/clients';
 import { ProductsService, Product } from '../../../catalogs/data/products.service';
@@ -44,6 +45,7 @@ type QuoteLineItem = {
     MatSelectModule,
     MatInputModule,
     DecimalPipe,
+    TranslocoPipe,
   ],
   template: `
     <div class="flex flex-col max-h-[92vh] w-full min-w-0 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-2xl overflow-hidden shadow-2xl">
@@ -178,12 +180,12 @@ type QuoteLineItem = {
               <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 font-bold border-b border-neutral-200 dark:border-neutral-800 uppercase text-[11px] tracking-wider">
                 <tr>
                   <th class="py-3.5 px-3 w-12 text-center">#</th>
-                  <th class="py-3.5 px-3 min-w-[340px]">Descripción</th>
-                  <th class="py-3.5 px-2.5 w-28 text-center">Cant.</th>
-                  <th class="py-3.5 px-2.5 w-36 text-right">Precio Unit. ({{ currencySymbol() }})</th>
-                  <th class="py-3.5 px-2.5 w-28 text-center">Desc. %</th>
+                  <th class="py-3.5 px-3 min-w-[340px]">{{ 'common.description' | transloco }}</th>
+                  <th class="py-3.5 px-2.5 w-28 text-center">{{ 'common.quantity' | transloco }}</th>
+                  <th class="py-3.5 px-2.5 w-36 text-right">{{ 'common.unitPrice' | transloco }} ({{ currencySymbol() }})</th>
+                  <th class="py-3.5 px-2.5 w-28 text-center">{{ 'common.discount' | transloco }} %</th>
                   <th class="py-3.5 px-2.5 w-36 text-center">{{ currencyConfig.defaultTaxLabel() }}</th>
-                  <th class="py-3.5 px-3 w-36 text-right font-bold">Total ({{ currencySymbol() }})</th>
+                  <th class="py-3.5 px-3 w-36 text-right font-bold">{{ 'common.total' | transloco }} ({{ currencySymbol() }})</th>
                   <th class="py-3.5 px-2 w-12 text-center"></th>
                 </tr>
               </thead>
@@ -392,9 +394,10 @@ type QuoteLineItem = {
             type="button"
             (click)="saveQuote(false)"
             [disabled]="saving()"
-            class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+            class="flex-1 sm:flex-initial inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
           >
-            {{ isEdit ? 'Actualizar Cotización' : 'Guardar Cotización' }}
+            <mat-icon svgIcon="save" class="icon-size-4"></mat-icon>
+            <span>{{ isEdit ? 'Actualizar Cotización' : 'Guardar Cotización' }}</span>
           </button>
         </div>
       </div>

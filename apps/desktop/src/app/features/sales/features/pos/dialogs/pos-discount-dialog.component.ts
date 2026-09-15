@@ -47,7 +47,7 @@ export type PosDiscountData = {
             class="py-2 text-xs font-bold rounded-lg transition-all"
             [ngClass]="type === 'FIXED' ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'"
           >
-            Monto Fijo ({{ currencySymbol() }})
+            {{ 'pos.fixedAmount' | transloco }} ({{ currencySymbol() }})
           </button>
           <button
             type="button"
@@ -55,7 +55,7 @@ export type PosDiscountData = {
             class="py-2 text-xs font-bold rounded-lg transition-all"
             [ngClass]="type === 'PERCENT' ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'"
           >
-            Porcentaje (%)
+            {{ 'pos.percentage' | transloco }} (%)
           </button>
         </div>
 
@@ -84,7 +84,7 @@ export type PosDiscountData = {
 
         <!-- Preview Descuento Calculado -->
         <div class="p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/80 dark:border-neutral-700/60 flex items-center justify-between text-xs">
-          <span class="text-neutral-500 dark:text-neutral-400">Descuento aplicado:</span>
+          <span class="text-neutral-500 dark:text-neutral-400">{{ 'pos.appliedDiscount' | transloco }}:</span>
           <span class="font-bold text-rose-600 dark:text-rose-400 text-sm font-mono">
             - {{ currencySymbol() }} {{ calculatedDiscount | number:'1.2-2' }}
           </span>
@@ -99,7 +99,7 @@ export type PosDiscountData = {
           (click)="removeDiscount()"
           class="!rounded-xl !text-xs !text-neutral-400 hover:!text-rose-600 dark:hover:!text-rose-400 !px-3"
         >
-          Quitar Descuento
+          {{ 'pos.removeDiscount' | transloco }}
         </button>
         <button
           type="button"
@@ -108,7 +108,7 @@ export type PosDiscountData = {
           (click)="apply()"
           class="!rounded-xl !px-6 !text-xs !font-bold"
         >
-          Aplicar
+          {{ 'common.apply' | transloco }}
         </button>
       </div>
     </div>

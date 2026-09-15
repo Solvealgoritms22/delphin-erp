@@ -10,22 +10,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SecurityLog, SecurityLogsService } from '../../data/security-logs.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import {
-  SearchIcon,
-  TrashIcon,
-  SlidersHorizontalIcon,
-  ArrowDownIcon,
-  RefreshCwIcon,
-  ClipboardListIcon,
-  ChevronDownIcon,
-  CheckIcon,
-  XIcon
-} from 'ng-animated-icons';
 
 @Component({
   selector: 'app-security-logs',
   standalone: true,
+  host: {
+    class: 'flex flex-col flex-auto min-w-0 h-full overflow-hidden',
+  },
   imports: [
     CommonModule,
     DatePipe,
@@ -37,432 +31,325 @@ import {
     MatTooltipModule,
     MatSnackBarModule,
     TranslocoPipe,
-    SearchIcon,
-    TrashIcon,
-    SlidersHorizontalIcon,
-    ArrowDownIcon,
-    RefreshCwIcon,
-    ClipboardListIcon,
-    ChevronDownIcon,
-    CheckIcon,
-    XIcon,
+    EmptyStateComponent,
+    TableSkeletonComponent,
   ],
   template: `
-    <div class="flex flex-col w-full h-full min-w-0 bg-white dark:bg-neutral-900 overflow-hidden">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
 
-      <!-- Page Header -->
-      <div class="shrink-0 flex w-full flex-col px-6 pt-8 sm:px-10 border-b border-neutral-100 dark:border-neutral-800">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full mb-6 gap-4">
-          <div>
-             <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ 'securityLogs.title' | transloco }}</h1>
-             <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ 'securityLogs.description' | transloco }}</p>
+      <!-- Standard Clean Page Header -->
+      <div
+        class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900"
+      >
+        <div>
+          <div class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+            {{ 'securityLogs.title' | transloco }}
           </div>
+          <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            {{ 'securityLogs.description' | transloco }}
+          </p>
         </div>
       </div>
 
-      <!-- Main Content Area -->
-      <div class="flex-auto min-h-0 overflow-y-auto p-4 sm:p-6 sm:pb-12">
+      <!-- Main Body -->
+      <div class="flex min-h-0 flex-auto flex-col overflow-y-auto">
 
-        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700/80 rounded-2xl overflow-hidden shadow-sm">
+        <!-- Filter Bar -->
+        <div
+          class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-neutral-200 bg-white p-6 md:px-8 dark:border-neutral-700 dark:bg-neutral-900"
+        >
+          <!-- Left: Search Box + Severity Filters -->
+          <div class="flex min-w-[260px] flex-1 items-center gap-3">
+            <div class="relative w-full max-w-md">
+              <mat-icon
+                svgIcon="search"
+                class="icon-size-4 absolute top-1/2 left-3.5 -translate-y-1/2 text-neutral-400"
+              ></mat-icon>
+              <input
+                type="text"
+                [placeholder]="'securityLogs.search' | transloco"
+                [ngModel]="searchQuery()"
+                (ngModelChange)="searchQuery.set($event)"
+                class="w-full rounded-xl border border-neutral-200 bg-neutral-50 py-2 pr-4 pl-10 text-sm font-medium text-neutral-900 outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-800/50 dark:text-white"
+              />
+              @if (searchQuery()) {
+                <button
+                  type="button"
+                  (click)="searchQuery.set('')"
+                  class="absolute top-1/2 right-3 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer"
+                >
+                  <mat-icon svgIcon="x" class="icon-size-3.5"></mat-icon>
+                </button>
+              }
+            </div>
 
-          <!-- TOOLBAR -->
-          <div class="flex flex-wrap items-center justify-between p-3.5 sm:p-4 border-b border-neutral-200 dark:border-neutral-700/80 gap-3">
+            <!-- Severity Filter Menu -->
+            <button
+              [matMenuTriggerFor]="severityMenu"
+              type="button"
+              class="flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 text-sm font-bold whitespace-nowrap text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/50"
+              [class.border-blue-500]="severity() !== ''"
+              [class.text-blue-600]="severity() !== ''"
+              [class.dark:text-blue-400]="severity() !== ''"
+            >
+              <mat-icon svgIcon="sliders-horizontal" class="icon-size-4 text-neutral-500"></mat-icon>
+              <span>{{ severity() ? getSeverityLabel(severity()) : ('securityLogs.allSeverities' | transloco) }}</span>
+              @if (severity() !== '') {
+                <span class="size-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shadow-xs">
+                  1
+                </span>
+              }
+              <mat-icon svgIcon="chevron-down" class="icon-size-3.5 text-neutral-400"></mat-icon>
+            </button>
+            <mat-menu #severityMenu="matMenu">
+              <button mat-menu-item (click)="setSeverity('')">{{ 'securityLogs.allSeverities' | transloco }}</button>
+              <button mat-menu-item (click)="setSeverity('Critical')">
+                <span class="inline-flex items-center gap-2 text-rose-600 dark:text-rose-400 font-medium">
+                  <span class="size-2 rounded-full bg-rose-500"></span>
+                  {{ 'securityLogs.critical' | transloco }}
+                </span>
+              </button>
+              <button mat-menu-item (click)="setSeverity('High')">
+                <span class="inline-flex items-center gap-2 text-orange-600 dark:text-orange-400 font-medium">
+                  <span class="size-2 rounded-full bg-orange-500"></span>
+                  {{ 'securityLogs.high' | transloco }}
+                </span>
+              </button>
+              <button mat-menu-item (click)="setSeverity('Medium')">
+                <span class="inline-flex items-center gap-2 text-amber-600 dark:text-amber-400 font-medium">
+                  <span class="size-2 rounded-full bg-amber-500"></span>
+                  {{ 'securityLogs.medium' | transloco }}
+                </span>
+              </button>
+              <button mat-menu-item (click)="setSeverity('Low')">
+                <span class="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium">
+                  <span class="size-2 rounded-full bg-blue-500"></span>
+                  {{ 'securityLogs.low' | transloco }}
+                </span>
+              </button>
+            </mat-menu>
+          </div>
 
-            <!-- Left: Search Box + Filters + Columns Toggle -->
-            <div class="flex items-center gap-2.5 flex-1 min-w-[280px] flex-wrap">
+          <!-- Right: Push Alerts Toggle + Actions Menu -->
+          <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+            <div class="flex items-center gap-2 whitespace-nowrap shrink-0 text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+              <span>{{ 'securityLogs.pushAlerts' | transloco }}</span>
+              <mat-slide-toggle [checked]="pushAlerts()" (change)="togglePushAlerts($event.checked)"></mat-slide-toggle>
+            </div>
 
-              <!-- Search Input with Clear Button -->
-              <div class="relative flex items-center h-10 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/40 min-w-[200px] sm:min-w-64 max-w-sm flex-1 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                <i-search [size]="16" class="text-neutral-400 shrink-0 mr-2" />
-                <input
-                  type="text"
-                  [placeholder]="'securityLogs.search' | transloco"
-                  [ngModel]="searchQuery()"
-                  (ngModelChange)="searchQuery.set($event)"
-                  class="w-full h-full bg-transparent border-none outline-none text-sm placeholder:text-neutral-400 text-neutral-800 dark:text-neutral-200"
-                />
-                @if (searchQuery()) {
+            <button
+              [matMenuTriggerFor]="actionsMenu"
+              type="button"
+              class="flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 text-sm font-bold whitespace-nowrap text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/50"
+            >
+              <span>{{ 'securityLogs.actions' | transloco }}</span>
+              <mat-icon svgIcon="chevron-down" class="icon-size-3.5 text-neutral-400"></mat-icon>
+            </button>
+
+            <mat-menu #actionsMenu="matMenu" class="!rounded-2xl !p-1.5 min-w-56">
+              <button mat-menu-item (click)="loadLogs()" [disabled]="loading()">
+                <mat-icon svgIcon="refresh-cw" class="icon-size-4 mr-2 text-neutral-500"></mat-icon>
+                <span class="text-sm">{{ 'securityLogs.refresh' | transloco }}</span>
+              </button>
+              <button mat-menu-item (click)="clearLogs()" [disabled]="loading() || logs().length === 0" class="!text-red-600 dark:!text-red-400">
+                <mat-icon svgIcon="trash" class="icon-size-4 mr-2 text-red-500"></mat-icon>
+                <span class="text-sm font-medium">{{ 'securityLogs.clear' | transloco }}</span>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+
+        <!-- Dismissible Active Filter Chips -->
+        @if (severity()) {
+          <div class="flex flex-wrap items-center gap-2 px-6 md:px-8 py-2.5 bg-neutral-50/70 dark:bg-neutral-800/40 border-b border-neutral-200 dark:border-neutral-800 text-xs animate-fadeIn">
+            <span class="text-neutral-400 font-medium mr-1">{{ 'securityLogs.activeFilters' | transloco }}:</span>
+
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200/60 dark:border-neutral-700/50 font-medium shadow-2xs">
+              <span>{{ 'securityLogs.severity' | transloco }}: {{ getSeverityLabel(severity()) }}</span>
+              <button type="button" (click)="setSeverity('')" class="hover:text-neutral-900 dark:hover:text-white cursor-pointer">
+                <mat-icon svgIcon="x" class="icon-size-3"></mat-icon>
+              </button>
+            </span>
+
+            <button
+              type="button"
+              (click)="setSeverity('')"
+              class="text-blue-600 dark:text-blue-400 hover:underline font-semibold ml-1 cursor-pointer"
+            >
+              {{ 'securityLogs.clearAll' | transloco }}
+            </button>
+          </div>
+        }
+
+        <!-- Security Logs Table Grid -->
+        <div class="grid">
+          <div
+            class="security-logs-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow-xs text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700"
+          >
+            <div>{{ 'securityLogs.user' | transloco }}</div>
+            <div class="hidden sm:block">{{ 'securityLogs.timestamp' | transloco }}</div>
+            <div>{{ 'securityLogs.eventType' | transloco }}</div>
+            <div class="hidden lg:block">{{ 'securityLogs.actionTaken' | transloco }}</div>
+            <div class="hidden md:block">{{ 'securityLogs.sourceIp' | transloco }}</div>
+            <div class="hidden xl:block">{{ 'securityLogs.destinationIp' | transloco }}</div>
+            <div>{{ 'securityLogs.severity' | transloco }}</div>
+            <div class="text-right">{{ 'securityLogs.actions' | transloco }}</div>
+          </div>
+
+          @if (loading()) {
+            <app-table-skeleton [gridClass]="'security-logs-grid'" [rows]="6" />
+          } @else if (filteredLogs().length === 0) {
+            <div class="flex flex-auto justify-center p-6 sm:p-10">
+              <app-empty-state
+                type="no-data"
+                [title]="'securityLogs.noMatches' | transloco"
+                [description]="searchQuery() || severity() ? ('securityLogs.noMatchesDescription' | transloco) : ('securityLogs.emptyDescription' | transloco)"
+                [actionLabel]="searchQuery() || severity() ? ('securityLogs.clearFilters' | transloco) : undefined"
+                actionIcon="refresh-cw"
+                (action)="clearFilters()"
+              />
+            </div>
+          } @else {
+            @for (log of paginatedLogs(); track log.id) {
+              <div
+                class="security-logs-grid grid items-center gap-4 py-3.5 px-6 md:px-8 border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors text-sm"
+              >
+                <!-- Usuario -->
+                <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                  @if (log.usuarioAvatar && !failedAvatars().has(log.id)) {
+                    <img [src]="log.usuarioAvatar" referrerpolicy="no-referrer" (error)="markAvatarFailed(log.id)" [alt]="log.usuarioNombre || 'Usuario'" class="size-8 rounded-full object-cover border border-neutral-200 dark:border-neutral-700 shrink-0 select-none" />
+                  } @else {
+                    <div class="size-8 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 border border-neutral-200/60 dark:border-neutral-700/60 select-none" [ngClass]="getAvatarColor(log.usuarioNombre || log.usuarioEmail)">
+                      {{ getInitials(log.usuarioNombre || log.usuarioEmail) }}
+                    </div>
+                  }
+                  <div class="flex flex-col min-w-0">
+                    <span class="font-bold text-neutral-900 dark:text-white truncate">{{ log.usuarioNombre || log.usuarioEmail || ('securityLogs.system' | transloco) }}</span>
+                    @if (log.usuarioNombre && log.usuarioEmail) {
+                      <span class="text-xs text-neutral-400 truncate">{{ log.usuarioEmail }}</span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Timestamp -->
+                <div class="hidden sm:block font-medium text-xs whitespace-nowrap text-neutral-600 dark:text-neutral-400 font-mono">
+                  {{ log.timestamp | date:'d MMM y, HH:mm:ss' }}
+                </div>
+
+                <!-- Event Type -->
+                <div class="flex items-center gap-2 font-bold text-neutral-900 dark:text-white text-xs truncate">
+                  <mat-icon [svgIcon]="log.eventIcon" [class]="log.eventColor + ' !w-4 !h-4 shrink-0'"></mat-icon>
+                  <span class="truncate">{{ log.eventType }}</span>
+                </div>
+
+                <!-- Action Taken -->
+                <div class="hidden lg:block text-xs text-neutral-700 dark:text-neutral-300 truncate">
+                  {{ log.actionTaken }}
+                </div>
+
+                <!-- Source IP -->
+                <div class="hidden md:block font-mono text-xs text-neutral-700 dark:text-neutral-300 truncate">
+                  {{ log.sourceIp }}
+                </div>
+
+                <!-- Destination IP -->
+                <div class="hidden xl:block font-mono text-xs text-neutral-700 dark:text-neutral-300 truncate">
+                  {{ log.destinationIp }}
+                </div>
+
+                <!-- Severity Badge -->
+                <div>
+                  <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                    [ngClass]="{
+                      'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/60 dark:border-rose-500/20': log.severity === 'Critical',
+                      'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400 border-orange-200/60 dark:border-orange-500/20': log.severity === 'High',
+                      'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/60 dark:border-amber-500/20': log.severity === 'Medium',
+                      'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-blue-200/60 dark:border-blue-500/20': log.severity === 'Low'
+                    }">
+                    {{ getSeverityLabel(log.severity) }}
+                  </span>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center justify-end gap-1">
                   <button
+                    mat-icon-button
                     type="button"
-                    (click)="searchQuery.set('')"
-                    class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer p-0.5 ml-1"
+                    [matTooltip]="'securityLogs.copy' | transloco"
+                    (click)="copyLog(log)"
+                    class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors cursor-pointer"
                   >
-                    <i-x [size]="14" />
+                    <mat-icon svgIcon="clipboard-list" class="icon-size-4.5"></mat-icon>
                   </button>
-                }
+                </div>
               </div>
-
-              <!-- Unified Filters Popover Button with Badge Counter -->
-              <button
-                [matMenuTriggerFor]="severityMenu"
-                type="button"
-                class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 hover:bg-neutral-50 dark:hover:bg-neutral-700/60 transition-colors text-sm font-medium text-neutral-700 dark:text-neutral-200 shrink-0 cursor-pointer shadow-2xs"
-                [class.border-blue-500]="severity() !== ''"
-                [class.text-blue-600]="severity() !== ''"
-                [class.dark:text-blue-400]="severity() !== ''"
-              >
-                <i-sliders-horizontal [size]="15" />
-                <span>{{ 'securityLogs.filters' | transloco }}</span>
-                @if (severity() !== '') {
-                  <span class="size-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shadow-xs">
-                    1
-                  </span>
-                }
-                <i-chevron-down [size]="13" class="text-neutral-400" />
-              </button>
-
-              <!-- Severity Filter Dropdown Menu -->
-              <mat-menu #severityMenu="matMenu" class="!rounded-2xl !p-2 min-w-56">
-                <div class="px-3 py-2 text-xs font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 mb-1 flex items-center justify-between">
-                  <span>{{ 'securityLogs.severity' | transloco }}</span>
-                  @if (severity() !== '') {
-                    <button
-                      (click)="setSeverity('')"
-                      class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer lowercase font-medium"
-                    >
-                      {{ 'securityLogs.clearAll' | transloco }}
-                    </button>
-                  }
-                </div>
-
-                <div class="flex flex-col gap-0.5">
-                  <button mat-menu-item (click)="setSeverity('')" class="!h-8 !rounded-lg text-xs" [class.font-bold]="!severity()">
-                    <span class="flex items-center justify-between w-full">
-                      <span>{{ 'securityLogs.allSeverities' | transloco }}</span>
-                      @if (!severity()) { <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" /> }
-                    </span>
-                  </button>
-                  <button mat-menu-item (click)="setSeverity('Critical')" class="!h-8 !rounded-lg text-xs" [class.font-bold]="severity() === 'Critical'">
-                    <span class="flex items-center justify-between w-full">
-                      <span class="inline-flex items-center gap-2 text-rose-600 dark:text-rose-400 font-medium">
-                        <span class="size-2 rounded-full bg-rose-500"></span>
-                        {{ 'securityLogs.critical' | transloco }}
-                      </span>
-                      @if (severity() === 'Critical') { <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" /> }
-                    </span>
-                  </button>
-                  <button mat-menu-item (click)="setSeverity('High')" class="!h-8 !rounded-lg text-xs" [class.font-bold]="severity() === 'High'">
-                    <span class="flex items-center justify-between w-full">
-                      <span class="inline-flex items-center gap-2 text-orange-600 dark:text-orange-400 font-medium">
-                        <span class="size-2 rounded-full bg-orange-500"></span>
-                        {{ 'securityLogs.high' | transloco }}
-                      </span>
-                      @if (severity() === 'High') { <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" /> }
-                    </span>
-                  </button>
-                  <button mat-menu-item (click)="setSeverity('Medium')" class="!h-8 !rounded-lg text-xs" [class.font-bold]="severity() === 'Medium'">
-                    <span class="flex items-center justify-between w-full">
-                      <span class="inline-flex items-center gap-2 text-amber-600 dark:text-amber-400 font-medium">
-                        <span class="size-2 rounded-full bg-amber-500"></span>
-                        {{ 'securityLogs.medium' | transloco }}
-                      </span>
-                      @if (severity() === 'Medium') { <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" /> }
-                    </span>
-                  </button>
-                  <button mat-menu-item (click)="setSeverity('Low')" class="!h-8 !rounded-lg text-xs" [class.font-bold]="severity() === 'Low'">
-                    <span class="flex items-center justify-between w-full">
-                      <span class="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium">
-                        <span class="size-2 rounded-full bg-blue-500"></span>
-                        {{ 'securityLogs.low' | transloco }}
-                      </span>
-                      @if (severity() === 'Low') { <i-check [size]="14" class="text-blue-600 dark:text-blue-400 ml-auto" /> }
-                    </span>
-                  </button>
-                </div>
-              </mat-menu>
-
-              <!-- Columns Visibility Menu -->
-              <button
-                [matMenuTriggerFor]="columnsMenu"
-                type="button"
-                class="flex items-center gap-1.5 h-10 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 hover:bg-neutral-50 dark:hover:bg-neutral-700/60 transition-colors text-sm font-medium text-neutral-700 dark:text-neutral-200 shrink-0 cursor-pointer shadow-2xs"
-              >
-                <span>{{ 'securityLogs.columns' | transloco }}</span>
-                <i-chevron-down [size]="13" class="text-neutral-400" />
-              </button>
-
-              <mat-menu #columnsMenu="matMenu" class="!rounded-2xl !p-2 min-w-44">
-                <div class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 mb-1">
-                  {{ 'securityLogs.columns' | transloco }}
-                </div>
-                <button mat-menu-item (click)="toggleColumn('user')">
-                  <span class="inline-flex items-center gap-2 text-xs">
-                    <input type="checkbox" [checked]="columns().user" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
-                    {{ 'securityLogs.user' | transloco }}
-                  </span>
-                </button>
-                <button mat-menu-item (click)="toggleColumn('timestamp')">
-                  <span class="inline-flex items-center gap-2 text-xs">
-                    <input type="checkbox" [checked]="columns().timestamp" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
-                    {{ 'securityLogs.timestamp' | transloco }}
-                  </span>
-                </button>
-                <button mat-menu-item (click)="toggleColumn('eventType')">
-                  <span class="inline-flex items-center gap-2 text-xs">
-                    <input type="checkbox" [checked]="columns().eventType" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
-                    {{ 'securityLogs.eventType' | transloco }}
-                  </span>
-                </button>
-                <button mat-menu-item (click)="toggleColumn('actionTaken')">
-                  <span class="inline-flex items-center gap-2 text-xs">
-                    <input type="checkbox" [checked]="columns().actionTaken" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
-                    {{ 'securityLogs.actionTaken' | transloco }}
-                  </span>
-                </button>
-                <button mat-menu-item (click)="toggleColumn('sourceIp')">
-                  <span class="inline-flex items-center gap-2 text-xs">
-                    <input type="checkbox" [checked]="columns().sourceIp" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
-                    {{ 'securityLogs.sourceIp' | transloco }}
-                  </span>
-                </button>
-                <button mat-menu-item (click)="toggleColumn('destinationIp')">
-                  <span class="inline-flex items-center gap-2 text-xs">
-                    <input type="checkbox" [checked]="columns().destinationIp" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
-                    {{ 'securityLogs.destinationIp' | transloco }}
-                  </span>
-                </button>
-                <button mat-menu-item (click)="toggleColumn('severity')">
-                  <span class="inline-flex items-center gap-2 text-xs">
-                    <input type="checkbox" [checked]="columns().severity" (click)="$event.stopPropagation()" class="rounded text-blue-600 pointer-events-none">
-                    {{ 'securityLogs.severity' | transloco }}
-                  </span>
-                </button>
-              </mat-menu>
-            </div>
-
-            <!-- Right: Push Alerts Toggle + Actions Menu -->
-            <div class="flex items-center gap-3 sm:gap-4 shrink-0">
-
-              <!-- Push Alerts Switch -->
-              <div class="flex items-center gap-2 whitespace-nowrap shrink-0 text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                <span>{{ 'securityLogs.pushAlerts' | transloco }}</span>
-                <mat-slide-toggle [checked]="pushAlerts()" (change)="togglePushAlerts($event.checked)"></mat-slide-toggle>
-              </div>
-
-              <!-- Actions Menu -->
-              <button
-                [matMenuTriggerFor]="actionsMenu"
-                type="button"
-                class="flex items-center gap-2 h-10 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800/80 hover:bg-neutral-50 dark:hover:bg-neutral-700/60 transition-colors text-sm font-medium text-neutral-700 dark:text-neutral-200 cursor-pointer shadow-2xs"
-              >
-                <span>{{ 'securityLogs.actions' | transloco }}</span>
-                <i-chevron-down [size]="13" class="text-neutral-400" />
-              </button>
-
-              <mat-menu #actionsMenu="matMenu" class="!rounded-2xl !p-1.5 min-w-56">
-                <button mat-menu-item (click)="loadLogs()" [disabled]="loading()">
-                  <i-refresh-cw [size]="15" class="mr-2 text-neutral-500" />
-                  <span class="text-sm">{{ 'securityLogs.refresh' | transloco }}</span>
-                </button>
-                <button mat-menu-item (click)="clearLogs()" [disabled]="loading() || logs().length === 0" class="!text-red-600 dark:!text-red-400">
-                  <i-trash [size]="15" class="mr-2 text-red-500" />
-                  <span class="text-sm font-medium">{{ 'securityLogs.clear' | transloco }}</span>
-                </button>
-              </mat-menu>
-            </div>
-
-          </div>
-
-          <!-- DISMISSIBLE ACTIVE FILTER CHIPS -->
-          @if (severity()) {
-            <div class="flex flex-wrap items-center gap-2 px-4 sm:px-5 py-2.5 bg-neutral-50/70 dark:bg-neutral-800/40 border-b border-neutral-200 dark:border-neutral-800 text-xs animate-fadeIn">
-              <span class="text-neutral-400 font-medium mr-1">{{ 'securityLogs.activeFilters' | transloco }}:</span>
-
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200/60 dark:border-neutral-700/50 font-medium shadow-2xs">
-                <span>{{ 'securityLogs.severity' | transloco }}: {{ getSeverityLabel(severity()) }}</span>
-                <button type="button" (click)="setSeverity('')" class="hover:text-neutral-900 dark:hover:text-white cursor-pointer"><i-x [size]="12" /></button>
-              </span>
-
-              <button
-                type="button"
-                (click)="setSeverity('')"
-                class="text-blue-600 dark:text-blue-400 hover:underline font-semibold ml-1 cursor-pointer"
-              >
-                {{ 'securityLogs.clearAll' | transloco }}
-              </button>
-            </div>
+            }
           }
+        </div>
 
-          <!-- DATA TABLE -->
-          <div class="overflow-x-auto">
-            <table class="w-full text-left min-w-[900px] border-collapse">
-              <thead>
-                <tr class="border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                  @if (columns().user) {
-                    <th class="py-3.5 px-4">{{ 'securityLogs.user' | transloco }}</th>
+        <!-- Footer / Pagination -->
+        <div class="flex items-center justify-between px-6 md:px-8 py-4 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/30 text-xs text-neutral-500">
+          <div class="flex items-center gap-2">
+            <span>{{ 'securityLogs.rowsPerPage' | transloco }}:</span>
+            <button
+              type="button"
+              [matMenuTriggerFor]="pageSizeMenu"
+              class="flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700/60 transition-colors shadow-2xs cursor-pointer"
+            >
+              <span>{{ pageSize() }}</span>
+              <mat-icon svgIcon="chevron-down" class="icon-size-3 text-neutral-400"></mat-icon>
+            </button>
+            <mat-menu #pageSizeMenu="matMenu" class="min-w-[80px]">
+              @for (size of [10, 25, 50]; track size) {
+                <button
+                  mat-menu-item
+                  (click)="pageSize.set(size)"
+                  class="flex items-center justify-between !h-9 text-xs"
+                  [class.font-bold]="size === pageSize()"
+                >
+                  <span>{{ size }}</span>
+                  @if (size === pageSize()) {
+                    <mat-icon svgIcon="check" class="!h-3.5 !w-3.5 !text-[14px] text-blue-600 dark:text-blue-400 ml-2"></mat-icon>
                   }
-                  @if (columns().timestamp) {
-                    <th class="py-3.5 px-4">
-                      <div class="flex items-center gap-1 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-200">
-                        <span>{{ 'securityLogs.timestamp' | transloco }}</span>
-                        <i-arrow-down [size]="12" />
-                      </div>
-                    </th>
-                  }
-                  @if (columns().eventType) {
-                    <th class="py-3.5 px-4">{{ 'securityLogs.eventType' | transloco }}</th>
-                  }
-                  @if (columns().actionTaken) {
-                    <th class="py-3.5 px-4">{{ 'securityLogs.actionTaken' | transloco }}</th>
-                  }
-                  @if (columns().sourceIp) {
-                    <th class="py-3.5 px-4">{{ 'securityLogs.sourceIp' | transloco }}</th>
-                  }
-                  @if (columns().destinationIp) {
-                    <th class="py-3.5 px-4">{{ 'securityLogs.destinationIp' | transloco }}</th>
-                  }
-                  @if (columns().severity) {
-                    <th class="py-3.5 px-4">{{ 'securityLogs.severity' | transloco }}</th>
-                  }
-                  <th class="py-3.5 px-4 text-right">{{ 'securityLogs.actions' | transloco }}</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
-                @if (loading()) {
-                  @for (row of [1, 2, 3, 4, 5]; track row) {
-                    <tr class="animate-pulse">
-                      <td class="py-4 px-4"><div class="h-3.5 w-28 rounded bg-neutral-200 dark:bg-neutral-800"></div></td>
-                      <td class="py-4 px-4"><div class="h-3.5 w-32 rounded bg-neutral-200 dark:bg-neutral-800"></div></td>
-                      <td class="py-4 px-4"><div class="h-3.5 w-40 rounded bg-neutral-200 dark:bg-neutral-800"></div></td>
-                      <td class="py-4 px-4"><div class="h-5 w-16 rounded-full bg-neutral-200 dark:bg-neutral-800"></div></td>
-                      <td class="py-4 px-4 text-right"><div class="h-7 w-7 ml-auto rounded-lg bg-neutral-100 dark:bg-neutral-800"></div></td>
-                    </tr>
-                  }
-                } @else if (filteredLogs().length === 0) {
-                  <tr>
-                    <td colspan="8" class="py-16 text-center">
-                      <div class="flex flex-col items-center justify-center max-w-sm mx-auto p-8 bg-neutral-50/60 dark:bg-neutral-800/30 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700">
-                        <div class="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 mb-3">
-                          <i-search [size]="22" />
-                        </div>
-                        <h3 class="text-base font-bold text-neutral-900 dark:text-white mb-1">{{ 'securityLogs.noMatches' | transloco }}</h3>
-                        <p class="text-xs text-neutral-500 text-center">
-                          {{ (searchQuery() || severity() ? ('securityLogs.noMatchesDescription' | transloco) : ('securityLogs.emptyDescription' | transloco)) }}
-                        </p>
-                        @if (searchQuery() || severity()) {
-                          <button
-                            type="button"
-                            (click)="clearFilters()"
-                            class="mt-4 px-3.5 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-                          >
-                            {{ 'securityLogs.clearFilters' | transloco }}
-                          </button>
-                        }
-                      </div>
-                    </td>
-                  </tr>
-                } @else {
-                 @for (log of paginatedLogs(); track log.id) {
-                  <tr class="hover:bg-neutral-50/60 dark:hover:bg-neutral-800/30 transition-colors text-[13px] text-neutral-700 dark:text-neutral-300">
-                    @if (columns().user) {
-                      <td class="py-3.5 px-4">
-                        <div class="flex items-center gap-2.5">
-                          @if (log.usuarioAvatar && !failedAvatars().has(log.id)) {
-                            <img [src]="log.usuarioAvatar" referrerpolicy="no-referrer" (error)="markAvatarFailed(log.id)" [alt]="log.usuarioNombre || 'Usuario'" class="size-7 rounded-full object-cover border border-neutral-200 dark:border-neutral-700 shrink-0 select-none" />
-                          } @else {
-                            <div class="size-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 border border-neutral-200/60 dark:border-neutral-700/60 select-none" [ngClass]="getAvatarColor(log.usuarioNombre || log.usuarioEmail)">
-                              {{ getInitials(log.usuarioNombre || log.usuarioEmail) }}
-                            </div>
-                          }
-                          <div class="flex flex-col min-w-0">
-                            <span class="font-semibold text-neutral-900 dark:text-white truncate max-w-[130px]">{{ log.usuarioNombre || log.usuarioEmail || ('securityLogs.system' | transloco) }}</span>
-                            @if (log.usuarioNombre && log.usuarioEmail) {
-                              <span class="text-[11px] text-neutral-400 truncate max-w-[130px]">{{ log.usuarioEmail }}</span>
-                            }
-                          </div>
-                        </div>
-                      </td>
-                    }
-                    @if (columns().timestamp) {
-                      <td class="py-3.5 px-4 font-medium text-xs whitespace-nowrap text-neutral-600 dark:text-neutral-400">
-                        {{ log.timestamp | date:'d MMM y, HH:mm:ss' }}
-                      </td>
-                    }
-                    @if (columns().eventType) {
-                      <td class="py-3.5 px-4">
-                        <div class="flex items-center gap-2 font-bold text-neutral-900 dark:text-white text-xs">
-                          <mat-icon [svgIcon]="log.eventIcon" [class]="log.eventColor + ' !w-4 !h-4'"></mat-icon>
-                          <span>{{ log.eventType }}</span>
-                        </div>
-                      </td>
-                    }
-                    @if (columns().actionTaken) {
-                      <td class="py-3.5 px-4 text-xs">{{ log.actionTaken }}</td>
-                    }
-                    @if (columns().sourceIp) {
-                      <td class="py-3.5 px-4 font-mono text-xs">{{ log.sourceIp }}</td>
-                    }
-                    @if (columns().destinationIp) {
-                      <td class="py-3.5 px-4 font-mono text-xs">{{ log.destinationIp }}</td>
-                    }
-                    @if (columns().severity) {
-                      <td class="py-3.5 px-4">
-                        <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-2xs"
-                          [ngClass]="{
-                            'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/60 dark:border-rose-500/20': log.severity === 'Critical',
-                            'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400 border border-orange-200/60 dark:border-orange-500/20': log.severity === 'High',
-                            'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20': log.severity === 'Medium',
-                            'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20': log.severity === 'Low'
-                          }">
-                          {{ getSeverityLabel(log.severity) }}
-                        </span>
-                      </td>
-                    }
-                    <td class="py-3.5 px-4 text-right">
-                       <button
-                         type="button"
-                         [matTooltip]="'securityLogs.copy' | transloco"
-                         (click)="copyLog(log)"
-                         class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors cursor-pointer p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                       >
-                        <i-clipboard-list [size]="16" />
-                      </button>
-                    </td>
-                   </tr>
-                 }
-                }
-              </tbody>
-            </table>
+                </button>
+              }
+            </mat-menu>
           </div>
-
-          <!-- FOOTER / PAGINATION -->
-          <div class="flex items-center justify-between px-6 py-4 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/30 text-xs text-neutral-500">
-            <div class="flex items-center gap-2">
-              <span>{{ 'securityLogs.rowsPerPage' | transloco }}:</span>
-              <button
-                type="button"
-                [matMenuTriggerFor]="pageSizeMenu"
-                class="flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700/60 transition-colors shadow-2xs cursor-pointer"
-              >
-                <span>{{ pageSize() }}</span>
-                <i-chevron-down [size]="12" class="text-neutral-400" />
-              </button>
-              <mat-menu #pageSizeMenu="matMenu" class="min-w-[80px]">
-                @for (size of [10, 25, 50]; track size) {
-                  <button
-                    mat-menu-item
-                    (click)="pageSize.set(size)"
-                    class="flex items-center justify-between !h-9 text-xs"
-                    [class.font-bold]="size === pageSize()"
-                  >
-                    <span>{{ size }}</span>
-                    @if (size === pageSize()) {
-                      <mat-icon svgIcon="check" class="!h-3.5 !w-3.5 !text-[14px] text-blue-600 dark:text-blue-400 ml-2"></mat-icon>
-                    }
-                  </button>
-                }
-              </mat-menu>
-            </div>
-            <div>
-               {{ 'securityLogs.visibleOf' | transloco: { visible: paginatedLogs().length, total: filteredLogs().length } }}
-            </div>
+          <div>
+             {{ 'securityLogs.visibleOf' | transloco: { visible: paginatedLogs().length, total: filteredLogs().length } }}
           </div>
-
         </div>
 
       </div>
     </div>
-  `
+  `,
+  styles: [
+    `
+      .security-logs-grid {
+        grid-template-columns: minmax(180px, 1.8fr) minmax(140px, 1.3fr) minmax(140px, 1.3fr) minmax(130px, 1.2fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(100px, 0.9fr) minmax(60px, 0.6fr);
+      }
+      @media (max-width: 1280px) {
+        .security-logs-grid {
+          grid-template-columns: minmax(170px, 1.8fr) minmax(130px, 1.3fr) minmax(130px, 1.3fr) minmax(120px, 1.2fr) minmax(100px, 1fr) minmax(90px, 0.9fr) minmax(60px, 0.6fr);
+        }
+      }
+      @media (max-width: 1024px) {
+        .security-logs-grid {
+          grid-template-columns: minmax(160px, 1.8fr) minmax(130px, 1.3fr) minmax(130px, 1.3fr) minmax(100px, 1fr) minmax(90px, 0.9fr) minmax(60px, 0.6fr);
+        }
+      }
+      @media (max-width: 768px) {
+        .security-logs-grid {
+          grid-template-columns: minmax(150px, 2fr) minmax(120px, 1.3fr) minmax(90px, 0.9fr) minmax(50px, 0.6fr);
+        }
+      }
+      @media (max-width: 640px) {
+        .security-logs-grid {
+          grid-template-columns: minmax(140px, 2fr) minmax(80px, 0.9fr) minmax(50px, 0.6fr);
+        }
+      }
+    `,
+  ],
 })
 export default class SecurityLogsComponent implements OnInit {
   private securityLogsService = inject(SecurityLogsService);

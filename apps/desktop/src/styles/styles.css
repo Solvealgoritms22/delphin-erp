@@ -253,6 +253,34 @@ dialog[open]::backdrop {
   overflow: hidden !important;
 }
 
+/* Quote & Invoice Preview Side Panel Drawer (Zero rounded corners on modal wrapper) */
+.cdk-overlay-pane.quote-preview-panel,
+.cdk-overlay-pane:has(.quote-preview-panel),
+.quote-preview-panel,
+.quote-preview-panel.mat-mdc-dialog-container,
+.quote-preview-panel.mat-mdc-dialog-panel,
+.quote-preview-panel .mat-mdc-dialog-container,
+.quote-preview-panel .mat-mdc-dialog-surface,
+.quote-preview-panel .mdc-dialog__surface,
+.quote-preview-panel .mat-mdc-dialog-container .mat-mdc-dialog-surface,
+.quote-preview-panel .mat-mdc-dialog-container .mdc-dialog__surface,
+.cdk-overlay-pane.quote-preview-panel .mat-mdc-dialog-container,
+.cdk-overlay-pane.quote-preview-panel .mat-mdc-dialog-surface,
+.cdk-overlay-pane.quote-preview-panel .mdc-dialog__surface,
+.cdk-overlay-pane:has(app-invoice-preview) .mat-mdc-dialog-surface,
+.cdk-overlay-pane:has(app-invoice-preview) .mdc-dialog__surface,
+.cdk-overlay-pane:has(app-quote-preview) .mat-mdc-dialog-surface,
+.cdk-overlay-pane:has(app-quote-preview) .mdc-dialog__surface {
+  border-radius: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  box-shadow: -8px 0 40px 0 rgba(0, 0, 0, 0.18) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
 .cdk-overlay-backdrop.cdk-overlay-backdrop-hiding {
   opacity: 0 !important;
   transition: opacity 220ms cubic-bezier(0.4, 0, 1, 1), backdrop-filter 220ms cubic-bezier(0.4, 0, 1, 1) !important;

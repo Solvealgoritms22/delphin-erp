@@ -225,7 +225,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
                     <td class="py-4 px-6 whitespace-nowrap text-right">
                       <div class="flex items-center justify-end gap-2">
                         <button (click)="viewInvoice(inv)"
-                                class="h-8 px-3 min-w-0 rounded-lg text-xs border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">Ver</button>
+                                class="h-8 px-3 min-w-0 rounded-lg text-xs border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">{{ 'common.view' | transloco }}</button>
                         <button (click)="downloadInvoice(inv)"
                                 class="h-8 w-8 rounded-lg border border-neutral-300 dark:border-neutral-700 flex items-center justify-center hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-neutral-600 dark:text-neutral-400"
                                 [attr.aria-label]="'Descargar factura ' + inv.numero">

@@ -71,18 +71,18 @@ export type UserDialogData = {
             }
           </div>
           <div class="flex min-w-0 flex-col gap-1.5">
-            <span class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">Foto de perfil</span>
+            <span class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">{{ 'account.profilePhoto' | transloco }}</span>
             <span class="text-xs text-neutral-500 dark:text-neutral-400">PNG, JPG o WEBP (máx. 2MB)</span>
             <div class="flex items-center gap-2 mt-0.5">
               <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 shadow-xs">
                 <i-upload [size]="14" />
-                {{ avatarPreview() ? 'Cambiar foto' : 'Subir foto' }}
+                {{ avatarPreview() ? ('account.changePhoto' | transloco) : ('account.uploadPhoto' | transloco) }}
                 <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarSelected($event)" class="hidden">
               </label>
               @if (avatarPreview()) {
                 <button type="button" (click)="removeAvatar()" class="inline-flex items-center gap-1 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-2.5 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition cursor-pointer">
                   <i-trash [size]="13" />
-                  Eliminar
+                  {{ 'common.delete' | transloco }}
                 </button>
               }
             </div>
@@ -93,20 +93,20 @@ export type UserDialogData = {
         </div>
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Nombre completo</mat-label>
-          <input matInput formControlName="name" placeholder="Nombre y apellido" autocomplete="name" />
+          <mat-label>{{ 'account.fullName' | transloco }}</mat-label>
+          <input matInput formControlName="name" [placeholder]="'account.namePlaceholder' | transloco" autocomplete="name" />
           @if (form.get('name')?.hasError('required')) {
-            <mat-error>El nombre es requerido</mat-error>
+            <mat-error>{{ 'account.nameRequired' | transloco }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Correo Electrónico</mat-label>
+          <mat-label>{{ 'auth.fields.email' | transloco }}</mat-label>
           <input matInput formControlName="email" type="email" placeholder="usuario@empresa.com" autocomplete="off" />
           @if (form.get('email')?.hasError('required')) {
-            <mat-error>El correo es requerido</mat-error>
+            <mat-error>{{ 'auth.fields.emailRequired' | transloco }}</mat-error>
           } @else if (form.get('email')?.hasError('email')) {
-            <mat-error>Correo electrónico inválido</mat-error>
+            <mat-error>{{ 'auth.fields.emailInvalid' | transloco }}</mat-error>
           }
         </mat-form-field>
 
@@ -126,7 +126,7 @@ export type UserDialogData = {
 
         @if (isOwner) {
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Rol Asignado</mat-label>
+            <mat-label>{{ 'common.role' | transloco }}</mat-label>
             <input matInput [value]="'settings.users.owner' | transloco" disabled readonly class="font-medium text-neutral-800 dark:text-neutral-200" />      
           </mat-form-field>
         } @else {
@@ -144,10 +144,10 @@ export type UserDialogData = {
         }
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Estado de Acceso</mat-label>
+          <mat-label>{{ 'common.status' | transloco }}</mat-label>
           <mat-select formControlName="estado" placeholder="Seleccionar estado">
-            <mat-option value="ACTIVO">Activo</mat-option>
-            <mat-option value="INACTIVO" [disabled]="isOwner">Inactivo</mat-option>
+            <mat-option value="ACTIVO">{{ 'common.active' | transloco }}</mat-option>
+            <mat-option value="INACTIVO" [disabled]="isOwner">{{ 'common.inactive' | transloco }}</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -168,10 +168,11 @@ export type UserDialogData = {
 
         <div class="flex items-center justify-end gap-3 mt-4">
           <button type="button" (click)="dialogRef.close()" class="px-5 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer">
-            Cancelar
+            {{ 'common.cancel' | transloco }}
           </button>
-          <button type="submit" [disabled]="form.invalid" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors disabled:opacity-50 shadow-xs cursor-pointer">
-            {{ isEditing ? 'Guardar Cambios' : 'Crear Usuario' }}
+          <button type="submit" [disabled]="form.invalid" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors disabled:opacity-50 shadow-xs cursor-pointer">
+            <mat-icon [svgIcon]="isEditing ? 'save' : 'plus'" class="icon-size-4"></mat-icon>
+            <span>{{ isEditing ? ('common.save' | transloco) : ('settings.users.create' | transloco) }}</span>
           </button>
         </div>
       </form>

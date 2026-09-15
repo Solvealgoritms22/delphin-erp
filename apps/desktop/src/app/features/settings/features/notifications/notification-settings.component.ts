@@ -80,7 +80,7 @@ type CategoryGroup = {
             (click)="saveChanges()"
             [disabled]="loading() || saving() || !isDirty()"
           >
-            <mat-icon [svgIcon]="saving() ? 'refresh-cw' : 'check'" class="!w-4 !h-4 mr-1.5" [class.animate-spin]="saving()"></mat-icon>
+            <mat-icon [svgIcon]="saving() ? 'refresh-cw' : 'save'" class="!w-4 !h-4 mr-1.5" [class.animate-spin]="saving()"></mat-icon>
             <span>{{ (saving() ? 'notificationSettings.saving' : 'notificationSettings.saveChanges') | transloco }}</span>
           </button>
         </div>

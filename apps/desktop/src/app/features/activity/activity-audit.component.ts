@@ -289,7 +289,7 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
                     @if (isLoading()) {
                       <span class="inline-block w-4 h-4 border-2 border-neutral-300 border-t-blue-500 rounded-full animate-spin"></span>
                     }
-                    {{ isLoading() ? 'Cargando...' : 'Cargar más' }}
+                    {{ (isLoading() ? 'common.loading' : 'common.loadMore') | transloco }}
                   </button>
                 </div>
               }
@@ -298,7 +298,7 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
         </div>
 
         <div class="hidden lg:flex flex-col shrink-0 w-20 border-l border-neutral-100 dark:border-neutral-800 py-8 px-3 gap-1.5 overflow-y-auto">
-          <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2 px-1">Año</p>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2 px-1">{{ 'common.year' | transloco }}</p>
           <button
             (click)="selectedYear = null; onFilterChange()"
             class="text-xs font-semibold py-1.5 px-2 rounded-lg transition-colors text-left"
@@ -310,7 +310,7 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
             [class.hover:bg-neutral-100]="selectedYear !== null"
             [class.dark:hover:bg-neutral-800]="selectedYear !== null"
           >
-            Todo
+            {{ 'common.all' | transloco }}
           </button>
           @for (year of years(); track year) {
             <button

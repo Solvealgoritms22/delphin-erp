@@ -65,7 +65,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
           <div
             class="services-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700"
           >
-            <div class="text-center">Portada</div>
+            <div class="text-center">{{ 'common.cover' | transloco }}</div>
             <div>{{ 'common.code' | transloco }}</div>
             <div>{{ 'common.name' | transloco }}</div>
             <div class="hidden sm:block">

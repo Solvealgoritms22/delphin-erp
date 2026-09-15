@@ -5,16 +5,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PaymentCardsService, PaymentCard } from './payment-cards.service';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { CardDialogComponent } from './card-dialog.component';
 
 @Component({
   selector: 'app-manage-cards-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, TranslocoPipe],
   template: `
     <div class="flex flex-col w-full min-w-[360px] md:min-w-[480px]">
       <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
-        <h2 class="text-xl font-bold text-neutral-900 dark:text-white">Gestionar tarjetas</h2>
+        <h2 class="text-xl font-bold text-neutral-900 dark:text-white">{{ 'billing.cards.manageTitle' | transloco }}</h2>
         <button mat-icon-button (click)="dialogRef.close()" class="text-neutral-500 hover:text-neutral-700">
           <mat-icon svgIcon="x" class="icon-size-5"></mat-icon>
         </button>
@@ -24,7 +25,7 @@ import { CardDialogComponent } from './card-dialog.component';
         @if (cards().length === 0) {
           <div class="flex flex-col items-center justify-center py-8">
             <img src="illustrations/credit_card_illustration.svg" alt="No hay tarjetas" class="w-32 h-auto mb-4" />
-            <p class="text-neutral-500 font-medium">No hay tarjetas guardadas.</p>
+            <p class="text-neutral-500 font-medium">{{ 'billing.cards.noCards' | transloco }}</p>
           </div>
         } @else {
           <div class="flex flex-col gap-3">
@@ -45,7 +46,7 @@ import { CardDialogComponent } from './card-dialog.component';
                   </div>
                 </div>
                 <button (click)="editCard(card)" mat-stroked-button class="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                  Editar
+                  {{ 'common.edit' | transloco }}
                 </button>
               </div>
             }
@@ -54,7 +55,7 @@ import { CardDialogComponent } from './card-dialog.component';
       </div>
 
       <div class="flex items-center justify-end px-6 py-4 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/20">
-        <button mat-flat-button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-6" (click)="dialogRef.close()">Hecho</button>
+        <button mat-flat-button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-6" (click)="dialogRef.close()">{{ 'common.done' | transloco }}</button>
       </div>
     </div>
   `

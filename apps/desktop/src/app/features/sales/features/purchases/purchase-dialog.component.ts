@@ -221,12 +221,12 @@ export type PurchaseItemRow = {
             <table class="w-full text-left text-sm">
               <thead class="bg-neutral-50 dark:bg-neutral-800/40 text-neutral-500 dark:text-neutral-400 text-xs border-b border-neutral-200 dark:border-neutral-800">
                 <tr>
-                  <th class="py-3 px-4 min-w-[200px]">Descripción</th>
-                  <th class="py-3 px-2 w-24">Cant.</th>
-                  <th class="py-3 px-2 w-28">Costo Unit.</th>
-                  <th class="py-3 px-2 w-24">% ITBIS</th>
-                  <th class="py-3 px-2 w-24">Descuento</th>
-                  <th class="py-3 px-3 w-28 text-right">Subtotal</th>
+                  <th class="py-3 px-4 min-w-[200px]">{{ 'common.description' | transloco }}</th>
+                  <th class="py-3 px-2 w-24">{{ 'common.quantity' | transloco }}</th>
+                  <th class="py-3 px-2 w-28">{{ 'common.unitCost' | transloco }}</th>
+                  <th class="py-3 px-2 w-24">{{ 'common.vatPercent' | transloco }}</th>
+                  <th class="py-3 px-2 w-24">{{ 'common.discount' | transloco }}</th>
+                  <th class="py-3 px-3 w-28 text-right">{{ 'common.subtotal' | transloco }}</th>
                   <th class="py-3 px-2 w-10 text-center"></th>
                 </tr>
               </thead>

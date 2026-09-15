@@ -236,7 +236,7 @@ import {
                       (click)="rotateKey(app)"
                       class="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
                     >
-                      Rotar
+                      {{ 'settings.apiAccess.rotate' | transloco }}
                     </button>
                   </div>
 
@@ -271,13 +271,13 @@ import {
                       (click)="revokeKey(app)"
                       class="rounded-lg px-2.5 py-1 text-xs font-bold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 cursor-pointer"
                     >
-                      Revocar
+                      {{ 'settings.apiAccess.revoke' | transloco }}
                     </button>
                     <button
                       (click)="deleteApp(app)"
                       class="rounded-lg px-2.5 py-1 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 cursor-pointer"
                     >
-                      Eliminar
+                      {{ 'common.delete' | transloco }}
                     </button>
                   </div>
                 </div>
@@ -298,7 +298,7 @@ import {
                 class="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 cursor-pointer"
               >
                 <mat-icon svgIcon="plus" class="icon-size-4"></mat-icon>
-                Crear Integración
+                {{ 'settings.apiAccess.createIntegration' | transloco }}
               </button>
             </div>
 
@@ -405,14 +405,14 @@ import {
               (click)="closeModal()"
               class="rounded-xl px-4 py-2 text-xs font-bold text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 cursor-pointer"
             >
-              Cancelar
+              {{ 'common.cancel' | transloco }}
             </button>
             <button
               (click)="submitCreateApp()"
               [disabled]="!newAppNombre.trim()"
               class="rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
             >
-              Generar Clave API
+              {{ 'settings.apiAccess.generateKey' | transloco }}
             </button>
           </div>
         </div>
@@ -467,7 +467,7 @@ import {
               (click)="closeModal()"
               class="rounded-xl bg-blue-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-blue-700 cursor-pointer"
             >
-              Entendido y Guardado
+              {{ 'settings.apiAccess.understood' | transloco }}
             </button>
           </div>
         </div>

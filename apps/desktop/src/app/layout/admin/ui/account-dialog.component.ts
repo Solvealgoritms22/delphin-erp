@@ -139,7 +139,7 @@ type AccountTab = 'profile' | 'security' | 'smtp' | 'danger';
               @if (avatarUrl()) {
                 <button type="button" (click)="removeAvatar()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 rounded-lg border border-red-200 dark:border-red-900/40 transition cursor-pointer">
                   <i-trash [size]="13" />
-                  Eliminar foto
+                  {{ 'account.deletePhoto' | transloco }}
                 </button>
               }
 
@@ -150,7 +150,7 @@ type AccountTab = 'profile' | 'security' | 'smtp' | 'danger';
                   @if (isOwner()) {
                     <span class="font-bold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
                       <mat-icon svgIcon="crown" class="!w-3.5 !h-3.5 !text-[14px]"></mat-icon>
-                      Propietario
+                      {{ 'roles.owner' | transloco }}
                     </span>
                   } @else {
                     <span class="font-bold text-neutral-700 dark:text-neutral-300">
@@ -171,8 +171,8 @@ type AccountTab = 'profile' | 'security' | 'smtp' | 'danger';
             <div class="md:col-span-8 flex flex-col gap-5 justify-between">
               <form [formGroup]="profileForm" class="flex flex-col gap-4">
                 <div>
-                  <h3 class="text-base font-bold text-neutral-900 dark:text-white mb-1">Información Básica</h3>
-                  <p class="text-xs text-neutral-500 dark:text-neutral-400">Actualiza los datos personales que se muestran en el sistema y comprobantes.</p>
+                  <h3 class="text-base font-bold text-neutral-900 dark:text-white mb-1">{{ 'account.basicInfo' | transloco }}</h3>
+                  <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ 'account.basicInfoDesc' | transloco }}</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -180,7 +180,7 @@ type AccountTab = 'profile' | 'security' | 'smtp' | 'danger';
                     <mat-label>{{ 'account.fullName' | transloco }}</mat-label>
                     <input matInput formControlName="name" [placeholder]="'account.namePlaceholder' | transloco" autocomplete="name" />
                     @if (profileForm.get('name')?.hasError('required')) {
-                      <mat-error>El nombre completo es requerido</mat-error>
+                      <mat-error>{{ 'account.nameRequired' | transloco }}</mat-error>
                     }
                   </mat-form-field>
 

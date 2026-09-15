@@ -145,7 +145,8 @@ import { CountryFlagComponent } from '@shared/components/country-flag/country-fl
            {{ 'common.discard' | transloco }}
         </button>
         <button mat-flat-button [color]="'primary'" type="button" class="ml-4" (click)="submit()" [disabled]="form.invalid">
-           {{ (isEdit ? 'common.saveChanges' : 'commercial.clients.create') | transloco }}
+           <mat-icon [svgIcon]="isEdit ? 'save' : 'plus'" class="icon-size-4 mr-2"></mat-icon>
+           <span>{{ (isEdit ? 'common.saveChanges' : 'commercial.clients.create') | transloco }}</span>
         </button>
       </div>
 

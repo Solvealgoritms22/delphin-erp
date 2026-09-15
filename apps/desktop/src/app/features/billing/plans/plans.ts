@@ -286,12 +286,12 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
 
               @if (currentPlan().toLowerCase() === plan.nombre.toLowerCase()) {
                 <button class="w-full py-3 mb-8 rounded-xl font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-xs">
-                  Plan actual
+                  {{ 'billing.plans.currentPlan' | transloco }}
                 </button>
               } @else {
                 <button (click)="selectPlan(plan)"
                         class="w-full py-3 mb-8 rounded-xl font-medium text-sm border border-neutral-200 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 transition-colors cursor-pointer">
-                  Seleccionar
+                  {{ 'billing.plans.select' | transloco }}
                 </button>
               }
 
@@ -309,23 +309,23 @@ const COMPARISON_CATEGORIES: ComparisonCategory[] = [
       }
 
       <div class="text-center mb-20 flex items-center justify-center gap-4">
-        <span class="text-neutral-500 text-sm">¿Necesitas un plan personalizado o mayor capacidad?</span>
+        <span class="text-neutral-500 text-sm">{{ 'billing.plans.customPlanQuestion' | transloco }}</span>
         <a href="mailto:admin@dolphin-erp.com?subject=Consulta%20sobre%20plan%20personalizado&body=Hola%2C%20me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20sobre%20un%20plan%20personalizado%20para%20mi%20empresa."
            class="px-4 py-1.5 rounded-lg text-sm font-medium border border-neutral-200 text-neutral-900 hover:bg-neutral-50 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 transition-colors">
-           Contáctanos
+           {{ 'billing.plans.contactUs' | transloco }}
         </a>
       </div>
 
       @if (!isLoading()) {
         <div class="mt-8">
-          <h2 class="text-2xl font-bold text-center text-neutral-900 dark:text-white mb-2">Comparar capacidades reales del sistema</h2>
-          <p class="text-center text-xs text-neutral-500 dark:text-neutral-400 mb-12">Detalle exacto de las funcionalidades incluidas en cada nivel de suscripción</p>
+          <h2 class="text-2xl font-bold text-center text-neutral-900 dark:text-white mb-2">{{ 'billing.plans.compareTitle' | transloco }}</h2>
+          <p class="text-center text-xs text-neutral-500 dark:text-neutral-400 mb-12">{{ 'billing.plans.compareSubtitle' | transloco }}</p>
 
           <div class="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-neutral-800">
             <table class="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr class="bg-neutral-50 dark:bg-neutral-800/60 border-b border-neutral-200 dark:border-neutral-800">
-                  <th class="w-2/5 p-5 text-sm font-semibold text-neutral-900 dark:text-white">Módulos y Funcionalidades</th>
+                  <th class="w-2/5 p-5 text-sm font-semibold text-neutral-900 dark:text-white">{{ 'billing.plans.modulesAndFeatures' | transloco }}</th>
                   <th class="w-1/5 p-5 text-center text-sm font-semibold text-neutral-900 dark:text-white">Starter ($19)</th>
                   <th class="w-1/5 p-5 text-center text-sm font-semibold text-blue-600 dark:text-blue-400">Pro ($49)</th>
                   <th class="w-1/5 p-5 text-center text-sm font-semibold text-neutral-900 dark:text-white">Enterprise ($119)</th>

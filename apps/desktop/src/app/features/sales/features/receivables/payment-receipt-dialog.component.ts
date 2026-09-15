@@ -151,7 +151,7 @@ type InvoiceSelectionRow = {
                 (click)="selectAllInvoices()"
                 class="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
               >
-                Saldar Todas las Facturas
+                {{ 'commercial.receivables.payAll' | transloco }}
               </button>
             }
           </div>
@@ -179,11 +179,11 @@ type InvoiceSelectionRow = {
                         (change)="toggleSelectAll($event.checked)"
                       ></mat-checkbox>
                     </th>
-                    <th class="py-3 px-3">No. Factura / NCF</th>
-                    <th class="py-3 px-3">Vencimiento</th>
-                    <th class="py-3 px-3 text-right">Total Factura</th>
-                    <th class="py-3 px-3 text-right">Balance Adeudado</th>
-                    <th class="py-3 px-4 text-right w-36">Monto a Cobrar ({{ currencyConfig.currencySymbol() }})</th>
+                    <th class="py-3 px-3">{{ 'commercial.receivables.table.invoiceNcf' | transloco }}</th>
+                    <th class="py-3 px-3">{{ 'common.dueDate' | transloco }}</th>
+                    <th class="py-3 px-3 text-right">{{ 'commercial.receivables.table.invoiceTotal' | transloco }}</th>
+                    <th class="py-3 px-3 text-right">{{ 'commercial.receivables.table.balanceDue' | transloco }}</th>
+                    <th class="py-3 px-4 text-right w-36">{{ 'commercial.receivables.amountToCollect' | transloco }} ({{ currencyConfig.currencySymbol() }})</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">

@@ -7,6 +7,7 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { PagoCliente } from '../../data/customer-payments.service';
 import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
@@ -24,6 +25,7 @@ export type PaymentReceiptPreviewData = {
     MatIconModule,
     DecimalPipe,
     DatePipe,
+    TranslocoPipe,
   ],
   template: `
     <div class="flex flex-col w-full min-w-0 max-h-[90vh] overflow-hidden bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white">
@@ -132,10 +134,10 @@ export type PaymentReceiptPreviewData = {
             <table class="w-full text-left text-xs">
               <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-600 dark:text-neutral-300 font-bold border-b border-neutral-200 dark:border-neutral-800">
                 <tr>
-                  <th class="py-3 px-4">No. Factura</th>
-                  <th class="py-3 px-4">NCF</th>
-                  <th class="py-3 px-3 text-right">Total Factura</th>
-                  <th class="py-3 px-4 text-right">Monto Aplicado</th>
+                  <th class="py-3 px-4">{{ 'commercial.receivables.table.invoiceNumber' | transloco }}</th>
+                  <th class="py-3 px-4">{{ 'commercial.receivables.table.ncf' | transloco }}</th>
+                  <th class="py-3 px-3 text-right">{{ 'commercial.receivables.table.invoiceTotal' | transloco }}</th>
+                  <th class="py-3 px-4 text-right">{{ 'commercial.receivables.table.appliedAmount' | transloco }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">

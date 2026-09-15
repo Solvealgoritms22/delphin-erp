@@ -7,6 +7,7 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { FacturaCompra } from '../../data/purchases.service';
 import { CurrencyConfigService } from '@core/currency/currency-config.service';
 
@@ -24,6 +25,7 @@ export type PurchasePreviewData = {
     MatIconModule,
     DecimalPipe,
     DatePipe,
+    TranslocoPipe,
   ],
   template: `
     <div class="flex flex-col w-full min-w-0 max-h-[90vh] overflow-hidden bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white">
@@ -142,12 +144,12 @@ export type PurchasePreviewData = {
           <table class="w-full text-left text-xs">
             <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-600 dark:text-neutral-300 font-bold border-b border-neutral-200 dark:border-neutral-800">
               <tr>
-                <th class="py-3 px-4">Descripción</th>
-                <th class="py-3 px-3 text-center">Cant.</th>
-                <th class="py-3 px-3 text-right">Costo Unit.</th>
-                <th class="py-3 px-3 text-right">% ITBIS</th>
-                <th class="py-3 px-3 text-right">Descuento</th>
-                <th class="py-3 px-4 text-right">Total</th>
+                <th class="py-3 px-4">{{ 'common.description' | transloco }}</th>
+                <th class="py-3 px-3 text-center">{{ 'common.quantity' | transloco }}</th>
+                <th class="py-3 px-3 text-right">{{ 'common.unitCost' | transloco }}</th>
+                <th class="py-3 px-3 text-right">{{ 'common.vatPercent' | transloco }}</th>
+                <th class="py-3 px-3 text-right">{{ 'common.discount' | transloco }}</th>
+                <th class="py-3 px-4 text-right">{{ 'common.total' | transloco }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">

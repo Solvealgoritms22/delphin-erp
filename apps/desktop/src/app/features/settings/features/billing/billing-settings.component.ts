@@ -228,7 +228,7 @@ type BillingData = {
                   [disabled]="saving()"
                   (click)="save(config.configuracion)"
                 >
-                  <mat-icon svgIcon="check" class="icon-size-4 mr-2"></mat-icon>
+                  <mat-icon svgIcon="save" class="icon-size-4 mr-2"></mat-icon>
                   {{ 'common.save' | transloco }}
                 </button>
               </div>
@@ -322,7 +322,7 @@ type BillingData = {
                           (click)="saveTax(tax)"
                         >
                           <mat-icon
-                            svgIcon="check"
+                            svgIcon="save"
                             class="icon-size-4 mr-1.5 text-blue-600 dark:text-blue-400"
                           ></mat-icon>
                           {{ 'common.save' | transloco }}
@@ -396,7 +396,7 @@ type BillingData = {
                       (click)="saveTerm(term)"
                     >
                       <mat-icon
-                        svgIcon="check"
+                        svgIcon="save"
                         class="icon-size-4 mr-1.5 text-blue-600 dark:text-blue-400"
                       ></mat-icon>
                       {{ 'common.save' | transloco }}

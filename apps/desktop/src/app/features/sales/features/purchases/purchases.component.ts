@@ -50,35 +50,38 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
     StatCardComponent,
   ],
   template: `
-    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden bg-neutral-50 dark:bg-neutral-950">
+    <div class="flex flex-col flex-auto min-w-0 h-full overflow-hidden">
       <!-- Standard Clean Page Header -->
       <div
         class="relative shrink-0 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900"
       >
-        <div class="min-w-0 flex-1">
-          <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+        <div>
+          <div
+            class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white"
+          >
             {{ 'commercial.purchases.title' | transloco }}
-          </h1>
-          <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+          </div>
+          <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
             {{ 'commercial.purchases.subtitle' | transloco }}
           </p>
         </div>
 
-        <div class="flex items-center gap-3 mt-4 sm:mt-0 shrink-0">
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 gap-3">
           <button
+            mat-flat-button
             (click)="openPurchaseModal()"
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-all cursor-pointer"
+            class="!rounded-xl bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
           >
-            <mat-icon svgIcon="plus" class="icon-size-4 text-white"></mat-icon>
+            <mat-icon svgIcon="plus" class="icon-size-5 mr-2"></mat-icon>
             {{ 'commercial.purchases.new' | transloco }}
           </button>
         </div>
       </div>
 
-      <!-- Main Scrollable Content -->
-      <div class="flex-auto overflow-y-auto px-6 md:px-8 py-6 space-y-6">
+      <!-- Main Body -->
+      <div class="flex min-h-0 flex-auto flex-col overflow-y-auto">
         <!-- Stat Cards -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:px-8 lg:grid-cols-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30">
           <app-stat-card
             [title]="'commercial.purchases.stats.monthPurchases' | transloco"
             [subtitle]="metrics().cantidadComprasMes + ' compras registradas este mes'"
@@ -114,7 +117,7 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
 
           <app-stat-card
             [title]="'commercial.purchases.stats.suppliersCount' | transloco"
-            subtitle="Proveedores en directorio"
+            [subtitle]="'commercial.purchases.stats.suppliersDirectory' | transloco"
             [value]="suppliers().length"
             icon="truck"
             curvePreset="s-curve"
@@ -123,63 +126,70 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
           />
         </div>
 
-        <!-- Filter Controls (Standard MatMenu + Search) -->
-        <!-- Filter Controls (Standard MatMenu + Search) -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <!-- Search input -->
-          <div class="relative flex-1 min-w-[200px] max-w-sm">
-            <mat-icon svgIcon="search" class="icon-size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400"></mat-icon>
-            <input
-              type="text"
-              [placeholder]="'commercial.purchases.search' | transloco"
-              [value]="searchQuery"
-              (input)="onSearchInput($event)"
-              class="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl pl-10 pr-4 py-2 text-xs font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+        <!-- Filter Bar -->
+        <div
+          class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-neutral-200 bg-white p-6 md:px-8 dark:border-neutral-700 dark:bg-neutral-900"
+        >
+          <div class="flex min-w-[260px] flex-1 items-center gap-3">
+            <div class="relative w-full max-w-md">
+              <mat-icon
+                svgIcon="search"
+                class="icon-size-4 absolute top-1/2 left-3.5 -translate-y-1/2 text-neutral-400"
+              ></mat-icon>
+              <input
+                type="text"
+                [placeholder]="'commercial.purchases.search' | transloco"
+                [value]="searchQuery"
+                (input)="onSearchInput($event)"
+                class="w-full rounded-xl border border-neutral-200 bg-neutral-50 py-2 pr-4 pl-10 text-sm font-medium text-neutral-900 outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-800/50 dark:text-white"
+              />
+            </div>
           </div>
 
-          <!-- Dropdown Filter Buttons -->
-          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <div class="flex flex-wrap items-center gap-3">
             <!-- Estado Filter Menu -->
             <button
               [matMenuTriggerFor]="statusMenu"
-              class="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap"
+              type="button"
+              class="flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 text-sm font-bold whitespace-nowrap text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/50"
             >
-              <span>{{ getStatusLabel() }}</span>
-              <mat-icon svgIcon="chevron-down" class="icon-size-3.5 text-neutral-500"></mat-icon>
+              <mat-icon svgIcon="sliders-horizontal" class="icon-size-4 text-neutral-500"></mat-icon>
+              <span>{{ getStatusLabel() | transloco }}</span>
             </button>
             <mat-menu #statusMenu="matMenu">
-              <button mat-menu-item (click)="setEstado('ALL')">Todos los Estados</button>
-              <button mat-menu-item (click)="setEstado('REGISTRADA')">Registrada / Pendiente</button>
-              <button mat-menu-item (click)="setEstado('PAGADA_PARCIAL')">Pagada Parcial</button>
-              <button mat-menu-item (click)="setEstado('PAGADA')">Pagada Total</button>
-              <button mat-menu-item (click)="setEstado('ANULADA')">Anulada</button>
+              <button mat-menu-item (click)="setEstado('ALL')">{{ 'commercial.purchases.filters.allStatuses' | transloco }}</button>
+              <button mat-menu-item (click)="setEstado('REGISTRADA')">{{ 'commercial.purchases.filters.registered' | transloco }}</button>
+              <button mat-menu-item (click)="setEstado('PAGADA_PARCIAL')">{{ 'commercial.purchases.filters.partial' | transloco }}</button>
+              <button mat-menu-item (click)="setEstado('PAGADA')">{{ 'commercial.purchases.filters.paid' | transloco }}</button>
+              <button mat-menu-item (click)="setEstado('ANULADA')">{{ 'commercial.purchases.filters.cancelled' | transloco }}</button>
             </mat-menu>
 
             <!-- Tipo Pago Filter Menu -->
             <button
               [matMenuTriggerFor]="tipoPagoMenu"
-              class="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap"
+              type="button"
+              class="flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 text-sm font-bold whitespace-nowrap text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/50"
             >
-              <span>{{ getTipoPagoLabel() }}</span>
-              <mat-icon svgIcon="chevron-down" class="icon-size-3.5 text-neutral-500"></mat-icon>
+              <mat-icon svgIcon="credit-card" class="icon-size-4 text-neutral-500"></mat-icon>
+              <span>{{ getTipoPagoLabel() | transloco }}</span>
             </button>
             <mat-menu #tipoPagoMenu="matMenu">
-              <button mat-menu-item (click)="setTipoPago('ALL')">Contado y Crédito</button>
-              <button mat-menu-item (click)="setTipoPago('CONTADO')">Solo Contado</button>
-              <button mat-menu-item (click)="setTipoPago('CREDITO')">Solo Crédito</button>
+              <button mat-menu-item (click)="setTipoPago('ALL')">{{ 'commercial.purchases.filters.allTerms' | transloco }}</button>
+              <button mat-menu-item (click)="setTipoPago('CONTADO')">{{ 'commercial.purchases.filters.cashOnly' | transloco }}</button>
+              <button mat-menu-item (click)="setTipoPago('CREDITO')">{{ 'commercial.purchases.filters.creditOnly' | transloco }}</button>
             </mat-menu>
 
             <!-- Proveedor Filter Menu -->
             <button
               [matMenuTriggerFor]="supplierMenu"
-              class="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer max-w-[180px] whitespace-nowrap"
+              type="button"
+              class="flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 text-sm font-bold whitespace-nowrap text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700/50 max-w-[200px]"
             >
-              <span class="truncate">{{ getSupplierLabel() }}</span>
-              <mat-icon svgIcon="chevron-down" class="icon-size-3.5 text-neutral-500 shrink-0"></mat-icon>
+              <mat-icon svgIcon="truck" class="icon-size-4 text-neutral-500"></mat-icon>
+              <span class="truncate">{{ getSupplierLabel() | transloco }}</span>
             </button>
             <mat-menu #supplierMenu="matMenu">
-              <button mat-menu-item (click)="setProveedor('ALL')">Todos los Proveedores</button>
+              <button mat-menu-item (click)="setProveedor('ALL')">{{ 'commercial.purchases.filters.allSuppliers' | transloco }}</button>
               @for (sup of suppliers(); track sup.id) {
                 <button mat-menu-item (click)="setProveedor(sup.id)">{{ sup.nombreRazonSocial }}</button>
               }
@@ -187,173 +197,197 @@ import { PurchasePreviewComponent } from './purchase-preview.component';
           </div>
         </div>
 
-        <!-- Table Container -->
-        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-xs">
+        <!-- Purchases Table -->
+        <div class="grid">
+          <div
+            class="purchases-grid z-10 sticky top-0 grid gap-4 py-4 px-6 md:px-8 shadow-xs text-[11px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700"
+          >
+            <div>{{ 'commercial.purchases.table.numberNcf' | transloco }}</div>
+            <div>{{ 'commercial.purchases.table.supplier' | transloco }}</div>
+            <div class="hidden sm:block">{{ 'commercial.purchases.table.dateDue' | transloco }}</div>
+            <div class="hidden md:block">{{ 'commercial.purchases.table.terms' | transloco }}</div>
+            <div>{{ 'common.status' | transloco }}</div>
+            <div class="text-right">{{ 'commercial.purchases.table.total' | transloco }}</div>
+            <div class="hidden lg:block text-right">{{ 'commercial.purchases.table.pending' | transloco }}</div>
+            <div class="text-right">{{ 'common.actions' | transloco }}</div>
+          </div>
+
           @if (isLoading()) {
-            <app-table-skeleton
-              [cells]="['80px', '140px', '80px', '70px', '60px', '90px', '70px']"
-            ></app-table-skeleton>
+            <app-table-skeleton [gridClass]="'purchases-grid'" [rows]="6" />
           } @else if (purchases().length === 0) {
-            <div class="py-12">
+            <div class="flex flex-auto justify-center p-6 sm:p-10">
               <app-empty-state
-                illustration="18.svg"
                 [title]="'commercial.purchases.emptyTitle' | transloco"
                 [description]="'commercial.purchases.emptySubtitle' | transloco"
                 [actionLabel]="'commercial.purchases.new' | transloco"
-                (actionClick)="openPurchaseModal()"
-              ></app-empty-state>
+                actionIcon="plus"
+                (action)="openPurchaseModal()"
+              />
             </div>
           } @else {
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-neutral-50/75 dark:bg-neutral-800/50 text-neutral-500 dark:text-neutral-400 font-bold border-b border-neutral-200 dark:border-neutral-800">
-                  <tr>
-                    <th class="py-3.5 px-4">No. Compra / NCF</th>
-                    <th class="py-3.5 px-4">Proveedor</th>
-                    <th class="py-3.5 px-3">Fecha / Venc.</th>
-                    <th class="py-3.5 px-3">Condición</th>
-                    <th class="py-3.5 px-3">Estado</th>
-                    <th class="py-3.5 px-4 text-right">Total Factura</th>
-                    <th class="py-3.5 px-4 text-right">Pendiente</th>
-                    <th class="py-3.5 px-4 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-                  @for (p of purchases(); track p.id) {
-                    <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                      <!-- No. Compra & NCF -->
-                      <td class="py-3.5 px-4">
-                        <div class="font-bold text-neutral-900 dark:text-white">
-                          {{ p.numeroFactura }}
-                        </div>
-                        @if (p.ncf) {
-                          <div class="font-mono text-[11px] font-semibold text-blue-600 dark:text-blue-400 mt-0.5">
-                            {{ p.ncf }}
-                          </div>
-                        }
-                      </td>
-
-                      <!-- Proveedor -->
-                      <td class="py-3.5 px-4">
-                        <div class="font-bold text-neutral-900 dark:text-white line-clamp-1">
-                          {{ p.proveedor?.nombreRazonSocial || 'Proveedor no asignado' }}
-                        </div>
-                        <div class="text-[11px] text-neutral-500 mt-0.5">
-                          RNC: {{ p.proveedor?.numeroDocumento || 'N/D' }}
-                        </div>
-                      </td>
-
-                      <!-- Fechas -->
-                      <td class="py-3.5 px-3">
-                        <div class="font-medium text-neutral-800 dark:text-neutral-200">
-                          {{ p.fecha | date: 'dd/MM/yyyy' }}
-                        </div>
-                        @if (p.fechaVencimiento && p.tipoPago === 'CREDITO') {
-                          <div
-                            class="text-[11px] mt-0.5 font-semibold"
-                            [ngClass]="isOverdue(p) ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-500'"
-                          >
-                            Vence: {{ p.fechaVencimiento | date: 'dd/MM/yyyy' }}
-                          </div>
-                        }
-                      </td>
-
-                      <!-- Condición de Pago -->
-                      <td class="py-3.5 px-3">
-                        <span
-                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase"
-                          [ngClass]="p.tipoPago === 'CONTADO' ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'"
-                        >
-                          {{ p.tipoPago }}
-                        </span>
-                        <div class="text-[10px] text-neutral-400 mt-0.5">
-                          {{ p.metodoPago }}
-                        </div>
-                      </td>
-
-                      <!-- Estado -->
-                      <td class="py-3.5 px-3">
-                        <span
-                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border"
-                          [ngClass]="{
-                            'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20':
-                              p.estado === 'PAGADA',
-                            'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/60 dark:border-amber-500/20':
-                              p.estado === 'REGISTRADA' || p.estado === 'PAGADA_PARCIAL',
-                            'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/60 dark:border-rose-500/20':
-                              p.estado === 'ANULADA'
-                          }"
-                        >
-                          {{ p.estado }}
-                        </span>
-                      </td>
-
-                      <!-- Total Factura -->
-                      <td class="py-3.5 px-4 text-right font-bold text-neutral-900 dark:text-white">
-                        {{ currencyConfig.currencySymbol() }} {{ p.total | number: '1.2-2' }}
-                      </td>
-
-                      <!-- Balance Pendiente -->
-                      <td class="py-3.5 px-4 text-right">
-                        @if (p.balancePendiente > 0 && p.estado !== 'ANULADA') {
-                          <span class="font-extrabold text-amber-600 dark:text-amber-400">
-                            {{ currencyConfig.currencySymbol() }} {{ p.balancePendiente | number: '1.2-2' }}
-                          </span>
-                        } @else {
-                          <span class="text-neutral-400 font-medium">{{ currencyConfig.currencySymbol() }} 0.00</span>
-                        }
-                      </td>
-
-                      <!-- Acciones -->
-                      <td class="py-3.5 px-4 text-right">
-                        <div class="flex items-center justify-end gap-1.5">
-                          <!-- Ver Comprobante -->
-                          <button
-                            (click)="previewPurchase(p)"
-                            matTooltip="Ver / Imprimir"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
-                          >
-                            <mat-icon svgIcon="eye" class="icon-size-4"></mat-icon>
-                          </button>
-
-                          <!-- Abonar / Pagar si tiene balance -->
-                          @if (p.balancePendiente > 0 && p.estado !== 'ANULADA') {
-                            <button
-                              (click)="openPaymentModal(p)"
-                              matTooltip="Registrar Abono / Pago"
-                              class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer"
-                            >
-                              <mat-icon svgIcon="credit-card" class="icon-size-4"></mat-icon>
-                            </button>
-                          }
-
-                          <!-- Menú Extra (Anular) -->
-                          <button
-                            [matMenuTriggerFor]="itemMenu"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 transition-colors cursor-pointer"
-                          >
-                            <mat-icon svgIcon="more-vertical" class="icon-size-4"></mat-icon>
-                          </button>
-                          <mat-menu #itemMenu="matMenu" class="!rounded-xl !p-1">
-                            @if (p.estado !== 'ANULADA') {
-                              <button mat-menu-item (click)="cancelPurchase(p)">
-                                <mat-icon svgIcon="circle-x" class="text-rose-500"></mat-icon>
-                                <span class="text-rose-600 font-semibold">Anular Compra</span>
-                              </button>
-                            }
-                          </mat-menu>
-                        </div>
-                      </td>
-                    </tr>
+            @for (p of purchases(); track p.id) {
+              <div
+                class="purchases-grid grid items-center gap-4 py-3.5 px-6 md:px-8 border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors text-sm"
+              >
+                <!-- No. Compra & NCF -->
+                <div class="flex flex-col min-w-0">
+                  <span class="font-bold text-neutral-900 dark:text-white truncate">
+                    {{ p.numeroFactura }}
+                  </span>
+                  @if (p.ncf) {
+                    <span class="font-mono text-xs font-semibold text-blue-600 dark:text-blue-400 mt-0.5">
+                      {{ p.ncf }}
+                    </span>
                   }
-                </tbody>
-              </table>
-            </div>
+                </div>
+
+                <!-- Proveedor -->
+                <div class="flex flex-col min-w-0">
+                  <span class="font-bold text-neutral-900 dark:text-white line-clamp-1">
+                    {{ p.proveedor?.nombreRazonSocial || 'Proveedor no asignado' }}
+                  </span>
+                  <span class="text-xs text-neutral-400 mt-0.5 font-mono">
+                    RNC: {{ p.proveedor?.numeroDocumento || 'N/D' }}
+                  </span>
+                </div>
+
+                <!-- Fechas -->
+                <div class="hidden sm:flex flex-col font-mono text-xs">
+                  <span class="text-neutral-800 dark:text-neutral-200">{{ p.fecha | date: 'dd/MM/yyyy' }}</span>
+                  @if (p.fechaVencimiento && p.tipoPago === 'CREDITO') {
+                    <span
+                      class="text-[11px] mt-0.5 font-semibold"
+                      [ngClass]="isOverdue(p) ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-400'"
+                    >
+                      Vence: {{ p.fechaVencimiento | date: 'dd/MM/yyyy' }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Condición de Pago -->
+                <div class="hidden md:flex flex-col">
+                  <span
+                    class="inline-flex items-center w-fit px-2 py-0.5 rounded text-[10px] font-bold uppercase"
+                    [ngClass]="p.tipoPago === 'CONTADO' ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200/60 dark:border-neutral-700/50' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-500/20'"
+                  >
+                    {{ p.tipoPago }}
+                  </span>
+                  <span class="text-[10px] text-neutral-400 mt-0.5">
+                    {{ p.metodoPago }}
+                  </span>
+                </div>
+
+                <!-- Estado -->
+                <div>
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border"
+                    [ngClass]="{
+                      'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20':
+                        p.estado === 'PAGADA',
+                      'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/60 dark:border-amber-500/20':
+                        p.estado === 'REGISTRADA' || p.estado === 'PAGADA_PARCIAL',
+                      'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/60 dark:border-rose-500/20':
+                        p.estado === 'ANULADA'
+                    }"
+                  >
+                    {{ p.estado }}
+                  </span>
+                </div>
+
+                <!-- Total Factura -->
+                <div class="text-right font-mono font-bold text-neutral-900 dark:text-white">
+                  {{ currencyConfig.currencySymbol() }} {{ p.total | number: '1.2-2' }}
+                </div>
+
+                <!-- Balance Pendiente -->
+                <div class="hidden lg:block text-right font-mono">
+                  @if (p.balancePendiente > 0 && p.estado !== 'ANULADA') {
+                    <span class="font-bold text-amber-600 dark:text-amber-400">
+                      {{ currencyConfig.currencySymbol() }} {{ p.balancePendiente | number: '1.2-2' }}
+                    </span>
+                  } @else {
+                    <span class="text-neutral-400 text-xs">{{ currencyConfig.currencySymbol() }} 0.00</span>
+                  }
+                </div>
+
+                <!-- Acciones -->
+                <div class="flex items-center justify-end gap-1">
+                  <!-- Ver Comprobante -->
+                  <button
+                    mat-icon-button
+                    (click)="previewPurchase(p)"
+                    matTooltip="Ver Comprobante"
+                    class="text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+                  >
+                    <mat-icon svgIcon="eye" class="icon-size-4.5"></mat-icon>
+                  </button>
+
+                  <!-- Abonar / Pagar si tiene balance -->
+                  @if (p.balancePendiente > 0 && p.estado !== 'ANULADA') {
+                    <button
+                      mat-icon-button
+                      (click)="openPaymentModal(p)"
+                      matTooltip="Registrar Abono / Pago"
+                      class="text-neutral-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer"
+                    >
+                      <mat-icon svgIcon="credit-card" class="icon-size-4.5 text-emerald-600 dark:text-emerald-400"></mat-icon>
+                    </button>
+                  }
+
+                  <!-- Menú Extra (Anular) -->
+                  <button
+                    mat-icon-button
+                    [matMenuTriggerFor]="itemMenu"
+                    class="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 cursor-pointer"
+                  >
+                    <mat-icon svgIcon="ellipsis-vertical" class="icon-size-4.5"></mat-icon>
+                  </button>
+                  <mat-menu #itemMenu="matMenu" class="!rounded-xl !p-1">
+                    <button mat-menu-item (click)="previewPurchase(p)">
+                      <mat-icon svgIcon="eye" class="icon-size-4"></mat-icon>
+                      <span>Ver Detalle de Compra</span>
+                    </button>
+                    @if (p.balancePendiente > 0 && p.estado !== 'ANULADA') {
+                      <button mat-menu-item (click)="openPaymentModal(p)">
+                        <mat-icon svgIcon="credit-card" class="icon-size-4 text-emerald-600"></mat-icon>
+                        <span class="text-emerald-600 font-bold">Registrar Abono / Pago</span>
+                      </button>
+                    }
+                    @if (p.estado !== 'ANULADA') {
+                      <button mat-menu-item (click)="cancelPurchase(p)" class="!text-rose-600">
+                        <mat-icon svgIcon="trash" class="icon-size-4 text-rose-600"></mat-icon>
+                        <span class="text-rose-600">Anular Compra</span>
+                      </button>
+                    }
+                  </mat-menu>
+                </div>
+              </div>
+            }
           }
         </div>
       </div>
     </div>
   `,
+  styles: [`
+    .purchases-grid {
+      grid-template-columns: minmax(130px, 1.2fr) minmax(180px, 2fr) minmax(110px, 1fr) minmax(100px, 0.9fr) minmax(100px, 0.9fr) minmax(110px, 1.1fr) minmax(100px, 1fr) minmax(90px, 0.8fr);
+    }
+    @media (max-width: 1024px) {
+      .purchases-grid {
+        grid-template-columns: minmax(130px, 1.2fr) minmax(160px, 2fr) minmax(110px, 1fr) minmax(100px, 0.9fr) minmax(100px, 0.9fr) minmax(110px, 1fr) minmax(80px, 0.8fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .purchases-grid {
+        grid-template-columns: minmax(120px, 1.2fr) minmax(150px, 2fr) minmax(100px, 1fr) minmax(90px, 0.9fr) minmax(100px, 1.1fr) minmax(80px, 0.8fr);
+      }
+    }
+    @media (max-width: 640px) {
+      .purchases-grid {
+        grid-template-columns: minmax(120px, 1.5fr) minmax(140px, 2fr) minmax(90px, 0.9fr) minmax(100px, 1.1fr) minmax(70px, 0.8fr);
+      }
+    }
+  `],
 })
 export class PurchasesComponent implements OnInit {
   purchasesService = inject(PurchasesService);

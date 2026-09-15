@@ -61,19 +61,19 @@ export type SupplierPaymentDialogData = {
         <!-- Balance Info Card -->
         <div class="grid grid-cols-3 gap-3 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-800/40 text-center">
           <div>
-            <span class="text-[11px] font-semibold text-neutral-500 uppercase">Total Factura</span>
+            <span class="text-[11px] font-semibold text-neutral-500 uppercase">{{ 'common.total' | transloco }}</span>
             <p class="text-sm font-bold text-neutral-900 dark:text-white mt-0.5">
               {{ currencyConfig.currencySymbol() }} {{ data.purchase.total | number: '1.2-2' }}
             </p>
           </div>
           <div>
-            <span class="text-[11px] font-semibold text-neutral-500 uppercase">Abonado</span>
+            <span class="text-[11px] font-semibold text-neutral-500 uppercase">{{ 'commercial.purchases.payment.paid' | transloco }}</span>
             <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
               {{ currencyConfig.currencySymbol() }} {{ data.purchase.montoPagado | number: '1.2-2' }}
             </p>
           </div>
           <div>
-            <span class="text-[11px] font-semibold text-neutral-500 uppercase">Pendiente</span>
+            <span class="text-[11px] font-semibold text-neutral-500 uppercase">{{ 'commercial.purchases.table.pending' | transloco }}</span>
             <p class="text-sm font-bold text-amber-600 dark:text-amber-400 mt-0.5">
               {{ currencyConfig.currencySymbol() }} {{ data.purchase.balancePendiente | number: '1.2-2' }}
             </p>
@@ -102,7 +102,7 @@ export type SupplierPaymentDialogData = {
                 (click)="paymentData.monto = data.purchase.balancePendiente"
                 class="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
               >
-                Pagar Totalidad
+                {{ 'commercial.purchases.payment.payFull' | transloco }}
               </button>
             </div>
           </div>

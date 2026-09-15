@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import {
@@ -41,6 +42,7 @@ export type ReportTab =
     MatButtonModule,
     MatMenuModule,
     MatSnackBarModule,
+    MatTooltipModule,
     TranslocoPipe,
     StatCardComponent,
     DecimalPipe,
@@ -261,10 +263,10 @@ export type ReportTab =
                     alt="Sin ventas"
                   />
                   <div class="text-sm font-bold text-neutral-800 dark:text-neutral-200">
-                    Sin ventas en este período
+                    {{ 'reports.sales.emptySalesTitle' | transloco }}
                   </div>
                   <p class="mt-1 max-w-xs text-xs text-neutral-500 dark:text-neutral-400">
-                    No se encontraron transacciones en el rango de fechas seleccionado.
+                    {{ 'reports.sales.emptySalesDesc' | transloco }}
                   </p>
                 </div>
 
@@ -335,7 +337,7 @@ export type ReportTab =
                 <h3 class="text-lg font-bold text-neutral-900 dark:text-white">
                   {{ 'reports.topProducts.ranking' | transloco }}
                 </h3>
-                <span class="text-xs text-neutral-500">{{ topProductsData().topProducts.length || 0 }} productos analizados</span>
+                <span class="text-xs text-neutral-500">{{ topProductsData().topProducts.length || 0 }} {{ 'reports.topProducts.productsAnalyzed' | transloco }}</span>
               </div>
 
               <div *ngIf="topProductsData().topProducts.length === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
@@ -345,10 +347,10 @@ export type ReportTab =
                   alt="Sin productos"
                 />
                 <div class="text-base font-bold text-neutral-800 dark:text-neutral-200">
-                  Sin productos vendidos
+                  {{ 'reports.topProducts.emptyTitle' | transloco }}
                 </div>
                 <p class="mt-1.5 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
-                  No se registran ventas de artículos ni servicios para las fechas seleccionadas.
+                  {{ 'reports.topProducts.emptyDesc' | transloco }}
                 </p>
               </div>
 
@@ -388,8 +390,8 @@ export type ReportTab =
             <!-- Aging Summary Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <app-stat-card
-                title="0 - 30 Días"
-                subtitle="Corriente al día"
+                [title]="'reports.receivables.aging0to30' | transloco"
+                [subtitle]="'reports.receivables.aging0to30Sub' | transloco"
                 prefix="RD$ "
                 [value]="((receivablesData().summary.aging.corriente || 0) | number:'1.2-2') || '0.00'"
                 icon="calendar"
@@ -399,8 +401,8 @@ export type ReportTab =
               />
 
               <app-stat-card
-                title="31 - 60 Días"
-                subtitle="Vencimiento reciente"
+                [title]="'reports.receivables.aging31to60' | transloco"
+                [subtitle]="'reports.receivables.aging31to60Sub' | transloco"
                 prefix="RD$ "
                 [value]="((receivablesData().summary.aging.de31a60 || 0) | number:'1.2-2') || '0.00'"
                 icon="clock"
@@ -410,8 +412,8 @@ export type ReportTab =
               />
 
               <app-stat-card
-                title="61 - 90 Días"
-                subtitle="Mora intermedia"
+                [title]="'reports.receivables.aging61to90' | transloco"
+                [subtitle]="'reports.receivables.aging61to90Sub' | transloco"
                 prefix="RD$ "
                 [value]="((receivablesData().summary.aging.de61a90 || 0) | number:'1.2-2') || '0.00'"
                 icon="alert-circle"
@@ -421,8 +423,8 @@ export type ReportTab =
               />
 
               <app-stat-card
-                title="Más de 90 Días"
-                subtitle="Mora crítica"
+                [title]="'reports.receivables.aging90Plus' | transloco"
+                [subtitle]="'reports.receivables.aging90PlusSub' | transloco"
                 prefix="RD$ "
                 [value]="((receivablesData().summary.aging.masDe90 || 0) | number:'1.2-2') || '0.00'"
                 icon="alert-triangle"
@@ -439,7 +441,7 @@ export type ReportTab =
                   {{ 'reports.receivables.debtorClients' | transloco }}
                 </h3>
                 <span class="text-xs font-bold text-rose-600">
-                  Total Pendiente: RD$ {{ (receivablesData().summary.totalPendiente || 0) | number:'1.2-2' }}
+                  {{ 'reports.receivables.totalPending' | transloco }}: RD$ {{ (receivablesData().summary.totalPendiente || 0) | number:'1.2-2' }}
                 </span>
               </div>
 
@@ -450,10 +452,10 @@ export type ReportTab =
                   alt="Cartera al día"
                 />
                 <div class="text-base font-bold text-emerald-700 dark:text-emerald-400">
-                  ¡Cartera 100% al día!
+                  {{ 'reports.receivables.emptyTitle' | transloco }}
                 </div>
                 <p class="mt-1.5 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
-                  No hay clientes con facturas vencidas ni balances pendientes de cobro.
+                  {{ 'reports.receivables.emptyDesc' | transloco }}
                 </p>
               </div>
 
@@ -461,11 +463,11 @@ export type ReportTab =
                 <table class="w-full text-left text-sm">
                   <thead class="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                     <tr>
-                      <th class="py-3 px-6">Cliente</th>
-                      <th class="py-3 px-6">RNC / Cédula</th>
-                      <th class="py-3 px-6">Contacto</th>
-                      <th class="py-3 px-6 text-center">Facturas Pendientes</th>
-                      <th class="py-3 px-6 text-right">Saldo Pendiente</th>
+                      <th class="py-3 px-6">{{ 'reports.tables.client' | transloco }}</th>
+                      <th class="py-3 px-6">{{ 'reports.tables.rncCedula' | transloco }}</th>
+                      <th class="py-3 px-6">{{ 'reports.tables.contact' | transloco }}</th>
+                      <th class="py-3 px-6 text-center">{{ 'reports.tables.pendingInvoices' | transloco }}</th>
+                      <th class="py-3 px-6 text-right">{{ 'reports.tables.pendingBalance' | transloco }}</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -490,7 +492,7 @@ export type ReportTab =
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <app-stat-card
                 [title]="'reports.inventory.totalCostValue' | transloco"
-                subtitle="Costo de adquisición"
+                [subtitle]="'reports.inventory.costSubtitle' | transloco"
                 prefix="RD$ "
                 [value]="((inventoryData().summary.totalValorCosto || 0) | number:'1.2-2') || '0.00'"
                 icon="package"
@@ -501,7 +503,7 @@ export type ReportTab =
 
               <app-stat-card
                 [title]="'reports.inventory.totalRetailValue' | transloco"
-                subtitle="Precio de catálogo"
+                [subtitle]="'reports.inventory.retailSubtitle' | transloco"
                 prefix="RD$ "
                 [value]="((inventoryData().summary.totalValorVenta || 0) | number:'1.2-2') || '0.00'"
                 icon="tag"
@@ -512,7 +514,7 @@ export type ReportTab =
 
               <app-stat-card
                 [title]="'reports.inventory.potentialProfit' | transloco"
-                subtitle="Margen proyectado"
+                [subtitle]="'reports.inventory.profitSubtitle' | transloco"
                 prefix="RD$ "
                 [value]="((inventoryData().summary.gananciaPotencial || 0) | number:'1.2-2') || '0.00'"
                 icon="trending-up"
@@ -523,7 +525,7 @@ export type ReportTab =
 
               <app-stat-card
                 [title]="'reports.inventory.lowStockAlerts' | transloco"
-                subtitle="Por debajo del mínimo"
+                [subtitle]="'reports.inventory.lowStockSubtitle' | transloco"
                 [value]="inventoryData().summary.alertaBajoStockCount || 0"
                 suffix=" productos"
                 icon="alert-triangle"
@@ -541,10 +543,10 @@ export type ReportTab =
                 alt="Stock saludable"
               />
               <div class="text-sm font-bold text-emerald-800 dark:text-emerald-300">
-                Nivel de inventario óptimo
+                {{ 'reports.inventory.optimalStockTitle' | transloco }}
               </div>
               <p class="mt-1 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
-                Todos los productos en almacén cuentan con existencias por encima de su umbral mínimo.
+                {{ 'reports.inventory.optimalStockDesc' | transloco }}
               </p>
             </div>
 
@@ -558,11 +560,11 @@ export type ReportTab =
                 <table class="w-full text-left text-sm">
                   <thead class="bg-rose-50/50 text-[11px] font-bold uppercase text-neutral-500 dark:bg-neutral-800/80">
                     <tr>
-                      <th class="py-2.5 px-4">Código</th>
-                      <th class="py-2.5 px-4">Producto</th>
-                      <th class="py-2.5 px-4">Almacén</th>
-                      <th class="py-2.5 px-4 text-center">Stock Actual</th>
-                      <th class="py-2.5 px-4 text-center">Stock Mínimo</th>
+                      <th class="py-2.5 px-4">{{ 'reports.tables.code' | transloco }}</th>
+                      <th class="py-2.5 px-4">{{ 'reports.tables.product' | transloco }}</th>
+                      <th class="py-2.5 px-4">{{ 'reports.tables.warehouse' | transloco }}</th>
+                      <th class="py-2.5 px-4 text-center">{{ 'reports.tables.currentStock' | transloco }}</th>
+                      <th class="py-2.5 px-4 text-center">{{ 'reports.tables.minStock' | transloco }}</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -612,12 +614,12 @@ export type ReportTab =
                   <thead class="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                     <tr>
                       <th class="py-3 px-6">#</th>
-                      <th class="py-3 px-6">Cliente</th>
-                      <th class="py-3 px-6">RNC / Cédula</th>
-                      <th class="py-3 px-6 text-center">Facturas</th>
-                      <th class="py-3 px-6 text-right">Ticket Promedio</th>
-                      <th class="py-3 px-6 text-right">Total Facturado</th>
-                      <th class="py-3 px-6 text-right">% Participación</th>
+                      <th class="py-3 px-6">{{ 'reports.tables.client' | transloco }}</th>
+                      <th class="py-3 px-6">{{ 'reports.tables.rncCedula' | transloco }}</th>
+                      <th class="py-3 px-6 text-center">{{ 'reports.tables.invoices' | transloco }}</th>
+                      <th class="py-3 px-6 text-right">{{ 'reports.tables.avgTicket' | transloco }}</th>
+                      <th class="py-3 px-6 text-right">{{ 'reports.tables.totalInvoiced' | transloco }}</th>
+                      <th class="py-3 px-6 text-right">{{ 'reports.tables.share' | transloco }}</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -653,7 +655,7 @@ export type ReportTab =
                 [ngClass]="taxSubTab === '606' ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-xs border border-neutral-200/60 dark:border-neutral-700/60' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'"
               >
                 <mat-icon svgIcon="shopping-bag" class="icon-size-4"></mat-icon>
-                <span>Formato 606 (Compras)</span>
+                <span>{{ 'reports.taxDgii.form606' | transloco }}</span>
               </button>
               <button
                 type="button"
@@ -662,7 +664,7 @@ export type ReportTab =
                 [ngClass]="taxSubTab === '607' ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-xs border border-neutral-200/60 dark:border-neutral-700/60' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'"
               >
                 <mat-icon svgIcon="trending-up" class="icon-size-4"></mat-icon>
-                <span>Formato 607 (Ventas)</span>
+                <span>{{ 'reports.taxDgii.form607' | transloco }}</span>
               </button>
               <button
                 type="button"
@@ -671,7 +673,7 @@ export type ReportTab =
                 [ngClass]="taxSubTab === '608' ? 'bg-white dark:bg-neutral-800 text-rose-600 dark:text-rose-400 shadow-xs border border-neutral-200/60 dark:border-neutral-700/60' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'"
               >
                 <mat-icon svgIcon="alert-circle" class="icon-size-4"></mat-icon>
-                <span>Formato 608 (Anulados)</span>
+                <span>{{ 'reports.taxDgii.form608' | transloco }}</span>
               </button>
               <button
                 type="button"
@@ -680,7 +682,7 @@ export type ReportTab =
                 [ngClass]="taxSubTab === 'it1' ? 'bg-white dark:bg-neutral-800 text-emerald-600 dark:text-emerald-400 shadow-xs border border-neutral-200/60 dark:border-neutral-700/60' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'"
               >
                 <mat-icon svgIcon="landmark" class="icon-size-4"></mat-icon>
-                <span>Borrador IT-1 (Liquidación)</span>
+                <span>{{ 'reports.taxDgii.formIt1' | transloco }}</span>
               </button>
             </div>
 
@@ -692,7 +694,7 @@ export type ReportTab =
                   <button
                     type="button"
                     (click)="prevTaxMonth()"
-                    matTooltip="Mes anterior"
+                    [matTooltip]="'reports.taxDgii.prevMonth' | transloco"
                     class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition-all cursor-pointer shadow-2xs"
                   >
                     <mat-icon svgIcon="chevron-left" class="icon-size-4"></mat-icon>
@@ -706,7 +708,7 @@ export type ReportTab =
                   <button
                     type="button"
                     (click)="nextTaxMonth()"
-                    matTooltip="Mes siguiente"
+                    [matTooltip]="'reports.taxDgii.nextMonth' | transloco"
                     class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition-all cursor-pointer shadow-2xs"
                   >
                     <mat-icon svgIcon="chevron-right" class="icon-size-4"></mat-icon>
@@ -719,7 +721,7 @@ export type ReportTab =
                     RNC: <strong class="ml-1 font-mono text-neutral-900 dark:text-white">{{ currentEmpresa()?.rnc || report606()?.rncEmpresa || '000000000' }}</strong>
                   </span>
                   <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
-                    Período: <strong class="ml-1 font-mono">{{ taxPeriod }}</strong>
+                    {{ 'reports.taxDgii.period' | transloco }}: <strong class="ml-1 font-mono">{{ taxPeriod }}</strong>
                   </span>
                 </div>
               </div>
@@ -733,7 +735,7 @@ export type ReportTab =
                     class="flex items-center gap-2 h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                   >
                     <mat-icon svgIcon="download" class="icon-size-4"></mat-icon>
-                    <span>Descargar TXT DGII</span>
+                    <span>{{ 'reports.taxDgii.downloadTxt' | transloco }}</span>
                   </button>
                   <button
                     type="button"
@@ -741,7 +743,7 @@ export type ReportTab =
                     class="flex items-center gap-2 h-9 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
                   >
                     <mat-icon svgIcon="file-text" class="icon-size-4"></mat-icon>
-                    <span>Exportar CSV</span>
+                    <span>{{ 'reports.taxDgii.exportCsv' | transloco }}</span>
                   </button>
                 } @else if (taxSubTab === '607') {
                   <button
@@ -750,7 +752,7 @@ export type ReportTab =
                     class="flex items-center gap-2 h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                   >
                     <mat-icon svgIcon="download" class="icon-size-4"></mat-icon>
-                    <span>Descargar TXT DGII</span>
+                    <span>{{ 'reports.taxDgii.downloadTxt' | transloco }}</span>
                   </button>
                   <button
                     type="button"
@@ -758,7 +760,7 @@ export type ReportTab =
                     class="flex items-center gap-2 h-9 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
                   >
                     <mat-icon svgIcon="file-text" class="icon-size-4"></mat-icon>
-                    <span>Exportar CSV</span>
+                    <span>{{ 'reports.taxDgii.exportCsv' | transloco }}</span>
                   </button>
                 } @else if (taxSubTab === '608') {
                   <button
@@ -767,7 +769,7 @@ export type ReportTab =
                     class="flex items-center gap-2 h-9 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                   >
                     <mat-icon svgIcon="download" class="icon-size-4"></mat-icon>
-                    <span>Descargar TXT DGII</span>
+                    <span>{{ 'reports.taxDgii.downloadTxt' | transloco }}</span>
                   </button>
                 } @else if (taxSubTab === 'it1') {
                   <button
@@ -776,7 +778,7 @@ export type ReportTab =
                     class="flex items-center gap-2 h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                   >
                     <mat-icon svgIcon="printer" class="icon-size-4"></mat-icon>
-                    <span>Imprimir Declaración IT-1</span>
+                    <span>{{ 'reports.taxDgii.printIt1' | transloco }}</span>
                   </button>
                 }
               </div>
@@ -787,7 +789,7 @@ export type ReportTab =
               <!-- Summary KPI Cards -->
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <app-stat-card
-                  title="Total Compras Reportadas"
+                  [title]="'reports.taxDgii.purchasesTotalReported' | transloco"
                   [subtitle]="(report606()?.summary?.totalRegistros || 0) + ' Comprobantes 606'"
                   [value]="((report606()?.summary?.totalRegistros || 0) | number) || '0'"
                   icon="shopping-bag"
@@ -797,7 +799,7 @@ export type ReportTab =
                 />
 
                 <app-stat-card
-                  title="Monto Total Facturado"
+                  [title]="'reports.taxDgii.billedAmount' | transloco"
                   [subtitle]="'Bienes: RD$ ' + (((report606()?.summary?.totalMontoBienes || 0) | number:'1.2-2') || '0.00')"
                   prefix="RD$ "
                   [value]="((report606()?.summary?.totalFacturado || 0) | number:'1.2-2') || '0.00'"
@@ -808,8 +810,8 @@ export type ReportTab =
                 />
 
                 <app-stat-card
-                  title="ITBIS Facturado"
-                  subtitle="Crédito fiscal deducible en IT-1"
+                  [title]="'reports.taxDgii.itbisBilled' | transloco"
+                  [subtitle]="'reports.taxDgii.itbisDeductibleSub' | transloco"
                   prefix="RD$ "
                   [value]="((report606()?.summary?.totalItbisFacturado || 0) | number:'1.2-2') || '0.00'"
                   icon="percent"
@@ -819,7 +821,7 @@ export type ReportTab =
                 />
 
                 <app-stat-card
-                  title="Retenciones (ITBIS + ISR)"
+                  [title]="'reports.taxDgii.withholdings' | transloco"
                   [subtitle]="'ITBIS Ret.: RD$ ' + (((report606()?.summary?.totalItbisRetenido || 0) | number:'1.2-2') || '0.00')"
                   prefix="RD$ "
                   [value]="(((report606()?.summary?.totalItbisRetenido || 0) + (report606()?.summary?.totalRetencionRenta || 0)) | number:'1.2-2') || '0.00'"
@@ -851,10 +853,10 @@ export type ReportTab =
                       alt="Sin compras"
                     />
                     <div class="text-base font-bold text-neutral-800 dark:text-neutral-200">
-                      No hay compras registradas en este período
+                      {{ 'reports.taxDgii.empty606Title' | transloco }}
                     </div>
                     <p class="mt-1.5 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
-                      Registra facturas de proveedores para generar automáticamente el reporte fiscal 606.
+                      {{ 'reports.taxDgii.empty606Desc' | transloco }}
                     </p>
                   </div>
                 } @else {
@@ -863,15 +865,15 @@ export type ReportTab =
                       <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 font-bold border-b border-neutral-100 dark:border-neutral-800">
                         <tr>
                           <th class="py-3 px-4">#</th>
-                          <th class="py-3 px-4">RNC / Cédula</th>
-                          <th class="py-3 px-4">Proveedor</th>
-                          <th class="py-3 px-4">NCF</th>
-                          <th class="py-3 px-3">Fecha</th>
-                          <th class="py-3 px-4 text-right">Servicios</th>
-                          <th class="py-3 px-4 text-right">Bienes</th>
-                          <th class="py-3 px-4 text-right font-bold">Total Facturado</th>
-                          <th class="py-3 px-4 text-right">ITBIS Fact.</th>
-                          <th class="py-3 px-4 text-right">Retenciones</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.rncCedula' | transloco }}</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.supplier' | transloco }}</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.ncf' | transloco }}</th>
+                          <th class="py-3 px-3">{{ 'reports.tables.date' | transloco }}</th>
+                          <th class="py-3 px-4 text-right">{{ 'reports.tables.services' | transloco }}</th>
+                          <th class="py-3 px-4 text-right">{{ 'reports.tables.goods' | transloco }}</th>
+                          <th class="py-3 px-4 text-right font-bold">{{ 'reports.tables.totalInvoiced' | transloco }}</th>
+                          <th class="py-3 px-4 text-right">{{ 'reports.tables.itbisBilled' | transloco }}</th>
+                          <th class="py-3 px-4 text-right">{{ 'reports.tables.withholdings' | transloco }}</th>
                         </tr>
                       </thead>
                       <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -903,7 +905,7 @@ export type ReportTab =
               <!-- Summary KPI Cards -->
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <app-stat-card
-                  title="Facturas NCF Emitidas"
+                  [title]="'reports.taxDgii.invoicesIssued607' | transloco"
                   [subtitle]="(report607()?.summary?.totalRegistros || 0) + ' Comprobantes 607'"
                   [value]="((report607()?.summary?.totalRegistros || 0) | number) || '0'"
                   icon="file-text"
@@ -913,8 +915,8 @@ export type ReportTab =
                 />
 
                 <app-stat-card
-                  title="Monto Total Facturado"
-                  subtitle="Base imponible de ventas"
+                  [title]="'reports.taxDgii.billedAmount' | transloco"
+                  [subtitle]="'reports.taxDgii.taxBaseSub' | transloco"
                   prefix="RD$ "
                   [value]="((report607()?.summary?.totalMontoFacturado || 0) | number:'1.2-2') || '0.00'"
                   icon="dollar-sign"
@@ -924,8 +926,8 @@ export type ReportTab =
                 />
 
                 <app-stat-card
-                  title="ITBIS Cobrado en Ventas"
-                  subtitle="Débito fiscal para IT-1"
+                  [title]="'reports.taxDgii.itbisSales' | transloco"
+                  [subtitle]="'reports.taxDgii.debitFiscalSub' | transloco"
                   prefix="RD$ "
                   [value]="((report607()?.summary?.totalItbisFacturado || 0) | number:'1.2-2') || '0.00'"
                   icon="percent"
@@ -935,7 +937,7 @@ export type ReportTab =
                 />
 
                 <app-stat-card
-                  title="Ventas a Crédito"
+                  [title]="'reports.taxDgii.creditSales' | transloco"
                   [subtitle]="'Contado: RD$ ' + ((((report607()?.summary?.totalEfectivo || 0) + (report607()?.summary?.totalTarjeta || 0)) | number:'1.2-2') || '0.00')"
                   prefix="RD$ "
                   [value]="((report607()?.summary?.totalCredito || 0) | number:'1.2-2') || '0.00'"
@@ -967,10 +969,10 @@ export type ReportTab =
                       alt="Sin ventas"
                     />
                     <div class="text-base font-bold text-neutral-800 dark:text-neutral-200">
-                      No hay ventas registradas con NCF en este período
+                      {{ 'reports.taxDgii.empty607Title' | transloco }}
                     </div>
                     <p class="mt-1.5 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
-                      Emite facturas electrónicas o fiscales para generar automáticamente el reporte 607.
+                      {{ 'reports.taxDgii.empty607Desc' | transloco }}
                     </p>
                   </div>
                 } @else {
@@ -979,15 +981,15 @@ export type ReportTab =
                       <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 font-bold border-b border-neutral-100 dark:border-neutral-800">
                         <tr>
                           <th class="py-3 px-4">#</th>
-                          <th class="py-3 px-4">RNC / Cédula</th>
-                          <th class="py-3 px-4">Cliente</th>
-                          <th class="py-3 px-4">NCF</th>
-                          <th class="py-3 px-3">Fecha</th>
-                          <th class="py-3 px-4 text-right">Monto Facturado</th>
-                          <th class="py-3 px-4 text-right font-bold">ITBIS Facturado</th>
-                          <th class="py-3 px-4 text-right">Efectivo</th>
-                          <th class="py-3 px-4 text-right">Tarjeta</th>
-                          <th class="py-3 px-4 text-right">Crédito</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.rncCedula' | transloco }}</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.client' | transloco }}</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.ncf' | transloco }}</th>
+                          <th class="py-3 px-3">{{ 'reports.tables.date' | transloco }}</th>
+                          <th class="py-3 px-4 text-right">{{ 'reports.tables.billedAmount' | transloco }}</th>
+                          <th class="py-3 px-4 text-right font-bold">{{ 'reports.tables.itbisBilled' | transloco }}</th>
+                          <th class="py-3 px-4 text-right">{{ 'reports.tables.cash' | transloco }}</th>
+                          <th class="py-3 px-4 text-right">{{ 'reports.tables.card' | transloco }}</th>
+                          <th class="py-3 px-4 text-right">{{ 'reports.tables.credit' | transloco }}</th>
                         </tr>
                       </thead>
                       <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -1017,8 +1019,8 @@ export type ReportTab =
               <!-- Summary KPI Cards -->
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <app-stat-card
-                  title="Total Comprobantes Anulados"
-                  subtitle="Secuencias invalidadas DGII"
+                  [title]="'reports.taxDgii.totalCancelled608' | transloco"
+                  [subtitle]="'reports.taxDgii.invalidatedSeqSub' | transloco"
                   [value]="((report608()?.summary?.totalRegistros || 0) | number) || '0'"
                   icon="alert-circle"
                   curvePreset="asc-sigmoid"
@@ -1046,10 +1048,10 @@ export type ReportTab =
                       <mat-icon svgIcon="check" class="icon-size-6 text-emerald-600 dark:text-emerald-400"></mat-icon>
                     </div>
                     <div class="text-base font-bold text-emerald-600 dark:text-emerald-400">
-                      No se registraron comprobantes fiscales anulados
+                      {{ 'reports.taxDgii.empty608Title' | transloco }}
                     </div>
                     <p class="mt-1 max-w-sm text-xs text-neutral-500 dark:text-neutral-400">
-                      Todas las secuencias NCF emitidas en este período se encuentran activas y válidas.
+                      {{ 'reports.taxDgii.empty608Desc' | transloco }}
                     </p>
                   </div>
                 } @else {
@@ -1058,11 +1060,11 @@ export type ReportTab =
                       <thead class="bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500 font-bold border-b border-neutral-100 dark:border-neutral-800">
                         <tr>
                           <th class="py-3 px-4">#</th>
-                          <th class="py-3 px-4">NCF Anulado</th>
-                          <th class="py-3 px-4">No. Factura</th>
-                          <th class="py-3 px-4">Fecha de Anulación</th>
-                          <th class="py-3 px-4">Tipo Anulación DGII</th>
-                          <th class="py-3 px-4">Motivo</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.cancelledNcf' | transloco }}</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.invoiceNumber' | transloco }}</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.cancellationDate' | transloco }}</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.dgiiCancellationType' | transloco }}</th>
+                          <th class="py-3 px-4">{{ 'reports.tables.reason' | transloco }}</th>
                         </tr>
                       </thead>
                       <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -1094,14 +1096,14 @@ export type ReportTab =
                 <div class="flex flex-col sm:flex-row justify-between items-start border-b border-neutral-200 dark:border-neutral-800 pb-6">
                   <div>
                     <h2 class="text-2xl font-black text-neutral-900 dark:text-white mt-1">
-                      Declaración Jurada y Pago de ITBIS (IT-1)
+                      {{ 'reports.taxDgii.it1Title' | transloco }}
                     </h2>
                     <p class="text-xs text-neutral-500 mt-1">
                       Borrador Consolidado de Liquidación Tributaria · Período Fiscal {{ reportIt1()?.periodo || taxPeriod }}
                     </p>
                   </div>
                   <div class="mt-4 sm:mt-0 text-right">
-                    <div class="text-xs font-bold text-neutral-500">RNC Contribuyente</div>
+                    <div class="text-xs font-bold text-neutral-500">{{ 'reports.taxDgii.rncTaxpayer' | transloco }}</div>
                     <div class="text-sm font-mono font-black text-neutral-900 dark:text-white">
                       {{ reportIt1()?.rncEmpresa || currentEmpresa()?.rnc || '000000000' }}
                     </div>
@@ -1112,7 +1114,7 @@ export type ReportTab =
                 <div class="space-y-3">
                   <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
                     <span class="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-bold">I</span>
-                    Operaciones Reportadas en el Período (Débito Fiscal)
+                    {{ 'reports.taxDgii.sec1Title' | transloco }}
                   </h3>
                   <div class="border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden text-xs">
                     <div class="flex justify-between items-center p-3 bg-neutral-50/50 dark:bg-neutral-800/20 border-b border-neutral-100 dark:border-neutral-800">
@@ -1138,7 +1140,7 @@ export type ReportTab =
                 <div class="space-y-3">
                   <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
                     <span class="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-bold">II</span>
-                    Deducciones e ITBIS Pagado en Compras (Crédito Fiscal)
+                    {{ 'reports.taxDgii.sec2Title' | transloco }}
                   </h3>
                   <div class="border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden text-xs">
                     <div class="flex justify-between items-center p-3 border-b border-neutral-100 dark:border-neutral-800">
@@ -1165,10 +1167,10 @@ export type ReportTab =
                   <div class="flex flex-col sm:flex-row justify-between items-baseline gap-2">
                     <div>
                       <span class="text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
-                        {{ (reportIt1()?.liquidacion?.itbisAPagar || 0) > 0 ? 'Casilla 33: TOTAL ITBIS A PAGAR A LA DGII' : 'Casilla 34: SALDO A FAVOR DEL CONTRIBUYENTE' }}
+                        {{ (reportIt1()?.liquidacion?.itbisAPagar || 0) > 0 ? ('reports.taxDgii.sec3ToPay' | transloco) : ('reports.taxDgii.sec3Favor' | transloco) }}
                       </span>
                       <p class="text-xs text-neutral-500 mt-0.5">
-                        Liquidación neta (ITBIS Cobrado en Ventas - ITBIS Deducible en Compras - Retenciones)
+                        {{ 'reports.taxDgii.sec3Desc' | transloco }}
                       </p>
                     </div>
                     <div class="text-3xl font-black" [ngClass]="(reportIt1()?.liquidacion?.itbisAPagar || 0) > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'">
@@ -1504,12 +1506,12 @@ export default class ReportsComponent implements OnInit {
 
   getReportTitle(): string {
     switch (this.activeTab()) {
-      case 'sales': return 'INFORME DE VENTAS Y FACTURACIÓN';
-      case 'top-products': return 'REPORTE DE PRODUCTOS MÁS VENDIDOS';
-      case 'receivables': return 'ESTADO DE CUENTAS POR COBRAR Y ANTIGÜEDAD';
-      case 'inventory': return 'VALORACIÓN DE INVENTARIO Y CONTROL DE STOCK';
-      case 'clients': return 'CONSOLIDADO DE VENTAS POR CLIENTE';
-      case 'tax-dgii': return 'REPORTES FISCALES DGII Y LIQUIDACIÓN IT-1';
+      case 'sales': return this.transloco.translate('reports.tabs.sales').toUpperCase();
+      case 'top-products': return this.transloco.translate('reports.topProducts.ranking').toUpperCase();
+      case 'receivables': return this.transloco.translate('reports.tabs.receivables').toUpperCase();
+      case 'inventory': return this.transloco.translate('reports.tabs.inventory').toUpperCase();
+      case 'clients': return this.transloco.translate('reports.clients.rankingTitle').toUpperCase();
+      case 'tax-dgii': return this.transloco.translate('reports.tabs.taxDgii').toUpperCase();
       default: return 'REPORTE GENERAL';
     }
   }
@@ -1595,32 +1597,32 @@ export default class ReportsComponent implements OnInit {
       bodyContent = `
         <div class="kpi-grid">
           <div class="kpi-box">
-            <div class="kpi-label">Total Facturado</div>
+            <div class="kpi-label">${this.transloco.translate('reports.sales.totalRevenue')}</div>
             <div class="kpi-val">${this.formatCurrency(summary?.totalVentas)}</div>
           </div>
           <div class="kpi-box">
-            <div class="kpi-label">Subtotal Neto</div>
+            <div class="kpi-label">${this.transloco.translate('common.subtotal')}</div>
             <div class="kpi-val">${this.formatCurrency(summary?.totalSubtotal)}</div>
           </div>
           <div class="kpi-box">
-            <div class="kpi-label">ITBIS Recaudado</div>
+            <div class="kpi-label">${this.transloco.translate('reports.sales.itbisCollected')}</div>
             <div class="kpi-val" style="color: #047857;">${this.formatCurrency(summary?.totalItbis)}</div>
           </div>
           <div class="kpi-box">
-            <div class="kpi-label">Total Facturas / Ticket</div>
+            <div class="kpi-label">${this.transloco.translate('reports.sales.avgTicket')}</div>
             <div class="kpi-val">${summary?.totalFacturas || 0} facturas · ${this.formatCurrency(summary?.promedioTicket)}</div>
           </div>
         </div>
 
         ${paymentMethods.length > 0 ? `
-          <div class="section-title">Desglose por Formas de Pago</div>
+          <div class="section-title">${this.transloco.translate('reports.sales.byPaymentMethod')}</div>
           <table>
             <thead>
               <tr>
-                <th class="text-left">Forma / Método de Pago</th>
-                <th class="text-center">Transacciones</th>
-                <th class="text-right">Monto Total</th>
-                <th class="text-right">% Participación</th>
+                <th class="text-left">${this.transloco.translate('reports.tables.paymentMethod')}</th>
+                <th class="text-center">${this.transloco.translate('reports.tables.transactions')}</th>
+                <th class="text-right">${this.transloco.translate('reports.tables.totalAmount')}</th>
+                <th class="text-right">${this.transloco.translate('reports.tables.share')}</th>
               </tr>
             </thead>
             <tbody>
@@ -1636,15 +1638,15 @@ export default class ReportsComponent implements OnInit {
           </table>
         ` : ''}
 
-        <div class="section-title">Detalle Cronológico de Ventas</div>
+        <div class="section-title">${this.transloco.translate('reports.sales.timeline')}</div>
         <table>
           <thead>
             <tr>
               <th class="text-left" style="width: 40px;">#</th>
-              <th class="text-left">Fecha</th>
-              <th class="text-center">Cant. Facturas</th>
-              <th class="text-right">ITBIS Fiscal</th>
-              <th class="text-right">Total Facturado</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.date')}</th>
+              <th class="text-center">${this.transloco.translate('reports.tables.invoices')}</th>
+              <th class="text-right">${this.transloco.translate('reports.tables.itbisBilled')}</th>
+              <th class="text-right">${this.transloco.translate('reports.tables.totalInvoiced')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1673,17 +1675,17 @@ export default class ReportsComponent implements OnInit {
     } else if (tab === 'top-products') {
       const top = this.topProductsData()?.topProducts || [];
       bodyContent = `
-        <div class="section-title">Ranking de Artículos y Servicios Vendidos</div>
+        <div class="section-title">${this.transloco.translate('reports.topProducts.ranking')}</div>
         <table>
           <thead>
             <tr>
               <th class="text-left" style="width: 35px;">#</th>
-              <th class="text-left">Código</th>
-              <th class="text-left">Descripción del Producto</th>
-              <th class="text-left">Categoría</th>
-              <th class="text-right">Cant. Vendida</th>
-              <th class="text-right">Ingresos Totales</th>
-              <th class="text-right">Margen Bruto</th>
+              <th class="text-left">${this.transloco.translate('common.code')}</th>
+              <th class="text-left">${this.transloco.translate('common.name')}</th>
+              <th class="text-left">${this.transloco.translate('common.category')}</th>
+              <th class="text-right">${this.transloco.translate('reports.topProducts.unitsSold')}</th>
+              <th class="text-right">${this.transloco.translate('reports.topProducts.totalRevenue')}</th>
+              <th class="text-right">${this.transloco.translate('reports.topProducts.estimatedMargin')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1728,16 +1730,16 @@ export default class ReportsComponent implements OnInit {
           </div>
         </div>
 
-        <div class="section-title">Detalle de Clientes con Balance Pendiente</div>
+        <div class="section-title">${this.transloco.translate('reports.receivables.debtorClients')}</div>
         <table>
           <thead>
             <tr>
               <th class="text-left" style="width: 35px;">#</th>
-              <th class="text-left">Cliente / Razón Social</th>
-              <th class="text-left">RNC / Cédula</th>
-              <th class="text-left">Contacto</th>
-              <th class="text-center">Facturas Pendientes</th>
-              <th class="text-right">Saldo Deudor</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.client')}</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.rncCedula')}</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.contact')}</th>
+              <th class="text-center">${this.transloco.translate('reports.tables.pendingInvoices')}</th>
+              <th class="text-right">${this.transloco.translate('reports.tables.pendingBalance')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1788,17 +1790,17 @@ export default class ReportsComponent implements OnInit {
           </div>
         </div>
 
-        <div class="section-title">Control de Stock Crítico / Alertas de Reabastecimiento</div>
+        <div class="section-title">${this.transloco.translate('reports.inventory.lowStockNotice')}</div>
         <table>
           <thead>
             <tr>
               <th class="text-left" style="width: 35px;">#</th>
-              <th class="text-left">Código</th>
-              <th class="text-left">Producto / Artículo</th>
-              <th class="text-left">Almacén</th>
-              <th class="text-center">Stock Actual</th>
-              <th class="text-center">Stock Mínimo</th>
-              <th class="text-center">Estado</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.code')}</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.product')}</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.warehouse')}</th>
+              <th class="text-center">${this.transloco.translate('reports.tables.currentStock')}</th>
+              <th class="text-center">${this.transloco.translate('reports.tables.minStock')}</th>
+              <th class="text-center">${this.transloco.translate('common.status')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1823,17 +1825,17 @@ export default class ReportsComponent implements OnInit {
       const clients = cData?.clients || [];
 
       bodyContent = `
-        <div class="section-title">Reporte Consolidado de Ventas por Cliente</div>
+        <div class="section-title">${this.transloco.translate('reports.clients.rankingTitle')}</div>
         <table>
           <thead>
             <tr>
               <th class="text-left" style="width: 35px;">#</th>
-              <th class="text-left">Cliente / Razón Social</th>
-              <th class="text-left">RNC / Cédula</th>
-              <th class="text-center">Facturas</th>
-              <th class="text-right">Ticket Promedio</th>
-              <th class="text-right">Total Facturado</th>
-              <th class="text-right">% Participación</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.client')}</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.rncCedula')}</th>
+              <th class="text-center">${this.transloco.translate('reports.tables.invoices')}</th>
+              <th class="text-right">${this.transloco.translate('reports.tables.avgTicket')}</th>
+              <th class="text-right">${this.transloco.translate('reports.tables.totalInvoiced')}</th>
+              <th class="text-right">${this.transloco.translate('reports.tables.share')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1888,9 +1890,9 @@ export default class ReportsComponent implements OnInit {
         <table>
           <thead>
             <tr>
-              <th class="text-left" style="width: 60px;">Casilla</th>
-              <th class="text-left">Descripción del Concepto Tributario</th>
-              <th class="text-right">Monto Acumulado</th>
+              <th class="text-left" style="width: 60px;">${this.transloco.translate('reports.tables.box')}</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.taxConceptDesc')}</th>
+              <th class="text-right">${this.transloco.translate('reports.tables.accumulatedAmount')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1921,9 +1923,9 @@ export default class ReportsComponent implements OnInit {
         <table>
           <thead>
             <tr>
-              <th class="text-left" style="width: 60px;">Casilla</th>
-              <th class="text-left">Descripción del Concepto Tributario</th>
-              <th class="text-right">Monto Deducible</th>
+              <th class="text-left" style="width: 60px;">${this.transloco.translate('reports.tables.box')}</th>
+              <th class="text-left">${this.transloco.translate('reports.tables.taxConceptDesc')}</th>
+              <th class="text-right">${this.transloco.translate('reports.tables.deductibleAmount')}</th>
             </tr>
           </thead>
           <tbody>

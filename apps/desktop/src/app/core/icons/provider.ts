@@ -62,6 +62,17 @@ export const provideIcons = (): EnvironmentProviders =>
         domSanitizer.bypassSecurityTrustHtml(sadFaceSvg)
       );
 
+      // ─── Notas / Sticky note / Release notes ───────────────────────────────────
+      const noteSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.75 3C3.78 3 3 3.78 3 4.75v14.5c0 .97.78 1.75 1.75 1.75h9.5a.75.75 0 0 0 0-1.5h-9.5a.25.25 0 0 1-.25-.25V4.75c0-.14.11-.25.25-.25h14.5c.14 0 .25.11.25.25v9.5a.75.75 0 0 0 1.5 0v-9.5C21 3.78 20.22 3 19.25 3H4.75zM8 7.25a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8zm0 4a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8zm0 4a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5H8zm10.75.75a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-.75.75h-3.5a.75.75 0 0 1-.75-.75v-3.5c0-.41.34-.75.75-.75h3.5z"/></svg>`;
+      matIconRegistry.addSvgIconLiteral(
+        'sticky-note',
+        domSanitizer.bypassSecurityTrustHtml(noteSvg)
+      );
+      matIconRegistry.addSvgIconLiteral(
+        'notes',
+        domSanitizer.bypassSecurityTrustHtml(noteSvg)
+      );
+
       // ─── Aliases de nombres para compatibilidad con templates ─────────────────
       // Los siguientes ya están en el sprite pero se necesita el alias adicional:
       // (el sprite ya cubre: 'sparkles', 'ai-stars', 'check-circle', 'triangle-alert', etc.)

@@ -78,7 +78,7 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
         <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:px-8 lg:grid-cols-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30">
           <app-stat-card
             [title]="'commercial.promotions.stats.total' | transloco"
-            subtitle="Campañas registradas"
+            [subtitle]="'commercial.promotions.stats.totalSubtitle' | transloco"
             [value]="totalPromotions()"
             icon="tag"
             curvePreset="asc-sigmoid"
@@ -88,7 +88,7 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
 
           <app-stat-card
             [title]="'commercial.promotions.stats.active' | transloco"
-            subtitle="Vigentes y aplicables"
+            [subtitle]="'commercial.promotions.stats.activeSubtitle' | transloco"
             [value]="activePromotions()"
             icon="zap"
             curvePreset="asc-sigmoid"
@@ -98,7 +98,7 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
 
           <app-stat-card
             [title]="'commercial.promotions.stats.scheduled' | transloco"
-            subtitle="Próximo lanzamiento"
+            [subtitle]="'commercial.promotions.stats.scheduledSubtitle' | transloco"
             [value]="scheduledPromotions()"
             icon="calendar"
             curvePreset="peak-wave"
@@ -108,7 +108,7 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
 
           <app-stat-card
             [title]="'commercial.promotions.stats.expired' | transloco"
-            subtitle="Fuera de vigencia"
+            [subtitle]="'commercial.promotions.stats.expiredSubtitle' | transloco"
             [value]="expiredPromotions()"
             icon="clock"
             curvePreset="trough-wave"
@@ -272,9 +272,9 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
                     @if (promo.alcance === 'TODOS') {
                       {{ 'commercial.promotions.scopes.all' | transloco }}
                     } @else if (promo.alcance === 'CATEGORIA') {
-                      {{ promo.categoria?.nombre || 'Categoría' }}
+                      {{ promo.categoria?.nombre || ('commercial.promotions.scopes.category' | transloco) }}
                     } @else if (promo.alcance === 'MARCA') {
-                      {{ promo.marca?.nombre || 'Marca' }}
+                      {{ promo.marca?.nombre || ('commercial.promotions.scopes.brand' | transloco) }}
                     } @else {
                       {{ promo._count?.productos || promo.productos?.length || 0 }} {{ 'commercial.promotions.scopes.products' | transloco }}
                     }
@@ -287,7 +287,7 @@ import { PromotionDialogComponent } from './promotion-dialog.component';
                 <!-- Vigencia -->
                 <div class="hidden lg:flex flex-col text-xs text-neutral-600 dark:text-neutral-400 font-mono">
                   <span>{{ promo.fechaInicio | date:'dd/MM/yyyy' }}</span>
-                  <span class="text-neutral-400">hasta {{ promo.fechaFin | date:'dd/MM/yyyy' }}</span>
+                  <span class="text-neutral-400">{{ 'commercial.promotions.until' | transloco }} {{ promo.fechaFin | date:'dd/MM/yyyy' }}</span>
                 </div>
 
                 <!-- Estado Badge Oficial -->

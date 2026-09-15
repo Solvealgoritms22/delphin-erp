@@ -162,7 +162,7 @@
     "actions": "Acciones",
     "active": "Activo",
     "add": "Agregar",
-    "all": "Todos",
+    "all": "Todo",
     "back": "Volver",
     "basicInformation": "Información básica",
     "cancel": "Cancelar",
@@ -219,7 +219,47 @@
     "thisYear": "Este año",
     "lastYear": "Año anterior",
     "customRange": "Rango personalizado",
-    "total": "Total"
+    "total": "Total",
+    "docType": "Tipo Doc.",
+    "photo": "Foto",
+    "unit": "Unidad",
+    "cover": "Portada",
+    "role": "Rol",
+    "lastOnline": "Última Conexión",
+    "client": "Cliente",
+    "supplier": "Proveedor",
+    "date": "Fecha",
+    "issueDate": "Fecha Emisión",
+    "dueDate": "Vencimiento",
+    "terms": "Condición",
+    "email": "Correo",
+    "quantity": "Cant.",
+    "unitCost": "Costo Unit.",
+    "unitPrice": "Precio Unit.",
+    "vatPercent": "% ITBIS",
+    "discount": "Descuento",
+    "subtotal": "Subtotal",
+    "never": "Nunca",
+    "from": "Desde",
+    "to": "Hasta",
+    "minAmount": "Monto Mín.",
+    "maxAmount": "Monto Máx.",
+    "applyFilters": "Aplicar filtros",
+    "clear": "Limpiar",
+    "filters": "Filtros",
+    "refreshList": "Refrescar lista",
+    "noResults": "Sin resultados",
+    "paymentType": "Tipo de Pago",
+    "paymentMethod": "Método de Pago",
+    "apply": "Aplicar",
+    "done": "Hecho",
+    "year": "Año",
+    "loadMore": "Cargar más",
+    "methods": {
+      "transfer": "Transferencia",
+      "cheque": "Cheque",
+      "deposit": "Depósito"
+    }
   },
   "paginator": {
     "rowsPerPage": "Filas por página",
@@ -746,7 +786,8 @@
     "phone": "Teléfono",
     "emailInvalid": "Ingresa un correo válido",
     "emptyTitle": "No hay sucursales registradas",
-    "emptyDescription": "Cada empresa puede gestionar sus propias sucursales, oficinas o puntos de venta."
+    "emptyDescription": "Cada empresa puede gestionar sus propias sucursales, oficinas o puntos de venta.",
+    "deleteTitle": "Eliminar Sucursal"
   },
   "billingPage": {
     "title": "Plan y facturación",
@@ -1073,7 +1114,14 @@
       "deleteAccountTitle": "Eliminar Mi Cuenta Definitivamente",
       "deleteAccountDesc": "Elimina tu cuenta de usuario, tus empresas, accesos y toda tu información de forma permanente. No podrás recuperar el acceso.",
       "deleteAccountBtn": "Eliminar Cuenta Permanentemente"
-    }
+    },
+    "profilePhoto": "Foto de perfil",
+    "deletePhoto": "Eliminar foto",
+    "changePhoto": "Cambiar foto",
+    "uploadPhoto": "Subir foto",
+    "basicInfo": "Información Básica",
+    "basicInfoDesc": "Actualiza los datos personales que se muestran en el sistema y comprobantes.",
+    "nameRequired": "El nombre completo es requerido"
   },
   "catalogs": {
     "products": {
@@ -1155,7 +1203,8 @@
       "maxAllowedDiscount": "Descuento Máximo Permitido en Ventas",
       "maxAllowedDiscountHint": "Límite máximo de descuento que los vendedores pueden aplicar a este artículo (0-100%).",
       "emptyTitle": "No hay productos físicos registrados",
-      "emptyDescription": "Crea tu primer producto físico para gestionar existencias y precios."
+      "emptyDescription": "Crea tu primer producto físico para gestionar existencias y precios.",
+      "deleteConfirm": "¿Estás seguro de que deseas eliminar este producto?"
     },
     "services": {
       "title": "Servicios",
@@ -1256,7 +1305,10 @@
         "type": "Tipo",
         "branch": "Sucursal",
         "central": "Almacén Central",
-        "transferFromHere": "Transferir desde aquí"
+        "transferFromHere": "Transferir desde aquí",
+        "emptyTitle": "Sin almacenes registrados",
+        "emptyDescription": "Crea almacenes o bodegas para gestionar tus existencias físicas.",
+        "newWarehouse": "Nuevo Almacén"
       },
       "movementTypes": {
         "TRANSFERENCIA": "Transferencia",
@@ -1318,6 +1370,9 @@
         "nameRequired": "El nombre del almacén es obligatorio",
         "warehouseSuccess": "Almacén creado exitosamente",
         "warehouseError": "Error al crear almacén"
+      },
+      "kardex": {
+        "general": "Kardex General"
       }
     }
   },
@@ -1339,7 +1394,70 @@
       "accepted": "Aceptada",
       "invoiced": "Facturada",
       "rejected": "Rechazada",
-      "expired": "Vencida"
+      "expired": "Vencida",
+      "preview": {
+        "title": "Cotización {{ number }}",
+        "subtitle": "Vista previa e impresión formal",
+        "badge": "COTIZACIÓN COMERCIAL",
+        "date": "Fecha",
+        "validUntil": "Válida hasta",
+        "validDays": "30 días",
+        "quotedFor": "Cotizado Para",
+        "finalConsumer": "Consumidor Final",
+        "offerStatus": "Estado de la Oferta",
+        "sentTo": "Enviada a {{ email }}",
+        "itemNumber": "#",
+        "description": "Descripción del Producto / Servicio",
+        "qty": "Cant.",
+        "unitPrice": "Precio Unitario",
+        "tax": "Impuesto",
+        "total": "Total",
+        "discountApplied": "Descuento aplicado",
+        "commercialNotes": "Notas Comerciales:",
+        "terms": "Términos de Entrega y Pago:",
+        "subtotalNet": "Subtotal Neto:",
+        "discount": "Descuento:",
+        "totalQuoted": "TOTAL COTIZADO:",
+        "close": "Cerrar",
+        "print": "Imprimir Cotización"
+      },
+      "table": {
+        "number": "# Cotización",
+        "client": "Cliente",
+        "issueDate": "Fecha Emisión",
+        "dueDate": "Vencimiento",
+        "total": "Monto Total",
+        "status": "Estado",
+        "email": "Correo",
+        "actions": "Acciones"
+      },
+      "stats": {
+        "total": "Total Cotizaciones",
+        "totalSub": "propuestas emitidas",
+        "sent": "Enviadas / Activas",
+        "sentSub": "entregadas a clientes",
+        "invoiced": "Facturadas / Aceptadas",
+        "invoicedSub": "convertidas en ventas",
+        "totalAmount": "Monto Total Cotizado",
+        "totalAmountSub": "Volumen en propuestas comerciales"
+      },
+      "searchPlaceholder": "Buscar por # cotización, cliente o RNC...",
+      "actions": {
+        "viewDetail": "Ver Detalle Completo",
+        "sendEmail": "Enviar por Correo",
+        "convertToInvoice": "Convertir a Factura Fiscal",
+        "editQuote": "Editar Cotización"
+      },
+      "filters": {
+        "all": "Todas las cotizaciones",
+        "drafts": "Borradores",
+        "sent": "Enviadas",
+        "accepted": "Aceptadas",
+        "invoiced": "Facturadas",
+        "rejected": "Rechazadas"
+      },
+      "emptyTitle": "No hay cotizaciones registradas",
+      "emptyDescription": "Crea tu primera cotización comercial para enviarla directamente a tus clientes por correo."
     },
     "clients": {
       "title": "Clientes",
@@ -1350,7 +1468,8 @@
       "back": "Volver a clientes",
       "emptyTitle": "No hay clientes registrados",
       "emptyDescription": "Crea tu primer cliente para gestionar tus operaciones comerciales.",
-      "deleteConfirm": "¿Estás seguro de que deseas eliminar este cliente?"
+      "deleteConfirm": "¿Estás seguro de que deseas eliminar este cliente?",
+      "deleteTitle": "Eliminar Cliente"
     },
     "suppliers": {
       "title": "Proveedores",
@@ -1361,7 +1480,8 @@
       "back": "Volver a proveedores",
       "emptyTitle": "No hay proveedores registrados",
       "emptyDescription": "Crea tu primer proveedor para gestionar tus operaciones comerciales.",
-      "deleteConfirm": "¿Estás seguro de que deseas eliminar este proveedor?"
+      "deleteConfirm": "¿Estás seguro de que deseas eliminar este proveedor?",
+      "deleteTitle": "Eliminar Proveedor"
     },
     "purchases": {
       "title": "Compras y Cuentas por Pagar (CxP)",
@@ -1374,7 +1494,8 @@
         "monthPurchases": "Compras del Mes",
         "pendingCxP": "Cuentas por Pagar (CxP)",
         "overdueCxP": "CxP Vencidas",
-        "suppliersCount": "Proveedores"
+        "suppliersCount": "Proveedores",
+        "suppliersDirectory": "Proveedores en directorio"
       },
       "dialog": {
         "title": "Registrar Factura de Compra",
@@ -1398,7 +1519,30 @@
         "method": "Método de Pago",
         "reference": "No. Cheque",
         "date": "Fecha de Pago",
-        "submit": "Registrar Pago"
+        "submit": "Registrar Pago",
+        "payFull": "Pagar Totalidad",
+        "paid": "Abonado"
+      },
+      "table": {
+        "numberNcf": "No. Compra / NCF",
+        "supplier": "Proveedor",
+        "dateDue": "Fecha / Venc.",
+        "terms": "Condición",
+        "status": "Estado",
+        "total": "Total Factura",
+        "pending": "Pendiente",
+        "actions": "Acciones"
+      },
+      "filters": {
+        "allStatuses": "Todos los Estados",
+        "registered": "Registrada / Pendiente",
+        "partial": "Pagada Parcial",
+        "paid": "Pagada Total",
+        "cancelled": "Anulada",
+        "allTerms": "Contado y Crédito",
+        "cashOnly": "Solo Contado",
+        "creditOnly": "Solo Crédito",
+        "allSuppliers": "Todos los Proveedores"
       }
     },
     "receivables": {
@@ -1413,7 +1557,8 @@
         "totalCxC": "Total por Cobrar (CxC)",
         "overdueCxC": "Cartera Vencida (Mora)",
         "monthCollected": "Cobrado en el Mes",
-        "clientsWithBalance": "Clientes con Saldo"
+        "clientsWithBalance": "Clientes con Saldo",
+        "activeCreditClients": "Clientes con crédito activo"
       },
       "dialog": {
         "title": "Registrar Recibo de Ingreso",
@@ -1424,7 +1569,40 @@
         "date": "Fecha de Cobro",
         "pendingInvoices": "Facturas con Saldo Adeudado",
         "submit": "Guardar"
-      }
+      },
+      "tabs": {
+        "pending": "Facturas Pendientes (CxC)",
+        "receipts": "Historial de Recibos"
+      },
+      "table": {
+        "invoiceNcf": "No. Factura / NCF",
+        "client": "Cliente",
+        "dates": "Emisión / Venc.",
+        "delinquency": "Estado Mora",
+        "invoiceTotal": "Total Factura",
+        "balanceDue": "Balance Adeudado",
+        "action": "Acción",
+        "receiptNumber": "No. Recibo",
+        "paymentDate": "Fecha de Cobro",
+        "methodRef": "Método / Ref.",
+        "amountReceived": "Monto Recibido",
+        "status": "Estado",
+        "actions": "Acciones",
+        "invoiceNumber": "No. Factura",
+        "ncf": "NCF",
+        "appliedAmount": "Monto Aplicado"
+      },
+      "amountToCollect": "Monto a Cobrar",
+      "searchPendingPlaceholder": "Buscar por Factura, NCF o Cliente...",
+      "searchReceiptsPlaceholder": "Buscar por recibo, cliente, ref...",
+      "filters": {
+        "allClients": "Todos los Clientes",
+        "allStatuses": "Todos los Estados",
+        "paid": "Cobros Efectuados",
+        "cancelled": "Anulados",
+        "allMethods": "Todos los Métodos"
+      },
+      "payAll": "Saldar Todas las Facturas"
     },
     "form": {
       "name": "Nombre o razón social",
@@ -1634,7 +1812,35 @@
         "cancelSuccess": "Factura anulada y stock devuelto al almacén",
         "cancelError": "No se pudo anular la factura"
       },
-      "print": "Imprimir"
+      "print": "Imprimir",
+      "preview": {
+        "title": "Factura {{ number }}",
+        "subtitle": "Vista previa e impresión formal",
+        "invoiceDoc": "FACTURA",
+        "issued": "Emisión",
+        "due": "Vencimiento",
+        "billedTo": "Facturado a",
+        "from": "Emisor",
+        "productService": "Producto / Servicio",
+        "qty": "Cant.",
+        "rate": "Precio",
+        "lineTotal": "Total",
+        "discount": "Descuento",
+        "subtotal": "Subtotal",
+        "tax": "Impuestos",
+        "total": "Total",
+        "amountDue": "Monto Pendiente",
+        "thankYou": "¡Gracias por su preferencia!",
+        "defaultNote": "Favor realizar el pago dentro de los plazos acordados.",
+        "securityCode": "Cód. Seguridad",
+        "signDate": "Firma",
+        "print": "Imprimir Factura",
+        "downloadEcf": "Descargar e-CF",
+        "close": "Cerrar",
+        "retry": "Reintentar Transmisión",
+        "retrying": "Reintentando...",
+        "fiscalErrorTitle": "Rechazo de Facturación Electrónica (DGII / FiscalBridge)"
+      }
     },
     "promotions": {
       "title": "Promociones y Descuentos",
@@ -1659,9 +1865,13 @@
       "scope": "Aplica a",
       "scopes": {
         "all": "Todo el Catálogo",
-        "category": "Categoría Específica",
-        "brand": "Marca Específica",
-        "products": "Productos Seleccionados"
+        "category": "Por Categoría",
+        "brand": "Por Marca",
+        "products": "Productos Seleccionados",
+        "todos": "Todo el Catálogo",
+        "categoria": "Por Categoría",
+        "marca": "Por Marca",
+        "productos": "Productos Seleccionados"
       },
       "selectProducts": "Seleccionar Productos",
       "startDate": "Fecha de Inicio",
@@ -1680,7 +1890,11 @@
         "total": "Total Promociones",
         "active": "Activas Ahora",
         "scheduled": "Programadas",
-        "expired": "Expiradas"
+        "expired": "Expiradas",
+        "totalSubtitle": "Campañas registradas",
+        "activeSubtitle": "Vigentes y aplicables",
+        "scheduledSubtitle": "Próximo lanzamiento",
+        "expiredSubtitle": "Fuera de vigencia"
       },
       "searchPlaceholder": "Buscar promociones por nombre, cupón...",
       "table": {
@@ -1692,7 +1906,12 @@
       "emptyTitle": "No hay promociones registradas",
       "emptyDescription": "Crea campañas de ofertas o cupones de descuento para dinamizar tus ventas.",
       "deleteTitle": "Eliminar Promoción",
-      "deleteConfirm": "¿Estás seguro de que deseas eliminar esta promoción?"
+      "deleteConfirm": "¿Estás seguro de que deseas eliminar esta promoción?",
+      "until": "hasta",
+      "nameRequired": "El nombre es obligatorio",
+      "couponHint": "Opcional. Si se deja vacío aplica automáticamente",
+      "invalidValue": "Ingresa un valor válido",
+      "unlimited": "Ilimitado"
     }
   },
   "maintenance": {
@@ -1812,7 +2031,13 @@
       "upgradeCta": "Ver Planes y Mejorar a Enterprise",
       "connectedApps": "Aplicaciones Conectadas",
       "originsLimitNotice": "Tu plan Enterprise te permite conectar hasta 2 aplicaciones externas o sistemas con sus respectivos orígenes.",
-      "addApplication": "Conectar Aplicación"
+      "addApplication": "Conectar Aplicación",
+      "rotate": "Rotar",
+      "revoke": "Revocar",
+      "createIntegration": "Crear Integración",
+      "generateKey": "Generar Clave API",
+      "understood": "Entendido y Guardado",
+      "keyGenerated": "Clave API Generada"
     }
   },
   "companies": {
@@ -1856,12 +2081,27 @@
     "defaultDescription": "Control de acceso completo y administración del sistema.",
     "emptyTitle": "Aún no hay roles creados",
     "emptyDescription": "Crea roles personalizados para administrar permisos y accesos.",
-    "allRoles": "Todos los roles",
+    "allRoles": "Todos los Roles",
     "noRole": "Sin rol",
     "unknown": "Desconocido",
     "updated": "Rol actualizado",
     "created": "Rol creado",
-    "search": "Buscar..."
+    "search": "Buscar...",
+    "members": "miembros",
+    "allStatus": "Todos los Estados",
+    "noAccountsFound": "No se encontraron cuentas",
+    "noAccountsFoundDesc": "No pudimos encontrar ninguna cuenta que coincida con tus filtros actuales.",
+    "clearFilters": "Limpiar filtros",
+    "editRole": "Editar rol",
+    "createRole": "Crear rol",
+    "roleName": "Nombre del rol",
+    "roleDescription": "Descripción",
+    "permissionsAssignment": "Asignación de Permisos",
+    "searchModulePlaceholder": "Buscar módulo…",
+    "read": "Lectura",
+    "write": "Escritura",
+    "delete": "Eliminar",
+    "owner": "Propietario"
   },
   "securityLogs": {
     "title": "Registros de seguridad",
@@ -1902,7 +2142,8 @@
     "clearTitle": "Borrar registros de seguridad",
     "clearMessage": "Esto eliminará permanentemente todos los registros de seguridad de la empresa activa. No se puede deshacer.",
     "cleared": "Se borraron {{count}} registros de seguridad",
-    "clearError": "No se pudieron borrar los registros"
+    "clearError": "No se pudieron borrar los registros",
+    "system": "Sistema"
   },
   "sessions": {
     "title": "Sesiones actuales",
@@ -2093,28 +2334,129 @@
       "taxDeducted": "Impuestos fiscales",
       "perInvoice": "Promedio por venta",
       "discountsGiven": "Otorgados en ventas",
-      "timeline": "Evolución de Ventas",
-      "dataPoints": "períodos",
-      "byPaymentMethod": "Desglose por Método de Pago"
+      "timeline": "Línea de Tiempo de Ventas",
+      "dataPoints": "puntos",
+      "byPaymentMethod": "Desglose por Formas de Pago",
+      "emptySalesTitle": "Sin ventas en este período",
+      "emptySalesDesc": "No se encontraron transacciones en el rango de fechas seleccionado.",
+      "emptyPaymentMethodsTitle": "Sin métodos de pago",
+      "emptyPaymentMethodsDesc": "No hay métodos de pago registrados en el período actual."
     },
     "topProducts": {
-      "ranking": "Ranking de Productos Más Vendidos",
+      "ranking": "Ranking de Artículos y Servicios Vendidos",
       "unitsSold": "Unidades Vendidas",
       "totalRevenue": "Ingresos Totales",
-      "estimatedMargin": "Margen Estimado"
+      "estimatedMargin": "Margen Estimado",
+      "productsAnalyzed": "productos analizados",
+      "emptyTitle": "Sin productos vendidos",
+      "emptyDesc": "No se registran ventas de artículos ni servicios para las fechas seleccionadas."
     },
     "receivables": {
-      "debtorClients": "Cartera de Clientes con Deuda Pendiente"
+      "debtorClients": "Detalle de Clientes con Balance Pendiente",
+      "aging0to30": "0 - 30 Días",
+      "aging0to30Sub": "Corriente al día",
+      "aging31to60": "31 - 60 Días",
+      "aging31to60Sub": "Vencimiento reciente",
+      "aging61to90": "61 - 90 Días",
+      "aging61to90Sub": "Mora intermedia",
+      "aging90Plus": "Más de 90 Días",
+      "aging90PlusSub": "Mora crítica",
+      "totalPending": "Total Pendiente",
+      "emptyTitle": "¡Cartera 100% al día!",
+      "emptyDesc": "No hay clientes con facturas vencidas ni balances pendientes de cobro."
     },
     "inventory": {
       "totalCostValue": "Valoración al Costo",
       "totalRetailValue": "Valoración a Precio Venta",
       "potentialProfit": "Ganancia Potencial",
       "lowStockAlerts": "Alertas de Bajo Stock",
-      "lowStockNotice": "Productos con Existencia Crítica (Menor o igual al Stock Mínimo)"
+      "lowStockNotice": "Control de Stock Crítico / Alertas de Reabastecimiento",
+      "costSubtitle": "Costo de adquisición",
+      "retailSubtitle": "Precio de catálogo",
+      "profitSubtitle": "Margen proyectado",
+      "lowStockSubtitle": "Por debajo del mínimo",
+      "optimalStockTitle": "Nivel de inventario óptimo",
+      "optimalStockDesc": "Todos los productos en almacén cuentan con existencias por encima de su umbral mínimo."
     },
     "clients": {
       "rankingTitle": "Ranking de Clientes por Facturación"
+    },
+    "tables": {
+      "client": "Cliente",
+      "supplier": "Proveedor",
+      "rncCedula": "RNC / Cédula",
+      "contact": "Contacto",
+      "pendingInvoices": "Facturas Pendientes",
+      "pendingBalance": "Saldo Pendiente",
+      "code": "Código",
+      "product": "Producto",
+      "warehouse": "Almacén",
+      "currentStock": "Stock Actual",
+      "minStock": "Stock Mínimo",
+      "invoices": "Facturas",
+      "avgTicket": "Ticket Promedio",
+      "totalInvoiced": "Total Facturado",
+      "share": "% Participación",
+      "ncf": "NCF",
+      "date": "Fecha",
+      "services": "Servicios",
+      "goods": "Bienes",
+      "itbisBilled": "ITBIS Fact.",
+      "withholdings": "Retenciones",
+      "billedAmount": "Monto Facturado",
+      "cash": "Efectivo",
+      "card": "Tarjeta",
+      "credit": "Crédito",
+      "cancelledNcf": "NCF Anulado",
+      "invoiceNumber": "No. Factura",
+      "cancellationDate": "Fecha de Anulación",
+      "dgiiCancellationType": "Tipo Anulación DGII",
+      "reason": "Motivo",
+      "paymentMethod": "Forma / Método de Pago",
+      "transactions": "Transacciones",
+      "totalAmount": "Monto Total",
+      "box": "Casilla",
+      "taxConceptDesc": "Descripción del Concepto Tributario",
+      "accumulatedAmount": "Monto Acumulado",
+      "deductibleAmount": "Monto Deducible"
+    },
+    "taxDgii": {
+      "form606": "Formato 606 (Compras)",
+      "form607": "Formato 607 (Ventas)",
+      "form608": "Formato 608 (Anulados)",
+      "formIt1": "Borrador IT-1 (Liquidación)",
+      "prevMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente",
+      "period": "Período",
+      "downloadTxt": "Descargar TXT DGII",
+      "exportCsv": "Exportar CSV",
+      "printIt1": "Imprimir Declaración IT-1",
+      "purchasesTotalReported": "Total Compras Reportadas",
+      "billedAmount": "Monto Total Facturado",
+      "itbisBilled": "ITBIS Facturado",
+      "itbisDeductibleSub": "Crédito fiscal deducible en IT-1",
+      "withholdings": "Retenciones (ITBIS + ISR)",
+      "invoicesIssued607": "Facturas NCF Emitidas",
+      "taxBaseSub": "Base imponible de ventas",
+      "itbisSales": "ITBIS Cobrado en Ventas",
+      "debitFiscalSub": "Débito fiscal para IT-1",
+      "creditSales": "Ventas a Crédito",
+      "totalCancelled608": "Total Comprobantes Anulados",
+      "invalidatedSeqSub": "Secuencias invalidadas DGII",
+      "empty606Title": "No hay compras registradas en este período",
+      "empty606Desc": "Registra facturas de proveedores para generar automáticamente el reporte fiscal 606.",
+      "empty607Title": "No hay ventas registradas con NCF en este período",
+      "empty607Desc": "Emite facturas electrónicas o fiscales para generar automáticamente el reporte 607.",
+      "empty608Title": "No se registraron comprobantes fiscales anulados",
+      "empty608Desc": "Todas las secuencias NCF emitidas en este período se encuentran activas y válidas.",
+      "it1Title": "Declaración Jurada y Pago de ITBIS (IT-1)",
+      "it1Subtitle": "Borrador Consolidado de Liquidación Tributaria",
+      "rncTaxpayer": "RNC Contribuyente",
+      "sec1Title": "Operaciones Reportadas en el Período (Débito Fiscal)",
+      "sec2Title": "Deducciones e ITBIS Pagado en Compras (Crédito Fiscal)",
+      "sec3ToPay": "Casilla 33: TOTAL ITBIS A PAGAR A LA DGII",
+      "sec3Favor": "Casilla 34: SALDO A FAVOR DEL CONTRIBUYENTE",
+      "sec3Desc": "Liquidación neta (ITBIS Cobrado en Ventas - ITBIS Deducible en Compras - Retenciones)"
     }
   },
   "weather": {
@@ -2224,6 +2566,25 @@
     "cardPaymentNotice": "Cobro total con tarjeta en terminal o verifone",
     "transferPaymentNotice": "Cobro total mediante transferencia bancaria",
     "splitTotalMismatch": "La suma de tarjeta y efectivo debe ser igual al total a pagar",
-    "splitRemainingCash": "Saldo restante a cubrir en efectivo"
+    "splitRemainingCash": "Saldo restante a cubrir en efectivo",
+    "fixedAmount": "Monto Fijo",
+    "percentage": "Porcentaje",
+    "appliedDiscount": "Descuento aplicado",
+    "removeDiscount": "Quitar Descuento"
+  },
+  "billing": {
+    "plans": {
+      "modulesAndFeatures": "Módulos y Funcionalidades",
+      "currentPlan": "Plan actual",
+      "select": "Seleccionar",
+      "customPlanQuestion": "¿Necesitas un plan personalizado o mayor capacidad?",
+      "contactUs": "Contáctanos",
+      "compareTitle": "Comparar capacidades reales del sistema",
+      "compareSubtitle": "Detalle exacto de las funcionalidades incluidas en cada nivel de suscripción"
+    },
+    "cards": {
+      "manageTitle": "Gestionar tarjetas",
+      "noCards": "No hay tarjetas guardadas."
+    }
   }
 }

@@ -64,6 +64,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
         <div class="flex items-center justify-end gap-3 mt-6">
           <button mat-button type="button" (click)="dialogRef.close()">{{ 'common.cancel' | transloco }}</button>
           <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+            <mat-icon svgIcon="save" class="icon-size-4 mr-2"></mat-icon>
             {{ 'common.save' | transloco }}
           </button>
         </div>

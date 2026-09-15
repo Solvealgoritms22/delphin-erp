@@ -83,17 +83,17 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
               <input
                 #searchInput
                 type="text"
-                [(ngModel)]="searchTerm"
+                [ngModel]="searchTerm()"
                 (ngModelChange)="onSearchChange($event)"
                 (keydown.enter)="onSearchEnter()"
                 [placeholder]="'pos.searchPlaceholder' | transloco"
                 class="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/60 py-2 pr-8 pl-9 text-xs sm:text-sm text-neutral-900 dark:text-white outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-neutral-900 transition-all placeholder:text-neutral-400"
               />
-              @if (searchTerm) {
+              @if (searchTerm()) {
                 <button
                   type="button"
                   (click)="clearSearch()"
-                  class="absolute right-2.5 top-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                  class="absolute right-2.5 top-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer"
                 >
                   <mat-icon svgIcon="circle-x" class="!w-4 !h-4"></mat-icon>
                 </button>
@@ -121,8 +121,8 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
           <button
             type="button"
             (click)="setCategory('ALL')"
-            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors"
-            [ngClass]="selectedCategory === 'ALL'
+            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer"
+            [ngClass]="selectedCategory() === 'ALL'
               ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
               : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white'"
           >
@@ -132,8 +132,8 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
             <button
               type="button"
               (click)="setCategory(cat.id)"
-              class="px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors"
-              [ngClass]="selectedCategory === cat.id
+              class="px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer"
+              [ngClass]="selectedCategory() === cat.id
                 ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
                 : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white'"
             >
@@ -171,7 +171,8 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
                   (click)="addProductToCart(product)"
                   class="group relative flex flex-col justify-between p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-300 dark:hover:border-neutral-700 hover:shadow-xs transition-all cursor-pointer select-none active:scale-[0.99]"
                 >
-                  <!-- Badge de Stock en esquina superior -->
+                  <!-- Badge de stock: solo se muestra cuando el inventario es válido -->
+                  @if (hasValidStock(product)) {
                   <div class="absolute top-2 right-2 z-10">
                     <span
                       class="px-2 py-0.5 rounded-md text-[11px] font-medium"
@@ -182,6 +183,7 @@ import { PosNoteDialogComponent } from './dialogs/pos-note-dialog.component';
                       {{ posService.getProductStock(product) > 0 ? (posService.getProductStock(product) + ' un.') : 'Agotado' }}
                     </span>
                   </div>
+                  }
 
                   <!-- Imagen o Icono del Producto -->
                   <div class="w-full aspect-square rounded-lg bg-neutral-50 dark:bg-neutral-800/40 flex items-center justify-center overflow-hidden mb-2.5 p-3">
@@ -490,8 +492,8 @@ export class PosComponent implements OnInit {
   readonly clients = this.clientsService.clients;
 
   readonly mobileCartOpen = signal(false);
-  searchTerm = '';
-  selectedCategory = 'ALL';
+  readonly searchTerm = signal<string>('');
+  readonly selectedCategory = signal<string>('ALL');
 
   // Barcode buffer for hardware USB scanner
   private barcodeBuffer = '';
@@ -500,19 +502,27 @@ export class PosComponent implements OnInit {
   readonly filteredProducts = computed(() => {
     // En el POS solo se comercializan productos físicos (se excluyen servicios)
     let list = this.products().filter((p) => p.tipo !== 'SERVICIO');
-    const cat = this.selectedCategory;
-    const term = this.searchTerm.toLowerCase().trim();
+    const cat = this.selectedCategory();
+    const term = this.searchTerm().toLowerCase().trim();
 
-    if (cat !== 'ALL') {
-      list = list.filter((p) => p.categoriaId === cat);
+    if (cat && cat !== 'ALL') {
+      const normalizedCat = this.normalizeId(cat);
+      list = list.filter((p) => {
+        const catIdMatches = this.normalizeId(p.categoriaId) === normalizedCat;
+        const catObjIdMatches = p.categoria && typeof p.categoria === 'object' && this.normalizeId(p.categoria.id) === normalizedCat;
+        const catNameMatches = p.categoria && typeof p.categoria === 'string' && this.normalizeId(p.categoria) === normalizedCat;
+        const catObjNameMatches = p.categoria && typeof p.categoria === 'object' && this.normalizeId(p.categoria.nombre) === normalizedCat;
+        return catIdMatches || catObjIdMatches || catNameMatches || catObjNameMatches;
+      });
     }
 
     if (term) {
       list = list.filter(
         (p) =>
-          p.nombre.toLowerCase().includes(term) ||
-          p.codigo.toLowerCase().includes(term) ||
-          (p.codigoBarras && p.codigoBarras.toLowerCase().includes(term))
+          (p.nombre || '').toLowerCase().includes(term) ||
+          (p.codigo || '').toLowerCase().includes(term) ||
+          (p.codigoBarras || '').toLowerCase().includes(term) ||
+          (p.descripcion || '').toLowerCase().includes(term)
       );
     }
 
@@ -602,23 +612,23 @@ export class PosComponent implements OnInit {
   }
 
   setCategory(catId: string): void {
-    this.selectedCategory = catId;
+    this.selectedCategory.set(catId);
   }
 
   onSearchChange(val: string): void {
-    this.searchTerm = val;
+    this.searchTerm.set(val || '');
   }
 
   onSearchEnter(): void {
     const list = this.filteredProducts();
     if (list.length === 1) {
       this.addProductToCart(list[0]);
-      this.searchTerm = '';
+      this.searchTerm.set('');
     }
   }
 
   clearSearch(): void {
-    this.searchTerm = '';
+    this.searchTerm.set('');
     this.searchInput?.nativeElement?.focus();
   }
 
@@ -643,6 +653,15 @@ export class PosComponent implements OnInit {
       }
     }
     return null;
+  }
+
+  private normalizeId(value: unknown): string {
+    return String(value ?? '').trim().toLowerCase();
+  }
+
+  hasValidStock(product: Product): boolean {
+    const stock = this.posService.getProductStock(product);
+    return Number.isFinite(stock) && stock >= 0 && stock < 1000000;
   }
 
   // --- Dialogs ---

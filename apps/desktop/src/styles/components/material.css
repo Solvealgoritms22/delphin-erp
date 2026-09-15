@@ -973,4 +973,50 @@
     var(--color-neutral-800)
   );
 
+
+  /* ─── Quote Preview Side Panel (Drawer) ─── */
+  &:has(.quote-preview-panel) .cdk-overlay-container {
+    justify-content: flex-end;
+  }
+
 }
+
+/* Quote & Invoice Preview Panel: side drawer anchored to the right */
+.quote-preview-panel,
+.cdk-overlay-pane.quote-preview-panel,
+.quote-preview-panel.mat-mdc-dialog-container,
+.quote-preview-panel.mat-mdc-dialog-panel {
+  border-radius: 0 !important;
+  box-shadow: -8px 0 40px 0 rgba(0, 0, 0, 0.18) !important;
+  animation: slideInFromRight 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+  overflow: hidden !important;
+}
+
+.quote-preview-panel .mat-mdc-dialog-container,
+.quote-preview-panel .mat-mdc-dialog-surface,
+.quote-preview-panel .mdc-dialog__surface,
+.quote-preview-panel .mat-mdc-dialog-container .mdc-dialog__surface,
+.quote-preview-panel .mat-mdc-dialog-container .mat-mdc-dialog-surface,
+.cdk-overlay-pane.quote-preview-panel .mdc-dialog__surface,
+.cdk-overlay-pane.quote-preview-panel .mat-mdc-dialog-surface {
+  border-radius: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+

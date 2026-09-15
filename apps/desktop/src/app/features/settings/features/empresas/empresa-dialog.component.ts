@@ -554,9 +554,10 @@ import { AddressMapPickerComponent } from '@shared/components/address-map-picker
         (click)="save()"
         [disabled]="form.invalid || isSaving"
       >
-        <span *ngIf="!isSaving">{{
-          (data ? 'common.saveChanges' : 'companies.create') | transloco
-        }}</span>
+        <span *ngIf="!isSaving" class="inline-flex items-center gap-2">
+          <mat-icon [svgIcon]="data ? 'save' : 'plus'" class="icon-size-4"></mat-icon>
+          <span>{{ (data ? 'common.saveChanges' : 'companies.create') | transloco }}</span>
+        </span>
         <span
           *ngIf="isSaving"
           class="flex items-center gap-2"

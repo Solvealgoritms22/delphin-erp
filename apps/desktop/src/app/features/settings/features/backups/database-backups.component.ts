@@ -313,7 +313,7 @@ type BackupSettings = {
                 (click)="saveSettings()"
                 class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold !px-6"
               >
-                <mat-icon svgIcon="check" class="mr-1.5 icon-size-4"></mat-icon>
+                <mat-icon svgIcon="save" class="mr-1.5 icon-size-4"></mat-icon>
                 {{ 'backups.saveConfig' | transloco }}
               </button>
             </div>
