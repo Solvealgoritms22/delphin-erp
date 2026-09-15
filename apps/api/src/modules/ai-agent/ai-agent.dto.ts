@@ -67,6 +67,22 @@ export class ChatRequestDto {
   @IsOptional()
   @IsBoolean()
   thinking?: boolean;
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description: 'Flag indicating whether the conversation and messages should be persisted in DB history',
+  })
+  @IsOptional()
+  @IsBoolean()
+  persistConversation?: boolean;
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description: 'Flag indicating a one-off request (e.g., dashboard insights) that should not create or save a chat conversation',
+  })
+  @IsOptional()
+  @IsBoolean()
+  isOneOff?: boolean;
 }
 
 export class ChatResponseDto {

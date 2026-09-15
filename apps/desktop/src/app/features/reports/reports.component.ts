@@ -6,6 +6,7 @@ import {
   computed,
 } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,6 +15,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { environment } from '@/environments/environment';
 import {
   ReportsService,
 } from './data/reports.service';
@@ -1193,16 +1195,49 @@ export type ReportTab =
 export default class ReportsComponent implements OnInit {
   reportsService = inject(ReportsService);
   authState = inject(AuthState);
+  private http = inject(HttpClient);
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
   printDate = new Date();
+  liveEmpresa = signal<any>(null);
 
   readonly currentEmpresa = computed(() => {
+    if (this.liveEmpresa()) return this.liveEmpresa();
     const user = this.authState.user();
     const empId = this.authState.empresaId();
     if (!user?.empresas || user.empresas.length === 0) return null;
     return user.empresas.find((e) => e.id === empId) || user.empresas[0];
+  });
+
+  readonly empresaNombre = computed(() => {
+    const emp = this.currentEmpresa();
+    return emp?.razonSocial || emp?.nombre || 'Dolphin ERP';
+  });
+
+  readonly empresaLogo = computed(() => {
+    return this.currentEmpresa()?.logo || null;
+  });
+
+  readonly empresaRnc = computed(() => {
+    return this.currentEmpresa()?.rnc || null;
+  });
+
+  readonly empresaTelefono = computed(() => {
+    return this.currentEmpresa()?.telefono || null;
+  });
+
+  readonly empresaDireccion = computed(() => {
+    return this.currentEmpresa()?.direccion || null;
+  });
+
+  readonly empresaIniciales = computed(() => {
+    const name = this.empresaNombre();
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
   });
 
   activeTab = signal<ReportTab>('sales');
@@ -1425,8 +1460,30 @@ export default class ReportsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadEmpresaInfo();
     this.applyDatePreset('thisMonth');
     this.loadActiveReport();
+  }
+
+  loadEmpresaInfo(): void {
+    this.http.get<any>(`${environment.apiUrl}/empresas/current`).subscribe({
+      next: (emp) => {
+        if (emp) this.liveEmpresa.set(emp);
+      },
+      error: () => {
+        try {
+          const cached = localStorage.getItem('cached_my_empresas');
+          if (cached) {
+            const list = JSON.parse(cached);
+            if (Array.isArray(list) && list.length > 0) {
+              const activeId = this.authState.empresaId();
+              const found = list.find((e: any) => e.id === activeId) || list[0];
+              this.liveEmpresa.set(found);
+            }
+          }
+        } catch {}
+      }
+    });
   }
 
   setTab(tab: ReportTab): void {
@@ -1558,20 +1615,24 @@ export default class ReportsComponent implements OnInit {
       frameDoc.write(html);
       frameDoc.close();
 
-      setTimeout(() => {
+      const imagesReady = Array.from(frameDoc.images).map((img) => img.decode().catch(() => undefined));
+      Promise.all(imagesReady).then(() => {
         printFrame.contentWindow?.focus();
         printFrame.contentWindow?.print();
         setTimeout(() => {
           document.body.removeChild(printFrame);
         }, 1000);
-      }, 350);
+      });
     }
   }
 
   private generateReportHtml(): string {
-    const empresa = this.currentEmpresa();
-    const empresaNombre = empresa?.razonSocial || 'Dolphin ERP';
-    const empresaRnc = empresa?.rnc ? `RNC: ${empresa.rnc}` : '';
+    const empresaNombre = this.empresaNombre();
+    const empresaLogo = this.empresaLogo();
+    const empresaRnc = this.empresaRnc() ? `RNC: ${this.empresaRnc()}` : '';
+    const empresaDireccion = this.empresaDireccion() || '';
+    const empresaTelefono = this.empresaTelefono() ? `Tel: ${this.empresaTelefono()}` : '';
+    const empresaIniciales = this.empresaIniciales();
     const user = this.authState.user();
     const usuarioNombre = user?.name || user?.email || 'Administrador';
     const fechaEmision = new Date().toLocaleString('es-DO', {
@@ -1989,23 +2050,55 @@ export default class ReportsComponent implements OnInit {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            gap: 16px;
+          }
+          .company-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+          }
+          .company-logo {
+            max-height: 52px;
+            max-width: 160px;
+            object-fit: contain;
+            border-radius: 4px;
+          }
+          .company-initials {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: #2563eb;
+            color: #ffffff;
+            font-weight: 900;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            letter-spacing: -0.5px;
           }
           .company-name {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 900;
             text-transform: uppercase;
             color: #0f172a;
             letter-spacing: -0.5px;
+            line-height: 1.2;
           }
           .company-rnc {
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 700;
             color: #334155;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             margin-top: 2px;
           }
+          .company-contact {
+            font-size: 9.5px;
+            color: #64748b;
+            margin-top: 1px;
+          }
           .system-sub {
-            font-size: 10px;
+            font-size: 9.5px;
             color: #64748b;
             margin-top: 2px;
           }
@@ -2109,17 +2202,21 @@ export default class ReportsComponent implements OnInit {
       </head>
       <body>
         <div class="header">
-          <div>
-            <div class="company-name">${empresaNombre}</div>
-            ${empresaRnc ? `<div class="company-rnc">${empresaRnc}</div>` : ''}
-            <div class="system-sub">Sistema de Gestión Empresarial y Facturación Fiscal</div>
+          <div class="company-header-left">
+            ${empresaLogo ? `<img class="company-logo" src="${this.escapeHtml(empresaLogo)}" alt="${this.escapeHtml(empresaNombre)}" />` : `<div class="company-initials">${this.escapeHtml(empresaIniciales)}</div>`}
+            <div>
+              <div class="company-name">${this.escapeHtml(empresaNombre)}</div>
+              ${empresaRnc ? `<div class="company-rnc">${this.escapeHtml(empresaRnc)}</div>` : ''}
+              ${empresaDireccion || empresaTelefono ? `<div class="company-contact">${[empresaDireccion, empresaTelefono].filter(Boolean).map((x) => this.escapeHtml(x)).join(' · ')}</div>` : ''}
+              <div class="system-sub">Sistema de Gestión Empresarial y Facturación Fiscal</div>
+            </div>
           </div>
           <div>
             <div class="report-title">${titulo}</div>
             <div class="report-meta">
               <div><strong>Período:</strong> ${periodo}</div>
               <div><strong>Emisión:</strong> ${fechaEmision}</div>
-              <div><strong>Generado por:</strong> ${usuarioNombre}</div>
+              <div><strong>Generado por:</strong> ${this.escapeHtml(usuarioNombre)}</div>
             </div>
           </div>
         </div>
@@ -2133,6 +2230,16 @@ export default class ReportsComponent implements OnInit {
       </body>
       </html>
     `;
+  }
+
+  private escapeHtml(value: string | undefined | null): string {
+    if (!value) return '';
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   exportCurrentReportCsv(): void {

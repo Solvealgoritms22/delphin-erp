@@ -47,6 +47,30 @@ export class AiChatService {
   }
 
   /**
+   * Cleans phantom system prompt conversations and removes duplicates.
+   */
+  private sanitizeConversations(list: Conversation[]): Conversation[] {
+    if (!Array.isArray(list)) return [];
+    const seen = new Set<string>();
+    return list.filter((c) => {
+      if (!c || !c.id || seen.has(c.id)) return false;
+      seen.add(c.id);
+
+      const title = (c.title || '').toLowerCase();
+      if (
+        title.includes('copiloto ejecutivo de dolphin') ||
+        title.includes('executive ai copilot') ||
+        title.includes('modo_razonamiento_profundo') ||
+        title.startsWith('eres el copiloto') ||
+        title.startsWith('you are the executive')
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  /**
    * Loads conversations from PostgreSQL via API.
    */
   loadFromApi(): void {
@@ -55,11 +79,12 @@ export class AiChatService {
     this.http.get<Conversation[]>(`${this.apiUrl}/conversations`).pipe(
       tap((remoteConvs) => {
         this.isLoading.set(false);
-        if (Array.isArray(remoteConvs) && remoteConvs.length > 0) {
-          this.conversations.set(remoteConvs);
+        const clean = this.sanitizeConversations(remoteConvs);
+        if (clean.length > 0) {
+          this.conversations.set(clean);
           const currentActive = this.activeConversationId();
-          if (!currentActive || !remoteConvs.some((c) => c.id === currentActive)) {
-            this.activeConversationId.set(remoteConvs[0].id);
+          if (!currentActive || !clean.some((c) => c.id === currentActive)) {
+            this.activeConversationId.set(clean[0].id);
           }
           this.saveToStorage();
         } else if (this.conversations().length === 0) {
@@ -82,9 +107,10 @@ export class AiChatService {
       const raw = localStorage.getItem(this.storageKey);
       if (raw) {
         const parsed: Conversation[] = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          this.conversations.set(parsed);
-          this.activeConversationId.set(parsed[0].id);
+        const clean = this.sanitizeConversations(parsed);
+        if (clean.length > 0) {
+          this.conversations.set(clean);
+          this.activeConversationId.set(clean[0].id);
           return;
         }
       }
@@ -130,7 +156,8 @@ export class AiChatService {
   private saveToStorage(): void {
     if (!this.isBrowser) return;
     try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.conversations()));
+      const clean = this.sanitizeConversations(this.conversations());
+      localStorage.setItem(this.storageKey, JSON.stringify(clean));
     } catch {
       // ignore
     }
@@ -155,7 +182,7 @@ export class AiChatService {
       ],
     };
 
-    this.conversations.update((prev) => [newConv, ...prev]);
+    this.conversations.update((prev) => [newConv, ...prev.filter((c) => c.id !== id)]);
     this.activeConversationId.set(id);
     this.saveToStorage();
 
@@ -196,13 +223,25 @@ export class AiChatService {
   }
 
   /**
+   * Clears all conversation history for the current user and company.
+   */
+  clearAllConversations(): void {
+    this.conversations.set([]);
+    this.initWelcomeConversation();
+
+    this.http.delete(`${this.apiUrl}/conversations`).pipe(
+      catchError(() => of(null))
+    ).subscribe();
+  }
+
+  /**
    * Removes a conversation thread by its unique ID.
    */
   deleteConversation(id: string): void {
     this.conversations.update((list) => list.filter((c) => c.id !== id));
     const remaining = this.conversations();
     if (remaining.length === 0) {
-      this.createConversation();
+      this.initWelcomeConversation();
     } else if (this.activeConversationId() === id) {
       this.activeConversationId.set(remaining[0].id);
     }

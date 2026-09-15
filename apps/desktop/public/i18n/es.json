@@ -275,6 +275,8 @@
     "newConversation": "Nueva conversación",
     "deleteConversation": "Eliminar conversación",
     "confirmDelete": "¿Estás seguro de que deseas eliminar esta conversación? Esta acción no se puede deshacer.",
+    "clearHistory": "Limpiar todo el historial",
+    "confirmClearHistory": "¿Estás seguro de que deseas eliminar todas las conversaciones del historial? Esta acción no se puede deshacer.",
     "welcomeTitle": "¿En qué puedo ayudarte hoy?",
     "welcomeSubtitle": "Consulta cualquier información de tu empresa en tiempo real.",
     "consultingErp": "Consultando ERP...",
@@ -2101,7 +2103,84 @@
     "read": "Lectura",
     "write": "Escritura",
     "delete": "Eliminar",
-    "owner": "Propietario"
+    "owner": "Propietario",
+    "saveRole": "Guardar rol",
+    "saving": "Guardando...",
+    "nameRequired": "El nombre del rol es requerido",
+    "modules": {
+      "dashboard": {
+        "name": "Dashboard General",
+        "description": "Acceso a métricas generales y gráficos del panel principal"
+      },
+      "aiChat": {
+        "name": "Asistente IA",
+        "description": "Consultas inteligentes, análisis y ejecución de herramientas con IA"
+      },
+      "reports": {
+        "name": "Reportes y Estadísticas",
+        "description": "Reportes de ventas, productos más vendidos, cuentas por cobrar e inventario"
+      },
+      "catalogs": {
+        "name": "Catálogos Maestros",
+        "description": "Gestión de Productos, Categorías, Marcas y Unidades de Medida"
+      },
+      "commercial": {
+        "name": "Comercial",
+        "description": "Gestión de Clientes y Proveedores de la empresa"
+      },
+      "sucursales": {
+        "name": "Sucursales",
+        "description": "Administración de sucursales y puntos de venta"
+      },
+      "company": {
+        "name": "Mi Empresa",
+        "description": "Configuración de datos de la empresa, RNC y redes sociales"
+      },
+      "roles": {
+        "name": "Roles y Permisos",
+        "description": "Administración de roles y asignación de permisos de acceso"
+      },
+      "users": {
+        "name": "Cuentas de Usuario",
+        "description": "Gestión de cuentas de miembros de usuario del sistema"
+      },
+      "securityLogs": {
+        "name": "Registros de Auditoría",
+        "description": "Auditoría de eventos de seguridad y accesos al sistema"
+      },
+      "sessions": {
+        "name": "Sesiones Activas",
+        "description": "Visualización y control de sesiones y dispositivos conectados"
+      },
+      "activity": {
+        "name": "Registro de Actividad",
+        "description": "Historial detallado de operaciones realizadas en la empresa"
+      },
+      "inventory": {
+        "name": "Inventario y Almacenes",
+        "description": "Control de existencias multi-almacén, transferencias y Kardex"
+      },
+      "invoices": {
+        "name": "Facturación y Ventas",
+        "description": "Emisión de facturas, cotizaciones, notas de crédito e integración e-CF FiscalBridge"
+      },
+      "sequences": {
+        "name": "Comprobantes Fiscales (NCF)",
+        "description": "Administración de secuencias NCF tradicionales y e-CF autorizadas por la DGII"
+      },
+      "billing": {
+        "name": "Plan y Facturación",
+        "description": "Gestión de planes, tarjetas de pago y facturas emitidas"
+      },
+      "backups": {
+        "name": "Copias de Seguridad",
+        "description": "Creación y restauración de copias de seguridad cifradas y en Google Drive"
+      },
+      "about": {
+        "name": "Acerca del Sistema",
+        "description": "Información de versión, comprobación de actualizaciones y mantenimiento"
+      }
+    }
   },
   "securityLogs": {
     "title": "Registros de seguridad",

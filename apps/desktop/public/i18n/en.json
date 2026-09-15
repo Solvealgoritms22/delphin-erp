@@ -275,6 +275,8 @@
     "newConversation": "New conversation",
     "deleteConversation": "Delete conversation",
     "confirmDelete": "Are you sure you want to delete this conversation? This action cannot be undone.",
+    "clearHistory": "Clear all history",
+    "confirmClearHistory": "Are you sure you want to delete all conversation history? This action cannot be undone.",
     "welcomeTitle": "How can I help you today?",
     "welcomeSubtitle": "Query any ERP information in real time.",
     "consultingErp": "Consulting ERP...",
@@ -2101,7 +2103,84 @@
     "read": "Read",
     "write": "Write",
     "delete": "Delete",
-    "owner": "Owner"
+    "owner": "Owner",
+    "saveRole": "Save role",
+    "saving": "Saving...",
+    "nameRequired": "Role name is required",
+    "modules": {
+      "dashboard": {
+        "name": "General Dashboard",
+        "description": "Access to general metrics and main panel charts"
+      },
+      "aiChat": {
+        "name": "AI Assistant",
+        "description": "Smart queries, analytics, and AI tool execution"
+      },
+      "reports": {
+        "name": "Reports & Statistics",
+        "description": "Sales reports, top-selling products, accounts receivable and inventory"
+      },
+      "catalogs": {
+        "name": "Master Catalogs",
+        "description": "Management of Products, Categories, Brands, and Units of Measure"
+      },
+      "commercial": {
+        "name": "Commercial",
+        "description": "Management of Company Clients and Suppliers"
+      },
+      "sucursales": {
+        "name": "Branches",
+        "description": "Administration of branches and points of sale"
+      },
+      "company": {
+        "name": "My Company",
+        "description": "Company data settings, Tax ID, and social networks"
+      },
+      "roles": {
+        "name": "Roles & Permissions",
+        "description": "Administration of roles and access permissions assignment"
+      },
+      "users": {
+        "name": "User Accounts",
+        "description": "Management of user member accounts of the system"
+      },
+      "securityLogs": {
+        "name": "Audit Logs",
+        "description": "Audit of security events and system access"
+      },
+      "sessions": {
+        "name": "Active Sessions",
+        "description": "Viewing and control of active sessions and connected devices"
+      },
+      "activity": {
+        "name": "Activity Log",
+        "description": "Detailed history of operations performed in the company"
+      },
+      "inventory": {
+        "name": "Inventory & Warehouses",
+        "description": "Multi-warehouse stock control, transfers, and Kardex"
+      },
+      "invoices": {
+        "name": "Invoicing & Sales",
+        "description": "Issuing invoices, quotes, credit notes, and e-CF FiscalBridge integration"
+      },
+      "sequences": {
+        "name": "Fiscal Receipts (NCF)",
+        "description": "Administration of traditional NCF and DGII-authorized e-CF sequences"
+      },
+      "billing": {
+        "name": "Plan & Billing",
+        "description": "Management of plans, payment cards, and issued invoices"
+      },
+      "backups": {
+        "name": "Backups",
+        "description": "Creation and restoration of encrypted backups and in Google Drive"
+      },
+      "about": {
+        "name": "About System",
+        "description": "Version info, update checks, and maintenance"
+      }
+    }
   },
   "securityLogs": {
     "title": "Security logs",

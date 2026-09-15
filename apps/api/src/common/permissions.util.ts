@@ -35,6 +35,7 @@ export const MODULE_PERMISSION_NAMESPACES: Record<string, string> = {
   legal: 'legal',
   backups: 'backups',
   settings_backups: 'backups',
+  reports: 'reports',
 };
 
 /**

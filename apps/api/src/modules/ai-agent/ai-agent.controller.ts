@@ -72,6 +72,18 @@ export class AiAgentController {
     );
   }
 
+  @Delete('conversations')
+  @RequirePermissions('ai_chat:write')
+  @ApiOperation({ summary: 'Clear all AI conversation history for current user and company' })
+  async clearAllConversations(@CurrentUser() user: any) {
+    const empresaId = user?.empresaId;
+    if (!empresaId) {
+      throw new UnauthorizedException('No active company selected.');
+    }
+    const userId = user.id || user.sub;
+    return this.aiAgentService.clearAllConversations(empresaId, userId);
+  }
+
   @Delete('conversations/:id')
   @RequirePermissions('ai_chat:write')
   @ApiOperation({ summary: 'Delete an AI conversation thread' })

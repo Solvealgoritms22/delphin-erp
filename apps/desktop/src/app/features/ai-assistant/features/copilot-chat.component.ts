@@ -82,6 +82,16 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
                 >
                   <mat-icon svgIcon="square-pen" />
                 </button>
+                @if (aiChatService.conversations().length > 1) {
+                  <button
+                    class="text-neutral-400 hover:text-red-600 dark:hover:text-red-400"
+                    matIconButton
+                    [matTooltip]="'aiChat.clearHistory' | transloco"
+                    (click)="clearAllHistory()"
+                  >
+                    <mat-icon svgIcon="trash" />
+                  </button>
+                }
                 <button
                   class="text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
                   matIconButton
@@ -392,7 +402,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
   `,
 })
 export default class CopilotChatComponent implements OnInit {
-  private aiChatService = inject(AiChatService);
+  protected aiChatService = inject(AiChatService);
   private media = inject(Media);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -679,6 +689,26 @@ export default class CopilotChatComponent implements OnInit {
         } else {
           this.router.navigate(['/admin/ai-chat']);
         }
+      }
+    });
+  }
+
+  clearAllHistory() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '440px',
+      data: {
+        title: this.transloco.translate('aiChat.clearHistory'),
+        message: this.transloco.translate('aiChat.confirmClearHistory'),
+        confirmLabel: this.transloco.translate('common.delete'),
+        cancelLabel: this.transloco.translate('common.cancel'),
+        destructive: true,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.aiChatService.clearAllConversations();
+        this.router.navigate(['/admin/ai-chat']);
       }
     });
   }

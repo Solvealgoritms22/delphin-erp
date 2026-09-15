@@ -117,10 +117,7 @@ export class RoleDto {
   @IsOptional() @IsString() @MaxLength(2000) descripcion?: string;
   @IsOptional() @IsString() @MaxLength(2000) description?: string;
   @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(200)
-  @IsString({ each: true })
-  permissions?: string[];
+  permissions?: any;
 }
 export class UpdateRoleDto extends PartialType(RoleDto) {}
 export class ProductInputDto {

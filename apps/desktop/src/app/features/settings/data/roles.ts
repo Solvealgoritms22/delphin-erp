@@ -11,6 +11,14 @@ export type Role = {
   empresaId: string;
 }
 
+export type RolePayload = {
+  nombre?: string;
+  descripcion?: string;
+  name?: string;
+  description?: string;
+  permissions?: any;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RolesService {
   private http = inject(HttpClient);
@@ -32,13 +40,13 @@ export class RolesService {
     );
   }
 
-  create(data: Partial<Role>) {
+  create(data: RolePayload) {
     return this.http.post<Role>(this.apiUrl, data).pipe(
       tap(newRole => this.roles.update(r => [...r, newRole]))
     );
   }
 
-  update(id: string, data: Partial<Role>) {
+  update(id: string, data: RolePayload) {
     return this.http.patch<Role>(`${this.apiUrl}/${id}`, data).pipe(
       tap(updated => this.roles.update(r => r.map(x => x.id === id ? updated : x)))
     );

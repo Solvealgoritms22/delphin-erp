@@ -117,7 +117,7 @@ import { AuthState } from '@core/auth/auth.state';
           <app-stat-card
             [title]="'commercial.quotes.stats.totalAmount' | transloco"
             [prefix]="currencyConfig.currencySymbol() + ' '"
-            [value]="(metrics().montoTotalCotizado | number: '1.2-2') || '0.00'"
+            [value]="metrics().montoTotalCotizado || 0"
             [subtitle]="'commercial.quotes.stats.totalAmountSub' | transloco"
             icon="dollar-sign"
             curvePreset="trough-wave"

@@ -16,8 +16,10 @@ import { PlusIcon, ArrowRightIcon, SearchIcon, ChevronDownIcon, ChevronLeftIcon,
 export type PermissionModule = {
   id: string;
   name: string;
+  nameKey: string;
   slug: string;
   description: string;
+  descKey: string;
   icon: string;
 }
 
@@ -352,8 +354,8 @@ export type RolePermissions = {
                         <mat-icon [svgIcon]="mod.icon" class="icon-size-6"></mat-icon>
                       </div>
                       <div class="flex flex-col">
-                        <span class="text-base font-bold text-neutral-900 dark:text-white leading-tight mb-0.5">{{ mod.name }}</span>
-                        <span class="text-sm text-neutral-500">{{ mod.description }}</span>
+                        <span class="text-base font-bold text-neutral-900 dark:text-white leading-tight mb-0.5">{{ mod.nameKey | transloco }}</span>
+                        <span class="text-sm text-neutral-500">{{ mod.descKey | transloco }}</span>
                       </div>
                     </div>
                     <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
@@ -388,8 +390,11 @@ export type RolePermissions = {
           </div>
 
           <div class="flex items-center justify-end gap-3 px-8 py-5 border-t border-neutral-100 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900">
-            <button (click)="closeRoleModal()" class="px-6 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">{{ 'common.cancel' | transloco }}</button>
-            <button (click)="saveRole()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-8 py-2.5 rounded-xl transition-colors shadow-sm">{{ 'common.save' | transloco }}</button>
+            <button type="button" (click)="closeRoleModal()" class="px-6 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer">{{ 'common.cancel' | transloco }}</button>
+            <button type="button" (click)="saveRole()" [disabled]="isSaving()" class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold px-7 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
+              <mat-icon svgIcon="save" class="icon-size-4 mr-0.5"></mat-icon>
+              {{ (isSaving() ? 'roles.saving' : (editingRole ? 'roles.saveRole' : 'roles.create')) | transloco }}
+            </button>
           </div>
 
         </div>
@@ -417,16 +422,22 @@ export class RolesComponent implements OnInit {
   statusFilter = signal<string>('All');
   roleFilter = signal<string>('All');
   permissionsSearch = signal('');
+  isSaving = signal(false);
 
   filteredPermissionModules = computed(() => {
     const q = this.permissionsSearch().toLowerCase().trim();
     if (!q) return this.permissionModules;
-    return this.permissionModules.filter(
-      (m) =>
+    return this.permissionModules.filter((m) => {
+      const name = this.transloco.translate(m.nameKey) || m.name;
+      const desc = this.transloco.translate(m.descKey) || m.description;
+      return (
+        name.toLowerCase().includes(q) ||
+        desc.toLowerCase().includes(q) ||
         m.name.toLowerCase().includes(q) ||
         m.description.toLowerCase().includes(q) ||
-        m.slug.toLowerCase().includes(q),
-    );
+        m.slug.toLowerCase().includes(q)
+      );
+    });
   });
 
   filteredAccounts = computed(() => {
@@ -472,127 +483,163 @@ export class RolesComponent implements OnInit {
     {
       id: 'mod-dashboard',
       name: 'Dashboard General',
+      nameKey: 'roles.modules.dashboard.name',
       slug: 'dashboard',
       description: 'Acceso a métricas generales y gráficos del panel principal',
+      descKey: 'roles.modules.dashboard.description',
       icon: 'layout-dashboard'
     },
     {
       id: 'mod-ai-chat',
       name: 'Asistente IA',
+      nameKey: 'roles.modules.aiChat.name',
       slug: 'ai_chat',
       description: 'Consultas inteligentes, análisis y ejecución de herramientas con IA',
+      descKey: 'roles.modules.aiChat.description',
       icon: 'sparkles'
     },
     {
       id: 'mod-reports',
       name: 'Reportes y Estadísticas',
+      nameKey: 'roles.modules.reports.name',
       slug: 'reports',
       description: 'Reportes de ventas, productos más vendidos, cuentas por cobrar e inventario',
+      descKey: 'roles.modules.reports.description',
       icon: 'bar-chart-2'
     },
     {
       id: 'mod-catalogs',
       name: 'Catálogos Maestros',
+      nameKey: 'roles.modules.catalogs.name',
       slug: 'catalogs',
       description: 'Gestión de Productos, Categorías, Marcas y Unidades de Medida',
+      descKey: 'roles.modules.catalogs.description',
       icon: 'package'
     },
     {
       id: 'mod-commercial',
       name: 'Comercial',
+      nameKey: 'roles.modules.commercial.name',
       slug: 'commercial',
       description: 'Gestión de Clientes y Proveedores de la empresa',
+      descKey: 'roles.modules.commercial.description',
       icon: 'users'
     },
     {
       id: 'mod-sucursales',
       name: 'Sucursales',
+      nameKey: 'roles.modules.sucursales.name',
       slug: 'sucursales',
       description: 'Administración de sucursales y puntos de venta',
+      descKey: 'roles.modules.sucursales.description',
       icon: 'store'
     },
     {
       id: 'mod-company',
       name: 'Mi Empresa',
+      nameKey: 'roles.modules.company.name',
       slug: 'settings_company',
       description: 'Configuración de datos de la empresa, RNC y redes sociales',
+      descKey: 'roles.modules.company.description',
       icon: 'briefcase'
     },
     {
       id: 'mod-roles',
       name: 'Roles y Permisos',
+      nameKey: 'roles.modules.roles.name',
       slug: 'settings_roles',
       description: 'Administración de roles y asignación de permisos de acceso',
+      descKey: 'roles.modules.roles.description',
       icon: 'shield-check'
     },
     {
       id: 'mod-users',
       name: 'Cuentas de Usuario',
+      nameKey: 'roles.modules.users.name',
       slug: 'settings_users',
       description: 'Gestión de cuentas de miembros de usuario del sistema',
+      descKey: 'roles.modules.users.description',
       icon: 'user-check'
     },
     {
       id: 'mod-security-logs',
       name: 'Registros de Auditoría',
+      nameKey: 'roles.modules.securityLogs.name',
       slug: 'security_logs',
       description: 'Auditoría de eventos de seguridad y accesos al sistema',
+      descKey: 'roles.modules.securityLogs.description',
       icon: 'shield-alert'
     },
     {
       id: 'mod-current-sessions',
       name: 'Sesiones Activas',
+      nameKey: 'roles.modules.sessions.name',
       slug: 'current_sessions',
       description: 'Visualización y control de sesiones y dispositivos conectados',
+      descKey: 'roles.modules.sessions.description',
       icon: 'monitor-smartphone'
     },
     {
       id: 'mod-activity',
       name: 'Registro de Actividad',
+      nameKey: 'roles.modules.activity.name',
       slug: 'activity',
       description: 'Historial detallado de operaciones realizadas en la empresa',
+      descKey: 'roles.modules.activity.description',
       icon: 'activity'
     },
     {
       id: 'mod-inventory',
       name: 'Inventario y Almacenes',
+      nameKey: 'roles.modules.inventory.name',
       slug: 'inventory',
       description: 'Control de existencias multi-almacén, transferencias y Kardex',
+      descKey: 'roles.modules.inventory.description',
       icon: 'boxes'
     },
     {
       id: 'mod-invoices',
       name: 'Facturación y Ventas',
+      nameKey: 'roles.modules.invoices.name',
       slug: 'invoices',
       description: 'Emisión de facturas, cotizaciones, notas de crédito e integración e-CF FiscalBridge',
+      descKey: 'roles.modules.invoices.description',
       icon: 'file-text'
     },
     {
       id: 'mod-sequences',
       name: 'Comprobantes Fiscales (NCF)',
+      nameKey: 'roles.modules.sequences.name',
       slug: 'sequences',
       description: 'Administración de secuencias NCF tradicionales y e-CF autorizadas por la DGII',
+      descKey: 'roles.modules.sequences.description',
       icon: 'hash'
     },
     {
       id: 'mod-billing',
       name: 'Plan y Facturación',
+      nameKey: 'roles.modules.billing.name',
       slug: 'billing',
       description: 'Gestión de planes, tarjetas de pago y facturas emitidas',
+      descKey: 'roles.modules.billing.description',
       icon: 'credit-card'
     },
     {
       id: 'mod-backups',
       name: 'Copias de Seguridad',
+      nameKey: 'roles.modules.backups.name',
       slug: 'backups',
       description: 'Creación y restauración de copias de seguridad cifradas y en Google Drive',
+      descKey: 'roles.modules.backups.description',
       icon: 'archive'
     },
     {
       id: 'mod-about',
       name: 'Acerca del Sistema',
+      nameKey: 'roles.modules.about.name',
       slug: 'about',
       description: 'Información de versión, comprobación de actualizaciones y mantenimiento',
+      descKey: 'roles.modules.about.description',
       icon: 'package-check'
     }
   ];
@@ -663,11 +710,18 @@ export class RolesComponent implements OnInit {
   permissionsObject(perms: string[]): RolePermissions {
     const namespaces: Record<string, string> = {
       roles: 'settings_roles',
+      settings_roles: 'settings_roles',
       users: 'settings_users',
+      settings_users: 'settings_users',
       company: 'settings_company',
+      settings_company: 'settings_company',
       dashboard: 'dashboard',
       catalogs: 'catalogs',
+      products: 'catalogs',
+      services: 'catalogs',
       commercial: 'commercial',
+      clients: 'commercial',
+      suppliers: 'commercial',
       sucursales: 'sucursales',
       billing: 'billing',
       reports: 'reports',
@@ -681,6 +735,11 @@ export class RolesComponent implements OnInit {
       'current-sessions': 'current_sessions',
       activity: 'activity',
       inventory: 'inventory',
+      invoices: 'invoices',
+      sales: 'invoices',
+      sequences: 'sequences',
+      backups: 'backups',
+      settings_backups: 'backups',
       about: 'about',
       legal: 'legal',
     };
@@ -776,26 +835,66 @@ export class RolesComponent implements OnInit {
   }
 
   saveRole() {
+    const name = this.modalRoleData.name?.trim();
+    if (!name) {
+      this.snackBar.open(
+        this.transloco.translate('roles.nameRequired') || 'El nombre del rol es requerido',
+        this.transloco.translate('common.close') || 'Cerrar',
+        { duration: 2500 }
+      );
+      return;
+    }
+
+    this.isSaving.set(true);
+
     const payload = {
-      nombre: this.modalRoleData.name,
-      descripcion: this.modalRoleData.description,
-      name: this.modalRoleData.name,
-      description: this.modalRoleData.description,
-      permissions: JSON.stringify(this.modalRoleData.permissions)
+      nombre: name,
+      descripcion: this.modalRoleData.description?.trim() || '',
+      name: name,
+      description: this.modalRoleData.description?.trim() || '',
+      permissions: this.modalRoleData.permissions
     };
 
     if (this.editingRole) {
       this.rolesService.update(this.editingRole.id, payload).subscribe({
         next: () => {
-          this.snackBar.open(this.transloco.translate('roles.updated'), this.transloco.translate('common.close'), { duration: 2000 });
+          this.isSaving.set(false);
+          this.snackBar.open(
+            this.transloco.translate('roles.updated'),
+            this.transloco.translate('common.close'),
+            { duration: 2000 }
+          );
           this.closeRoleModal();
+        },
+        error: (err) => {
+          this.isSaving.set(false);
+          const msg = err?.error?.message || err?.message || 'Error al actualizar el rol';
+          this.snackBar.open(
+            Array.isArray(msg) ? msg.join(', ') : msg,
+            this.transloco.translate('common.close'),
+            { duration: 3500 }
+          );
         }
       });
     } else {
       this.rolesService.create(payload).subscribe({
         next: () => {
-          this.snackBar.open(this.transloco.translate('roles.created'), this.transloco.translate('common.close'), { duration: 2000 });
+          this.isSaving.set(false);
+          this.snackBar.open(
+            this.transloco.translate('roles.created'),
+            this.transloco.translate('common.close'),
+            { duration: 2000 }
+          );
           this.closeRoleModal();
+        },
+        error: (err) => {
+          this.isSaving.set(false);
+          const msg = err?.error?.message || err?.message || 'Error al crear el rol';
+          this.snackBar.open(
+            Array.isArray(msg) ? msg.join(', ') : msg,
+            this.transloco.translate('common.close'),
+            { duration: 3500 }
+          );
         }
       });
     }
