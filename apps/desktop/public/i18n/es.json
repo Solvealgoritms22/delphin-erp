@@ -550,6 +550,8 @@
     "saveError": "No se pudo guardar la plantilla.",
     "conflict": "La plantilla fue modificada por otra sesión. Recarga e intenta nuevamente.",
     "livePreview": "Vista previa",
+    "loadingPreview": "Cargando vista previa...",
+    "generatingTemplate": "Generando diseño del correo...",
     "previewDesktop": "Escritorio",
     "previewMobile": "Móvil",
     "accentColor": "Color de acento de marca",

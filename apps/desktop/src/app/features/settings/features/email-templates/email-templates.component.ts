@@ -331,16 +331,26 @@ const PRESET_COLORS = [
                   </div>
 
                   <!-- Frame Container -->
-                  <div class="p-4 sm:p-6 bg-neutral-100/70 dark:bg-neutral-950/80 flex flex-col items-center justify-center min-h-[600px] overflow-hidden">
+                  <div class="relative p-4 sm:p-6 bg-neutral-100/70 dark:bg-neutral-950/80 flex flex-col items-center justify-center min-h-[600px] overflow-hidden">
                     @if (previewHtml()) {
                       <div
-                        class="transition-all duration-300 shadow-md rounded-2xl overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800"
+                        class="relative transition-all duration-300 shadow-md rounded-2xl overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800"
                         [class.w-full]="previewDevice() === 'desktop'"
                         [class.max-w-[420px]]="previewDevice() === 'mobile'"
                         [class.border-4]="previewDevice() === 'mobile'"
                         [class.border-neutral-800]="previewDevice() === 'mobile'"
                         [class.rounded-3xl]="previewDevice() === 'mobile'"
                       >
+                        <!-- Live re-generating overlay spinner -->
+                        @if (previewing()) {
+                          <div class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xs transition-all duration-200">
+                            <div class="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl bg-white/95 dark:bg-neutral-800/95 shadow-xl border border-neutral-200/80 dark:border-neutral-700/80">
+                              <div class="w-8 h-8 rounded-full border-3 border-neutral-200 dark:border-neutral-700 border-t-blue-600 animate-spin"></div>
+                              <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{{ 'emailTemplates.loadingPreview' | transloco }}</span>
+                            </div>
+                          </div>
+                        }
+
                         <!-- Email Header Envelope (De, Para, Asunto) -->
                         <div class="px-5 py-3.5 bg-neutral-50/90 dark:bg-neutral-800/90 border-b border-neutral-200 dark:border-neutral-700/80 text-xs space-y-1.5 select-none">
                           <div class="flex items-center gap-2">
@@ -371,9 +381,25 @@ const PRESET_COLORS = [
                           [srcdoc]="previewHtml()"
                         ></iframe>
                       </div>
+                    } @else if (previewing()) {
+                      <!-- Centered Spinner Container while initial load -->
+                      <div class="flex flex-col items-center justify-center p-8 text-center space-y-4">
+                        <div class="relative flex items-center justify-center">
+                          <div class="w-12 h-12 rounded-full border-3 border-neutral-200 dark:border-neutral-800"></div>
+                          <div class="w-12 h-12 rounded-full border-3 border-blue-600 border-t-transparent animate-spin absolute inset-0"></div>
+                        </div>
+                        <div class="space-y-1">
+                          <p class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                            {{ 'emailTemplates.loadingPreview' | transloco }}
+                          </p>
+                          <p class="text-xs text-neutral-400 dark:text-neutral-500">
+                            {{ 'emailTemplates.generatingTemplate' | transloco }}
+                          </p>
+                        </div>
+                      </div>
                     } @else {
                       <div class="h-64 flex flex-col items-center justify-center text-center p-6 text-neutral-400 space-y-2">
-                        <app-skeleton class="w-full" />
+                        <mat-icon svgIcon="mail" class="!w-10 !h-10 text-neutral-300 dark:text-neutral-700"></mat-icon>
                         <span class="text-xs">{{ 'emailTemplates.previewHint' | transloco }}</span>
                       </div>
                     }
@@ -495,6 +521,7 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
     this.selected.set({...item});
     this.previewSubject.set(item.subject);
     this.previewHtml.set(null);
+    this.previewing.set(true);
     this.triggerPreview(this.selected()!);
   }
 
@@ -518,6 +545,7 @@ export class EmailTemplatesComponent implements OnInit, OnDestroy {
   private triggerPreview(item: Template): void {
     this.previewVersion++;
     this.previewRequest?.unsubscribe();
+    this.previewing.set(true);
     this.previewSubject$.next({...item});
   }
 

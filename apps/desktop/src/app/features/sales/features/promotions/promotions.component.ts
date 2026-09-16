@@ -496,9 +496,10 @@ export class PromotionsComponent implements OnInit {
 
   openDialog(promotion?: Promocion): void {
     const dialogRef = this.dialog.open(PromotionDialogComponent, {
-      width: '680px',
+      width: '700px',
       maxWidth: '95vw',
       panelClass: '!rounded-3xl',
+      autoFocus: false,
       data: {
         promotion: promotion || null,
         isEdit: Boolean(promotion),

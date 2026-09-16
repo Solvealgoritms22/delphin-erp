@@ -133,12 +133,12 @@ export type RolePermissions = {
             <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
 
               <div class="relative flex-auto sm:flex-initial">
-                <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-32 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap cursor-pointer">
+                <button [matMenuTriggerFor]="statusMenu" class="w-full sm:w-auto min-w-[165px] bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between gap-3 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap cursor-pointer">
                   <div class="flex items-center gap-2">
-                    <div class="w-2.5 h-2.5 rounded-full" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div>
-                    {{ (statusFilter() === 'All' ? 'roles.allStatus' : (statusFilter() === 'Active' ? 'common.active' : 'common.inactive')) | transloco }}
+                    <div class="w-2.5 h-2.5 rounded-full shrink-0" [ngClass]="statusFilter() === 'Active' ? 'bg-emerald-500' : (statusFilter() === 'Inactive' ? 'bg-neutral-500' : 'bg-blue-500')"></div>
+                    <span>{{ (statusFilter() === 'All' ? 'roles.allStatus' : (statusFilter() === 'Active' ? 'common.active' : 'common.inactive')) | transloco }}</span>
                   </div>
-                  <i-chevron-down [size]="16" class="text-neutral-500" />
+                  <i-chevron-down [size]="16" class="text-neutral-500 shrink-0 ml-1" />
                 </button>
                 <mat-menu #statusMenu="matMenu">
                   <button mat-menu-item (click)="statusFilter.set('All')">{{ 'roles.allStatus' | transloco }}</button>
@@ -148,9 +148,9 @@ export type RolePermissions = {
               </div>
 
               <div class="relative flex-auto sm:flex-initial">
-                <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-40 bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap cursor-pointer">
-                  <span class="truncate pr-2">{{ getSelectedRoleName() }}</span>
-                  <i-chevron-down [size]="16" class="text-neutral-500 shrink-0" />
+                <button [matMenuTriggerFor]="roleFilterMenu" class="w-full sm:w-auto min-w-[165px] bg-neutral-50 dark:bg-neutral-800 border border-transparent rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center justify-between gap-3 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap cursor-pointer">
+                  <span class="truncate pr-1">{{ getSelectedRoleName() }}</span>
+                  <i-chevron-down [size]="16" class="text-neutral-500 shrink-0 ml-1" />
                 </button>
                 <mat-menu #roleFilterMenu="matMenu">
                   <button mat-menu-item (click)="roleFilter.set('All')">{{ 'roles.allRoles' | transloco }}</button>

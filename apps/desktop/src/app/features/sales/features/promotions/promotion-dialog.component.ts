@@ -50,7 +50,7 @@ export type PromotionDialogData = {
   ],
   template: `
     <div
-      class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
+      class="flex flex-col flex-auto min-w-0 w-full max-h-[88vh] overflow-hidden bg-white dark:bg-neutral-900"
     >
       <!-- Modal Header -->
       <div
@@ -76,7 +76,7 @@ export type PromotionDialogData = {
         <button
           type="button"
           (click)="dialogRef.close()"
-          class="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 hover:text-neutral-700 dark:bg-neutral-800 dark:hover:text-neutral-300 cursor-pointer"
+          class="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 hover:text-neutral-700 dark:bg-neutral-800 dark:hover:text-neutral-300 transition-colors cursor-pointer"
         >
           <mat-icon svgIcon="x" class="icon-size-4"></mat-icon>
         </button>
@@ -86,7 +86,7 @@ export type PromotionDialogData = {
       <form
         [formGroup]="form"
         (ngSubmit)="save()"
-        class="flex flex-col gap-4 overflow-y-auto p-6"
+        class="flex-1 min-h-0 overflow-y-auto px-6 py-5 flex flex-col gap-4"
       >
         <!-- Información General -->
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

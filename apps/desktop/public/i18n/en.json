@@ -550,6 +550,8 @@
     "saveError": "Could not save the template.",
     "conflict": "The template was changed in another session. Reload and try again.",
     "livePreview": "Preview",
+    "loadingPreview": "Loading preview...",
+    "generatingTemplate": "Rendering email design...",
     "previewDesktop": "Desktop",
     "previewMobile": "Mobile",
     "accentColor": "Brand accent color",
