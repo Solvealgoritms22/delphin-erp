@@ -22,6 +22,20 @@ export type PlacePrediction = {
   placeId: string;
 };
 
+export const COUNTRY_CONFIGS: Record<string, { lat: number; lng: number; zoom: number; placeholder: string }> = {
+  DO: { lat: 18.4861, lng: -69.9312, zoom: 15, placeholder: 'Av. 27 de Febrero #123, Ensanche Naco, Santo Domingo' },
+  US: { lat: 37.0902, lng: -95.7129, zoom: 12, placeholder: '1600 Amphitheatre Pkwy, Mountain View, CA' },
+  ES: { lat: 40.4168, lng: -3.7038, zoom: 14, placeholder: 'Calle Gran Vía 28, Madrid' },
+  MX: { lat: 19.4326, lng: -99.1332, zoom: 14, placeholder: 'Av. Paseo de la Reforma 222, CDMX' },
+  CO: { lat: 4.7110, lng: -74.0721, zoom: 14, placeholder: 'Carrera 7 #71-21, Bogotá' },
+  PA: { lat: 8.9824, lng: -79.5199, zoom: 14, placeholder: 'Calle 50, Ciudad de Panamá' },
+  CR: { lat: 9.9281, lng: -84.0907, zoom: 14, placeholder: 'Avenida Central, San José' },
+  GT: { lat: 14.6349, lng: -90.5069, zoom: 14, placeholder: '6a Avenida, Ciudad de Guatemala' },
+  PE: { lat: -12.0464, lng: -77.0428, zoom: 14, placeholder: 'Av. Javier Prado Este, Lima' },
+  CL: { lat: -33.4489, lng: -70.6693, zoom: 14, placeholder: 'Av. Providencia 1234, Santiago' },
+  AR: { lat: -34.6037, lng: -58.3816, zoom: 14, placeholder: 'Av. 9 de Julio, Buenos Aires' },
+};
+
 @Component({
   selector: 'app-address-map-picker',
   standalone: true,
@@ -84,9 +98,9 @@ export type PlacePrediction = {
           </button>
         </div>
 
-        <!-- Menú desplegable de predicciones de Google Places -->
+        <!-- Resultados de autocompletado predictivo -->
         @if (predictions().length > 0) {
-          <div class="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-xl overflow-hidden py-1 max-h-56 overflow-y-auto">
+          <div class="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-xl z-50 overflow-hidden divide-y divide-neutral-100 dark:divide-neutral-800/60 max-h-56 overflow-y-auto">
             @for (item of predictions(); track item.placeId) {
               <button
                 type="button"
@@ -106,19 +120,19 @@ export type PlacePrediction = {
         }
       </div>
 
-      <!-- Contenedor del Mapa (Estilo tarjeta similar a la imagen enviada) -->
+      <!-- Contenedor del Mapa (Estilo tarjeta) -->
       <div class="relative rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-xs bg-neutral-100 dark:bg-neutral-950">
         <!-- Mapa interactivo de Google Maps (Activo cuando hay clave y no hay error) -->
         <div
           #mapContainer
           class="w-full h-[220px] sm:h-[260px] bg-neutral-200 dark:bg-neutral-900"
-          [class.hidden]="mapsError() || !mapsLoader.hasApiKey()"
+          [class.hidden]="mapsError() || !mapsLoader.isLoaded()"
         ></div>
 
         <!-- Placeholder con imagen del mapa en blanco y negro y letras pequeñas en la esquina 'Mapa no disponible' -->
-        @if (mapsError() || !mapsLoader.hasApiKey()) {
+        @if ((mapsError() || !mapsLoader.isLoaded()) && !loadingMap()) {
           <div class="relative w-full h-[220px] sm:h-[260px] overflow-hidden select-none bg-neutral-100 dark:bg-neutral-950">
-            <!-- Imagen mapa blanco y negro (estilo vector/callejero solicitado) -->
+            <!-- Imagen mapa blanco y negro -->
             <img
               src="images/map-placeholder.png"
               alt="Mapa"
@@ -133,7 +147,7 @@ export type PlacePrediction = {
         }
 
         <!-- Indicador de carga de geocodificación o mapa -->
-        @if ((loadingMap() || geocoding()) && !mapsError() && mapsLoader.hasApiKey()) {
+        @if (loadingMap() || geocoding()) {
           <div class="absolute inset-0 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center z-10">
             <div class="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-md text-xs font-medium text-neutral-700 dark:text-neutral-200">
               <svg class="animate-spin h-3.5 w-3.5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -144,33 +158,36 @@ export type PlacePrediction = {
             </div>
           </div>
         }
-
-        <!-- Botón flotante inferior derecho para Abrir en Google Maps (Solo si el mapa está activo) -->
-        @if (!mapsError() && mapsLoader.hasApiKey()) {
-          <button
-            type="button"
-            (click)="openInGoogleMaps()"
-            matTooltip="Abrir en Google Maps"
-            class="absolute bottom-3 right-3 z-20 size-10 rounded-full bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-700 dark:text-white border border-neutral-200 dark:border-neutral-700 shadow-lg flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
-        }
       </div>
 
-      <!-- Tarjeta de Dirección Formateada (Debajo del mapa, igual a la captura de pantalla) -->
+      <!-- Tarjeta de Dirección Formateada (Debajo del mapa) -->
       <div class="space-y-1.5">
         <div class="flex items-center justify-between">
           <label class="block text-2xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             Dirección seleccionada
           </label>
-          @if (formattedAddress()) {
-            <span class="text-[10px] text-neutral-400 font-mono">
-              {{ currentCoords().lat.toFixed(5) }}, {{ currentCoords().lng.toFixed(5) }}
-            </span>
-          }
+          <div class="flex items-center gap-2.5">
+            @if (formattedAddress()) {
+              <span class="text-[10px] text-neutral-400 font-mono">
+                {{ currentCoords().lat.toFixed(5) }}, {{ currentCoords().lng.toFixed(5) }}
+              </span>
+            }
+            @if (mapsLoader.isLoaded() && !mapsError() && formattedAddress()) {
+              <button
+                type="button"
+                (click)="openInGoogleMaps()"
+                matTooltip="Abrir en Google Maps"
+                class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <span>Ver en Google Maps</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </button>
+            }
+          </div>
         </div>
 
         @if (!isEditingAddress()) {
@@ -249,8 +266,35 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('searchInput') searchInputElement?: ElementRef<HTMLInputElement>;
 
-  @Input() placeholder = 'Av. 27 de Febrero #123, Ensanche Naco, Santo Domingo';
+  private _countryCode = 'DO';
+  @Input() set countryCode(code: string) {
+    const cleanCode = (code || 'DO').toUpperCase();
+    this._countryCode = cleanCode;
+    const config = COUNTRY_CONFIGS[cleanCode] || COUNTRY_CONFIGS['DO'];
+    this.defaultCoords = { lat: config.lat, lng: config.lng };
+    if (!this.formattedAddress()) {
+      this.currentCoords.set(this.defaultCoords);
+      if (this.map) {
+        this.map.setCenter(this.defaultCoords);
+        this.map.setZoom(config.zoom);
+        if (this.marker) {
+          this.marker.setPosition(this.defaultCoords);
+        }
+      }
+    }
+  }
+  get countryCode(): string {
+    return this._countryCode;
+  }
+
+  @Input() placeholder?: string;
   @Input() defaultCoords: LatLngCoords = { lat: 18.4861, lng: -69.9312 }; // Santo Domingo, RD
+
+  get activePlaceholder(): string {
+    if (this.placeholder) return this.placeholder;
+    const config = COUNTRY_CONFIGS[this.countryCode] || COUNTRY_CONFIGS['DO'];
+    return config.placeholder;
+  }
 
   searchQuery = '';
   readonly formattedAddress = signal<string>('');
@@ -274,6 +318,8 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
   private onTouched: () => void = () => { };
 
   ngOnInit(): void {
+    const config = COUNTRY_CONFIGS[this.countryCode] || COUNTRY_CONFIGS['DO'];
+    this.defaultCoords = { lat: config.lat, lng: config.lng };
     this.currentCoords.set(this.defaultCoords);
     this.initMap();
   }
@@ -308,13 +354,15 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
   }
 
   private async initMap(): Promise<void> {
-    if (!this.mapsLoader.hasApiKey()) {
-      return;
-    }
-
     this.loadingMap.set(true);
+    this.mapsError.set(false);
+
     try {
       const googleMaps = await this.mapsLoader.load();
+      if (!googleMaps) {
+        throw new Error('Google Maps no disponible');
+      }
+
       this.mapsError.set(false);
 
       const center = this.currentCoords();
@@ -327,6 +375,14 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
         zoomControl: true,
         clickableIcons: true,
       });
+
+      // Aseguramos que el contenedor calcule dimensiones una vez visible
+      setTimeout(() => {
+        if (this.map && (window as any).google?.maps?.event) {
+          (window as any).google.maps.event.trigger(this.map, 'resize');
+          this.map.setCenter(this.currentCoords());
+        }
+      }, 150);
 
       // Marcador de pin rojo arrastrable
       this.marker = new googleMaps.Marker({
@@ -411,6 +467,7 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
       this.autocompleteService.getPlacePredictions(
         {
           input: query,
+          componentRestrictions: { country: (this.countryCode || 'DO').toLowerCase() },
           locationBias: this.map ? this.map.getBounds() : undefined,
         },
         (predictions: any[], status: string) => {
@@ -470,7 +527,7 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
     const query = this.searchQuery.trim();
     if (!query) return;
     this.predictions.set([]);
-    if (!this.mapsLoader.hasApiKey() || this.mapsError()) {
+    if (!this.mapsLoader.isLoaded() || this.mapsError()) {
       this.formattedAddress.set(query);
       this.manualAddressInput = query;
       this.onChange(query);
@@ -483,7 +540,7 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
   private async geocodeAndCenter(address: string): Promise<void> {
     this.geocoding.set(true);
     try {
-      const res = await this.mapsLoader.geocodeAddress(address);
+      const res = await this.mapsLoader.geocodeAddress(address, this.countryCode);
       if (res) {
         this.currentCoords.set({ lat: res.lat, lng: res.lng });
         if (this.marker) this.marker.setPosition({ lat: res.lat, lng: res.lng });
@@ -511,7 +568,7 @@ export class AddressMapPickerComponent implements OnInit, OnDestroy, ControlValu
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        if (this.mapsLoader.hasApiKey() && !this.mapsError()) {
+        if (this.mapsLoader.isLoaded() && !this.mapsError()) {
           await this.updateLocation(lat, lng);
         } else {
           const coordsStr = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;

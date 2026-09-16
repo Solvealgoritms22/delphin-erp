@@ -147,13 +147,18 @@ export class GoogleMapsLoaderService {
     });
   }
 
-  async geocodeAddress(address: string): Promise<GeocodeResult | null> {
+  async geocodeAddress(address: string, countryCode?: string): Promise<GeocodeResult | null> {
     if (!address.trim()) return null;
     const maps = await this.load();
     const geocoder = new maps.Geocoder();
 
+    const request: any = { address };
+    if (countryCode?.trim()) {
+      request.componentRestrictions = { country: countryCode.trim().toLowerCase() };
+    }
+
     return new Promise<GeocodeResult | null>((resolve) => {
-      geocoder.geocode({ address }, (results: any[], status: string) => {
+      geocoder.geocode(request, (results: any[], status: string) => {
         if (status === 'OK' && results && results.length > 0) {
           const loc = results[0].geometry.location;
           resolve({
