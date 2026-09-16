@@ -1,18 +1,19 @@
 :host {
-  --paper: #fafaf8;
-  --ink: #171918;
-  --muted: #6c706e;
-  --line: #dedfdb;
-  --surface: #f0f1ed;
+  --paper: #fafaf8 !important;
+  --ink: #171918 !important;
+  --muted: #6c706e !important;
+  --line: #dedfdb !important;
+  --surface: #f0f1ed !important;
   display: block !important;
   height: 100%;
   overflow: auto !important;
   scroll-behavior: smooth;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--paper) !important;
+  color: var(--ink) !important;
   font-family: Geist, Arial, sans-serif;
   font-weight: 400;
   line-height: 1.5;
+  color-scheme: light !important;
 }
 * {
   box-sizing: border-box;
@@ -77,17 +78,6 @@ section {
   width: auto;
   object-fit: contain;
   flex-shrink: 0;
-  display: block;
-}
-.brand-dolphin.dark-visible {
-  display: none;
-}
-:host-context(.scheme-dark) .brand-dolphin.dark-hidden,
-:host-context(.dark) .brand-dolphin.dark-hidden {
-  display: none;
-}
-:host-context(.scheme-dark) .brand-dolphin.dark-visible,
-:host-context(.dark) .brand-dolphin.dark-visible {
   display: block;
 }
 .brand-symbol {
@@ -338,17 +328,6 @@ section {
   object-fit: contain;
   filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.1));
 }
-.hero-badge-dolphin.dark-visible {
-  display: none;
-}
-:host-context(.scheme-dark) .hero-badge-dolphin.dark-hidden,
-:host-context(.dark) .hero-badge-dolphin.dark-hidden {
-  display: none;
-}
-:host-context(.scheme-dark) .hero-badge-dolphin.dark-visible,
-:host-context(.dark) .hero-badge-dolphin.dark-visible {
-  display: block;
-}
 
 /* App Name */
 .hero-app-name {
@@ -433,59 +412,6 @@ section {
   color: var(--muted);
   margin: 20px 0 0;
 }
-
-/* Dark mode adjustments */
-:host-context(.scheme-dark) .hero-app-badge,
-:host-context(.dark) .hero-app-badge {
-  background: linear-gradient(155deg, #334155 0%, #1e293b 60%, #0f172a 100%);
-  border: none;
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.4),
-    0 14px 28px -6px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-}
-:host-context(.scheme-dark) .fluid-canvas-wrap,
-:host-context(.dark) .fluid-canvas-wrap {
-  filter: blur(95px);
-}
-:host-context(.scheme-dark) .fluid-blob-1,
-:host-context(.dark) .fluid-blob-1 {
-  background: radial-gradient(circle at center, rgba(37, 99, 235, 0.45) 0%, rgba(29, 78, 216, 0.3) 45%, transparent 75%);
-}
-:host-context(.scheme-dark) .fluid-blob-2,
-:host-context(.dark) .fluid-blob-2 {
-  background: radial-gradient(circle at center, rgba(124, 58, 237, 0.45) 0%, rgba(91, 33, 182, 0.25) 45%, transparent 75%);
-}
-:host-context(.scheme-dark) .fluid-blob-3,
-:host-context(.dark) .fluid-blob-3 {
-  background: radial-gradient(circle at center, rgba(14, 165, 233, 0.4) 0%, rgba(3, 105, 161, 0.25) 50%, transparent 75%);
-}
-:host-context(.scheme-dark) .fluid-blob-4,
-:host-context(.dark) .fluid-blob-4 {
-  background: radial-gradient(circle at center, rgba(79, 70, 229, 0.35) 0%, rgba(67, 56, 202, 0.2) 50%, transparent 75%);
-}
-:host-context(.scheme-dark) .fluid-blob-5,
-:host-context(.dark) .fluid-blob-5 {
-  background: radial-gradient(circle at center, rgba(56, 189, 248, 0.3) 0%, transparent 70%);
-}
-:host-context(.scheme-dark) .fluid-overlay,
-:host-context(.dark) .fluid-overlay {
-  background:
-    radial-gradient(ellipse at 50% 40%, transparent 20%, rgba(21, 24, 23, 0.4) 65%, var(--paper) 100%),
-    linear-gradient(to bottom, rgba(21, 24, 23, 0.2) 0%, transparent 40%, rgba(21, 24, 23, 0.8) 80%, var(--paper) 100%);
-}
-:host-context(.scheme-dark) .hero-download-btn,
-:host-context(.dark) .hero-download-btn {
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 8px 24px -4px rgba(255, 255, 255, 0.15);
-}
-:host-context(.scheme-dark) .hero-download-btn:hover,
-:host-context(.dark) .hero-download-btn:hover {
-  background: #f1f5f9;
-  color: #0f172a;
-  box-shadow: 0 12px 30px -4px rgba(255, 255, 255, 0.25);
-}
 .capability-strip {
   padding: 36px 6%;
   display: flex;
@@ -515,11 +441,6 @@ section {
   color: #0f172a;
   flex-shrink: 0;
   transition: transform 0.2s ease, opacity 0.2s ease;
-}
-:host-context(.scheme-dark) .capability-icon,
-:host-context(.dark) .capability-icon {
-  stroke: url(#capability-gradient-dark) #f8fafc;
-  color: #f8fafc;
 }
 .section {
   max-width: 1200px;
@@ -932,30 +853,6 @@ section {
   -webkit-user-drag: none;
 }
 
-:host-context(.scheme-dark) .showcase-ui-frame,
-:host-context(.dark) .showcase-ui-frame {
-  background: #0f172a;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.55);
-}
-
-:host-context(.scheme-dark) .showcase-screenshot,
-:host-context(.dark) .showcase-screenshot {
-  opacity: 0.96;
-}
-
-:host-context(.scheme-dark) .showcase-tag,
-:host-context(.dark) .showcase-tag {
-  color: #60a5fa;
-}
-
-:host-context(.scheme-dark) .feat-check,
-:host-context(.dark) .feat-check {
-  background: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-}
-
 /* ==========================================================================
    03 / Historias de éxito (Testimonios)
    ========================================================================== */
@@ -1196,73 +1093,6 @@ footer > span {
     opacity: 0;
   }
 }
-:host-context(.scheme-dark) {
-  --paper: #151817;
-  --ink: #f5f6f2;
-  --muted: #a2aaa5;
-  --line: #363d39;
-  --surface: #202623;
-}
-.dark .primary:hover {
-  color: white;
-}
-
-/* Dark mode overrides for Showcase & Mockups */
-:host-context(.scheme-dark) .showcase-visual,
-:host-context(.dark) .showcase-visual {
-  background: #171b1a;
-  border-color: var(--line);
-  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.5);
-}
-
-:host-context(.scheme-dark) .canvas-violet .blob-1,
-:host-context(.dark) .canvas-violet .blob-1 {
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.45) 0%, rgba(124, 58, 237, 0.2) 60%, transparent 80%);
-}
-:host-context(.scheme-dark) .canvas-violet .blob-2,
-:host-context(.dark) .canvas-violet .blob-2 {
-  background: radial-gradient(circle, rgba(129, 140, 248, 0.4) 0%, rgba(139, 92, 246, 0.2) 60%, transparent 80%);
-}
-
-:host-context(.scheme-dark) .canvas-cyan .blob-1,
-:host-context(.dark) .canvas-cyan .blob-1 {
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, rgba(14, 165, 233, 0.25) 60%, transparent 80%);
-}
-:host-context(.scheme-dark) .canvas-cyan .blob-2,
-:host-context(.dark) .canvas-cyan .blob-2 {
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(37, 99, 235, 0.2) 60%, transparent 80%);
-}
-
-:host-context(.scheme-dark) .canvas-indigo .blob-1,
-:host-context(.dark) .canvas-indigo .blob-1 {
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(79, 70, 229, 0.25) 60%, transparent 80%);
-}
-:host-context(.scheme-dark) .canvas-indigo .blob-2,
-:host-context(.dark) .canvas-indigo .blob-2 {
-  background: radial-gradient(circle, rgba(192, 132, 252, 0.4) 0%, rgba(147, 51, 234, 0.2) 60%, transparent 80%);
-}
-
-:host-context(.scheme-dark) .canvas-amber .blob-1,
-:host-context(.dark) .canvas-amber .blob-1 {
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, rgba(217, 119, 6, 0.22) 60%, transparent 80%);
-}
-:host-context(.scheme-dark) .canvas-amber .blob-2,
-:host-context(.dark) .canvas-amber .blob-2 {
-  background: radial-gradient(circle, rgba(239, 68, 68, 0.35) 0%, rgba(244, 63, 94, 0.18) 60%, transparent 80%);
-}
-
-:host-context(.scheme-dark) .testimonial-card,
-:host-context(.dark) .testimonial-card {
-  background: #191e1d;
-  border-color: var(--line);
-}
-
-:host-context(.scheme-dark) .testimonial-card:hover,
-:host-context(.dark) .testimonial-card:hover {
-  border-color: rgba(96, 165, 250, 0.35);
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.4);
-}
-
 @media (min-width: 1600px) {
   .hero {
     padding: 120px 24px 110px;

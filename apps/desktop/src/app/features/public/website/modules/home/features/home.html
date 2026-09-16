@@ -1,18 +1,14 @@
 <ng-container *transloco="let t; prefix: 'landing'">
   <a class="skip" href="#main">{{ t('skip') }}</a>
   <header class="nav">
-    <a class="brand" href="#main" aria-label="Dolphine ERP"
-      ><img
+    <a class="brand" href="#main" aria-label="Dolphine ERP">
+      <img
         src="/images/logo/logo_dolphin_light.png"
-        class="brand-dolphin dark-hidden"
-        alt=""
-      /><img
-        src="/images/logo/logo_dolphin_dark.png"
-        class="brand-dolphin dark-visible"
-        alt=""
+        class="brand-dolphin"
+        alt="Dolphine ERP"
       />
-      dolphine<span class="brand-erp">ERP</span></a
-    >
+      dolphine<span class="brand-erp">ERP</span>
+    </a>
     <nav class="desktop-nav" [attr.aria-label]="t('navigation')">
       <a href="#product">{{ t('product') }}</a>
       <a href="#showcase">{{ t('showcaseNav') }}</a>
@@ -69,12 +65,7 @@
             <img
               src="/images/logo/logo_dolphin_light.png"
               alt="Dolphine ERP"
-              class="hero-badge-dolphin dark-hidden"
-            />
-            <img
-              src="/images/logo/logo_dolphin_dark.png"
-              alt="Dolphine ERP"
-              class="hero-badge-dolphin dark-visible"
+              class="hero-badge-dolphin"
             />
           </div>
         </div>
@@ -270,12 +261,8 @@
           <div class="flow-hub">
             <img
               src="/images/logo/logo_dolphin_light.png"
-              class="brand-dolphin dark-hidden"
-              alt=""
-            /><img
-              src="/images/logo/logo_dolphin_dark.png"
-              class="brand-dolphin dark-visible"
-              alt=""
+              class="brand-dolphin"
+              alt="Dolphine ERP"
             />
             dolphine
           </div>
@@ -568,21 +555,14 @@
     </section>
   </main>
   <footer>
-    <a class="brand" href="#main"
-      ><img
+    <a class="brand" href="#main">
+      <img
         src="/images/logo/logo_dolphin_light.png"
-        class="brand-dolphin dark-hidden"
-        alt=""
-      /><img
-        src="/images/logo/logo_dolphin_dark.png"
-        class="brand-dolphin dark-visible"
-        alt=""
+        class="brand-dolphin"
+        alt="Dolphine ERP"
       />
-      dolphine<span
-        class="brand-erp"
-        >ERP</span
-      ></a
-    >
+      dolphine<span class="brand-erp">ERP</span>
+    </a>
     <p>{{ t('footer') }}</p>
     <div class="footer-socials" [attr.aria-label]="t('socialLinks')">
       <a
