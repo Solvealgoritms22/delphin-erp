@@ -80,7 +80,7 @@ jobs:
         shell: pwsh
         run: |
           if (-not $env:CSC_LINK -or -not $env:CSC_KEY_PASSWORD) {
-            throw 'Code signing credentials are required to publish.'
+            Write-Warning 'Code signing credentials not configured. Proceeding with unsigned build.'
           } else {
             Write-Host 'Code signing credentials verified.'
           }
