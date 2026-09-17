@@ -163,9 +163,6 @@ const ACTION_CONFIG: Record<string, { label: string; verb: string; bg: string; t
             <div class="flex items-center gap-2 text-sm text-neutral-500">
                <span class="select-none">{{ 'activity.autoRefresh' | transloco }}</span>
               <mat-slide-toggle [(ngModel)]="autoRefresh" (change)="onAutoRefreshChange()" color="primary" />
-              @if (autoRefresh) {
-                 <span class="text-xs text-blue-500 animate-pulse">● {{ 'activity.live' | transloco }}</span>
-              }
             </div>
           </div>
 
